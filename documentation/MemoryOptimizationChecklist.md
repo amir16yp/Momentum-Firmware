@@ -39,6 +39,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] External 2048: remove leaked temporary game-over allocation.
 - [x] Firmware storage: remove duplicate per-file deletion paths.
 - [x] Firmware dialogs: avoid an unused base-path allocation.
+- [x] Resource extraction: reuse copy/path workspaces and compressed-seek scratch space.
 - [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -118,3 +119,29 @@ selection and cancellation use the same cleanup. This avoids one 12-byte
 ARM firmware and SDK checks pass; formatting and the downstream browser/worker
 lifetimes were reviewed. `.data` remains 640 and `.bss` 4972. This saves dynamic
 memory, not static RAM; actual hardware peak-heap comparisons remain pending.
+
+## Completed: resource extraction and decompression workspace
+
+Tar extraction reuses one 10 KB copy buffer across accepted files and one output
+path string across entries. Filename conversion gets a scratch string only when
+a converter is supplied. The immutable archive size is queried once per unpack
+operation rather than after every output chunk. Output files are still closed
+between entries, and negative reads or partial writes now fail extraction.
+
+Compressed tar forward seeks discard data through microtar's existing 512-byte
+raw-header buffer. The parsed header lives separately, and raw-header bytes are
+not used during seeks. This removes the previous temporary 10 KB allocation for
+each padding/skip seek, without a new decode buffer or a larger thread stack.
+The compressed stream gains one pointer to its tar reader. Large skipped files
+are discarded in 512-byte chunks; their device timing still needs measurement.
+The gzip/heatshrink formats, dictionaries and compression settings are unchanged.
+
+`python -m unittest scripts.tests.test_tar_extraction` compiles the production
+extraction/seek code with the actual microtar parser and uzlib gzip decoder.
+The mock output disk verifies every byte for 0/1/511/512/513/25001-byte files,
+a skipped 23001-byte file, repeated extraction, conversion and single-file lookup.
+It injects open/read/write/mkdir failures and checks allocation cleanup.
+Six output files use one copy-buffer allocation; seven write chunks use one
+archive-size query. These are operation-count improvements, not measured SD-card
+speedups. Hardware elapsed time, heap minimum and cancellation tests remain pending.
+Both `firmware_all` and `updater_all` ARM builds pass, including SDK checks.
