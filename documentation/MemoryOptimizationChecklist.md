@@ -38,6 +38,8 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Establish linked baseline and repeatable section/symbol/stack-reference capture.
 - [x] External 2048: remove leaked temporary game-over allocation.
 - [x] Firmware storage: remove duplicate per-file deletion paths.
+- [x] Firmware dialogs: avoid an unused base-path allocation.
+- [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
 - [ ] Inventory and measure every worker stack; reduce only with observed margin.
@@ -103,3 +105,16 @@ path objects. Final snapshots are in `build/memory-final-{firmware,2048}.json`.
 The initial raw map/snapshot files were removed by an external build-directory
 cleanup during this pass; the baseline section values above were recorded before
 that cleanup. Future passes should retain raw baselines outside a cleaned build tree.
+
+## Completed: optional file-browser base path
+
+The dialog now allocates a base-path string only when the caller supplies one.
+Otherwise it passes the same empty path as a static literal. Supplied paths still
+undergo alias resolution and remain alive until the dialog service finishes;
+selection and cancellation use the same cleanup. This avoids one 12-byte
+`FuriString` object plus allocator overhead for the entire default dialog lifetime
+(object size confirmed in the ARM `furi_string_alloc` disassembly).
+
+ARM firmware and SDK checks pass; formatting and the downstream browser/worker
+lifetimes were reviewed. `.data` remains 640 and `.bss` 4972. This saves dynamic
+memory, not static RAM; actual hardware peak-heap comparisons remain pending.
