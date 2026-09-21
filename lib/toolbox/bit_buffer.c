@@ -5,10 +5,10 @@
 #define BITS_IN_BYTE (8)
 
 struct BitBuffer {
-    uint8_t* data;
     uint8_t* parity;
     size_t capacity_bytes;
     size_t size_bits;
+    uint8_t data[];
 };
 
 BitBuffer* bit_buffer_alloc(size_t capacity_bytes) {
@@ -16,10 +16,10 @@ BitBuffer* bit_buffer_alloc(size_t capacity_bytes) {
     furi_check(capacity_bytes <= SIZE_MAX / BITS_IN_BYTE);
 
     size_t parity_buf_size = (capacity_bytes + BITS_IN_BYTE - 1) / BITS_IN_BYTE;
-    BitBuffer* buf = malloc(sizeof(BitBuffer));
+    furi_check(capacity_bytes <= SIZE_MAX - sizeof(BitBuffer) - parity_buf_size);
+    BitBuffer* buf = malloc(sizeof(BitBuffer) + capacity_bytes + parity_buf_size);
 
-    buf->data = malloc(capacity_bytes);
-    buf->parity = malloc(parity_buf_size);
+    buf->parity = buf->data + capacity_bytes;
     buf->capacity_bytes = capacity_bytes;
     buf->size_bits = 0;
 
@@ -29,8 +29,6 @@ BitBuffer* bit_buffer_alloc(size_t capacity_bytes) {
 void bit_buffer_free(BitBuffer* buf) {
     furi_check(buf);
 
-    free(buf->data);
-    free(buf->parity);
     free(buf);
 }
 

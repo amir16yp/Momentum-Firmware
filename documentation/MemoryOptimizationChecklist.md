@@ -42,6 +42,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Resource extraction: reuse copy/path workspaces and compressed-seek scratch space.
 - [x] Resource extraction: skip unchanged progress percentages.
 - [x] Shared bit buffers: reject unsafe lengths and prevent reads past valid data.
+- [x] Shared bit buffers: consolidate context, data and parity into one allocation.
 - [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -181,3 +182,25 @@ inputs, overflowing slices, cleanup and allocation canaries. The same test passe
 with AddressSanitizer enabled by `BIT_BUFFER_ASAN=1`. Firmware and updater ARM
 builds and SDK checks pass. Hardware NFC interoperability and heap measurements
 remain pending.
+
+## Completed: contiguous bit-buffer storage
+
+The opaque context now owns its byte data and parity in one allocation instead
+of three. A flexible array removes the data pointer, reducing the ARM context
+from 16 to 12 bytes; ARM disassembly confirms the new offset and single malloc.
+No extra stack or static buffer is introduced, and the public API is unchanged.
+Allocation sizes are checked before calculating the combined request.
+
+With the current allocator's 8-byte block header and 8-byte alignment, a 32-byte
+buffer requires 56 rather than 80 heap bytes, and a 256-byte buffer requires 312
+rather than 328 bytes, assuming normal block splitting. These are calculated
+allocation costs, not hardware peak-heap readings; unsplittable free-block tails
+and fragmentation can affect actual consumption. Each lifecycle also removes
+two malloc/free pairs.
+
+The 900-cycle host regression now asserts exactly one allocation and no retained
+bytes after each free, and passes with AddressSanitizer. Firmware and updater
+ARM builds and SDK checks pass. Compared with the saved pre-pass firmware ELF,
+`.text` changes from 656768 to 656832 bytes; `.rodata` stays 181156, `.data` 640
+and `.bss` 4972. This is a dynamic allocation optimization, not a static RAM
+reduction. Before/after ELF and map files are retained in `.memory-audit/`.

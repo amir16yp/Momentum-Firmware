@@ -61,8 +61,8 @@ static void tracked_free(void* data) {
 static void test_capacity(size_t capacity) {
     size_t previous = allocations;
     BitBuffer* buffer = bit_buffer_alloc(capacity);
-    assert(allocations == previous + 3);
-    assert(live_allocations == 3);
+    assert(allocations == previous + 1);
+    assert(live_allocations == 1);
     assert(live_bytes == sizeof(BitBuffer) + capacity + (capacity + 7) / 8);
     assert(bit_buffer_get_capacity_bytes(buffer) == capacity);
     assert(bit_buffer_get_size(buffer) == 0);
