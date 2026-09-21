@@ -99,11 +99,90 @@ static int FATFS_LinkDriver(const int* driver, char* path) {
     return 0;
 }
 
-#define malloc tracked_malloc
-#define strdup test_strdup
+static size_t image_position;
+static size_t transfer_calls;
+static size_t seek_calls;
+static size_t fail_transfer = SIZE_MAX;
+static bool fail_seek;
+static bool storage_ext_file_seek(void* storage, void* file, uint32_t offset, bool from_start) {
+    (void)storage;
+    (void)file;
+    assert(from_start);
+    seek_calls++;
+    image_position = offset;
+    return !fail_seek;
+}
+static uint16_t storage_ext_file_read(void* storage, void* file, void* data, uint16_t size) {
+    (void)storage;
+    (void)file;
+    assert(size && size % 512 == 0 && image_position + size <= sizeof(disk_data));
+    if(transfer_calls++ == fail_transfer) return size - 1;
+    memcpy(data, disk_data + image_position, size);
+    image_position += size;
+    return size;
+}
+static uint16_t
+    storage_ext_file_write(void* storage, void* file, const void* data, uint16_t size) {
+    (void)storage;
+    (void)file;
+    assert(size && size % 512 == 0 && image_position + size <= sizeof(disk_data));
+    if(transfer_calls++ == fail_transfer) return size - 1;
+    memcpy(disk_data + image_position, data, size);
+    image_position += size;
+    return size;
+}
+#define UNUSED(value)   (void)(value)
+#define MIN(a, b)       ((a) < (b) ? (a) : (b))
+#define SCSI_BLOCK_SIZE 512UL
+#define malloc          tracked_malloc
+#define strdup          test_strdup
 /* PRODUCTION_CODE */
 #undef malloc
 #undef strdup
+
+static void test_transfers(void) {
+    const UINT counts[] = {1, 127, 128, 129, 257};
+    uint8_t* data = malloc(257 * 512);
+    assert(data);
+    for(size_t c = 0; c < sizeof(counts) / sizeof(counts[0]); c++) {
+        const size_t size = counts[c] * 512U;
+        for(size_t i = 0; i < size; i++)
+            data[i] = (uint8_t)(i * 13 + i / 512);
+        seek_calls = transfer_calls = 0;
+        assert(mnt_driver_write(1, data, 7, counts[c]) == RES_OK);
+        assert(seek_calls == 1 && transfer_calls == (counts[c] + 126U) / 127U);
+        assert(memcmp(disk_data + 7 * 512, data, size) == 0);
+        memset(data, 0, size);
+        seek_calls = transfer_calls = 0;
+        assert(mnt_driver_read(1, data, 7, counts[c]) == RES_OK);
+        assert(seek_calls == 1 && transfer_calls == (counts[c] + 126U) / 127U);
+        for(size_t i = 0; i < size; i++)
+            assert(data[i] == (uint8_t)(i * 13 + i / 512));
+    }
+    for(size_t failure = 0; failure < 3; failure++) {
+        fail_transfer = failure;
+        transfer_calls = 0;
+        assert(mnt_driver_read(1, data, 7, 257) == RES_ERROR);
+        assert(transfer_calls == failure + 1);
+        transfer_calls = 0;
+        assert(mnt_driver_write(1, data, 7, 257) == RES_ERROR);
+        assert(transfer_calls == failure + 1);
+    }
+    fail_transfer = SIZE_MAX;
+    fail_seek = true;
+    transfer_calls = 0;
+    assert(mnt_driver_read(1, data, 7, 128) == RES_ERROR);
+    assert(mnt_driver_write(1, data, 7, 128) == RES_ERROR);
+    assert(transfer_calls == 0);
+    fail_seek = false;
+    seek_calls = 0;
+    assert(mnt_driver_read(1, NULL, 0, 0) == RES_PARERR);
+    assert(mnt_driver_write(1, NULL, 0, 0) == RES_PARERR);
+    assert(mnt_driver_read(1, NULL, UINT32_MAX / 512 + 1, 1) == RES_PARERR);
+    assert(mnt_driver_write(1, NULL, UINT32_MAX / 512 + 1, 1) == RES_PARERR);
+    assert(seek_calls == 0);
+    free(data);
+}
 
 int main(void) {
     StorageData storage = {.status = StorageStatusNotReady};
@@ -155,6 +234,7 @@ int main(void) {
     free(storage.data->fs);
     free((void*)storage.data->path);
     free(storage.data);
+    test_transfers();
     puts("FatFs: deferred allocation, failed mounts, 100 real mount/file/unmount cycles passed");
     return 0;
 }

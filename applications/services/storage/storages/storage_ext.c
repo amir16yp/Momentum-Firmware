@@ -908,12 +908,20 @@ static DSTATUS mnt_driver_status(BYTE pdrv) {
   */
 static DRESULT mnt_driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
+    if(!count || sector > UINT32_MAX / SCSI_BLOCK_SIZE) return RES_PARERR;
     if(!storage_ext_file_seek(mnt_image_storage, mnt_image, sector * SCSI_BLOCK_SIZE, true)) {
         return RES_ERROR;
     }
-    size_t size = count * SCSI_BLOCK_SIZE;
-    size_t read = storage_ext_file_read(mnt_image_storage, mnt_image, buff, size);
-    return read == size ? RES_OK : RES_ERROR;
+    while(count) {
+        const UINT sectors = MIN(count, UINT16_MAX / SCSI_BLOCK_SIZE);
+        const uint16_t size = sectors * SCSI_BLOCK_SIZE;
+        if(storage_ext_file_read(mnt_image_storage, mnt_image, buff, size) != size) {
+            return RES_ERROR;
+        }
+        buff += size;
+        count -= sectors;
+    }
+    return RES_OK;
 }
 
 /**
@@ -926,12 +934,20 @@ static DRESULT mnt_driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) 
   */
 static DRESULT mnt_driver_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
+    if(!count || sector > UINT32_MAX / SCSI_BLOCK_SIZE) return RES_PARERR;
     if(!storage_ext_file_seek(mnt_image_storage, mnt_image, sector * SCSI_BLOCK_SIZE, true)) {
         return RES_ERROR;
     }
-    size_t size = count * SCSI_BLOCK_SIZE;
-    size_t wrote = storage_ext_file_write(mnt_image_storage, mnt_image, buff, size);
-    return wrote == size ? RES_OK : RES_ERROR;
+    while(count) {
+        const UINT sectors = MIN(count, UINT16_MAX / SCSI_BLOCK_SIZE);
+        const uint16_t size = sectors * SCSI_BLOCK_SIZE;
+        if(storage_ext_file_write(mnt_image_storage, mnt_image, buff, size) != size) {
+            return RES_ERROR;
+        }
+        buff += size;
+        count -= sectors;
+    }
+    return RES_OK;
 }
 
 /**

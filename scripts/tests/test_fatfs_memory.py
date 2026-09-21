@@ -14,6 +14,7 @@ class FatfsMemoryTest(unittest.TestCase):
         source = (root / "applications/services/storage/storages/storage_ext.c").read_text()
         lifetime = source[source.index("FS_Error storage_process_virtual_mount("):source.index("static DSTATUS mnt_driver_initialize(")]
         init = source[source.index("void storage_mnt_init("):]
+        drivers = source[source.index("static DRESULT mnt_driver_read("):source.index("static DRESULT mnt_driver_ioctl(")]
         harness = (Path(__file__).parent / "fatfs_memory.c").read_text()
         compiler = shutil.which("clang") or shutil.which("gcc")
         self.assertIsNotNone(compiler)
@@ -24,7 +25,7 @@ class FatfsMemoryTest(unittest.TestCase):
             # Use the firmware's fixed-width FatFs types, not Windows' UINT/DWORD.
             integer = directory / "embedded_integer.h"
             integer.write_text((root / "lib/fatfs/integer.h").read_text().replace("#ifdef _WIN32", "#if 0"))
-            test.write_text(harness.replace("/* PRODUCTION_CODE */", lifetime + init))
+            test.write_text(harness.replace("/* PRODUCTION_CODE */", lifetime + init + drivers))
             flags = ["-fsanitize=address", "-g"] if os.environ.get("FATFS_ASAN") else []
             subprocess.run([compiler, "-std=c11", *flags, "-include", str(integer),
                             "-I", str(root / "lib/fatfs"), "-I", str(root / "targets/f7/fatfs"),

@@ -53,6 +53,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] JavaScript event queues: release rejected messages and their GC roots.
 - [x] JavaScript event queues: free pending message holders during module teardown.
 - [x] FatFs virtual volume: allocate its filesystem object only on first mount.
+- [x] FatFs virtual disk I/O: split transfers at the storage API's 16-bit limit.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -375,3 +376,18 @@ cycles and stale-file validation pass with AddressSanitizer. No filesystem objec
 is allocated before a valid mount attempt, and subsequent attempts reuse it.
 Firmware/updater builds and SDK checks pass; static RAM remains 640 bytes `.data`
 and 4972 bytes `.bss`. Hardware throughput and peak-heap tests remain pending.
+
+## Completed: virtual-disk transfer bounds
+
+Virtual disk reads/writes now split transfers into at most 127 sectors (65024
+bytes), avoiding truncation through the storage API's 16-bit byte count. A
+128-sector request previously became a zero-byte transfer. The existing caller
+buffer is advanced between chunks; no extra buffer or allocation is introduced.
+Zero-sector requests and starting sectors that overflow the 32-bit seek offset
+are rejected before touching storage. Short transfers stop immediately.
+
+The FatFs sanitizer regression also checks every byte for 1/127/128/129/257-sector
+reads and writes, one initial seek, short I/O at each chunk, failed seeks and
+invalid offsets/counts. Firmware/updater ARM builds and SDK checks pass. These
+driver checks mock the underlying storage transfer; real FatFs mount/file tests
+continue to run in the same suite. Actual SD/image throughput remains pending.
