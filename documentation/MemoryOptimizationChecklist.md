@@ -37,7 +37,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 
 - [x] Establish linked baseline and repeatable section/symbol/stack-reference capture.
 - [x] External 2048: remove leaked temporary game-over allocation.
-- [ ] Firmware storage: remove duplicate per-file deletion paths.
+- [x] Firmware storage: remove duplicate per-file deletion paths.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
 - [ ] Inventory and measure every worker stack; reduce only with observed margin.
@@ -80,3 +80,26 @@ binary full boards and 10000 deterministic mixed boards against the existing
 move functions, checks that input is unchanged, and rejects allocation in the
 game-over function. Run `python -m unittest scripts.tests.test_2048_memory`.
 Hardware repeated launch/exit and heap measurements remain pending.
+
+## Completed: firmware recursive deletion
+
+Reuse the traversal path for each file removal, then truncate it back to the
+directory length. `storage_common_remove()` waits for the storage service before
+returning, so the path stays valid throughout the request. This removes one
+temporary `FuriString` and its duplicate directory prefix per file; backing-buffer
+growth can still allocate. No fixed byte reduction in peak heap is claimed.
+
+The host storage mock verifies 100 traversals with nested directories, siblings,
+empty directories, 253-character filenames, missing paths and standalone files.
+Root/nested directory-open failures release the file handle and string. It asserts
+one string object allocation per traversal and preserves paths outside the tree.
+Run `python -m unittest scripts.tests.test_recursive_remove_memory`.
+This validates traversal and object lifetime, not the target allocator or SD driver.
+
+Clean ARM firmware and 2048 FAP builds pass, including SDK/import checks. Final
+firmware sections: `.text` 656572, `.rodata` 181148, `.data` 640, `.bss` 4972.
+Static RAM is unchanged; the intended benefit is removal of overlapping dynamic
+path objects. Final snapshots are in `build/memory-final-{firmware,2048}.json`.
+The initial raw map/snapshot files were removed by an external build-directory
+cleanup during this pass; the baseline section values above were recorded before
+that cleanup. Future passes should retain raw baselines outside a cleaned build tree.

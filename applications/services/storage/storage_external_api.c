@@ -1160,7 +1160,6 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path) {
     furi_check(path);
     FileInfo fileinfo;
     bool result = false;
-    FuriString* fullname;
     FuriString* cur_dir;
 
     if(storage_simply_remove(storage, path)) {
@@ -1185,10 +1184,12 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path) {
                 break;
             }
 
-            fullname = furi_string_alloc_printf("%s/%s", furi_string_get_cstr(cur_dir), name);
-            FS_Error error = storage_common_remove(storage, furi_string_get_cstr(fullname));
+            // The remove call is synchronous: reuse the traversal path until it returns.
+            size_t dir_length = furi_string_size(cur_dir);
+            furi_string_cat_printf(cur_dir, "/%s", name);
+            FS_Error error = storage_common_remove(storage, furi_string_get_cstr(cur_dir));
+            furi_string_left(cur_dir, dir_length);
             furi_check(error == FSE_OK);
-            furi_string_free(fullname);
         }
         storage_dir_close(dir);
 
