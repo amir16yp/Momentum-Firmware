@@ -36,7 +36,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 ## Easiest to hardest
 
 - [x] Establish linked baseline and repeatable section/symbol/stack-reference capture.
-- [ ] External 2048: remove leaked temporary game-over allocation.
+- [x] External 2048: remove leaked temporary game-over allocation.
 - [ ] Firmware storage: remove duplicate per-file deletion paths.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -64,3 +64,19 @@ margin and observed worst peak; do not infer these values from section sizes.
 
 No device measurements or stack reductions have been claimed in this pass.
 Existing build warnings: invalid manifests for `cli_bridge` and `mtp`.
+
+## Completed: external 2048
+
+Game-over checks now inspect empty cells and mergeable neighbors directly,
+eliminating the leaked 8-byte `MoveResult` allocation (plus allocator overhead)
+on every full-board check and the 16-byte scratch board. The persistent move
+result is allocated only after mutex creation succeeds, avoiding an error-path
+leak. Stack configuration and saved-game layout are unchanged.
+
+ARM FAP build and import checks pass. `.text` decreases from 2932 to 2680 bytes,
+`.rodata` from 296 to 175, and `.data` stays at 3136: 373 fewer loaded section
+bytes before loader alignment/metadata. Host regression compares all 65536
+binary full boards and 10000 deterministic mixed boards against the existing
+move functions, checks that input is unchanged, and rejects allocation in the
+game-over function. Run `python -m unittest scripts.tests.test_2048_memory`.
+Hardware repeated launch/exit and heap measurements remain pending.
