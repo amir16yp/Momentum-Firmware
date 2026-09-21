@@ -40,6 +40,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Firmware storage: remove duplicate per-file deletion paths.
 - [x] Firmware dialogs: avoid an unused base-path allocation.
 - [x] Resource extraction: reuse copy/path workspaces and compressed-seek scratch space.
+- [x] Resource extraction: skip unchanged progress percentages.
 - [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -145,3 +146,19 @@ Six output files use one copy-buffer allocation; seven write chunks use one
 archive-size query. These are operation-count improvements, not measured SD-card
 speedups. Hardware elapsed time, heap minimum and cancellation tests remain pending.
 Both `firmware_all` and `updater_all` ARM builds pass, including SDK checks.
+
+## Completed: extraction progress coalescing
+
+Only notify the updater UI when the resource percentage changes. The previous
+path formatted an allocated status string and invoked the UI callback on every
+output chunk, even when compressed-input buffering left progress unchanged.
+The existing percentage calculation, stage transitions and error reporting are
+preserved. No per-operation state or extra RAM is introduced.
+
+`python -m unittest scripts.tests.test_extraction_progress` verifies every
+percentage change, repeated input positions and an empty/reset stream. A synthetic
+100001-notification sequence now invokes the UI 99 times while preserving every
+displayed percentage. This reduces formatting/UI work; it is not an end-to-end
+device timing benchmark. Static sections after the extraction changes remain
+`.data` 640 / `.bss` 4972 for firmware and 312 / 4196 for updater.
+Firmware and updater ARM rebuilds and formatting checks pass for this change.

@@ -40,7 +40,10 @@ static bool update_task_pre_update(UpdateTask* update_task) {
 
 static void update_task_resource_unpack_cb(size_t progress, size_t total, void* context) {
     UpdateTask* update_task = context;
-    update_task_set_progress(update_task, UpdateTaskStageProgress, (progress * 100) / (total + 1));
+    uint8_t percent = (progress * 100) / (total + 1);
+    if(percent != update_task->state.stage_progress) {
+        update_task_set_progress(update_task, UpdateTaskStageProgress, percent);
+    }
 }
 
 static void update_task_cleanup_resources(UpdateTask* update_task) {
