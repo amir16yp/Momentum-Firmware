@@ -48,6 +48,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Heap calloc: reject overflowing count-times-size requests before allocation.
 - [x] NFC key dictionaries: validate hex before counting or returning keys.
 - [x] NFC key dictionaries: bound retained line data to the key prefix.
+- [x] RPC file downloads: release the payload after short or failed reads.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -288,3 +289,18 @@ with AddressSanitizer. Firmware and updater builds and SDK checks pass; firmware
 `.text` is 657040, `.rodata` 181156, `.data` 640 and `.bss` 4972. Before/after
 ELFs and maps are retained under `.memory-audit/keys-*`. Hardware heap minima,
 dictionary-attack throughput and concurrent storage workloads remain pending.
+
+## Completed: RPC download error cleanup
+
+RPC file downloads now release nested protobuf allocations on every exit. A
+short or failed read previously skipped the send-and-release call, leaving its
+payload allocated. Nanopb clears released pointer fields, so final cleanup is
+also safe after successful sends and failed file opens.
+
+`python -m unittest scripts.tests.test_rpc_read_memory` uses the production read
+handler, generated message descriptors and real nanopb encoder/decoder/release.
+With `RPC_READ_ASAN=1`, 2100 transfer scenarios pass: empty, 1/511/512/513/1024/
+2601-byte files, open failure, absent send callback, and zero/short reads at each
+chunk. Every delivered byte and continuation flag is checked, with no retained
+payloads or file handles. Firmware/updater ARM builds and SDK checks pass.
+Hardware transport timing and disconnect concurrency remain pending.

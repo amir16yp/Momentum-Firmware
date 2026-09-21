@@ -403,6 +403,7 @@ static void rpc_system_storage_read_process(const PB_Main* request, void* contex
             session, request->command_id, rpc_system_storage_get_file_error(file));
     }
 
+    pb_release(&PB_Main_msg, response);
     free(response);
     storage_file_close(file);
     storage_file_free(file);
