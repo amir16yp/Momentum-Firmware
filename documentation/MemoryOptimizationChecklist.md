@@ -52,6 +52,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] RPC file downloads: reuse one payload across all chunks.
 - [x] JavaScript event queues: release rejected messages and their GC roots.
 - [x] JavaScript event queues: free pending message holders during module teardown.
+- [x] FatFs virtual volume: allocate its filesystem object only on first mount.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -356,3 +357,21 @@ queue fixes, plugin `.text` grows from 2936 to 2988 bytes and `.rodata` remains
 alignment while preventing accumulating heap leaks. Before/after ELF/map files
 are retained in `.memory-audit/js-queue-*`. This is a targeted queue-lifetime
 audit, not a complete audit of every JavaScript module or the mJS engine.
+
+## Completed: lazy virtual-volume FatFs allocation
+
+The `/mnt` filesystem object is now allocated on its first mount attempt rather
+than at storage startup. The ARM `fatfs_object` symbol measures 568 bytes, so
+systems that never use virtual disks avoid a 568-byte request (576 heap bytes
+with the normal 8-byte allocator header/alignment). It remains allocated after
+first use: outstanding `FIL`/`DIR` handles may still reference it after unmount.
+Freeing it at unmount would turn stale-handle validation into a use-after-free.
+The physical SD filesystem, sector cache, `_FS_TINY` and LFN settings are unchanged.
+
+`FATFS_ASAN=1 python -m unittest scripts.tests.test_fatfs_memory` runs the real
+FatFs engine and target configuration with embedded integer widths on a host RAM
+disk. Failed mounts, formatting, long filenames, read/write, 100 mount/unmount
+cycles and stale-file validation pass with AddressSanitizer. No filesystem object
+is allocated before a valid mount attempt, and subsequent attempts reuse it.
+Firmware/updater builds and SDK checks pass; static RAM remains 640 bytes `.data`
+and 4972 bytes `.bss`. Hardware throughput and peak-heap tests remain pending.
