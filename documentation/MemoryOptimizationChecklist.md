@@ -54,6 +54,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] JavaScript event queues: free pending message holders during module teardown.
 - [x] FatFs virtual volume: allocate its filesystem object only on first mount.
 - [x] FatFs virtual disk I/O: split transfers at the storage API's 16-bit limit.
+- [x] mJS typed arrays: reject overflowing indices before pointer arithmetic.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -391,3 +392,18 @@ reads and writes, one initial seek, short I/O at each chunk, failed seeks and
 invalid offsets/counts. Firmware/updater ARM builds and SDK checks pass. These
 driver checks mock the underlying storage transfer; real FatFs mount/file tests
 continue to run in the same suite. Actual SD/image throughput remains pending.
+
+## Completed: mJS typed-array index bounds
+
+Typed-array reads/writes compare the element index against `byte_length /
+element_width` before multiplying. The previous `(index + 1) * width` check
+could wrap for negative indices converted to `size_t` or very large indices,
+allowing out-of-bounds reads/writes. Missing backing buffers and incomplete final
+elements are also rejected. Existing undefined/type-error results are preserved.
+
+`JS_NATIVE_ASAN=1 python -m unittest scripts.tests.test_js_native_memory` checks
+the production accessors for all six signed/unsigned element types, lengths 0
+through 64, valid writes, partial tails, negative and overflowing indices, and
+null backing pointers. It verifies rejected writes leave data unchanged. Host
+stubs supply mJS object lookup and values; full interpreter/hardware testing is
+still pending. Firmware/updater ARM builds and SDK checks pass.
