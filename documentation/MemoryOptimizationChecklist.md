@@ -5,6 +5,7 @@ Scope: firmware, libraries, and external apps under `applications/external` and
 changes needing hardware measurements. Each completed optimization gets its own
 commit. Existing const and streaming work is documented in `const_ram_audit.md`
 and the repository history.
+Further 2048 optimizations are excluded at the user's request.
 
 ## Baseline (2026-09-22)
 
@@ -43,7 +44,8 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Resource extraction: skip unchanged progress percentages.
 - [x] Shared bit buffers: reject unsafe lengths and prevent reads past valid data.
 - [x] Shared bit buffers: consolidate context, data and parity into one allocation.
-- [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
+- [x] Heap reallocation: bound copies by the old allocation's usable capacity.
+- [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
 - [ ] Inventory and measure every worker stack; reduce only with observed margin.
@@ -204,3 +206,23 @@ ARM builds and SDK checks pass. Compared with the saved pre-pass firmware ELF,
 `.text` changes from 656768 to 656832 bytes; `.rodata` stays 181156, `.data` 640
 and `.bss` 4972. This is a dynamic allocation optimization, not a static RAM
 reduction. Before/after ELF and map files are retained in `.memory-audit/`.
+
+## Completed: safe heap reallocation
+
+Growing `realloc()` previously copied the requested new size from the old block,
+reading beyond its allocation. The heap implementation now obtains the old usable
+capacity from its own block header and copies only the smaller of that capacity
+and the new size. Heap metadata stays private to the allocator; the public
+`realloc` and newlib wrapper APIs are unchanged. Zero-size reallocation still
+frees the old block, and null-input reallocation still allocates a new block.
+Usable capacity includes allocator padding; the heap does not track exact
+original request sizes. Existing fail-fast allocation-failure behavior is retained.
+
+`python -m unittest scripts.tests.test_memmgr_memory` compiles the production
+reallocation helper and wrapper with guarded mock heap blocks. It checks 7200
+grow/shrink/equal-size/free lifecycles, null input, preserved bytes, copy bounds
+and balanced ownership, and passes with `MEMMGR_ASAN=1` (AddressSanitizer).
+This is a host check of the copy and ownership logic, not an RTOS allocator or
+concurrency test. Firmware and updater ARM builds and SDK checks pass. Firmware
+`.text` increases by 16 bytes to 656848; `.data` 640 and `.bss` 4972 are unchanged.
+Hardware repetition and concurrent workloads remain pending.

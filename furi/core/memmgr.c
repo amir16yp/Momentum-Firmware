@@ -4,6 +4,7 @@
 #include <FreeRTOS.h>
 
 extern void* pvPortMalloc(size_t xSize);
+extern void* pvPortRealloc(void* pv, size_t xSize);
 extern void vPortFree(void* pv);
 extern size_t xPortGetFreeHeapSize(void);
 extern size_t xPortGetTotalHeapSize(void);
@@ -18,18 +19,7 @@ void free(void* ptr) {
 }
 
 void* realloc(void* ptr, size_t size) {
-    if(size == 0) {
-        vPortFree(ptr);
-        return NULL;
-    }
-
-    void* p = pvPortMalloc(size);
-    if(ptr != NULL) {
-        memcpy(p, ptr, size);
-        vPortFree(ptr);
-    }
-
-    return p;
+    return pvPortRealloc(ptr, size);
 }
 
 void* calloc(size_t count, size_t size) {
