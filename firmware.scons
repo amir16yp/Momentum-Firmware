@@ -125,6 +125,10 @@ env.Append(
 )
 
 
+# Preserve the upstream API feature flag for bundled third-party apps.
+if env.subst("${FIRMWARE_ORIGIN}") == "Rectum":
+    env.Append(CPPDEFINES=["FW_ORIGIN_Momentum"])
+
 # Now, env is fully set up with everything to build apps
 fwenv = env.Clone(FW_ARTIFACTS=[])
 

@@ -19,6 +19,9 @@
 // helpers
 
 static const char* loader_find_external_application_by_name(const char* app_name) {
+    // Keep saved shortcuts and CLI launches from upstream firmware working.
+    if(strcmp(app_name, "Momentum") == 0) app_name = "Rectum";
+
     for(size_t i = 0; i < FLIPPER_EXTERNAL_APPS_COUNT; i++) {
         if(strcmp(FLIPPER_EXTERNAL_APPS[i].name, app_name) == 0) {
             return FLIPPER_EXTERNAL_APPS[i].path;

@@ -28,7 +28,9 @@ class GitVersion:
                 dirty = True
 
         try:
-            tag = self._exec_git("describe --tags --abbrev=0 --exact-match")
+            tag = self._exec_git(
+                "describe --tags --match rectum-* --abbrev=0 --exact-match"
+            )
         except subprocess.CalledProcessError:
             tag = ""
 
@@ -37,11 +39,13 @@ class GitVersion:
         branch = (
             os.environ.get("WORKFLOW_BRANCH_OR_TAG", None)
             or tag
-            or self._exec_git("rev-parse --abbrev-ref HEAD").removeprefix("mntm-")
+            or self._exec_git("rev-parse --abbrev-ref HEAD")
+            .removeprefix("rectum-")
+            .removeprefix("mntm-")
             or "unknown"
         )
 
-        version = tag or "mntm-dev"
+        version = tag or "rectum-dev"
 
         if "SOURCE_DATE_EPOCH" in os.environ:
             commit_date = datetime.utcfromtimestamp(

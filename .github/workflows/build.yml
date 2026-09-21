@@ -72,7 +72,7 @@ jobs:
             echo API versions aren\'t matching OFW release channel. Please update!
             echo API versions are:
             echo "Official: $(tail -n1 <<< "$ofw_api")"
-            echo "Momentum: $(tail -n1 <<< "$our_api")"
+            echo "Rectum: $(tail -n1 <<< "$our_api")"
             exit 1
           fi
 
@@ -217,7 +217,7 @@ jobs:
           body: |
             **Compiled ${{ matrix.target }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
             - [🖥️ Web Updater](https://momentum-fw.dev/update?branch=${{steps.names.outputs.branch_name_urlencoded}})
-            - [☁️ Flipper Lab/App](https://lab.flipper.net/?url=${{secrets.INDEXER_URL}}/builds/firmware/${{steps.names.outputs.branch_name}}/flipper-z-${{steps.names.outputs.default_target}}-update-${{steps.names.outputs.suffix}}.tgz&channel=mntm-${{steps.names.outputs.branch_name}}&version=${{steps.names.outputs.commit_sha}})
+            - [☁️ Flipper Lab/App](https://lab.flipper.net/?url=${{secrets.INDEXER_URL}}/builds/firmware/${{steps.names.outputs.branch_name}}/flipper-z-${{steps.names.outputs.default_target}}-update-${{steps.names.outputs.suffix}}.tgz&channel=rectum-${{steps.names.outputs.branch_name}}&version=${{steps.names.outputs.commit_sha}})
             - [📦 qFlipper Package](${{secrets.INDEXER_URL}}/builds/firmware/${{steps.names.outputs.branch_name}}/flipper-z-${{steps.names.outputs.default_target}}-update-${{steps.names.outputs.suffix}}.tgz)
             - DFU Size: `${{ env.DFU_SIZE }}` (`${{ env.DFU_DIFF }}` from dev)
             - Free Flash: `${{ env.FLASH_FREE }}` (`${{ env.FLASH_USABLE }}` usable)

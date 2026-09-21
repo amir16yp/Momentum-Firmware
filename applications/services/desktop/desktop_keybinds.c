@@ -45,7 +45,7 @@ void desktop_keybinds_migrate(Desktop* desktop) {
                     } else if(furi_string_equal(keybind, "SubGHz")) {
                         furi_string_set(keybind, "Sub-GHz");
                     } else if(furi_string_equal(keybind, "Xtreme")) {
-                        furi_string_set(keybind, "Momentum");
+                        furi_string_set(keybind, "Rectum");
                     }
                     new[type][key] = keybind;
                 }
@@ -105,6 +105,9 @@ static FuriString*
         FURI_LOG_W(TAG, "Failed to load file, using defaults");
         furi_string_set(keybind, desktop_keybinds_defaults[type][key]);
     }
+    if(furi_string_equal(keybind, "Momentum")) {
+        furi_string_set(keybind, "Rectum");
+    }
     return keybind;
 }
 
@@ -132,6 +135,9 @@ void desktop_keybinds_load(Desktop* desktop, DesktopKeybinds* keybinds) {
                        file, furi_string_get_cstr(keybind_name), (*keybinds)[type][key])) {
                     furi_string_set((*keybinds)[type][key], desktop_keybinds_defaults[type][key]);
                     goto fail;
+                }
+                if(furi_string_equal((*keybinds)[type][key], "Momentum")) {
+                    furi_string_set((*keybinds)[type][key], "Rectum");
                 }
             }
         }
