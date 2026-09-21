@@ -41,6 +41,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Firmware dialogs: avoid an unused base-path allocation.
 - [x] Resource extraction: reuse copy/path workspaces and compressed-seek scratch space.
 - [x] Resource extraction: skip unchanged progress percentages.
+- [x] Shared bit buffers: reject unsafe lengths and prevent reads past valid data.
 - [ ] External 2048: pack monochrome tile bitmaps without a decode buffer.
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -162,3 +163,21 @@ displayed percentage. This reduces formatting/UI work; it is not an end-to-end
 device timing benchmark. Static sections after the extraction changes remain
 `.data` 640 / `.bss` 4972 for firmware and 312 / 4196 for updater.
 Firmware and updater ARM rebuilds and formatting checks pass for this change.
+
+## Completed: bit-buffer boundary checks
+
+Bit reads no longer unconditionally fetch a second byte at the end of a buffer.
+They validate the logical bit index and return zero for bits beyond the stored
+length, including unused bits in a partial final byte. Parity imports reject
+decoded data larger than the destination before writing, and zero-bit imports
+do not dereference input. Slice writes check bounds using subtraction so that
+an overflowing offset-plus-length cannot bypass validation. Allocation rejects
+capacities whose bit count cannot fit in `size_t`.
+
+`python -m unittest scripts.tests.test_bit_buffer_memory` compiles the production
+implementation and checks 900 lifecycles across capacities 1 through 512 bytes,
+every bit offset, partial final bytes, independently encoded parity, oversized
+inputs, overflowing slices, cleanup and allocation canaries. The same test passes
+with AddressSanitizer enabled by `BIT_BUFFER_ASAN=1`. Firmware and updater ARM
+builds and SDK checks pass. Hardware NFC interoperability and heap measurements
+remain pending.

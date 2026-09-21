@@ -13,11 +13,12 @@ struct BitBuffer {
 
 BitBuffer* bit_buffer_alloc(size_t capacity_bytes) {
     furi_check(capacity_bytes);
+    furi_check(capacity_bytes <= SIZE_MAX / BITS_IN_BYTE);
 
+    size_t parity_buf_size = (capacity_bytes + BITS_IN_BYTE - 1) / BITS_IN_BYTE;
     BitBuffer* buf = malloc(sizeof(BitBuffer));
 
     buf->data = malloc(capacity_bytes);
-    size_t parity_buf_size = (capacity_bytes + BITS_IN_BYTE - 1) / BITS_IN_BYTE;
     buf->parity = malloc(parity_buf_size);
     buf->capacity_bytes = capacity_bytes;
     buf->size_bits = 0;
@@ -102,9 +103,10 @@ void bit_buffer_copy_bytes_with_parity(BitBuffer* buf, const uint8_t* data, size
 
     if(size_bits < BITS_IN_BYTE + 1) {
         buf->size_bits = size_bits;
-        buf->data[0] = data[0];
+        if(size_bits) buf->data[0] = data[0];
     } else {
         furi_check(size_bits % (BITS_IN_BYTE + 1) == 0);
+        furi_check(size_bits / (BITS_IN_BYTE + 1) <= buf->capacity_bytes);
         while(bits_processed < size_bits) {
             buf->data[curr_byte] = data[bits_processed / BITS_IN_BYTE] >>
                                    (bits_processed % BITS_IN_BYTE);
@@ -179,7 +181,8 @@ void bit_buffer_write_bytes_mid(
     size_t size_bytes) {
     furi_check(buf);
     furi_check(dest);
-    furi_check(start_index + size_bytes <= bit_buffer_get_size_bytes(buf));
+    furi_check(start_index <= bit_buffer_get_size_bytes(buf));
+    furi_check(size_bytes <= bit_buffer_get_size_bytes(buf) - start_index);
 
     memcpy(dest, buf->data + start_index, size_bytes);
 }
@@ -223,15 +226,19 @@ uint8_t bit_buffer_get_byte(const BitBuffer* buf, size_t index) {
 
 uint8_t bit_buffer_get_byte_from_bit(const BitBuffer* buf, size_t index_bits) {
     furi_check(buf);
-    furi_check(buf->capacity_bytes * BITS_IN_BYTE > index_bits);
+    furi_check(buf->size_bits > index_bits);
 
     const size_t byte_index = index_bits / BITS_IN_BYTE;
     const size_t bit_offset = index_bits % BITS_IN_BYTE;
 
-    const uint8_t lo = buf->data[byte_index] >> bit_offset;
-    const uint8_t hi = buf->data[byte_index + 1] << (BITS_IN_BYTE - bit_offset);
+    uint8_t value = buf->data[byte_index] >> bit_offset;
+    if(bit_offset && byte_index + 1 < bit_buffer_get_size_bytes(buf)) {
+        value |= buf->data[byte_index + 1] << (BITS_IN_BYTE - bit_offset);
+    }
+    const size_t remaining_bits = buf->size_bits - index_bits;
+    if(remaining_bits < BITS_IN_BYTE) value &= (1U << remaining_bits) - 1;
 
-    return lo | hi;
+    return value;
 }
 
 const uint8_t* bit_buffer_get_data(const BitBuffer* buf) {
