@@ -364,6 +364,7 @@ bool subghz_keystore_raw_encrypted_save(
     char* encrypted_line = malloc(SUBGHZ_KEYSTORE_FILE_ENCRYPTED_LINE_SIZE);
 
     FlipperFormat* input_flipper_format = flipper_format_file_alloc(storage);
+    FlipperFormat* output_flipper_format = flipper_format_file_alloc(storage);
     do {
         if(!flipper_format_file_open_existing(input_flipper_format, input_file_name)) {
             FURI_LOG_E(TAG, "Unable to open file for read: %s", input_file_name);
@@ -390,8 +391,6 @@ bool subghz_keystore_raw_encrypted_save(
             break;
         }
         Stream* input_stream = flipper_format_get_raw_stream(input_flipper_format);
-
-        FlipperFormat* output_flipper_format = flipper_format_file_alloc(storage);
 
         if(!flipper_format_file_open_always(output_flipper_format, output_file_name)) {
             FURI_LOG_E(TAG, "Unable to open file for write: %s", output_file_name);
@@ -472,8 +471,6 @@ bool subghz_keystore_raw_encrypted_save(
 
         } while(true);
 
-        flipper_format_free(output_flipper_format);
-
         furi_hal_crypto_enclave_unload_key(SUBGHZ_KEYSTORE_FILE_ENCRYPTION_KEY_SLOT);
 
         if(!result) break;
@@ -481,9 +478,12 @@ bool subghz_keystore_raw_encrypted_save(
         encrypted = true;
     } while(0);
 
+    flipper_format_free(output_flipper_format);
     flipper_format_free(input_flipper_format);
 
     free(encrypted_line);
+
+    furi_string_free(filetype);
 
     furi_record_close(RECORD_STORAGE);
 

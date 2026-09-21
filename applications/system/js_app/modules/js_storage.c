@@ -180,6 +180,7 @@ static void js_storage_open_file(struct mjs* mjs) {
     Storage* storage = JS_GET_CONTEXT(mjs);
     File* file = storage_file_alloc(storage);
     if(!storage_file_open(file, path, access_mode, open_mode)) {
+        storage_file_free(file);
         mjs_return(mjs, MJS_UNDEFINED);
         return;
     }
@@ -221,6 +222,7 @@ static void js_storage_read_directory(struct mjs* mjs) {
     Storage* storage = JS_GET_CONTEXT(mjs);
     File* dir = storage_file_alloc(storage);
     if(!storage_dir_open(dir, path)) {
+        storage_file_free(dir);
         mjs_return(mjs, MJS_UNDEFINED);
         return;
     }

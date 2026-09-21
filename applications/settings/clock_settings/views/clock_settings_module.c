@@ -428,6 +428,7 @@ ClockSettingsModule* clock_settings_module_alloc(FuriEventLoop* event_loop) {
 
 void clock_settings_module_free(ClockSettingsModule* instance) {
     furi_assert(instance);
+    furi_event_loop_timer_free(instance->timer);
     view_free(instance->view);
     free(instance);
 }

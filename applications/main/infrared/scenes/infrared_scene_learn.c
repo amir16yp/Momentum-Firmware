@@ -37,6 +37,7 @@ static bool infrared_scene_learn_get_next_name(
         // If we found a name that doesn't exist, return it
         if(!name_exists) {
             *next_index = i;
+            furi_string_free(name);
             return true;
         }
     }

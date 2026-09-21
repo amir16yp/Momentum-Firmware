@@ -183,6 +183,7 @@ static void ble_profile_hid_stop(FuriHalBleProfileBase* profile) {
     free(hid_profile->kb_report);
     free(hid_profile->mouse_report);
     free(hid_profile->consumer_report);
+    free(hid_profile);
 }
 
 bool ble_profile_hid_kb_press(FuriHalBleProfileBase* profile, uint16_t button) {

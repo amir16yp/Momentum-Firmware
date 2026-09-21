@@ -505,6 +505,7 @@ static void
                                 break;
                             }
                         }
+                        furi_string_free(selected);
                     }
                 }
                 if(browser_is_list_load_required(model)) {

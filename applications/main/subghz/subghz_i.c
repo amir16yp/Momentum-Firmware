@@ -42,7 +42,6 @@ bool subghz_tx_start(SubGhz* subghz, FlipperFormat* flipper_format) {
 
 void subghz_dialog_message_freq_error(SubGhz* subghz, SubGhzTx can_tx) {
     DialogsApp* dialogs = subghz->dialogs;
-    DialogMessage* message = dialog_message_alloc();
     const char* header_text = "Transmission is blocked";
     const char* message_text;
 
@@ -65,6 +64,7 @@ void subghz_dialog_message_freq_error(SubGhz* subghz, SubGhzTx can_tx) {
         break;
     }
 
+    DialogMessage* message = dialog_message_alloc();
     dialog_message_set_header(message, header_text, 64, 3, AlignCenter, AlignTop);
     dialog_message_set_text(message, message_text, 3, 20, AlignLeft, AlignTop);
 

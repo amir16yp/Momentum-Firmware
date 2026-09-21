@@ -525,6 +525,7 @@ static BubbleAnimation* animation_storage_load_animation(const char* name) {
 
     furi_string_free(str);
     flipper_format_free(ff);
+    furi_record_close(RECORD_STORAGE);
     if(u32array) {
         free(u32array);
     }

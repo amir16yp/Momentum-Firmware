@@ -450,6 +450,7 @@ bool saflok_parse(const NfcDevice* device, FuriString* parsed_data) {
             parsed_data,
             "Restricted Weekday: %s\n",
             furi_string_get_cstr(restricted_weekday_string));
+        furi_string_free(restricted_weekday_string);
         furi_string_cat_printf(
             parsed_data,
             "Valid Start Date: \n%u-%02d-%02d\n%02d:%02d:00\n",

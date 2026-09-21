@@ -158,6 +158,7 @@ void nfc_app_free(NfcApp* instance) {
     if(instance->protocol_support) {
         nfc_protocol_support_free(instance);
     }
+    composite_api_resolver_free(instance->api_resolver);
 
     // Nfc device
     nfc_device_free(instance->nfc_device);
