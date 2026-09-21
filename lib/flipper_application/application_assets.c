@@ -11,8 +11,8 @@
 #define FURI_LOG_E(...)
 #endif
 
-#define FLIPPER_APPLICATION_ASSETS_MAGIC 0x4F4C5A44
-#define FLIPPER_APPLICATION_ASSETS_VERSION 1
+#define FLIPPER_APPLICATION_ASSETS_MAGIC              0x4F4C5A44
+#define FLIPPER_APPLICATION_ASSETS_VERSION            1
 #define FLIPPER_APPLICATION_ASSETS_SIGNATURE_FILENAME ".assets.signature"
 
 #define BUFFER_SIZE 512
@@ -231,21 +231,24 @@ static AssetsSignatureResult flipper_application_assets_process_signature(
             break;
         }
 
-        size_t signature_size = storage_file_size(signature_file);
-        uint8_t* signature_file_data = malloc(signature_size);
-        if(storage_file_read(signature_file, signature_file_data, signature_size) !=
-           signature_size) {
-            FURI_LOG_E(TAG, "Can't read signature file");
-            free(signature_file_data);
-            break;
+        if(storage_file_size(signature_file) != *signature_data_size) break;
+
+        uint8_t buffer[BUFFER_SIZE];
+        size_t compared = 0;
+        while(compared < *signature_data_size) {
+            size_t count = MIN(sizeof(buffer), *signature_data_size - compared);
+            if(storage_file_read(signature_file, buffer, count) != count) {
+                FURI_LOG_E(TAG, "Can't read signature file");
+                break;
+            }
+            if(memcmp(*signature_data + compared, buffer, count) != 0) break;
+            compared += count;
         }
 
-        if(memcmp(*signature_data, signature_file_data, signature_size) == 0) {
+        if(compared == *signature_data_size) {
             FURI_LOG_D(TAG, "Assets signature is equal");
             result = AssetsSignatureResultEqual;
         }
-
-        free(signature_file_data);
     } while(0);
 
     storage_file_free(signature_file);

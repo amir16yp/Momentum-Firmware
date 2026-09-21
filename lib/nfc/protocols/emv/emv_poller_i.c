@@ -160,11 +160,10 @@ static bool
     // Tracks data https://murdoch.is/papers/defcon20emvdecode.pdf
     case EMV_TAG_TRACK_1_EQUIV: {
         // Contain PAN and expire date
-        char track_1_equiv[80];
-        memcpy(track_1_equiv, &buff[i], tlen);
-        track_1_equiv[tlen] = '\0';
         success = true;
-        FURI_LOG_T(TAG, "found EMV_TAG_TRACK_1_EQUIV %x : %s", tag, track_1_equiv);
+        // Logging consumes the poller's response synchronously, before the next exchange.
+        FURI_LOG_T(
+            TAG, "found EMV_TAG_TRACK_1_EQUIV %x : %.*s", tag, (int)tlen, (const char*)&buff[i]);
         break;
     }
     case EMV_TAG_TRACK_2_DATA:
@@ -586,7 +585,6 @@ EmvError emv_poller_get_processing_options(EmvPoller* instance) {
 
 EmvError emv_poller_read_sfi_record(EmvPoller* instance, uint8_t sfi, uint8_t record_num) {
     EmvError error = EmvErrorNone;
-    FuriString* text = furi_string_alloc();
 
     uint8_t sfi_param = (sfi << 3) | (1 << 2);
     uint8_t emv_sfi_header[] = {
@@ -606,8 +604,12 @@ EmvError emv_poller_read_sfi_record(EmvPoller* instance, uint8_t sfi, uint8_t re
         Iso14443_4aError iso14443_4a_error = iso14443_4a_poller_send_block_pwt_ext(
             instance->iso14443_4a_poller, instance->tx_buffer, instance->rx_buffer);
 
-        furi_string_printf(text, "SFI 0x%X record %d:", sfi, record_num);
-        emv_trace(instance, furi_string_get_cstr(text));
+        if(furi_log_get_level() == FuriLogLevelTrace) {
+            // Both values are uint8_t: the longest label fits including the terminator.
+            char text[sizeof("SFI 0xFF record 255:")];
+            snprintf(text, sizeof(text), "SFI 0x%X record %d:", sfi, record_num);
+            emv_trace(instance, text);
+        }
 
         if(iso14443_4a_error != Iso14443_4aErrorNone) {
             FURI_LOG_E(TAG, "Failed to read SFI 0x%X record %d", sfi, record_num);
@@ -615,8 +617,6 @@ EmvError emv_poller_read_sfi_record(EmvPoller* instance, uint8_t sfi, uint8_t re
             break;
         }
     } while(false);
-
-    furi_string_free(text);
 
     return error;
 }

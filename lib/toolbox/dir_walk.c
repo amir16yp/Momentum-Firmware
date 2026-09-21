@@ -8,6 +8,8 @@ LIST_DEF(DirIndexList, uint32_t);
 struct DirWalk {
     File* file;
     FuriString* path;
+    // Reused for each entry; owned by this walk, including recursive traversal.
+    char name[MAX_NAME_LEN];
     DirIndexList_t index_list;
     uint32_t current_index;
     bool recursive;
@@ -74,7 +76,7 @@ static bool dir_walk_filter(DirWalk* dir_walk, const char* name, FileInfo* filei
 static DirWalkResult
     dir_walk_iter(DirWalk* dir_walk, FuriString* return_path, FileInfo* fileinfo) {
     DirWalkResult result = DirWalkError;
-    char* name = malloc(MAX_NAME_LEN);
+    char* name = dir_walk->name;
     FileInfo info;
     bool end = false;
 
@@ -169,7 +171,6 @@ static DirWalkResult
         }
     }
 
-    free(name);
     return result;
 }
 
