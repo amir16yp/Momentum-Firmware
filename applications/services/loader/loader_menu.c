@@ -317,13 +317,16 @@ static void loader_menu_build_menu(LoaderMenuApp* app, LoaderMenu* menu) {
        version <= 1) {
         while(stream_read_line(stream, line)) {
             furi_string_trim(line);
+            if(furi_string_equal(line, "Momentum")) {
+                furi_string_set(line, "Rectum");
+            }
             if(version == 0) {
                 if(furi_string_equal(line, "RFID")) {
                     furi_string_set(line, "125 kHz RFID");
                 } else if(furi_string_equal(line, "SubGHz")) {
                     furi_string_set(line, "Sub-GHz");
                 } else if(furi_string_equal(line, "Xtreme")) {
-                    furi_string_set(line, "Momentum");
+                    furi_string_set(line, "Rectum");
                 }
             }
             loader_menu_find_add_app(app, storage, line);

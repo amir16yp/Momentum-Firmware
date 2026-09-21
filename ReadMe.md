@@ -1,18 +1,12 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset=".github/assets/logo_light.png">
-    <img
-        alt="Momentum Firmware"
-        src=".github/assets/logo_dark.png">
-  </picture>
-</p>
+<h1 align="center">Rectum Firmware</h1>
 
 <h2 align="center">
   <a href="#Install">Install</a> · <a href="#list-of-changes">Features</a> · <a href="https://discord.gg/momentum">Discord</a> · <a href="#%EF%B8%8F-support">Donate</a>
 </h2>
 
-This custom firmware is based on the [Official Firmware](https://github.com/flipperdevices/flipperzero-firmware) for [Flipper Zero](https://flipperzero.one/), and includes most of the awesome features from [Unleashed](https://github.com/DarkFlippers/unleashed-firmware). It is a direct continuation of the Xtreme firmware, built by the same (and only) developers who made that project special.
+Rectum is a fork of [Momentum Firmware](https://github.com/Next-Flip/Momentum-Firmware). Upstream links below refer to Momentum resources.
+
+This custom firmware is based on the [Official Firmware](https://github.com/flipperdevices/flipperzero-firmware) for [Flipper Zero](https://flipperzero.one/), and includes most of the awesome features from [Unleashed](https://github.com/DarkFlippers/unleashed-firmware). Momentum is a continuation of the Xtreme firmware; credit for those features belongs to the upstream developers.
 
 <br>
 <h2 align="center">Modus Operandi</h2>
@@ -30,7 +24,7 @@ The goal of this firmware is to constantly push the bounds of what is possible w
 Note that mentioned below are only a few of our staple additions to the firmware. For a full list check [down here](https://github.com/Next-Flip/Momentum-Firmware#List-of-Changes).
 
 <br>
-<h2 align="center">Momentum Settings</h2>
+<h2 align="center">Rectum Settings</h2>
 
 We offer a powerful and easy-to-use application tailor-made for our firmware, that lets you configure everything you could dream of, and more:
 
@@ -67,7 +61,7 @@ Once you have some asset packs, upload them to your Flipper in <code>SD/asset_pa
 <br>
 
 <img src=".github/assets/packs-done.png" align="left" width="200px"/>
-After installing the packs to Flipper, hit the <code>Arrow Up</code> button on the main menu and go to <code>Momentum Settings > Interface > Graphics</code>. Here choose which asset pack you want and tweak the other settings how you prefer, then exit the app to reboot and enjoy your fully customized Flipper!
+After installing the packs to Flipper, hit the <code>Arrow Up</code> button on the main menu and go to <code>Rectum Settings > Interface > Graphics</code>. Here choose which asset pack you want and tweak the other settings how you prefer, then exit the app to reboot and enjoy your fully customized Flipper!
 
 <br clear="left"/>
 
@@ -93,7 +87,7 @@ Note that this repo is always updated with the great work from our friends at [U
 ```txt
 [Added]
 
-- Momentum App (Easy configuration of features and behavior of the firmware)
+- Rectum App (Easy configuration of features and behavior of the firmware)
 - Asset Packs (Unparalleled theming and customization)
 - More UI customization, redesigns and optimizations
 - Bad-Keyboard App
@@ -137,7 +131,7 @@ Note that this repo is always updated with the great work from our friends at [U
 
 <h2 align="center">Install</h2>
 
-There are 4 methods to install Momentum, we recommend you use the **Web Updater**, but choose whichever one you prefer:
+To install **Rectum**, build this checkout using `fbt` and install the generated update package. The upstream installation methods below install **Momentum**, not Rectum:
 
 > <details><summary><code>Web Updater (Chrome)</code></summary><ul>
 >   <li>Make sure qFlipper is closed</li>
@@ -179,9 +173,7 @@ There are 4 methods to install Momentum, we recommend you use the **Web Updater*
 <h2 align="center">Build it yourself</h2>
 
 ```bash
-To download the repository:
-$ git clone --recursive --jobs 8 https://github.com/Next-Flip/Momentum-Firmware.git
-$ cd Momentum-Firmware/
+From this Rectum checkout:
 
 To flash directly to the Flipper (Needs to be connected via USB, qFlipper closed)
 $ ./fbt flash_usb_full
