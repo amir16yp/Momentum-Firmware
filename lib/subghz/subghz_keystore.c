@@ -485,6 +485,8 @@ bool subghz_keystore_raw_encrypted_save(
 
     free(encrypted_line);
 
+    furi_string_free(filetype);
+
     furi_record_close(RECORD_STORAGE);
 
     return encrypted;
