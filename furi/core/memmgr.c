@@ -23,6 +23,7 @@ void* realloc(void* ptr, size_t size) {
 }
 
 void* calloc(size_t count, size_t size) {
+    furi_check(count == 0 || size <= SIZE_MAX / count);
     return pvPortMalloc(count * size);
 }
 

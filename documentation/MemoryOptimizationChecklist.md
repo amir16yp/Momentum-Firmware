@@ -45,6 +45,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Shared bit buffers: reject unsafe lengths and prevent reads past valid data.
 - [x] Shared bit buffers: consolidate context, data and parity into one allocation.
 - [x] Heap reallocation: bound copies by the old allocation's usable capacity.
+- [x] Heap calloc: reject overflowing count-times-size requests before allocation.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -226,3 +227,20 @@ This is a host check of the copy and ownership logic, not an RTOS allocator or
 concurrency test. Firmware and updater ARM builds and SDK checks pass. Firmware
 `.text` increases by 16 bytes to 656848; `.data` 640 and `.bss` 4972 are unchanged.
 Hardware repetition and concurrent workloads remain pending.
+
+## Completed: calloc multiplication overflow
+
+`calloc()` now checks the product before multiplying count by element size.
+Previously, an overflowing request could wrap to a small allocation and allow
+subsequent caller writes to overrun it. The new guard follows the firmware's
+existing fail-fast allocator policy; zero-size requests retain their existing
+behavior. The newlib calloc wrapper delegates to the same guarded function.
+
+The memory-manager host regression now also covers overflowing products that
+wrap to zero and to nonzero values, reversed factors, the newlib wrapper, all
+1089 positive count/size combinations from 1 through 33, zero-filled contents,
+and zero-size behavior. Overflow cases assert that allocation is never attempted.
+The complete regression passes with AddressSanitizer; firmware and updater ARM
+builds and SDK checks pass. Firmware `.text` increases by a further 32 bytes to
+656880; `.data` 640 and `.bss` 4972 remain unchanged. This is a memory-safety fix,
+not a reduction in runtime heap consumption.
