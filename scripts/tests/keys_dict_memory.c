@@ -8,7 +8,6 @@
 #define furi_check(value)       assert(value)
 #define furi_assert(value)      assert(value)
 #define FURI_LOG_T(...)         ((void)0)
-#define STREAM_BUFFER_SIZE      32U
 #define StreamOffsetFromCurrent 1
 
 typedef struct {
@@ -16,6 +15,7 @@ typedef struct {
     size_t size;
     size_t position;
     size_t read_limit;
+    bool fail_seek;
 } Stream;
 
 static size_t stream_read(Stream* stream, uint8_t* data, size_t size) {
@@ -28,6 +28,7 @@ static size_t stream_read(Stream* stream, uint8_t* data, size_t size) {
 
 static bool stream_seek(Stream* stream, int32_t offset, int origin) {
     assert(origin == StreamOffsetFromCurrent);
+    if(stream->fail_seek) return false;
     int64_t position = (int64_t)stream->position + offset;
     if(position < 0 || (uint64_t)position > stream->size) return false;
     stream->position = (size_t)position;
@@ -83,20 +84,13 @@ static char furi_string_get_char(const FuriString* string, size_t index) {
     return string->data[index];
 }
 
-static void furi_string_left(FuriString* string, size_t size) {
-    if(string->size > size) {
-        string->size = size;
-        string->data[size] = 0;
-    }
-}
-
 typedef struct KeysDict KeysDict;
 /* PRODUCTION_CODE */
 
 static const uint8_t expected_key[] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab};
 
 static void verify(const uint8_t* input, size_t length, size_t read_limit, size_t expected_count) {
-    Stream stream = {input, length, 0, read_limit};
+    Stream stream = {.data = input, .size = length, .read_limit = read_limit};
     KeysDict dict = {.stream = &stream, .key_size = 6, .key_size_symbols = 13};
     uint8_t output[6];
     size_t count = 0;
@@ -127,7 +121,46 @@ static void verify(const uint8_t* input, size_t length, size_t read_limit, size_
     assert(live_strings == 0);
 }
 
+static void verify_key_sizes(void) {
+    const size_t sizes[] = {1, 6, 16, 32};
+    for(size_t k = 0; k < sizeof(sizes) / sizeof(sizes[0]); k++) {
+        const size_t size = sizes[k];
+        char input[66];
+        for(size_t i = 0; i < size; i++) {
+            snprintf(input + i * 2, 3, "%02x", (unsigned)(i * 17) & 0xff);
+        }
+        input[size * 2] = '\n';
+        Stream stream = {.data = (const uint8_t*)input, .size = size * 2 + 1, .read_limit = 7};
+        KeysDict dict = {.stream = &stream, .key_size = size, .key_size_symbols = size * 2 + 1};
+        uint8_t output[32];
+        assert(keys_dict_get_next_key(&dict, output, size));
+        for(size_t i = 0; i < size; i++)
+            assert(output[i] == ((i * 17) & 0xff));
+        assert(!keys_dict_get_next_key(&dict, output, size));
+        assert(live_strings == 0);
+    }
+}
+
+static void verify_failed_seek(void) {
+    const char input[] = "0123456789AB\n0123456789AB\n";
+    Stream stream = {
+        .data = (const uint8_t*)input,
+        .size = sizeof(input) - 1,
+        .read_limit = 32,
+        .fail_seek = true,
+    };
+    KeysDict dict = {.stream = &stream, .key_size = 6, .key_size_symbols = 13};
+    uint8_t output[6];
+    memset(output, 0x5a, sizeof(output));
+    assert(!keys_dict_get_next_key(&dict, output, sizeof(output)));
+    for(size_t i = 0; i < sizeof(output); i++)
+        assert(output[i] == 0x5a);
+    assert(live_strings == 0);
+}
+
 int main(void) {
+    verify_key_sizes();
+    verify_failed_seek();
     const char input[] = "# dictionary\r\n\n\r\ninvalidhex!!\n0123456789A\n0123456789AB\r\n"
                          "0123456789ab ignored suffix\n0123\r456789aB\n0123456789AB";
     for(size_t cycle = 0; cycle < 100; cycle++) {
@@ -157,6 +190,9 @@ int main(void) {
     verify(long_line, long_size + 14, 32, 1);
     memcpy(long_line, "0123456789AB", 12);
     verify(long_line, long_size + 14, 32, 2);
+    // The reader also consumes a long final line without a newline.
+    verify(long_line, long_size, 32, 1);
+    assert(peak_capacity == 16);
     free(long_line);
     printf(
         "Keys dictionary: malformed input, short reads and cleanup passed; peak string capacity %zu\n",

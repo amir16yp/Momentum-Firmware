@@ -29,8 +29,36 @@ static inline void keys_dict_add_ending_new_line(KeysDict* instance) {
     }
 }
 
+// Keep only the key prefix, but consume the entire line so the next read starts
+// at the following entry. Long comments and suffixes must not grow the string.
+static bool keys_dict_read_line(Stream* stream, FuriString* line, size_t max_length) {
+    furi_string_reset(line);
+    uint8_t buffer[32];
+    size_t length = 0;
+
+    while(true) {
+        const size_t bytes_read = stream_read(stream, buffer, sizeof(buffer));
+        if(bytes_read == 0) return length != 0;
+
+        for(size_t i = 0; i < bytes_read; i++) {
+            if(buffer[i] == '\n') {
+                const int32_t unread = (int32_t)bytes_read - (int32_t)i - 1;
+                if(unread && !stream_seek(stream, -unread, StreamOffsetFromCurrent)) {
+                    furi_string_reset(line);
+                    return false;
+                }
+                return true;
+            }
+            if(buffer[i] != '\r' && length < max_length) {
+                furi_string_push_back(line, buffer[i]);
+                length++;
+            }
+        }
+    }
+}
+
 static bool keys_dict_read_key_line(KeysDict* instance, FuriString* line, bool* is_endfile) {
-    if(stream_read_line(instance->stream, line) == false) {
+    if(keys_dict_read_line(instance->stream, line, instance->key_size_symbols - 1) == false) {
         *is_endfile = true;
     }
 
@@ -38,11 +66,7 @@ static bool keys_dict_read_key_line(KeysDict* instance, FuriString* line, bool* 
         FURI_LOG_T(
             TAG, "Read line: %s, len: %zu", furi_string_get_cstr(line), furi_string_size(line));
 
-        bool is_comment = furi_string_get_char(line, 0) == '#';
-
-        if(!is_comment) {
-            furi_string_left(line, instance->key_size_symbols - 1);
-        }
+        bool is_comment = furi_string_size(line) != 0 && furi_string_get_char(line, 0) == '#';
 
         bool is_correct_size = furi_string_size(line) == instance->key_size_symbols - 1;
 

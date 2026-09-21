@@ -47,6 +47,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Heap reallocation: bound copies by the old allocation's usable capacity.
 - [x] Heap calloc: reject overflowing count-times-size requests before allocation.
 - [x] NFC key dictionaries: validate hex before counting or returning keys.
+- [x] NFC key dictionaries: bound retained line data to the key prefix.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -266,3 +267,24 @@ Firmware and updater ARM builds and SDK checks pass. Hardware dictionary attack
 and storage-error testing remain pending. The long-line regression still reaches
 2097152 bytes of string capacity in the host growth model before the separate
 bounded-reader optimization; this is not a measured target allocator value.
+
+## Completed: bounded dictionary line memory
+
+Dictionary reads now retain at most `2 * key_size` characters while consuming
+the rest of each line in 32-byte chunks. Long comments and ignored suffixes no
+longer grow a temporary string with the input length. Six-byte Classic keys
+retain at most 12 characters; 16-byte Ultralight C keys retain at most 32.
+The reader uses a 32-byte stack scratch buffer, the same chunk size used by
+the previous generic line reader; configured thread stacks are unchanged.
+An unsuccessful seek back after a newline discards the partial result and ends
+iteration rather than returning a key with an uncertain next-entry position.
+
+The same one-megabyte comment/suffix fixtures now peak at 16 bytes of backing
+string capacity in the host growth model, versus 2097152 before this change.
+That compares the test allocator, not target heap measurements. Tests additionally
+cover 1/6/16/32-byte keys, blank lines, short reads, embedded NUL, failed seeks
+and a long final line without a newline. The full dictionary regression passes
+with AddressSanitizer. Firmware and updater builds and SDK checks pass; firmware
+`.text` is 657040, `.rodata` 181156, `.data` 640 and `.bss` 4972. Before/after
+ELFs and maps are retained under `.memory-audit/keys-*`. Hardware heap minima,
+dictionary-attack throughput and concurrent storage workloads remain pending.
