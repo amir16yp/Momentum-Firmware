@@ -343,10 +343,21 @@ void animation_manager_free(AnimationManager* animation_manager) {
     furi_record_close(RECORD_STORAGE);
 
     furi_string_free(animation_manager->freezed_animation_name);
-    View* animation_view = bubble_animation_get_view(animation_manager->animation_view);
-    view_stack_remove_view(animation_manager->view_stack, animation_view);
-    bubble_animation_view_free(animation_manager->animation_view);
     furi_timer_free(animation_manager->idle_animation_timer);
+
+    /* Detaches whatever is currently attached, so the views below can be
+     * freed regardless of which one the manager last switched to. */
+    view_stack_free(animation_manager->view_stack);
+
+    bubble_animation_view_free(animation_manager->animation_view);
+    if(animation_manager->one_shot_view) {
+        one_shot_view_free(animation_manager->one_shot_view);
+    }
+    if(animation_manager->current_animation) {
+        animation_storage_free_storage_animation(&animation_manager->current_animation);
+    }
+
+    free(animation_manager);
 }
 
 View* animation_manager_get_animation_view(AnimationManager* animation_manager) {
