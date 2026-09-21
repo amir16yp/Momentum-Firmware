@@ -64,6 +64,8 @@ typedef struct {
     FuriString* preset_str;
     FuriString* history_stat_str;
     FuriString* progress_str;
+    // Draw scratch storage, protected by the view model lock.
+    FuriString* draw_str;
     bool hopping_enabled;
     bool bin_raw_enabled;
     bool show_sats;
@@ -289,7 +291,7 @@ void subghz_view_receiver_draw(Canvas* canvas, SubGhzViewReceiverModel* model) {
     }
 
     bool scrollbar = model->history_item > 4;
-    FuriString* str_buff = furi_string_alloc();
+    FuriString* str_buff = model->draw_str;
 
     if(!model->nodraw) {
         SubGhzReceiverMenuItem* item_menu;
@@ -303,7 +305,10 @@ void subghz_view_receiver_draw(Canvas* canvas, SubGhzViewReceiverModel* model) {
             if(item_menu->type == 0) {
                 break;
             }
-            if(item_menu->repeats) {
+            if((model->idx == idx) && model->show_time) {
+                // Show time without first formatting the signal label that it replaces.
+                furi_string_set(str_buff, item_menu->time);
+            } else if(item_menu->repeats) {
                 furi_string_printf(
                     str_buff,
                     "x%u: %s",
@@ -314,23 +319,17 @@ void subghz_view_receiver_draw(Canvas* canvas, SubGhzViewReceiverModel* model) {
             }
             if(model->idx == idx) {
                 subghz_view_receiver_draw_frame(canvas, i, scrollbar);
-                if(model->show_time) {
-                    // Show time of signal one moment
-                    furi_string_set(str_buff, item_menu->time);
-                }
             } else {
                 canvas_set_color(canvas, ColorBlack);
             }
             elements_string_fit_width(canvas, str_buff, scrollbar ? MAX_LEN_PX - 7 : MAX_LEN_PX);
             canvas_draw_icon(canvas, 4, 2 + i * FRAME_HEIGHT, ReceiverItemIcons[item_menu->type]);
             canvas_draw_str(canvas, 15, 9 + i * FRAME_HEIGHT, furi_string_get_cstr(str_buff));
-            furi_string_reset(str_buff);
         }
         if(scrollbar) {
             elements_scrollbar_pos(canvas, 128, 0, 49, model->idx, model->history_item);
         }
     }
-    furi_string_free(str_buff);
 
     canvas_set_color(canvas, ColorBlack);
 
@@ -666,6 +665,7 @@ SubGhzViewReceiver* subghz_view_receiver_alloc(void) {
             model->preset_str = furi_string_alloc();
             model->history_stat_str = furi_string_alloc();
             model->progress_str = furi_string_alloc();
+            model->draw_str = furi_string_alloc();
             model->bar_show = SubGhzViewReceiverBarShowDefault;
             model->nodraw = false;
             model->history = malloc(sizeof(SubGhzReceiverHistory));
@@ -692,6 +692,7 @@ void subghz_view_receiver_free(SubGhzViewReceiver* subghz_receiver) {
             furi_string_free(model->preset_str);
             furi_string_free(model->history_stat_str);
             furi_string_free(model->progress_str);
+            furi_string_free(model->draw_str);
                 for
                     M_EACH(item_menu, model->history->data, SubGhzReceiverMenuItemArray_t) {
                         furi_string_free(item_menu->item_str);
