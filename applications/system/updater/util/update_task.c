@@ -463,6 +463,7 @@ void update_task_free(UpdateTask* update_task) {
 
     furi_record_close(RECORD_STORAGE);
     furi_string_free(update_task->update_path);
+    furi_string_free(update_task->state.status);
 
     free(update_task);
 }
