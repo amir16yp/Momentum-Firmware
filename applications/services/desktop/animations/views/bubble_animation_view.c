@@ -330,6 +330,10 @@ BubbleAnimationView* bubble_animation_view_alloc(void) {
 void bubble_animation_view_free(BubbleAnimationView* view) {
     furi_assert(view);
 
+    furi_timer_stop(view->timer);
+    furi_timer_free(view->timer);
+    view->timer = NULL;
+
     view_set_draw_callback(view->view, NULL);
     view_set_input_callback(view->view, NULL);
     view_set_context(view->view, NULL);
