@@ -50,6 +50,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] NFC key dictionaries: bound retained line data to the key prefix.
 - [x] RPC file downloads: release the payload after short or failed reads.
 - [x] RPC file downloads: reuse one payload across all chunks.
+- [x] JavaScript event queues: release rejected messages and their GC roots.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -322,3 +323,18 @@ churn, not the maximum chunk buffer or a measured number of peak heap bytes.
 Firmware/updater builds and SDK checks pass. Firmware `.text` is 657040,
 `.rodata` 181156, `.data` 640 and `.bss` 4972. Raw before/after ELF/map artifacts
 are retained in `.memory-audit/rpc-read-*`; hardware measurements remain pending.
+
+## Completed: JavaScript queue overflow cleanup
+
+When a JavaScript event-loop queue rejects a send, the module now disowns the
+message's mJS root and frees its value holder. Previously every rejected send
+leaked both the holder and its root, keeping the referenced JS value alive until
+interpreter destruction. Queue capacity, FIFO behavior and the void-returning
+send API are unchanged.
+
+`python -m unittest scripts.tests.test_js_queue_memory` compiles the production
+send/receive functions with mock RTOS queues and an explicit root table.
+`JS_QUEUE_ASAN=1` passes 300 lifecycles with 300000 full-queue rejections, forced
+put failures and FIFO/root-lifetime checks. The host mocks do not run the actual
+interpreter GC. The ARM `fap_js_event_loop` build and SDK/import checks pass.
+On-device GC, repeated script launch/exit and heap measurements remain pending.

@@ -315,7 +315,10 @@ static void js_event_loop_queue_send(struct mjs* mjs) {
     mjs_val_t* message_ptr = malloc(sizeof(mjs_val_t));
     *message_ptr = message;
     mjs_own(mjs, message_ptr);
-    furi_message_queue_put(contract->object, &message_ptr, 0);
+    if(furi_message_queue_put(contract->object, &message_ptr, 0) != FuriStatusOk) {
+        mjs_disown(mjs, message_ptr);
+        free(message_ptr);
+    }
 
     mjs_return(mjs, MJS_UNDEFINED);
 }
