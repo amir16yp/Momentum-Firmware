@@ -46,6 +46,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] Shared bit buffers: consolidate context, data and parity into one allocation.
 - [x] Heap reallocation: bound copies by the old allocation's usable capacity.
 - [x] Heap calloc: reject overflowing count-times-size requests before allocation.
+- [x] NFC key dictionaries: validate hex before counting or returning keys.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -244,3 +245,24 @@ The complete regression passes with AddressSanitizer; firmware and updater ARM
 builds and SDK checks pass. Firmware `.text` increases by a further 32 bytes to
 656880; `.data` 640 and `.bss` 4972 remain unchanged. This is a memory-safety fix,
 not a reduction in runtime heap consumption.
+
+## Completed: dictionary hex validation
+
+Dictionary entries must now contain a valid hexadecimal key prefix before they
+are counted or returned. Previously the parser accepted any prefix of the right
+length, and ignored conversion failure, allowing an uninitialized or previous
+byte to become part of the returned key. Malformed entries are skipped without
+changing the output key. The key-size calculation is checked for overflow before
+allocating the dictionary. Case-insensitive hex, comments, CRLF, final lines
+without a newline and the existing ignored-suffix behavior remain supported.
+
+`python -m unittest scripts.tests.test_keys_dict_memory` compiles the production
+parser, iterator, hex decoder and line reader with tracked host strings and a
+mock stream. AddressSanitizer passes for 3200 repeated scans with read sizes
+1 through 32, invalid characters and embedded NUL at every key position, empty
+input, short keys, and one-megabyte comments/suffixes. Startup counting and
+iteration agree on the accepted entries, and no string objects remain allocated.
+Firmware and updater ARM builds and SDK checks pass. Hardware dictionary attack
+and storage-error testing remain pending. The long-line regression still reaches
+2097152 bytes of string capacity in the host growth model before the separate
+bounded-reader optimization; this is not a measured target allocator value.
