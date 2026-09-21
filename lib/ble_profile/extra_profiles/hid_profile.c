@@ -380,7 +380,7 @@ bool ble_profile_hid_mouse_scroll(FuriHalBleProfileBase* profile, int8_t delta) 
 // Up to 45 ms
 #define CONNECTION_INTERVAL_MAX (0x24)
 
-static GapConfig template_config = {
+static const GapConfig template_config = {
     .adv_service =
         {
             .UUID_Type = UUID_TYPE_16,

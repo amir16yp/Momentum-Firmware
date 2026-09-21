@@ -27,7 +27,7 @@ typedef struct {
 
 typedef void (*FlipperInternalOnStartHook)(void);
 
-extern const char* FLIPPER_AUTORUN_APP_NAME;
+extern const char* const FLIPPER_AUTORUN_APP_NAME;
 
 /* Services list
  * Spawned on startup

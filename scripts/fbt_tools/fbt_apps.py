@@ -75,7 +75,7 @@ class ApplicationsCGenerator:
         contents = [
             '#include "applications.h"',
             "#include <assets_icons.h>",
-            f'const char* FLIPPER_AUTORUN_APP_NAME = "{self.autorun}";',
+            f'const char* const FLIPPER_AUTORUN_APP_NAME = "{self.autorun}";',
         ]
         for apptype in self.APP_TYPE_MAP:
             contents.extend(

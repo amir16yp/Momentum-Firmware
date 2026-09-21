@@ -33,8 +33,9 @@ static const SubGhzBlockConst pocsag2400_const = {
 #define POCSAG_FUNC_ALERT2   2
 #define POCSAG_FUNC_ALPHANUM 3
 
-static const char* func_msg[] = {"\e#Num:\e# ", "\e#Alert\e#", "\e#Alert:\e# ", "\e#Msg:\e# "};
-static const char* bcd_chars = "*U -)(";
+static const char* const func_msg[] =
+    {"\e#Num:\e# ", "\e#Alert\e#", "\e#Alert:\e# ", "\e#Msg:\e# "};
+static const char* const bcd_chars = "*U -)(";
 
 struct SubGhzProtocolDecoderPocsag {
     SubGhzProtocolDecoderBase base;

@@ -13,7 +13,7 @@
 /* Need at least 4 free LFS pages before update */
 #define UPDATE_MIN_INT_FREE_SPACE (2 * 4 * 1024)
 
-static const char* update_prepare_result_descr[] = {
+static const char* const update_prepare_result_descr[] = {
     [UpdatePrepareResultOK] = "OK",
     [UpdatePrepareResultManifestPathInvalid] = "Invalid manifest name or location",
     [UpdatePrepareResultManifestFolderNotFound] = "Update folder not found",

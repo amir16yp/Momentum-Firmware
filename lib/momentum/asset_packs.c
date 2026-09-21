@@ -168,7 +168,7 @@ static void free_font(Font font) {
     asset_packs->font_params[font] = NULL;
 }
 
-static const char* font_names[] = {
+static const char* const font_names[] = {
     [FontPrimary] = "Primary",
     [FontSecondary] = "Secondary",
     [FontKeyboard] = "Keyboard",

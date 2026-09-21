@@ -165,7 +165,7 @@ static const Keyboard symbol_keyboard = {
     .keyboard_index = 1,
 };
 
-static const Keyboard* keyboards[] = {
+static const Keyboard* const keyboards[] = {
     &keyboard,
     &symbol_keyboard,
 };

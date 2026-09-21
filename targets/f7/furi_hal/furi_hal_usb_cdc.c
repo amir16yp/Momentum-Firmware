@@ -396,7 +396,7 @@ static usbd_respond cdc_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_cal
 static usbd_device* usb_dev;
 static volatile FuriHalUsbInterface* cdc_if_cur = NULL;
 static volatile bool connected = false;
-static volatile CdcCallbacks* callbacks[IF_NUM_MAX] = {NULL};
+static const volatile CdcCallbacks* callbacks[IF_NUM_MAX] = {NULL};
 static void* cb_ctx[IF_NUM_MAX];
 
 FuriHalUsbInterface usb_cdc_single = {
@@ -472,7 +472,7 @@ static void cdc_deinit(usbd_device* dev) {
     cdc_if_cur = NULL;
 }
 
-void furi_hal_cdc_set_callbacks(uint8_t if_num, CdcCallbacks* cb, void* context) {
+void furi_hal_cdc_set_callbacks(uint8_t if_num, const CdcCallbacks* cb, void* context) {
     furi_check(if_num < IF_NUM_MAX);
 
     if(callbacks[if_num] != NULL) {

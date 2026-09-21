@@ -975,7 +975,7 @@ static DRESULT mnt_driver_ioctl(BYTE pdrv, BYTE cmd, void* buff) {
     return res;
 }
 
-static Diskio_drvTypeDef mnt_driver = {
+static const Diskio_drvTypeDef mnt_driver = {
     mnt_driver_initialize,
     mnt_driver_status,
     mnt_driver_read,

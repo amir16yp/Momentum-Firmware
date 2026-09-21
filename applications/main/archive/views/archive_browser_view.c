@@ -8,7 +8,7 @@
 #define SCROLL_INTERVAL (333)
 #define SCROLL_DELAY    (2)
 
-static const char* ArchiveTabNames[] = {
+static const char* const ArchiveTabNames[] = {
     [ArchiveTabFavorites] = "Favorites",
     [ArchiveTabIButton] = "iButton",
     [ArchiveTabNFC] = "NFC",
@@ -24,7 +24,7 @@ static const char* ArchiveTabNames[] = {
     [ArchiveTabBrowser] = "Browser",
 };
 
-static const Icon* ArchiveItemIcons[] = {
+static const Icon* const ArchiveItemIcons[] = {
     [ArchiveFileTypeIButton] = &I_ibutt_10px,
     [ArchiveFileTypeNFC] = &I_Nfc_10px,
     [ArchiveFileTypeSubGhz] = &I_sub1_10px,
