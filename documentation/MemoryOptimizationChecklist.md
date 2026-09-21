@@ -49,6 +49,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] NFC key dictionaries: validate hex before counting or returning keys.
 - [x] NFC key dictionaries: bound retained line data to the key prefix.
 - [x] RPC file downloads: release the payload after short or failed reads.
+- [x] RPC file downloads: reuse one payload across all chunks.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -304,3 +305,20 @@ With `RPC_READ_ASAN=1`, 2100 transfer scenarios pass: empty, 1/511/512/513/1024/
 chunk. Every delivered byte and continuation flag is checked, with no retained
 payloads or file handles. Firmware/updater ARM builds and SDK checks pass.
 Hardware transport timing and disconnect concurrency remain pending.
+
+## Completed: RPC download payload reuse
+
+Downloads allocate a payload once, sized to the smaller of the file and the
+512-byte chunk limit, then reuse it until final protobuf cleanup. `rpc_send()`
+encodes synchronously and finishes its transport callback before returning; the
+next storage read therefore cannot overwrite data being encoded. Short files
+keep small payloads, and empty files still send the same empty-file response.
+The serialized transmit buffer allocated inside `rpc_send()` is unchanged.
+
+All 2100 sanitizer/real-codec regression scenarios pass and now assert exactly
+two handler allocations per opened file (response plus payload), independent of
+chunk count, versus seven for a six-chunk file previously. This removes allocation
+churn, not the maximum chunk buffer or a measured number of peak heap bytes.
+Firmware/updater builds and SDK checks pass. Firmware `.text` is 657040,
+`.rodata` 181156, `.data` 640 and `.bss` 4972. Raw before/after ELF/map artifacts
+are retained in `.memory-audit/rpc-read-*`; hardware measurements remain pending.

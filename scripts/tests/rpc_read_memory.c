@@ -46,6 +46,7 @@ static void* handler_malloc(size_t size) {
 #define furi_assert(condition) assert(condition)
 #define FURI_LOG_D(...)        ((void)0)
 #define MIN(a, b)              ((a) < (b) ? (a) : (b))
+#define MAX(a, b)              ((a) > (b) ? (a) : (b))
 #define FSAM_READ              1
 #define FSOM_OPEN_EXISTING     1
 static const size_t MAX_DATA_SIZE = 512;
@@ -143,11 +144,6 @@ static void rpc_send(RpcSession* session, PB_Main* message) {
     pb_release(&PB_Main_msg, &decoded);
 }
 
-static void rpc_send_and_release(RpcSession* session, PB_Main* response) {
-    rpc_send(session, response);
-    pb_release(&PB_Main_msg, response);
-}
-
 static void rpc_send_and_release_empty(RpcSession* session, uint32_t id, PB_CommandStatus status) {
     assert(id == 42 && status == PB_CommandStatus_ERROR_STORAGE_INTERNAL);
     if(session->connected) errors++;
@@ -184,7 +180,7 @@ static void run(size_t size, size_t failure, bool open_failure, bool zero, bool 
             assert(responses == (open_failure ? 0 : failure));
         }
     }
-    assert(handler_allocations == 1 + (open_failure ? 0 : (size ? read_calls : 1)));
+    assert(handler_allocations == (open_failure ? 1U : 2U));
 }
 
 int main(void) {
