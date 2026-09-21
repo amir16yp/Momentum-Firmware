@@ -87,6 +87,7 @@ static void
                                 break;
                             }
                         }
+                        furi_string_free(selected);
                     }
                 }
                 if(model->item_idx < 0) {
