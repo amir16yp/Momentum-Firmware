@@ -382,6 +382,15 @@ static void* js_event_loop_create(struct mjs* mjs, mjs_val_t* object, JsModules*
     return module;
 }
 
+static void js_event_loop_queue_free(FuriMessageQueue* queue) {
+    // js_thread destroys mJS before its modules, so the GC roots are already gone.
+    mjs_val_t* message_ptr;
+    while(furi_message_queue_get(queue, &message_ptr, 0) == FuriStatusOk) {
+        free(message_ptr);
+    }
+    furi_message_queue_free(queue);
+}
+
 static void js_event_loop_destroy(void* inst) {
     if(inst) {
         JsEventLoop* module = inst;
@@ -420,7 +429,7 @@ static void js_event_loop_destroy(void* inst) {
                 furi_semaphore_free(contract->object);
                 break;
             case JsEventLoopObjectTypeQueue:
-                furi_message_queue_free(contract->object);
+                js_event_loop_queue_free(contract->object);
                 break;
             default:
                 furi_crash("unimplemented");

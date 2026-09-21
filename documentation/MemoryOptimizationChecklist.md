@@ -51,6 +51,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] RPC file downloads: release the payload after short or failed reads.
 - [x] RPC file downloads: reuse one payload across all chunks.
 - [x] JavaScript event queues: release rejected messages and their GC roots.
+- [x] JavaScript event queues: free pending message holders during module teardown.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -338,3 +339,20 @@ send/receive functions with mock RTOS queues and an explicit root table.
 put failures and FIFO/root-lifetime checks. The host mocks do not run the actual
 interpreter GC. The ARM `fap_js_event_loop` build and SDK/import checks pass.
 On-device GC, repeated script launch/exit and heap measurements remain pending.
+
+## Completed: JavaScript queue teardown
+
+Module destruction now drains each owned queue and frees all undelivered value
+holders before deleting the RTOS queue. Each previously leaked holder contains
+an 8-byte `mjs_val_t`, plus allocator overhead. This does not dereference or disown
+values: `js_thread` destroys the interpreter and its root table before destroying
+the modules. Reversing that order would require corresponding root cleanup.
+
+The sanitizer regression now also tears down full and empty queues after marking
+the mock interpreter destroyed, checking that no mJS calls or retained holders
+remain. The ARM plugin build and import/SDK checks pass. Across both JavaScript
+queue fixes, plugin `.text` grows from 2936 to 2988 bytes and `.rodata` remains
+388; plugin code is loaded into RAM, so this adds 52 section bytes before loader
+alignment while preventing accumulating heap leaks. Before/after ELF/map files
+are retained in `.memory-audit/js-queue-*`. This is a targeted queue-lifetime
+audit, not a complete audit of every JavaScript module or the mJS engine.

@@ -11,6 +11,7 @@ typedef struct {
     size_t count;
     size_t head;
     bool fail_put;
+    bool freed;
 } FuriMessageQueue;
 typedef FuriMessageQueue FuriEventLoopObject;
 typedef struct {
@@ -76,6 +77,11 @@ static int furi_message_queue_get(FuriMessageQueue* queue, mjs_val_t** value, in
     return FuriStatusOk;
 }
 
+static void furi_message_queue_free(FuriMessageQueue* queue) {
+    assert(queue->count == 0 && !queue->freed);
+    queue->freed = true;
+}
+
 typedef int JsValueDeclaration;
 typedef struct {
     const JsValueDeclaration* declarations;
@@ -129,6 +135,20 @@ static void run(size_t capacity) {
     js_event_loop_queue_send(&mjs);
     check_roots(&mjs, &queue);
     assert(live_nodes == 0 && mjs.root_count == 0);
+
+    // Match js_thread's real shutdown order: mJS first, then module destruction.
+    queue.fail_put = false;
+    for(size_t i = 0; i < capacity; i++) {
+        mjs.argument = i;
+        js_event_loop_queue_send(&mjs);
+    }
+    mjs.root_count = 0;
+    mjs.destroyed = true;
+    js_event_loop_queue_free(&queue);
+    assert(queue.freed && live_nodes == 0);
+    FuriMessageQueue empty_queue = {.capacity = capacity};
+    js_event_loop_queue_free(&empty_queue);
+    assert(empty_queue.freed && live_nodes == 0);
 }
 
 int main(void) {

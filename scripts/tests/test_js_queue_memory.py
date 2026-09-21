@@ -15,6 +15,7 @@ class JsQueueMemoryTest(unittest.TestCase):
         start = source.index("static mjs_val_t\n    js_event_loop_queue_transformer(")
         end = source.index("/**\n * @brief Creates a queue", start)
         functions = source[start:end]
+        functions += source[source.index("static void js_event_loop_queue_free("):source.index("static void js_event_loop_destroy(")]
         harness = (Path(__file__).parent / "js_queue_memory.c").read_text()
         compiler = shutil.which("clang") or shutil.which("gcc")
         self.assertIsNotNone(compiler)
