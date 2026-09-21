@@ -188,11 +188,12 @@ fwenv.Append(
 )
 
 # Build applications.c for selected services & apps
-# Depends on virtual value-only node, so it only gets rebuilt when set of apps changes
+# Track both the selected apps and the generator that emits their declarations.
 apps_c = fwenv.ApplicationsC(
     "applications/applications.c",
     [Value(fwenv["APPS"]), Value(fwenv["LOADER_AUTOSTART"])],
 )
+fwenv.Depends(apps_c, fwenv.File("#/scripts/fbt_tools/fbt_apps.py"))
 
 # Adding dependency on manifest files so apps.c is rebuilt when any manifest is changed
 for app_dir, _ in env["APPDIRS"]:

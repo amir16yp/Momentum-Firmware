@@ -4,7 +4,7 @@
 
 #define TAG "Archive"
 
-const char* units[] = {"Bytes", "KiB", "MiB", "GiB", "TiB"};
+const char* const units[] = {"Bytes", "KiB", "MiB", "GiB", "TiB"};
 
 void archive_scene_info_widget_callback(GuiButtonType result, InputType type, void* context) {
     furi_assert(context);
