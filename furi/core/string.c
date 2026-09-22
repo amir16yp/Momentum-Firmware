@@ -175,10 +175,11 @@ int furi_string_cat_printf(FuriString* v, const char format[], ...) {
 }
 
 int furi_string_cat_vprintf(FuriString* v, const char format[], va_list args) {
-    FuriString* string = furi_string_alloc();
-    int ret = furi_string_vprintf(string, format, args);
-    furi_string_cat(v, string);
-    furi_string_free(string);
+    // Format separately so format/arguments may still refer to v's buffer.
+    string_t temporary;
+    int ret = string_init_vprintf(temporary, format, args);
+    string_cat(v->string, temporary);
+    string_clear(temporary);
     return ret;
 }
 
@@ -228,7 +229,7 @@ bool furi_string_end_with_str(const FuriString* v, const char str[]) {
 }
 
 bool furi_string_end_withi_str(const FuriString* v, const char str[]) {
-    M_STR1NG_CONTRACT(v);
+    M_STR1NG_CONTRACT(v->string);
     M_ASSERT(str != NULL);
 
     const size_t str_len = strlen(str);

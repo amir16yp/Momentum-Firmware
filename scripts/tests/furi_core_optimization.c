@@ -22,6 +22,8 @@
 #define COUNT_OF(x)     (sizeof(x) / sizeof((x)[0]))
 #define FURI_IS_ISR()   false
 
+static unsigned mutex_acquisitions;
+
 typedef struct {
     unsigned depth;
     bool recursive;
@@ -38,6 +40,7 @@ static FuriMutex* furi_mutex_alloc(int type) {
 }
 static int furi_mutex_acquire(FuriMutex* mutex, uint32_t timeout) {
     (void)timeout;
+    ++mutex_acquisitions;
     assert(!mutex->depth || mutex->recursive);
     ++mutex->depth;
     return 0;
@@ -157,32 +160,56 @@ static void test_strings(void) {
     assert(furi_string_get_char(value, 1029) == '1');
     assert(object_allocations == before);
     furi_string_free(value);
+
+    value = furi_string_alloc_set_str("Mixed.Py");
+    assert(furi_string_end_withi_str(value, ".py"));
+    assert(furi_string_end_withi_str(value, ""));
+    assert(!furi_string_end_withi_str(value, "longer-than-the-value"));
+    assert(!furi_string_end_withi_str(value, ".txt"));
+    furi_string_free(value);
 }
 static char output[4096];
 static size_t output_size;
+static bool nested_log;
 static void capture(const uint8_t* data, size_t size, void* context) {
     assert(context == &payload);
     assert(output_size + size < sizeof(output));
     memcpy(output + output_size, data, size);
     output_size += size;
     output[output_size] = 0;
+    if(nested_log) {
+        nested_log = false;
+        furi_log_print_raw_format(FuriLogLevelInfo, "%s", "nested");
+    }
 }
 static void test_logging(void) {
     furi_log_init();
     FuriLogHandler handler = {.callback = capture, .context = &payload};
     assert(furi_log_add_handler(handler));
     assert(!furi_log_add_handler(handler));
+    unsigned before = mutex_acquisitions;
     furi_log_print_format(FuriLogLevelInfo, "test", "%s:%d", "hello", 7);
+    assert(mutex_acquisitions == before + 1);
     assert(strcmp(output, "42 \033[0;32m[I][test] \033[0mhello:7\r\n") == 0);
     output_size = 0;
     furi_log_print_format(FuriLogLevelInfo, "long-tag-to-force-heap-storage", "%s", "");
     assert(strcmp(output, "42 \033[0;32m[I][long-tag-to-force-heap-storage] \033[0m\r\n") == 0);
     output_size = 0;
+    before = mutex_acquisitions;
     furi_log_print_raw_format(FuriLogLevelInfo, "%01024d", 1);
+    assert(mutex_acquisitions == before + 1);
     assert(output_size == 1024 && output[1023] == '1');
     output_size = 0;
+    before = mutex_acquisitions;
     furi_log_print_format(FuriLogLevelTrace, "test", "filtered");
+    assert(mutex_acquisitions == before);
     assert(output_size == 0);
+    nested_log = true;
+    furi_log_print_raw_format(FuriLogLevelInfo, "%s", "outer");
+    assert(strcmp(output, "outernested") == 0);
+    output_size = 0;
+    furi_log_tx((const uint8_t*)"direct", 6);
+    assert(strcmp(output, "direct") == 0);
     assert(furi_log_remove_handler(handler));
     assert(!furi_log_remove_handler(handler));
     FuriLogHandlersList_clear(furi_log.tx_handlers);

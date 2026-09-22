@@ -48,8 +48,10 @@ bool furi_log_add_handler(FuriLogHandler handler) {
     FuriLogHandlersList_it_t it;
     FuriLogHandlersList_it(it, furi_log.tx_handlers);
     while(!FuriLogHandlersList_end_p(it)) {
-        if(memcmp(FuriLogHandlersList_ref(it), &handler, sizeof(FuriLogHandler)) == 0) {
+        const FuriLogHandler* current = FuriLogHandlersList_cref(it);
+        if(current->callback == handler.callback && current->context == handler.context) {
             ret = false;
+            break;
         } else {
             FuriLogHandlersList_next(it);
         }
@@ -72,7 +74,8 @@ bool furi_log_remove_handler(FuriLogHandler handler) {
     FuriLogHandlersList_it_t it;
     FuriLogHandlersList_it(it, furi_log.tx_handlers);
     while(!FuriLogHandlersList_end_p(it)) {
-        if(memcmp(FuriLogHandlersList_ref(it), &handler, sizeof(FuriLogHandler)) == 0) {
+        const FuriLogHandler* current = FuriLogHandlersList_cref(it);
+        if(current->callback == handler.callback && current->context == handler.context) {
             FuriLogHandlersList_remove(furi_log.tx_handlers, it);
             ret = true;
         } else {
@@ -85,6 +88,16 @@ bool furi_log_remove_handler(FuriLogHandler handler) {
     return ret;
 }
 
+// Caller holds the log mutex, or has checked the ISR path.
+static void furi_log_tx_locked(const uint8_t* data, size_t size) {
+    FuriLogHandlersList_it_t it;
+    FuriLogHandlersList_it(it, furi_log.tx_handlers);
+    while(!FuriLogHandlersList_end_p(it)) {
+        FuriLogHandlersList_ref(it)->callback(data, size, FuriLogHandlersList_ref(it)->context);
+        FuriLogHandlersList_next(it);
+    }
+}
+
 void furi_log_tx(const uint8_t* data, size_t size) {
     if(!FURI_IS_ISR()) {
         furi_check(furi_mutex_acquire(furi_log.mutex, FuriWaitForever) == FuriStatusOk);
@@ -92,12 +105,7 @@ void furi_log_tx(const uint8_t* data, size_t size) {
         if(furi_mutex_get_owner(furi_log.mutex)) return;
     }
 
-    FuriLogHandlersList_it_t it;
-    FuriLogHandlersList_it(it, furi_log.tx_handlers);
-    while(!FuriLogHandlersList_end_p(it)) {
-        FuriLogHandlersList_ref(it)->callback(data, size, FuriLogHandlersList_ref(it)->context);
-        FuriLogHandlersList_next(it);
-    }
+    furi_log_tx_locked(data, size);
 
     if(!FURI_IS_ISR()) furi_mutex_release(furi_log.mutex);
 }
@@ -150,18 +158,21 @@ void furi_log_print_format(FuriLogLevel level, const char* tag, const char* form
         // Timestamp
         furi_string_printf(
             string, "%lu %s[%s][%s] " _FURI_LOG_CLR_RESET, furi_get_tick(), color, log_letter, tag);
-        furi_log_puts(furi_string_get_cstr(string));
-        furi_string_reset(string);
+        const char* data = furi_string_get_cstr(string);
+        furi_log_tx_locked((const uint8_t*)data, strlen(data));
+        // Keep the prefix buffer available for formatting the message.
+        furi_string_left(string, 0);
 
         va_list args;
         va_start(args, format);
         furi_string_vprintf(string, format, args);
         va_end(args);
 
-        furi_log_puts(furi_string_get_cstr(string));
+        data = furi_string_get_cstr(string);
+        furi_log_tx_locked((const uint8_t*)data, strlen(data));
         furi_string_free(string);
 
-        furi_log_puts("\r\n");
+        furi_log_tx_locked((const uint8_t*)"\r\n", 2);
 
         furi_mutex_release(furi_log.mutex);
     } while(0);
@@ -177,7 +188,8 @@ void furi_log_print_raw_format(FuriLogLevel level, const char* format, ...) {
         furi_string_vprintf(string, format, args);
         va_end(args);
 
-        furi_log_puts(furi_string_get_cstr(string));
+        const char* data = furi_string_get_cstr(string);
+        furi_log_tx_locked((const uint8_t*)data, strlen(data));
         furi_string_free(string);
 
         furi_mutex_release(furi_log.mutex);

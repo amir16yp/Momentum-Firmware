@@ -32,7 +32,9 @@ static void furi_record_put(const char* name, FuriRecordData* record_data) {
 }
 
 static void furi_record_erase(const char* name, FuriRecordData* record_data) {
-    furi_event_flag_free(record_data->flags);
+    if(record_data->flags) {
+        furi_event_flag_free(record_data->flags);
+    }
     FuriRecordDataDict_erase(furi_record->records, name);
 }
 
@@ -47,7 +49,7 @@ static FuriRecordData* furi_record_data_get_or_create(const char* name) {
     FuriRecordData* record_data = furi_record_get(name);
     if(!record_data) {
         FuriRecordData new_record;
-        new_record.flags = furi_event_flag_alloc();
+        new_record.flags = NULL;
         new_record.data = NULL;
         new_record.holders_count = 0;
         furi_record_put(name, &new_record);
@@ -88,7 +90,9 @@ void furi_record_create(const char* name, void* data) {
     FuriRecordData* record_data = furi_record_data_get_or_create(name);
     furi_check(record_data->data == NULL);
     record_data->data = data;
-    furi_event_flag_set(record_data->flags, FURI_RECORD_FLAG_READY);
+    if(record_data->flags) {
+        furi_event_flag_set(record_data->flags, FURI_RECORD_FLAG_READY);
+    }
 
     furi_record_unlock();
 }
@@ -122,17 +126,34 @@ void* furi_record_open(const char* name) {
     FuriRecordData* record_data = furi_record_data_get_or_create(name);
     record_data->holders_count++;
 
+    void* data = record_data->data;
+    FuriEventFlag* flags = NULL;
+    if(!data) {
+        // Ready records need neither an event group nor an RTOS wait.
+        if(!record_data->flags) {
+            record_data->flags = furi_event_flag_alloc();
+        }
+        flags = record_data->flags;
+    }
+
     furi_record_unlock();
 
-    // Wait for record to become ready
-    furi_check(
-        furi_event_flag_wait(
-            record_data->flags,
-            FURI_RECORD_FLAG_READY,
-            FuriFlagWaitAny | FuriFlagNoClear,
-            FuriWaitForever) == FURI_RECORD_FLAG_READY);
+    if(!data) {
+        // holders_count keeps the record and its event group alive while waiting.
+        furi_check(
+            furi_event_flag_wait(
+                flags,
+                FURI_RECORD_FLAG_READY,
+                FuriFlagWaitAny | FuriFlagNoClear,
+                FuriWaitForever) == FURI_RECORD_FLAG_READY);
 
-    return record_data->data;
+        furi_record_lock();
+        // Other records may have been inserted while the lock was released.
+        data = furi_record_get(name)->data;
+        furi_record_unlock();
+    }
+
+    return data;
 }
 
 void furi_record_close(const char* name) {
@@ -143,6 +164,7 @@ void furi_record_close(const char* name) {
 
     FuriRecordData* record_data = furi_record_get(name);
     furi_check(record_data);
+    furi_check(record_data->holders_count > 0);
     record_data->holders_count--;
 
     furi_record_unlock();
