@@ -1,11 +1,15 @@
 #include "str_buffer.h"
 
 const char* str_buffer_make_owned_clone(StrBuffer* buffer, const char* str) {
+    furi_check(buffer->n_owned_strings < SIZE_MAX / sizeof(*buffer->owned_strings));
+    size_t count = buffer->n_owned_strings + 1;
+    char** strings = realloc(buffer->owned_strings, count * sizeof(*strings));
+    furi_check(strings);
+    buffer->owned_strings = strings;
     char* owned = strdup(str);
-    buffer->n_owned_strings++;
-    buffer->owned_strings =
-        realloc(buffer->owned_strings, buffer->n_owned_strings * sizeof(const char*)); // -V701
-    buffer->owned_strings[buffer->n_owned_strings - 1] = owned;
+    furi_check(owned);
+    buffer->owned_strings[buffer->n_owned_strings] = owned;
+    buffer->n_owned_strings = count;
     return owned;
 }
 
@@ -15,4 +19,5 @@ void str_buffer_clear_all_clones(StrBuffer* buffer) {
     }
     free(buffer->owned_strings);
     buffer->owned_strings = NULL;
+    buffer->n_owned_strings = 0;
 }
