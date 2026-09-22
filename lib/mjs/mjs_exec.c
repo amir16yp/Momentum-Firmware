@@ -1084,15 +1084,13 @@ clean:
     return mjs->error;
 }
 
-MJS_PRIVATE mjs_err_t mjs_exec_internal(
+static mjs_err_t mjs_exec_parsed(
     struct mjs* mjs,
     const char* path,
-    const char* src,
+    size_t off,
     int generate_jsc,
     mjs_val_t* res) {
-    size_t off = mjs->bcode_len;
     mjs_val_t r = MJS_UNDEFINED;
-    mjs->error = mjs_parse(path, src, mjs);
 #if MJS_ENABLE_DEBUG
     if(cs_log_level >= LL_VERBOSE_DEBUG) mjs_dump(mjs, 1);
 #endif
@@ -1162,12 +1160,24 @@ MJS_PRIVATE mjs_err_t mjs_exec_internal(
         }
 #else
         (void)generate_jsc;
+        (void)path;
 #endif
 
         mjs_execute(mjs, off, &r);
     }
     if(res != NULL) *res = r;
     return mjs->error;
+}
+
+MJS_PRIVATE mjs_err_t mjs_exec_internal(
+    struct mjs* mjs,
+    const char* path,
+    const char* src,
+    int generate_jsc,
+    mjs_val_t* res) {
+    size_t off = mjs->bcode_len;
+    mjs->error = mjs_parse(path, src, mjs);
+    return mjs_exec_parsed(mjs, path, off, generate_jsc, res);
 }
 
 mjs_err_t mjs_exec(struct mjs* mjs, const char* src, mjs_val_t* res) {
@@ -1186,9 +1196,12 @@ mjs_err_t mjs_exec_file(struct mjs* mjs, const char* path, mjs_val_t* res) {
         goto clean;
     }
 
-    r = MJS_UNDEFINED;
-    error = mjs_exec_internal(mjs, path, source_code, -1, &r);
+    size_t off = mjs->bcode_len;
+    mjs->error = mjs_parse(path, source_code, mjs);
+    /* The parser copies literals and source locations into bytecode. Release
+     * the file buffer before native modules and long-running event loops run. */
     free(source_code);
+    error = mjs_exec_parsed(mjs, path, off, -1, &r);
 
 clean:
     if(res != NULL) *res = r;

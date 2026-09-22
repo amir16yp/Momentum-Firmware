@@ -63,7 +63,12 @@ static void js_event_loop_callback_generic(void* param) {
         context->arity,
         context->arguments);
 
-    bool is_error = strcmp(mjs_strerror(context->mjs, error), "NO_ERROR") != 0;
+    // Root slots have stable addresses; replacing their values needs no re-registration.
+    // Keep an event payload only for the duration of its callback. Scripts can retain
+    // it explicitly in their state or return it as one of the next callback arguments.
+    context->arguments[1] = MJS_UNDEFINED;
+
+    bool is_error = error != MJS_OK;
     bool asked_to_stop = js_flags_wait(context->mjs, ThreadEventStop, 0) & ThreadEventStop;
     if(is_error || asked_to_stop) {
         furi_event_loop_stop(context->event_loop);
@@ -72,9 +77,7 @@ static void js_event_loop_callback_generic(void* param) {
     // save returned args for next call
     if(mjs_array_length(context->mjs, result) != context->arity - SYSTEM_ARGS) return;
     for(size_t i = 0; i < context->arity - SYSTEM_ARGS; i++) {
-        mjs_disown(context->mjs, &context->arguments[i + SYSTEM_ARGS]);
         context->arguments[i + SYSTEM_ARGS] = mjs_array_get(context->mjs, result, i);
-        mjs_own(context->mjs, &context->arguments[i + SYSTEM_ARGS]);
     }
 }
 
@@ -85,10 +88,8 @@ static void js_event_loop_callback(void* object, void* param) {
     JsEventLoopCallbackContext* context = param;
 
     if(context->transformer) {
-        mjs_disown(context->mjs, &context->arguments[1]);
         context->arguments[1] =
             context->transformer(context->mjs, object, context->transformer_context);
-        mjs_own(context->mjs, &context->arguments[1]);
     } else {
         // default behavior: take semaphores and mutexes
         switch(context->object_type) {

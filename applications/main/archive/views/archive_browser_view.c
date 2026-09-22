@@ -475,10 +475,13 @@ static bool archive_view_input(InputEvent* event, void* context) {
                 ArchiveBrowserViewModel * model,
                 {
                     size_t size_menu = menu_array_size(model->context_menu);
-                    if(event->key == InputKeyUp) {
-                        model->menu_idx = ((model->menu_idx - 1) + size_menu) % size_menu;
-                    } else if(event->key == InputKeyDown) {
-                        model->menu_idx = (model->menu_idx + 1) % size_menu;
+                    // Drawing populates the menu and may not have run yet.
+                    if(size_menu > 0) {
+                        if(event->key == InputKeyUp) {
+                            model->menu_idx = ((model->menu_idx - 1) + size_menu) % size_menu;
+                        } else if(event->key == InputKeyDown) {
+                            model->menu_idx = (model->menu_idx + 1) % size_menu;
+                        }
                     }
                 },
                 true);
@@ -498,17 +501,21 @@ static bool archive_view_input(InputEvent* event, void* context) {
                 },
                 true);
         } else if(event->key == InputKeyOk) {
-            uint32_t idx;
+            uint32_t idx = ArchiveBrowserEventFileMenuNone;
             with_view_model(
                 browser->view,
                 ArchiveBrowserViewModel * model,
                 {
-                    ArchiveContextMenuItem_t* current =
-                        menu_array_get(model->context_menu, model->menu_idx);
-                    idx = current->event;
+                    if(model->menu_idx < menu_array_size(model->context_menu)) {
+                        ArchiveContextMenuItem_t* current =
+                            menu_array_get(model->context_menu, model->menu_idx);
+                        idx = current->event;
+                    }
                 },
                 false);
-            browser->callback(idx, browser->context);
+            if(idx != ArchiveBrowserEventFileMenuNone) {
+                browser->callback(idx, browser->context);
+            }
         } else if(event->key == InputKeyBack) {
             browser->callback(ArchiveBrowserEventFileMenuClose, browser->context);
         }
