@@ -424,3 +424,16 @@ buffer or touch the bus, and that temporary allocations and bus locks are releas
 These are mocked mJS/HAL boundary tests; device I2C and full interpreter execution
 remain pending. The ARM `fap_js_i2c` build and SDK/import checks pass. Plugin `.text`
 stays 1948 bytes and `.rodata` grows from 328 to 332 bytes for the clarified error.
+
+## Completed: Archive icon assignment ownership
+
+Archive entry assignment now reuses an existing 32-byte icon allocation and
+releases it when assigning an entry without an icon. Previously both paths lost
+the destination's old pointer. Self-assignment now preserves the entry without
+allocating or copying over its own source.
+
+`ARCHIVE_ASAN=1 python -m unittest scripts.tests.test_archive_memory` passes with
+the production entry helpers and mlib arrays, using counted mock FuriStrings.
+It repeats assignment/self-assignment, deep copies, sorting, removal and cleanup
+100 times, with 1000 assignments per cycle. Allocation counts return to zero.
+The firmware ARM build and SDK checks pass; hardware browsing cycles remain pending.
