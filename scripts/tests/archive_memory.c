@@ -73,6 +73,7 @@ static void icon_free(void* data) {
 
 static void make_app(ArchiveFile_t* entry, const char* name, uint8_t pattern) {
     entry->type = ArchiveFileTypeApplication;
+    entry->custom_name = furi_string_alloc();
     strcpy(entry->custom_name->text, name);
     entry->custom_icon_data = icon_alloc(32);
     memset(entry->custom_icon_data, pattern, 32);
@@ -82,6 +83,7 @@ static void test_assignment(void) {
     ArchiveFile_t_init(&source);
     ArchiveFile_t_init(&dest);
     ArchiveFile_t_init(&plain);
+    assert(live_strings == 3);
     strcpy(source.path->text, "/ext/apps/a.fap");
     strcpy(plain.path->text, "/ext/readme.txt");
     make_app(&source, "App", 0x3c);
@@ -98,12 +100,37 @@ static void test_assignment(void) {
     }
     ArchiveFile_t_set(&dest, &plain);
     assert(dest.custom_icon_data == NULL && live_icons == 1);
+    assert(dest.custom_name == NULL && live_strings == 4);
     ArchiveFile_t_set(&dest, &source);
     assert(live_icons == 2 && icon_allocations == before + 1);
+    assert(dest.custom_name != source.custom_name && live_strings == 5);
+    source.custom_name->text[0] = 'X';
+    assert(strcmp(dest.custom_name->text, "App") == 0);
     source.custom_icon_data[0] ^= 0xff;
     assert(dest.custom_icon_data[0] == 0x3c);
     ArchiveFile_t_clear(&source);
     ArchiveFile_t_clear(&dest);
+    ArchiveFile_t_clear(&plain);
+    assert(live_icons == 0 && live_strings == 0);
+}
+static void test_empty_name(void) {
+    ArchiveFile_t app, plain, copy;
+    ArchiveFile_t_init(&app);
+    ArchiveFile_t_init(&plain);
+    strcpy(app.path->text, "Alpha");
+    strcpy(plain.path->text, "Beta");
+    make_app(&app, "", 0);
+    /* Failed metadata loads may leave an application name without an icon. */
+    icon_free(app.custom_icon_data);
+    app.custom_icon_data = NULL;
+    momentum_settings.sort_dirs_first = false;
+    assert(ArchiveFile_t_cmp(&app, &plain) < 0);
+    assert(ArchiveFile_t_cmp(&plain, &app) > 0);
+    ArchiveFile_t_init_set(&copy, &app);
+    assert(copy.custom_name && copy.custom_name != app.custom_name);
+    assert(ArchiveFile_t_cmp(&copy, &app) == 0);
+    ArchiveFile_t_clear(&copy);
+    ArchiveFile_t_clear(&app);
     ArchiveFile_t_clear(&plain);
     assert(live_icons == 0 && live_strings == 0);
 }
@@ -121,7 +148,7 @@ static void test_array(void) {
         files_array_push_back(entries, entry);
         ArchiveFile_t_clear(&entry);
     }
-    assert(live_strings == 200 && live_icons == 34);
+    assert(live_strings == 134 && live_icons == 34);
     for(unsigned folders = 0; folders < 2; folders++) {
         momentum_settings.sort_dirs_first = folders;
         files_array_sort(entries);
@@ -139,6 +166,7 @@ static void test_array(void) {
 int main(void) {
     for(size_t i = 0; i < 100; i++) {
         test_assignment();
+        test_empty_name();
         test_array();
     }
     puts("Archive: assignment, self-copy, deep-copy, sorting/removal and cleanup passed");

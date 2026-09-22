@@ -437,3 +437,20 @@ the production entry helpers and mlib arrays, using counted mock FuriStrings.
 It repeats assignment/self-assignment, deep copies, sorting, removal and cleanup
 100 times, with 1000 assignments per cycle. Allocation counts return to zero.
 The firmware ARM build and SDK checks pass; hardware browsing cycles remain pending.
+
+## Completed: optional Archive custom names
+
+Ordinary file/folder entries now keep a null custom-name pointer. Application
+entries allocate a name before loading metadata, preserving the existing fallback
+when metadata fails. Copy, assignment, cleanup and sorting handle optional names.
+ARM disassembly confirms each omitted empty FuriString avoids a 12-byte request
+(normally 24 heap bytes with allocator overhead/alignment). A mixed 100-entry
+host regression with 34 applications now retains 134 string objects instead of
+200. Savings depend on the number of simultaneously retained ordinary entries.
+
+The Archive AddressSanitizer suite passes, including transitions between named
+and unnamed entries, independent name copies, empty-name sorting fallback and
+real mlib sorting/removal. Firmware ARM build and SDK checks pass. Across both
+Archive changes, `.text` grows by 64 bytes; `.rodata` stays 181156 bytes, `.data`
+640 bytes and `.bss` 4972 bytes. Before/after ELF maps are retained locally.
+Device peak-heap measurements and repeated browser navigation remain pending.

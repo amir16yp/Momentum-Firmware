@@ -456,6 +456,7 @@ void archive_add_file_item(ArchiveBrowserView* browser, bool is_folder, const ch
     furi_string_set(item.path, name);
     archive_set_file_type(&item, furi_string_get_cstr(browser->path), is_folder, false);
     if(item.type == ArchiveFileTypeApplication) {
+        item.custom_name = furi_string_alloc();
         item.custom_icon_data = malloc(FAP_MANIFEST_MAX_ICON_SIZE);
         if(!archive_get_fap_meta(item.path, item.custom_name, &item.custom_icon_data)) {
             free(item.custom_icon_data);

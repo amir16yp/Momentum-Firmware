@@ -50,7 +50,7 @@ static void ArchiveFile_t_init(ArchiveFile_t* obj) {
     obj->path = furi_string_alloc();
     obj->type = ArchiveFileTypeUnknown;
     obj->custom_icon_data = NULL;
-    obj->custom_name = furi_string_alloc();
+    obj->custom_name = NULL;
     obj->fav = false;
     obj->is_app = false;
 }
@@ -64,7 +64,7 @@ static void ArchiveFile_t_init_set(ArchiveFile_t* obj, const ArchiveFile_t* src)
     } else {
         obj->custom_icon_data = NULL;
     }
-    obj->custom_name = furi_string_alloc_set(src->custom_name);
+    obj->custom_name = src->custom_name ? furi_string_alloc_set(src->custom_name) : NULL;
     obj->fav = src->fav;
     obj->is_app = src->is_app;
 }
@@ -83,7 +83,13 @@ static void ArchiveFile_t_set(ArchiveFile_t* obj, const ArchiveFile_t* src) {
         free(obj->custom_icon_data);
         obj->custom_icon_data = NULL;
     }
-    furi_string_set(obj->custom_name, src->custom_name);
+    if(src->custom_name) {
+        if(!obj->custom_name) obj->custom_name = furi_string_alloc();
+        furi_string_set(obj->custom_name, src->custom_name);
+    } else if(obj->custom_name) {
+        furi_string_free(obj->custom_name);
+        obj->custom_name = NULL;
+    }
     obj->fav = src->fav;
     obj->is_app = src->is_app;
 }
@@ -94,7 +100,7 @@ static void ArchiveFile_t_clear(ArchiveFile_t* obj) {
         free(obj->custom_icon_data);
         obj->custom_icon_data = NULL;
     }
-    furi_string_free(obj->custom_name);
+    if(obj->custom_name) furi_string_free(obj->custom_name);
 }
 
 static int ArchiveFile_t_cmp(const ArchiveFile_t* a, const ArchiveFile_t* b) {
@@ -108,8 +114,8 @@ static int ArchiveFile_t_cmp(const ArchiveFile_t* a, const ArchiveFile_t* b) {
     }
 
     return furi_string_cmpi(
-        furi_string_empty(a->custom_name) ? a->path : a->custom_name,
-        furi_string_empty(b->custom_name) ? b->path : b->custom_name);
+        !a->custom_name || furi_string_empty(a->custom_name) ? a->path : a->custom_name,
+        !b->custom_name || furi_string_empty(b->custom_name) ? b->path : b->custom_name);
 }
 
 #define M_OPL_ArchiveFile_t()                 \
