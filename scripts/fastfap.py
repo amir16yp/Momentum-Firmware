@@ -135,7 +135,12 @@ class Main(App):
                     RelSection(section_name, section.name, unique_relocations)
                 )
 
-        with tempfile.TemporaryDirectory() as temp_dir:
+        # Keep output on the same filesystem for an atomic replacement, and
+        # avoid objcopy's in-place temporary files in the shared build directory.
+        with tempfile.TemporaryDirectory(
+            dir=os.path.dirname(os.path.abspath(fap_path))
+        ) as temp_dir:
+            objcopy_args = [objcopy_path]
             for section in sections:
                 data = serialize_relsection_data(section.data)
                 hash_name = hashlib.md5(section.name.encode()).hexdigest()
@@ -148,19 +153,11 @@ class Main(App):
                 with open(filename, "wb") as f:
                     f.write(data)
 
-                exit_code = subprocess.run(
-                    [
-                        objcopy_path,
-                        "--add-section",
-                        f"{section.name}={filename}",
-                        fap_path,
-                    ],
-                    check=True,
-                )
+                objcopy_args.extend(["--add-section", f"{section.name}={filename}"])
 
-                if exit_code.returncode != 0:
-                    self.logger.error("objcopy failed")
-                    return 1
+            output_path = os.path.join(temp_dir, "output.fap")
+            subprocess.run([*objcopy_args, fap_path, output_path], check=True)
+            os.replace(output_path, fap_path)
 
         return 0
 
