@@ -12,7 +12,7 @@ static void bad_usb_scene_config_usb_name_text_input_callback(void* context) {
 
 void bad_usb_scene_config_usb_name_on_enter(void* context) {
     BadUsbApp* bad_usb = context;
-    TextInput* text_input = bad_usb->text_input;
+    TextInput* text_input = bad_usb_app_alloc_text_input(bad_usb);
 
     if(scene_manager_get_scene_state(bad_usb->scene_manager, BadUsbSceneConfigUsbName)) {
         strlcpy(
@@ -80,7 +80,5 @@ bool bad_usb_scene_config_usb_name_on_event(void* context, SceneManagerEvent eve
 
 void bad_usb_scene_config_usb_name_on_exit(void* context) {
     BadUsbApp* bad_usb = context;
-    TextInput* text_input = bad_usb->text_input;
-
-    text_input_reset(text_input);
+    bad_usb_app_free_text_input(bad_usb);
 }

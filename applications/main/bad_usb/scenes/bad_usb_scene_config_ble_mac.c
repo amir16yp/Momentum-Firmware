@@ -21,7 +21,7 @@ void bad_usb_scene_config_ble_mac_byte_input_callback(void* context) {
 
 void bad_usb_scene_config_ble_mac_on_enter(void* context) {
     BadUsbApp* bad_usb = context;
-    ByteInput* byte_input = bad_usb->byte_input;
+    ByteInput* byte_input = bad_usb_app_alloc_byte_input(bad_usb);
 
     memcpy(bad_usb->ble_mac_buf, bad_usb->script_hid_cfg.ble.mac, sizeof(bad_usb->ble_mac_buf));
     reverse_mac_addr(bad_usb->ble_mac_buf);
@@ -66,8 +66,5 @@ bool bad_usb_scene_config_ble_mac_on_event(void* context, SceneManagerEvent even
 
 void bad_usb_scene_config_ble_mac_on_exit(void* context) {
     BadUsbApp* bad_usb = context;
-    ByteInput* byte_input = bad_usb->byte_input;
-
-    byte_input_set_result_callback(byte_input, NULL, NULL, NULL, NULL, 0);
-    byte_input_set_header_text(byte_input, "");
+    bad_usb_app_free_byte_input(bad_usb);
 }

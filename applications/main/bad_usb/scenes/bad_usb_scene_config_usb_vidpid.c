@@ -12,7 +12,7 @@ void bad_usb_scene_config_usb_vidpid_byte_input_callback(void* context) {
 
 void bad_usb_scene_config_usb_vidpid_on_enter(void* context) {
     BadUsbApp* bad_usb = context;
-    ByteInput* byte_input = bad_usb->byte_input;
+    ByteInput* byte_input = bad_usb_app_alloc_byte_input(bad_usb);
 
     bad_usb->usb_vidpid_buf[0] = __builtin_bswap16(bad_usb->script_hid_cfg.usb.vid);
     bad_usb->usb_vidpid_buf[1] = __builtin_bswap16(bad_usb->script_hid_cfg.usb.pid);
@@ -52,8 +52,5 @@ bool bad_usb_scene_config_usb_vidpid_on_event(void* context, SceneManagerEvent e
 
 void bad_usb_scene_config_usb_vidpid_on_exit(void* context) {
     BadUsbApp* bad_usb = context;
-    ByteInput* byte_input = bad_usb->byte_input;
-
-    byte_input_set_result_callback(byte_input, NULL, NULL, NULL, NULL, 0);
-    byte_input_set_header_text(byte_input, "");
+    bad_usb_app_free_byte_input(bad_usb);
 }

@@ -71,3 +71,9 @@ typedef enum {
 void bad_usb_set_interface(BadUsbApp* app, BadUsbHidInterface interface);
 
 void bad_usb_app_show_loading_popup(BadUsbApp* app, bool show);
+
+// Editors are owned by their configuration scene and released on scene exit.
+TextInput* bad_usb_app_alloc_text_input(BadUsbApp* app);
+void bad_usb_app_free_text_input(BadUsbApp* app);
+ByteInput* bad_usb_app_alloc_byte_input(BadUsbApp* app);
+void bad_usb_app_free_byte_input(BadUsbApp* app);
