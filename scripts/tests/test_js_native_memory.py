@@ -37,6 +37,12 @@ class JsNativeMemoryTest(unittest.TestCase):
         functions = source[source.index("static size_t mjs_dataview_get_element_len("):source.index("mjs_val_t mjs_dataview_get_buf(")]
         run_harness("mjs_array_bounds.c", types + functions)
 
+    def test_i2c_read_lengths(self):
+        source = (ROOT / "applications/system/js_app/modules/js_i2c.c").read_text()
+        helpers = source[source.index("static void ret_bad_args("):source.index("static void js_i2c_is_device_ready(")]
+        reads = source[source.index("static void js_i2c_read("):source.index("static void* js_i2c_create(")]
+        run_harness("js_i2c_memory.c", helpers + reads)
+
 
 if __name__ == "__main__":
     unittest.main()

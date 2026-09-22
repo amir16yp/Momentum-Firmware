@@ -128,9 +128,9 @@ static void js_i2c_read(struct mjs* mjs) {
         ret_bad_args(mjs, "Length must be a number");
         return;
     }
-    size_t rx_len = mjs_get_int32(mjs, rx_len_arg);
-    if(rx_len == 0) {
-        ret_bad_args(mjs, "Length must not zero");
+    int32_t rx_len = mjs_get_int32(mjs, rx_len_arg);
+    if(rx_len <= 0) {
+        ret_bad_args(mjs, "Length must be positive");
         return;
     }
     uint8_t* rx_buf = malloc(rx_len);
@@ -216,9 +216,9 @@ static void js_i2c_write_read(struct mjs* mjs) {
         if(tx_buf_was_allocated) free(tx_buf);
         return;
     }
-    size_t rx_len = mjs_get_int32(mjs, rx_len_arg);
-    if(rx_len == 0) {
-        ret_bad_args(mjs, "Length must not zero");
+    int32_t rx_len = mjs_get_int32(mjs, rx_len_arg);
+    if(rx_len <= 0) {
+        ret_bad_args(mjs, "Length must be positive");
         if(tx_buf_was_allocated) free(tx_buf);
         return;
     }

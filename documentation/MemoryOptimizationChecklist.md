@@ -55,6 +55,7 @@ macros before assigning sizes to workers. Snapshots label runtime data pending.
 - [x] FatFs virtual volume: allocate its filesystem object only on first mount.
 - [x] FatFs virtual disk I/O: split transfers at the storage API's 16-bit limit.
 - [x] mJS typed arrays: reject overflowing indices before pointer arithmetic.
+- [x] JavaScript I2C: reject negative read lengths before receive allocation.
 - [ ] External 2048: pack monochrome tile bitmaps (deferred by user request).
 - [ ] Audit remaining small allocations, error cleanup and draw callbacks.
 - [ ] Measure structure layouts and immutable data placement before modifying them.
@@ -407,3 +408,19 @@ through 64, valid writes, partial tails, negative and overflowing indices, and
 null backing pointers. It verifies rejected writes leave data unchanged. Host
 stubs supply mJS object lookup and values; full interpreter/hardware testing is
 still pending. Firmware/updater ARM builds and SDK checks pass.
+
+## Completed: JavaScript I2C receive lengths
+
+The `read` and `writeRead` bindings keep requested receive lengths signed until
+checking that they are positive. Previously a negative JS length converted to
+`size_t` and reached the fail-fast allocator as a huge request. Rejected combined
+operations also release any already-owned transmit buffer; typed-array transmit
+buffers retain their existing borrowed lifetime.
+
+The native-JS AddressSanitizer suite runs both production bindings with negative,
+zero and positive lengths, ordinary arrays/ArrayBuffers/views, invalid timeouts
+and failed bus operations. It checks that invalid lengths never allocate a receive
+buffer or touch the bus, and that temporary allocations and bus locks are released.
+These are mocked mJS/HAL boundary tests; device I2C and full interpreter execution
+remain pending. The ARM `fap_js_i2c` build and SDK/import checks pass. Plugin `.text`
+stays 1948 bytes and `.rodata` grows from 328 to 332 bytes for the clarified error.
