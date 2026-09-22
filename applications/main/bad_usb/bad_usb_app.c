@@ -191,6 +191,38 @@ void bad_usb_app_show_loading_popup(BadUsbApp* app, bool show) {
     }
 }
 
+TextInput* bad_usb_app_alloc_text_input(BadUsbApp* app) {
+    furi_assert(!app->text_input);
+    app->text_input = text_input_alloc();
+    view_dispatcher_add_view(
+        app->view_dispatcher, BadUsbAppViewTextInput, text_input_get_view(app->text_input));
+    return app->text_input;
+}
+
+void bad_usb_app_free_text_input(BadUsbApp* app) {
+    if(app->text_input) {
+        view_dispatcher_remove_view(app->view_dispatcher, BadUsbAppViewTextInput);
+        text_input_free(app->text_input);
+        app->text_input = NULL;
+    }
+}
+
+ByteInput* bad_usb_app_alloc_byte_input(BadUsbApp* app) {
+    furi_assert(!app->byte_input);
+    app->byte_input = byte_input_alloc();
+    view_dispatcher_add_view(
+        app->view_dispatcher, BadUsbAppViewByteInput, byte_input_get_view(app->byte_input));
+    return app->byte_input;
+}
+
+void bad_usb_app_free_byte_input(BadUsbApp* app) {
+    if(app->byte_input) {
+        view_dispatcher_remove_view(app->view_dispatcher, BadUsbAppViewByteInput);
+        byte_input_free(app->byte_input);
+        app->byte_input = NULL;
+    }
+}
+
 BadUsbApp* bad_usb_app_alloc(char* arg) {
     BadUsbApp* app = malloc(sizeof(BadUsbApp));
 
@@ -238,13 +270,8 @@ BadUsbApp* bad_usb_app_alloc(char* arg) {
     view_dispatcher_add_view(
         app->view_dispatcher, BadUsbAppViewWork, bad_usb_view_get_view(app->bad_usb_view));
 
-    app->text_input = text_input_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, BadUsbAppViewTextInput, text_input_get_view(app->text_input));
-
-    app->byte_input = byte_input_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, BadUsbAppViewByteInput, byte_input_get_view(app->byte_input));
+    app->text_input = NULL;
+    app->byte_input = NULL;
 
     app->loading = loading_alloc();
     view_dispatcher_add_view(
@@ -288,12 +315,10 @@ void bad_usb_app_free(BadUsbApp* app) {
     variable_item_list_free(app->var_item_list);
 
     // Text Input
-    view_dispatcher_remove_view(app->view_dispatcher, BadUsbAppViewTextInput);
-    text_input_free(app->text_input);
+    bad_usb_app_free_text_input(app);
 
     // Byte Input
-    view_dispatcher_remove_view(app->view_dispatcher, BadUsbAppViewByteInput);
-    byte_input_free(app->byte_input);
+    bad_usb_app_free_byte_input(app);
 
     // Loading
     view_dispatcher_remove_view(app->view_dispatcher, BadUsbAppViewLoading);

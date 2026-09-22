@@ -15,10 +15,10 @@ bool dialog_file_browser_show(
     furi_check(lock != NULL);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    FuriString* base_path = furi_string_alloc();
+    FuriString* base_path = NULL;
 
     if(options && options->base_path) {
-        furi_string_set(base_path, options->base_path);
+        base_path = furi_string_alloc_set(options->base_path);
         storage_common_resolve_path_and_ensure_app_directory(storage, base_path);
     }
 
@@ -42,7 +42,7 @@ bool dialog_file_browser_show(
             .preselected_filename = path,
             .item_callback = options ? options->item_loader_callback : NULL,
             .item_callback_context = options ? options->item_loader_context : NULL,
-            .base_path = furi_string_get_cstr(base_path),
+            .base_path = base_path ? furi_string_get_cstr(base_path) : "",
             .select_right = options ? options->select_right : false,
         }};
 
@@ -59,7 +59,7 @@ bool dialog_file_browser_show(
     api_lock_wait_unlock_and_free(lock);
 
     furi_record_close(RECORD_STORAGE);
-    furi_string_free(base_path);
+    if(base_path) furi_string_free(base_path);
 
     return return_data.bool_value;
 }

@@ -849,6 +849,9 @@ FS_Error storage_process_virtual_mount(StorageData* storage) {
     if(storage->status == StorageStatusOK) return FSE_ALREADY_OPEN;
     if(storage->status != StorageStatusNotMounted) return FSE_NOT_READY;
     SDData* sd_data = storage->data;
+    // Retain after first use: open FatFs handles may still refer to this object
+    // after unmount, and need it to remain valid for object validation/close.
+    if(!sd_data->fs) sd_data->fs = malloc(sizeof(FATFS));
     SDError error = f_mount(sd_data->fs, sd_data->path, 1);
     if(error == FR_NO_FILESYSTEM) return FSE_INVALID_PARAMETER;
     if(error != FR_OK) return FSE_INTERNAL;
@@ -905,12 +908,20 @@ static DSTATUS mnt_driver_status(BYTE pdrv) {
   */
 static DRESULT mnt_driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
+    if(!count || sector > UINT32_MAX / SCSI_BLOCK_SIZE) return RES_PARERR;
     if(!storage_ext_file_seek(mnt_image_storage, mnt_image, sector * SCSI_BLOCK_SIZE, true)) {
         return RES_ERROR;
     }
-    size_t size = count * SCSI_BLOCK_SIZE;
-    size_t read = storage_ext_file_read(mnt_image_storage, mnt_image, buff, size);
-    return read == size ? RES_OK : RES_ERROR;
+    while(count) {
+        const UINT sectors = MIN(count, UINT16_MAX / SCSI_BLOCK_SIZE);
+        const uint16_t size = sectors * SCSI_BLOCK_SIZE;
+        if(storage_ext_file_read(mnt_image_storage, mnt_image, buff, size) != size) {
+            return RES_ERROR;
+        }
+        buff += size;
+        count -= sectors;
+    }
+    return RES_OK;
 }
 
 /**
@@ -923,12 +934,20 @@ static DRESULT mnt_driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) 
   */
 static DRESULT mnt_driver_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
+    if(!count || sector > UINT32_MAX / SCSI_BLOCK_SIZE) return RES_PARERR;
     if(!storage_ext_file_seek(mnt_image_storage, mnt_image, sector * SCSI_BLOCK_SIZE, true)) {
         return RES_ERROR;
     }
-    size_t size = count * SCSI_BLOCK_SIZE;
-    size_t wrote = storage_ext_file_write(mnt_image_storage, mnt_image, buff, size);
-    return wrote == size ? RES_OK : RES_ERROR;
+    while(count) {
+        const UINT sectors = MIN(count, UINT16_MAX / SCSI_BLOCK_SIZE);
+        const uint16_t size = sectors * SCSI_BLOCK_SIZE;
+        if(storage_ext_file_write(mnt_image_storage, mnt_image, buff, size) != size) {
+            return RES_ERROR;
+        }
+        buff += size;
+        count -= sectors;
+    }
+    return RES_OK;
 }
 
 /**
@@ -988,7 +1007,7 @@ void storage_mnt_init(StorageData* storage) {
     FATFS_LinkDriver(&mnt_driver, path);
 
     SDData* sd_data = malloc(sizeof(SDData));
-    sd_data->fs = malloc(sizeof(FATFS));
+    sd_data->fs = NULL;
     sd_data->path = strdup(path);
 
     storage->data = sd_data;

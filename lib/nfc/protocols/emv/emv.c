@@ -76,23 +76,28 @@ bool emv_load(EmvData* data, FlipperFormat* ff, uint32_t version) {
 
         EmvApplication* app = &data->emv_application;
 
-        flipper_format_read_string(ff, "Cardholder name", temp_str);
+        if(!flipper_format_read_string(ff, "Cardholder name", temp_str)) break;
+        if(furi_string_size(temp_str) >= sizeof(app->cardholder_name)) break;
         strcpy(app->cardholder_name, furi_string_get_cstr(temp_str));
 
-        flipper_format_read_string(ff, "Application name", temp_str);
+        if(!flipper_format_read_string(ff, "Application name", temp_str)) break;
+        if(furi_string_size(temp_str) >= sizeof(app->application_name)) break;
         strcpy(app->application_name, furi_string_get_cstr(temp_str));
 
-        flipper_format_read_string(ff, "Application label", temp_str);
+        if(!flipper_format_read_string(ff, "Application label", temp_str)) break;
+        if(furi_string_size(temp_str) >= sizeof(app->application_label)) break;
         strcpy(app->application_label, furi_string_get_cstr(temp_str));
 
         uint32_t pan_len;
         if(!flipper_format_read_uint32(ff, "PAN length", &pan_len, 1)) break;
+        if(pan_len > sizeof(app->pan)) break;
         app->pan_len = pan_len;
 
         if(!flipper_format_read_hex(ff, "PAN", app->pan, pan_len)) break;
 
         uint32_t aid_len;
         if(!flipper_format_read_uint32(ff, "AID length", &aid_len, 1)) break;
+        if(aid_len > sizeof(app->aid)) break;
         app->aid_len = aid_len;
 
         if(!flipper_format_read_hex(ff, "AID", app->aid, aid_len)) break;
@@ -115,6 +120,7 @@ bool emv_load(EmvData* data, FlipperFormat* ff, uint32_t version) {
 
         uint32_t pin_try_counter;
         if(!flipper_format_read_uint32(ff, "PIN try counter", &pin_try_counter, 1)) break;
+        if(pin_try_counter > UINT8_MAX) break;
         app->pin_try_counter = pin_try_counter;
 
         parsed = true;
@@ -128,11 +134,15 @@ bool emv_load(EmvData* data, FlipperFormat* ff, uint32_t version) {
 bool emv_save(const EmvData* data, FlipperFormat* ff) {
     furi_assert(data);
 
-    FuriString* temp_str = furi_string_alloc();
     bool saved = false;
 
     do {
         EmvApplication app = data->emv_application;
+        if(app.pan_len > sizeof(app.pan) || app.aid_len > sizeof(app.aid)) break;
+        if(!memchr(app.cardholder_name, '\0', sizeof(app.cardholder_name)) ||
+           !memchr(app.application_name, '\0', sizeof(app.application_name)) ||
+           !memchr(app.application_label, '\0', sizeof(app.application_label)))
+            break;
         if(!iso14443_4a_save(data->iso14443_4a_data, ff)) break;
 
         if(!flipper_format_write_comment_cstr(ff, "EMV specific data:\n")) break;
@@ -172,13 +182,12 @@ bool emv_save(const EmvData* data, FlipperFormat* ff) {
             break;
         if(!flipper_format_write_hex(ff, "Effective day", (uint8_t*)&app.effective_day, 1)) break;
 
-        if(!flipper_format_write_uint32(ff, "PIN try counter", (uint32_t*)&app.pin_try_counter, 1))
+        uint32_t pin_try_counter = app.pin_try_counter;
+        if(!flipper_format_write_uint32(ff, "PIN try counter", &pin_try_counter, 1))
             break;
 
         saved = true;
     } while(false);
-
-    furi_string_free(temp_str);
 
     return saved;
 }

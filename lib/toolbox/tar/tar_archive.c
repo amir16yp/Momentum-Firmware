@@ -84,6 +84,7 @@ typedef struct {
     } config;
     File* stream;
     CompressStreamDecoder* decoder;
+    mtar_t* tar;
 } CompressedStream;
 
 /* HSDS 'heatshrink data stream' header magic */
@@ -124,7 +125,20 @@ static int mtar_compressed_file_seek(void* stream, unsigned offset) {
         success = storage_file_seek(compressed_stream->stream, rewind_offset, true) &&
                   compress_stream_decoder_rewind(compressed_stream->decoder);
     } else {
-        success = compress_stream_decoder_seek(compressed_stream->decoder, offset);
+        size_t position = compress_stream_decoder_tell(compressed_stream->decoder);
+        if(offset < position) return MTAR_ESEEKFAIL;
+        success = true;
+        // Microtar has already parsed the header into tar->header. Its raw header
+        // buffer is idle during seeks, so use it to discard padding/skipped files.
+        while(position < offset) {
+            size_t count = MIN(offset - position, sizeof(compressed_stream->tar->buffer));
+            if(!compress_stream_decoder_read(
+                   compressed_stream->decoder, (uint8_t*)compressed_stream->tar->buffer, count)) {
+                success = false;
+                break;
+            }
+            position += count;
+        }
     }
     return success ? MTAR_ESUCCESS : MTAR_ESEEKFAIL;
 }
@@ -193,6 +207,7 @@ bool tar_archive_open(TarArchive* archive, const char* path, TarOpenMode mode) {
 
     CompressedStream* compressed_stream = malloc(sizeof(CompressedStream));
     compressed_stream->stream = stream;
+    compressed_stream->tar = &archive->tar;
 
     if(mode == TarOpenModeReadHeatshrink) {
         /* Read and validate stream header */
@@ -329,12 +344,19 @@ typedef struct {
     TarArchive* archive;
     const char* work_dir;
     TarArchiveNameConverter converter;
+    uint8_t* readbuf;
+    FuriString* path;
+    FuriString* converted_name;
+    size_t archive_size;
 } TarArchiveDirectoryOpParams;
 
-static bool archive_extract_current_file(TarArchive* archive, const char* dst_path) {
+static bool archive_extract_current_file(
+    TarArchive* archive,
+    const char* dst_path,
+    uint8_t* readbuf,
+    size_t archive_size) {
     mtar_t* tar = &archive->tar;
     File* out_file = storage_file_alloc(archive->storage);
-    uint8_t* readbuf = malloc(FILE_BLOCK_SIZE);
 
     bool success = true;
     uint8_t n_tries = FILE_OPEN_NTRIES;
@@ -355,21 +377,19 @@ static bool archive_extract_current_file(TarArchive* archive, const char* dst_pa
 
         while(!mtar_eof_data(tar)) {
             int32_t readcnt = mtar_read_data(tar, readbuf, FILE_BLOCK_SIZE);
-            if(!readcnt || !storage_file_write(out_file, readbuf, readcnt)) {
+            if(readcnt <= 0 ||
+               storage_file_write(out_file, readbuf, (size_t)readcnt) != (size_t)readcnt) {
                 success = false;
                 break;
             }
 
             if(archive->read_cb) {
                 archive->read_cb(
-                    storage_file_tell(archive->stream),
-                    storage_file_size(archive->stream),
-                    archive->read_cb_context);
+                    storage_file_tell(archive->stream), archive_size, archive->read_cb_context);
             }
         }
     } while(false);
     storage_file_free(out_file);
-    free(readbuf);
 
     return success;
 }
@@ -390,19 +410,17 @@ static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, 
         return 0;
     }
 
-    FuriString* full_extracted_fname;
+    FuriString* full_extracted_fname = op_params->path;
     if(header->type == MTAR_TDIR) {
         // Skip "/" entry since concat would leave it dangling, also want caller to mkdir destination
         if(strcmp(header->name, "/") == 0) {
             return 0;
         }
 
-        full_extracted_fname = furi_string_alloc();
         path_concat(op_params->work_dir, header->name, full_extracted_fname);
 
         bool create_res =
             storage_simply_mkdir(archive->storage, furi_string_get_cstr(full_extracted_fname));
-        furi_string_free(full_extracted_fname);
         return create_res ? 0 : -1;
     }
 
@@ -413,19 +431,21 @@ static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, 
 
     FURI_LOG_D(TAG, "Extracting %u bytes to '%s'", header->size, header->name);
 
-    FuriString* converted_fname = furi_string_alloc_set(header->name);
+    const char* name = header->name;
     if(op_params->converter) {
-        op_params->converter(converted_fname);
+        furi_string_set(op_params->converted_name, name);
+        op_params->converter(op_params->converted_name);
+        name = furi_string_get_cstr(op_params->converted_name);
     }
+    path_concat(op_params->work_dir, name, full_extracted_fname);
 
-    full_extracted_fname = furi_string_alloc();
-    path_concat(op_params->work_dir, furi_string_get_cstr(converted_fname), full_extracted_fname);
-
-    bool success =
-        archive_extract_current_file(archive, furi_string_get_cstr(full_extracted_fname));
-
-    furi_string_free(converted_fname);
-    furi_string_free(full_extracted_fname);
+    // Allocate once, and only if there is a file that passes the filter.
+    if(!op_params->readbuf) op_params->readbuf = malloc(FILE_BLOCK_SIZE);
+    bool success = archive_extract_current_file(
+        archive,
+        furi_string_get_cstr(full_extracted_fname),
+        op_params->readbuf,
+        op_params->archive_size);
     return success ? 0 : MTAR_EFAILURE;
 }
 
@@ -438,11 +458,19 @@ bool tar_archive_unpack_to(
         .archive = archive,
         .work_dir = destination,
         .converter = converter,
+        .path = furi_string_alloc(),
+        .converted_name = converter ? furi_string_alloc() : NULL,
+        .archive_size = archive->read_cb ? storage_file_size(archive->stream) : 0,
     };
 
     FURI_LOG_I(TAG, "Restoring '%s'", destination);
 
-    return mtar_foreach(&archive->tar, archive_extract_foreach_cb, &param) == MTAR_ESUCCESS;
+    bool success = mtar_foreach(&archive->tar, archive_extract_foreach_cb, &param) ==
+                   MTAR_ESUCCESS;
+    free(param.readbuf);
+    furi_string_free(param.path);
+    if(param.converted_name) furi_string_free(param.converted_name);
+    return success;
 }
 
 bool tar_archive_add_file(
@@ -557,5 +585,9 @@ bool tar_archive_unpack_file(
     if(mtar_find(&archive->tar, archive_fname) != MTAR_ESUCCESS) {
         return false;
     }
-    return archive_extract_current_file(archive, destination);
+    uint8_t* readbuf = malloc(FILE_BLOCK_SIZE);
+    size_t archive_size = archive->read_cb ? storage_file_size(archive->stream) : 0;
+    bool success = archive_extract_current_file(archive, destination, readbuf, archive_size);
+    free(readbuf);
+    return success;
 }

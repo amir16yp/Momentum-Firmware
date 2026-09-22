@@ -235,7 +235,7 @@ uint8_t bit_buffer_get_byte(const BitBuffer* buf, size_t index);
  * @warning    The resulting byte might correspond to a single byte (if the
  *             index is a multiple of 8), or two overlapping bytes combined. The
  *             index must be valid (i.e.\ less than the instance's data size in
- *             bits).
+ *             bits). Bits beyond the data size are returned as zero.
  *
  * @param[in]  buf         pointer to a BitBuffer instance to be queried
  * @param[in]  index_bits  bit index of the byte in question

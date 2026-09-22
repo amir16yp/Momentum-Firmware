@@ -529,6 +529,34 @@ void vPortFree(void* pv) {
 }
 /*-----------------------------------------------------------*/
 
+void* pvPortRealloc(void* pv, size_t size) {
+    if(size == 0) {
+        vPortFree(pv);
+        return NULL;
+    }
+
+    size_t copy_size = 0;
+    if(pv != NULL) {
+        BlockLink_t* block = (void*)((uint8_t*)pv - xHeapStructSize);
+        heapVALIDATE_BLOCK_POINTER(block);
+        configASSERT(heapBLOCK_IS_ALLOCATED(block) != 0);
+        configASSERT(block->pxNextFreeBlock == heapPROTECT_BLOCK_POINTER(NULL));
+        const size_t block_size = block->xBlockSize & ~heapBLOCK_ALLOCATED_BITMASK;
+        configASSERT(block_size >= xHeapStructSize);
+        // The allocator tracks usable capacity, including alignment padding.
+        const size_t capacity = block_size - xHeapStructSize;
+        copy_size = size < capacity ? size : capacity;
+    }
+
+    void* result = pvPortMalloc(size);
+    if(pv != NULL) {
+        memcpy(result, pv, copy_size);
+        vPortFree(pv);
+    }
+    return result;
+}
+/*-----------------------------------------------------------*/
+
 size_t xPortGetFreeHeapSize(void) {
     return xFreeBytesRemaining;
 }

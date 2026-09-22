@@ -3,7 +3,7 @@
 *.swo
 *.gdb_history
 *.old
-
+.memory-audit/
 
 # LSP
 .cache

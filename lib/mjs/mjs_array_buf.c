@@ -125,11 +125,12 @@ static mjs_val_t mjs_dataview_get(struct mjs* mjs, mjs_val_t obj, size_t index) 
     size_t byte_len = 0;
     char* buf = mjs_array_buf_get_ptr(mjs, buf_obj, &byte_len);
     mjs_dataview_type_t type = mjs_get_int(mjs, mjs_get(mjs, obj, "_t", -1));
-    if((mjs_dataview_get_element_len(type) * (index + 1)) > byte_len) {
+    const size_t element_len = mjs_dataview_get_element_len(type);
+    if(buf == NULL || index >= byte_len / element_len) {
         return MJS_UNDEFINED;
     }
 
-    buf += mjs_dataview_get_element_len(type) * index;
+    buf += element_len * index;
     int64_t value = get_value(buf, type);
 
     return mjs_mk_number(mjs, value);
@@ -141,11 +142,12 @@ static mjs_err_t mjs_dataview_set(struct mjs* mjs, mjs_val_t obj, size_t index, 
     size_t byte_len = 0;
     char* buf = mjs_array_buf_get_ptr(mjs, buf_obj, &byte_len);
     mjs_dataview_type_t type = mjs_get_int(mjs, mjs_get(mjs, obj, "_t", -1));
-    if((mjs_dataview_get_element_len(type) * (index + 1)) > byte_len) {
+    const size_t element_len = mjs_dataview_get_element_len(type);
+    if(buf == NULL || index >= byte_len / element_len) {
         return MJS_TYPE_ERROR;
     }
 
-    buf += mjs_dataview_get_element_len(type) * index;
+    buf += element_len * index;
     set_value(buf, value, type);
 
     return MJS_OK;

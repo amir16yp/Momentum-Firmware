@@ -16,6 +16,7 @@ struct BadUsb {
 typedef struct {
     char file_name[MAX_NAME_LEN];
     char layout[MAX_NAME_LEN];
+    FuriString* disp_str;
     BadUsbState state;
     bool pause_wait;
     uint8_t anim_frame;
@@ -26,9 +27,10 @@ typedef struct {
 static void bad_usb_draw_callback(Canvas* canvas, void* _model) {
     BadUsbModel* model = _model;
 
-    FuriString* disp_str = furi_string_alloc_set(model->file_name);
-    elements_string_fit_width(canvas, disp_str, 128 - 2);
+    FuriString* disp_str = model->disp_str;
+    furi_string_set(disp_str, model->file_name);
     canvas_set_font(canvas, FontSecondary);
+    elements_string_fit_width(canvas, disp_str, 128 - 2);
     canvas_draw_str(canvas, 2, 8, furi_string_get_cstr(disp_str));
 
     if(strlen(model->layout) == 0) {
@@ -45,8 +47,6 @@ static void bad_usb_draw_callback(Canvas* canvas, void* _model) {
     elements_string_fit_width(canvas, disp_str, 128 - 2);
     canvas_draw_str(
         canvas, 2, 8 + canvas_current_font_height(canvas), furi_string_get_cstr(disp_str));
-
-    furi_string_reset(disp_str);
 
     if(model->interface == BadUsbHidInterfaceBle) {
         canvas_draw_icon(canvas, 22, 24, &I_Bad_BLE_48x22);
@@ -174,8 +174,6 @@ static void bad_usb_draw_callback(Canvas* canvas, void* _model) {
     } else {
         canvas_draw_icon(canvas, 4, 26, &I_Clock_18x18);
     }
-
-    furi_string_free(disp_str);
 }
 
 static bool bad_usb_input_callback(InputEvent* event, void* context) {
@@ -224,7 +222,14 @@ BadUsb* bad_usb_view_alloc(void) {
     view_set_input_callback(bad_usb->view, bad_usb_input_callback);
 
     with_view_model(
-        bad_usb->view, BadUsbModel * model, { model->bt = furi_record_open(RECORD_BT); }, true);
+        bad_usb->view,
+        BadUsbModel * model,
+        {
+            model->bt = furi_record_open(RECORD_BT);
+            model->disp_str = furi_string_alloc();
+            furi_string_reserve(model->disp_str, MAX_NAME_LEN + 32);
+        },
+        true);
 
     return bad_usb;
 }
@@ -232,6 +237,8 @@ BadUsb* bad_usb_view_alloc(void) {
 void bad_usb_view_free(BadUsb* bad_usb) {
     furi_assert(bad_usb);
     furi_record_close(RECORD_BT);
+    with_view_model(
+        bad_usb->view, BadUsbModel * model, { furi_string_free(model->disp_str); }, false);
     view_free(bad_usb->view);
     free(bad_usb);
 }
@@ -292,7 +299,15 @@ void bad_usb_view_set_state(BadUsb* bad_usb, BadUsbState* st) {
 }
 
 void bad_usb_view_set_interface(BadUsb* bad_usb, BadUsbHidInterface interface) {
-    with_view_model(bad_usb->view, BadUsbModel * model, { model->interface = interface; }, true);
+    bool changed = false;
+    with_view_model(
+        bad_usb->view,
+        BadUsbModel * model,
+        {
+            changed = model->interface != interface;
+            model->interface = interface;
+        },
+        changed);
 }
 
 bool bad_usb_view_is_idle_state(BadUsb* bad_usb) {
