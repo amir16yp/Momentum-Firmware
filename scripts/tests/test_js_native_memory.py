@@ -30,6 +30,16 @@ def run_harness(name, production):
 
 
 class JsNativeMemoryTest(unittest.TestCase):
+    def test_event_callback_retention(self):
+        source = (ROOT / "applications/system/js_app/modules/js_event_loop/js_event_loop.c").read_text()
+        functions = source[source.index("static void js_event_loop_callback_generic("):source.index("/**\n * @brief Cancels an event subscription")]
+        run_harness("js_callback_memory.c", functions)
+
+    def test_source_released_before_execution(self):
+        source = (ROOT / "lib/mjs/mjs_exec.c").read_text()
+        functions = source[source.index("static mjs_err_t mjs_exec_parsed("):source.index("mjs_err_t\n    mjs_call(")]
+        run_harness("mjs_source_memory.c", functions)
+
     def test_typed_array_indices(self):
         source = (ROOT / "lib/mjs/mjs_array_buf.c").read_text()
         header = (ROOT / "lib/mjs/mjs_array_buf_public.h").read_text()

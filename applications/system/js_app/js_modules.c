@@ -178,9 +178,7 @@ mjs_val_t js_module_require(JsModules* modules, const char* name, size_t name_le
 }
 
 void* js_module_get(JsModules* modules, const char* name) {
-    FuriString* module_name = furi_string_alloc_set_str(name);
     JsModuleData* module_inst = js_find_loaded_module(modules, name);
-    furi_string_free(module_name);
     return module_inst ? module_inst->context : NULL;
 }
 
