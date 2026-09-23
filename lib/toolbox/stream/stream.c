@@ -315,7 +315,9 @@ size_t stream_copy(Stream* stream_from, Stream* stream_to, size_t size) {
     furi_check(stream_from);
     furi_check(stream_to);
 
-    uint8_t* buffer = malloc(STREAM_CACHE_SIZE);
+    if(size == 0) return 0;
+
+    uint8_t* buffer = malloc(MIN(STREAM_CACHE_SIZE, size));
     size_t copied = 0;
 
     do {

@@ -310,16 +310,18 @@ void elements_button_center(Canvas* canvas, const char* str) {
     canvas_invert_color(canvas);
 }
 
-static size_t
-    elements_get_max_chars_to_fit(Canvas* canvas, Align horizontal, const char* text, int32_t x) {
+static size_t elements_get_max_chars_to_fit(
+    Canvas* canvas,
+    Align horizontal,
+    const char* text,
+    int32_t x,
+    FuriString* str) {
     const char* end = strchr(text, '\n');
     if(end == NULL) {
         end = text + strlen(text);
     }
     size_t text_size = end - text;
-    FuriString* str;
-    str = furi_string_alloc_set(text);
-    furi_string_left(str, text_size);
+    furi_string_set_strn(str, text, text_size);
     size_t result = 0;
 
     size_t len_px = canvas_string_width(canvas, furi_string_get_cstr(str));
@@ -352,7 +354,6 @@ static size_t
         result = text_size;
     }
 
-    furi_string_free(str);
     return result;
 }
 
@@ -365,14 +366,15 @@ void elements_multiline_text_aligned(
     const char* text) {
     furi_check(canvas);
     furi_check(text);
+    if(!text[0]) return;
 
     size_t lines_count = 0;
     size_t font_height = canvas_current_font_height(canvas);
-    FuriString* line;
+    FuriString* line = furi_string_alloc();
 
     /* go through text line by line and count lines */
     for(const char* start = text; start[0];) {
-        size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x);
+        size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x, line);
         ++lines_count;
         start += chars_fit;
         start += start[0] == '\n' ? 1 : 0;
@@ -386,18 +388,19 @@ void elements_multiline_text_aligned(
 
     /* go through text line by line and print them */
     for(const char* start = text; start[0];) {
-        size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x);
+        size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x, line);
 
         if((start[chars_fit] == '\n') || (start[chars_fit] == 0)) {
-            line = furi_string_alloc_printf("%.*s", chars_fit, start);
+            furi_string_left(line, chars_fit);
         } else if((y + font_height) > canvas_height(canvas)) {
-            line = furi_string_alloc_printf("%.*s...\n", chars_fit, start);
+            furi_string_left(line, chars_fit);
+            furi_string_cat_str(line, "...\n");
         } else {
             chars_fit -= 1; // account for the dash
-            line = furi_string_alloc_printf("%.*s-\n", chars_fit, start);
+            furi_string_left(line, chars_fit);
+            furi_string_cat_str(line, "-\n");
         }
         canvas_draw_str_aligned(canvas, x, y, horizontal, vertical, furi_string_get_cstr(line));
-        furi_string_free(line);
         y += font_height;
         if(y > (int32_t)canvas_height(canvas)) {
             break;
@@ -406,6 +409,7 @@ void elements_multiline_text_aligned(
         start += chars_fit;
         start += start[0] == '\n' ? 1 : 0;
     }
+    furi_string_free(line);
 }
 
 void elements_multiline_text(Canvas* canvas, int32_t x, int32_t y, const char* text) {

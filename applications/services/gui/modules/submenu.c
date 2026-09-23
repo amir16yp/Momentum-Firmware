@@ -99,51 +99,49 @@ static void submenu_view_draw_callback(Canvas* canvas, void* _model) {
 
     canvas_set_font(canvas, FontSecondary);
 
-    size_t position = 0;
-    SubmenuItemArray_it_t it;
-    for(SubmenuItemArray_it(it, model->items); !SubmenuItemArray_end_p(it);
-        SubmenuItemArray_next(it)) {
+    const size_t items_on_screen = submenu_items_on_screen(model);
+    const uint8_t y_offset = furi_string_empty(model->header) ? 0 : item_height;
+    FuriString* disp_str = NULL;
+    for(size_t position = model->window_position;
+        position < SubmenuItemArray_size(model->items) &&
+        position - model->window_position < items_on_screen;
+        position++) {
         const size_t item_position = position - model->window_position;
-        const size_t items_on_screen = submenu_items_on_screen(model);
-        uint8_t y_offset = furi_string_empty(model->header) ? 0 : item_height;
-        bool is_locked = SubmenuItemArray_cref(it)->locked;
+        const SubmenuItem* item = SubmenuItemArray_get(model->items, position);
+        bool is_locked = item->locked;
 
-        if(item_position < items_on_screen) {
-            if(position == model->position) {
-                canvas_set_color(canvas, ColorBlack);
-                elements_slightly_rounded_box(
-                    canvas,
-                    0,
-                    y_offset + (item_position * item_height) + 1,
-                    item_width,
-                    item_height - 2);
-                canvas_set_color(canvas, ColorWhite);
-            } else {
-                canvas_set_color(canvas, ColorBlack);
-            }
-
-            if(is_locked) {
-                canvas_draw_icon(
-                    canvas,
-                    item_width - 10,
-                    y_offset + (item_position * item_height) + item_height - 12,
-                    &I_Lock_7x8);
-            }
-
-            FuriString* disp_str = furi_string_alloc_set(SubmenuItemArray_cref(it)->label);
-            elements_string_fit_width(canvas, disp_str, item_width - (is_locked ? 21 : 11));
-
-            canvas_draw_str(
+        if(position == model->position) {
+            canvas_set_color(canvas, ColorBlack);
+            elements_slightly_rounded_box(
                 canvas,
-                6,
-                y_offset + (item_position * item_height) + item_height - 4,
-                furi_string_get_cstr(disp_str));
-
-            furi_string_free(disp_str);
+                0,
+                y_offset + (item_position * item_height) + 1,
+                item_width,
+                item_height - 2);
+            canvas_set_color(canvas, ColorWhite);
+        } else {
+            canvas_set_color(canvas, ColorBlack);
         }
 
-        position++;
+        if(is_locked) {
+            canvas_draw_icon(
+                canvas,
+                item_width - 10,
+                y_offset + (item_position * item_height) + item_height - 12,
+                &I_Lock_7x8);
+        }
+
+        if(!disp_str) disp_str = furi_string_alloc();
+        furi_string_set(disp_str, item->label);
+        elements_string_fit_width(canvas, disp_str, item_width - (is_locked ? 21 : 11));
+
+        canvas_draw_str(
+            canvas,
+            6,
+            y_offset + (item_position * item_height) + item_height - 4,
+            furi_string_get_cstr(disp_str));
     }
+    if(disp_str) furi_string_free(disp_str);
 
     elements_scrollbar(canvas, model->position, SubmenuItemArray_size(model->items));
 

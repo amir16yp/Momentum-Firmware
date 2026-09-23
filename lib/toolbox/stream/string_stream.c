@@ -116,21 +116,13 @@ static size_t string_stream_write(StringStream* stream, const char* data, size_t
 }
 
 static size_t string_stream_read(StringStream* stream, char* data, size_t size) {
-    size_t write_index = 0;
-    const char* cstr = furi_string_get_cstr(stream->string);
-
-    if(!string_stream_eof(stream)) {
-        while(true) {
-            if(write_index >= size) break;
-
-            data[write_index] = cstr[stream->index];
-            write_index++;
-            string_stream_seek(stream, 1, StreamOffsetFromCurrent);
-            if(string_stream_eof(stream)) break;
-        }
+    size_t remaining = string_stream_size(stream) - stream->index;
+    size = MIN(size, remaining);
+    if(size) {
+        memcpy(data, furi_string_get_cstr(stream->string) + stream->index, size);
+        stream->index += size;
     }
-
-    return write_index;
+    return size;
 }
 
 static bool string_stream_delete_and_insert(
