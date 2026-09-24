@@ -11,11 +11,11 @@ extern "C" {
 
 #define FELICA_CRC_SIZE sizeof(uint16_t)
 
-void felica_crc_append(BitBuffer* buf);
+void felica_crc_append(BitBuffer *buf);
 
-bool felica_crc_check(const BitBuffer* buf);
+bool felica_crc_check(const BitBuffer *buf);
 
-void felica_crc_trim(BitBuffer* buf);
+void felica_crc_trim(BitBuffer *buf);
 
 #ifdef __cplusplus
 }

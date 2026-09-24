@@ -19,7 +19,7 @@ typedef enum {
 typedef SerialServiceEventCallback FuriHalBtSerialCallback;
 
 /** Serial profile descriptor */
-extern const FuriHalBleProfileTemplate* const ble_profile_serial;
+extern const FuriHalBleProfileTemplate *const ble_profile_serial;
 
 /** Send data through BLE
  *
@@ -29,19 +29,19 @@ extern const FuriHalBleProfileTemplate* const ble_profile_serial;
  *
  * @return      true on success
  */
-bool ble_profile_serial_tx(FuriHalBleProfileBase* profile, uint8_t* data, uint16_t size);
+bool ble_profile_serial_tx(FuriHalBleProfileBase *profile, uint8_t *data, uint16_t size);
 
 /** Set BLE RPC status
  *
  * @param profile       Profile instance
  * @param active        true if RPC is active
  */
-void ble_profile_serial_set_rpc_active(FuriHalBleProfileBase* profile, bool active);
+void ble_profile_serial_set_rpc_active(FuriHalBleProfileBase *profile, bool active);
 
 /** Notify that application buffer is empty
  * @param profile       Profile instance
  */
-void ble_profile_serial_notify_buffer_is_empty(FuriHalBleProfileBase* profile);
+void ble_profile_serial_notify_buffer_is_empty(FuriHalBleProfileBase *profile);
 
 /** Set Serial service events callback
  *
@@ -50,11 +50,8 @@ void ble_profile_serial_notify_buffer_is_empty(FuriHalBleProfileBase* profile);
  * @param calback       FuriHalBtSerialCallback instance
  * @param context       pointer to context
  */
-void ble_profile_serial_set_event_callback(
-    FuriHalBleProfileBase* profile,
-    uint16_t buff_size,
-    FuriHalBtSerialCallback callback,
-    void* context);
+void ble_profile_serial_set_event_callback(FuriHalBleProfileBase *profile, uint16_t buff_size,
+                                           FuriHalBtSerialCallback callback, void *context);
 
 #ifdef __cplusplus
 }

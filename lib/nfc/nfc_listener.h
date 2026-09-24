@@ -37,14 +37,14 @@ typedef struct NfcListener NfcListener;
  *
  * @see nfc.h
  */
-NfcListener* nfc_listener_alloc(Nfc* nfc, NfcProtocol protocol, const NfcDeviceData* data);
+NfcListener *nfc_listener_alloc(Nfc *nfc, NfcProtocol protocol, const NfcDeviceData *data);
 
 /**
  * @brief Delete an NfcListener instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-void nfc_listener_free(NfcListener* instance);
+void nfc_listener_free(NfcListener *instance);
 
 /**
  * @brief Start an NfcListener instance.
@@ -57,7 +57,7 @@ void nfc_listener_free(NfcListener* instance);
  * @param[in] callback pointer to a user-defined callback function which will receive events.
  * @param[in] context pointer to a user-specific context (will be passed to the callback).
  */
-void nfc_listener_start(NfcListener* instance, NfcGenericCallback callback, void* context);
+void nfc_listener_start(NfcListener *instance, NfcGenericCallback callback, void *context);
 
 /**
  * @brief Stop an NfcListener instance.
@@ -66,7 +66,7 @@ void nfc_listener_start(NfcListener* instance, NfcGenericCallback callback, void
  *
  * @param[in,out] instance pointer to the instance to be stopped.
  */
-void nfc_listener_stop(NfcListener* instance);
+void nfc_listener_stop(NfcListener *instance);
 
 /**
  * @brief Get the protocol identifier an NfcListener instance was created with.
@@ -74,7 +74,7 @@ void nfc_listener_stop(NfcListener* instance);
  * @param[in] instance pointer to the instance to be queried.
  * @returns identifier of the protocol used by the instance.
  */
-NfcProtocol nfc_listener_get_protocol(const NfcListener* instance);
+NfcProtocol nfc_listener_get_protocol(const NfcListener *instance);
 
 /**
  * @brief Get the data that was that was provided for emulation.
@@ -87,7 +87,7 @@ NfcProtocol nfc_listener_get_protocol(const NfcListener* instance);
  * @param[in] protocol assumed protocol identifier of the data to be retrieved.
  * @returns pointer to the NFC device data.
  */
-const NfcDeviceData* nfc_listener_get_data(const NfcListener* instance, NfcProtocol protocol);
+const NfcDeviceData *nfc_listener_get_data(const NfcListener *instance, NfcProtocol protocol);
 
 #ifdef __cplusplus
 }

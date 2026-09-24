@@ -2,7 +2,7 @@
  * Parser for WashCity MarkItaly Card (Europe).
  *
  * Copyright 2023 Filipe Polido (YaBaPT) <polido@gmail.com>
- * 
+ *
  * Based on MetroMoney by Leptoptilos <leptoptilos@icloud.com>
  *
  * This program is free software: you can redistribute it and/or modify it
@@ -51,7 +51,8 @@ static const MfClassicKeyPair washcity_1k_keys[] = {
     {.a = 0x010155010100, .b = 0xFFFFFFFFFFFF}, // Sector 15
 };
 
-static bool washcity_verify(Nfc* nfc) {
+static bool washcity_verify(Nfc *nfc)
+{
     bool verified = false;
 
     do {
@@ -61,55 +62,58 @@ static bool washcity_verify(Nfc* nfc) {
         FURI_LOG_D(TAG, "Verifying sector %u", verify_sector_number);
 
         MfClassicKey key = {0};
-        bit_lib_num_to_bytes_be(
-            washcity_1k_keys[verify_sector_number].a, COUNT_OF(key.data), key.data);
+        bit_lib_num_to_bytes_be(washcity_1k_keys[verify_sector_number].a, COUNT_OF(key.data),
+                                key.data);
 
         MfClassicAuthContext auth_context;
-        MfClassicError error = mf_classic_poller_sync_auth(
-            nfc, verify_block_number, &key, MfClassicKeyTypeA, &auth_context);
-        if(error != MfClassicErrorNone) {
+        MfClassicError error = mf_classic_poller_sync_auth(nfc, verify_block_number, &key,
+                                                           MfClassicKeyTypeA, &auth_context);
+        if (error != MfClassicErrorNone) {
             FURI_LOG_D(TAG, "Failed to read block %u: %d", verify_block_number, error);
             break;
         }
 
         verified = true;
-    } while(false);
+    } while (false);
 
     return verified;
 }
 
-static bool washcity_read(Nfc* nfc, NfcDevice* device) {
+static bool washcity_read(Nfc *nfc, NfcDevice *device)
+{
     furi_assert(nfc);
     furi_assert(device);
 
     bool is_read = false;
 
-    MfClassicData* data = mf_classic_alloc();
+    MfClassicData *data = mf_classic_alloc();
     nfc_device_copy_data(device, NfcProtocolMfClassic, data);
 
     do {
         MfClassicType type = MfClassicTypeMini;
         MfClassicError error = mf_classic_poller_sync_detect_type(nfc, &type);
-        if(error != MfClassicErrorNone) break;
+        if (error != MfClassicErrorNone)
+            break;
 
         data->type = type;
-        if(type != MfClassicType1k) break;
+        if (type != MfClassicType1k)
+            break;
 
         MfClassicDeviceKeys keys = {
             .key_a_mask = 0,
             .key_b_mask = 0,
         };
-        for(size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
-            bit_lib_num_to_bytes_be(
-                washcity_1k_keys[i].a, sizeof(MfClassicKey), keys.key_a[i].data);
+        for (size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
+            bit_lib_num_to_bytes_be(washcity_1k_keys[i].a, sizeof(MfClassicKey),
+                                    keys.key_a[i].data);
             FURI_BIT_SET(keys.key_a_mask, i);
-            bit_lib_num_to_bytes_be(
-                washcity_1k_keys[i].b, sizeof(MfClassicKey), keys.key_b[i].data);
+            bit_lib_num_to_bytes_be(washcity_1k_keys[i].b, sizeof(MfClassicKey),
+                                    keys.key_b[i].data);
             FURI_BIT_SET(keys.key_b_mask, i);
         }
 
         error = mf_classic_poller_sync_read(nfc, &keys, data);
-        if(error == MfClassicErrorNotPresent) {
+        if (error == MfClassicErrorNotPresent) {
             FURI_LOG_W(TAG, "Failed to read data");
             break;
         }
@@ -117,17 +121,18 @@ static bool washcity_read(Nfc* nfc, NfcDevice* device) {
         nfc_device_set_data(device, NfcProtocolMfClassic, data);
 
         is_read = (error == MfClassicErrorNone);
-    } while(false);
+    } while (false);
 
     mf_classic_free(data);
 
     return is_read;
 }
 
-static bool washcity_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool washcity_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
     bool parsed = false;
 
@@ -136,18 +141,19 @@ static bool washcity_parse(const NfcDevice* device, FuriString* parsed_data) {
         const uint8_t ticket_sector_number = 1;
         const uint8_t ticket_block_number = 0;
 
-        const MfClassicSectorTrailer* sec_tr =
+        const MfClassicSectorTrailer *sec_tr =
             mf_classic_get_sector_trailer_by_sector(data, ticket_sector_number);
 
         const uint64_t key =
             bit_lib_bytes_to_num_be(sec_tr->key_a.data, COUNT_OF(sec_tr->key_a.data));
-        if(key != washcity_1k_keys[ticket_sector_number].a) break;
+        if (key != washcity_1k_keys[ticket_sector_number].a)
+            break;
 
         // Parse data
         const uint8_t start_block_num =
             mf_classic_get_first_block_num_of_sector(ticket_sector_number);
 
-        const uint8_t* block_start_ptr =
+        const uint8_t *block_start_ptr =
             &data->block[start_block_num + ticket_block_number].data[0];
 
         uint32_t balance = bit_lib_bytes_to_num_be(block_start_ptr + 2, 2);
@@ -156,20 +162,15 @@ static bool washcity_parse(const NfcDevice* device, FuriString* parsed_data) {
         uint8_t balance_cents = balance % 100;
 
         size_t uid_len = 0;
-        const uint8_t* uid = mf_classic_get_uid(data, &uid_len);
+        const uint8_t *uid = mf_classic_get_uid(data, &uid_len);
 
         // Card Number is printed in HEX (equal to UID)
         uint64_t card_number = bit_lib_bytes_to_num_be(uid, uid_len);
 
-        furi_string_printf(
-            parsed_data,
-            "\e#WashCity\nCard number: %0*llX\nBalance: %lu.%02u EUR",
-            uid_len * 2,
-            card_number,
-            balance_usd,
-            balance_cents);
+        furi_string_printf(parsed_data, "\e#WashCity\nCard number: %0*llX\nBalance: %lu.%02u EUR",
+                           uid_len * 2, card_number, balance_usd, balance_cents);
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -190,6 +191,7 @@ static const FlipperAppPluginDescriptor washcity_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* washcity_plugin_ep(void) {
+const FlipperAppPluginDescriptor *washcity_plugin_ep(void)
+{
     return &washcity_plugin_descriptor;
 }

@@ -7,20 +7,20 @@ extern "C" {
 #define FURI_RETURNS_NONNULL __attribute__((returns_nonnull))
 
 #ifndef MAX
-#define MAX(a, b)               \
-    ({                          \
-        __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
-        _a > _b ? _a : _b;      \
+#define MAX(a, b)                                                                                  \
+    ({                                                                                             \
+        __typeof__(a) _a = (a);                                                                    \
+        __typeof__(b) _b = (b);                                                                    \
+        _a > _b ? _a : _b;                                                                         \
     })
 #endif
 
 #ifndef MIN
-#define MIN(a, b)               \
-    ({                          \
-        __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
-        _a < _b ? _a : _b;      \
+#define MIN(a, b)                                                                                  \
+    ({                                                                                             \
+        __typeof__(a) _a = (a);                                                                    \
+        __typeof__(b) _b = (b);                                                                    \
+        _a < _b ? _a : _b;                                                                         \
     })
 #endif
 
@@ -29,11 +29,11 @@ extern "C" {
 #endif
 
 #ifndef ROUND_UP_TO
-#define ROUND_UP_TO(a, b)       \
-    ({                          \
-        __typeof__(a) _a = (a); \
-        __typeof__(b) _b = (b); \
-        _a / _b + !!(_a % _b);  \
+#define ROUND_UP_TO(a, b)                                                                          \
+    ({                                                                                             \
+        __typeof__(a) _a = (a);                                                                    \
+        __typeof__(b) _b = (b);                                                                    \
+        _a / _b + !!(_a % _b);                                                                     \
     })
 #endif
 
@@ -42,12 +42,12 @@ extern "C" {
 #endif
 
 #ifndef CLAMP_WRAPAROUND
-#define CLAMP_WRAPAROUND(x, upper, lower)                       \
-    ({                                                          \
-        __typeof__(x) _x = (x);                                 \
-        __typeof__(upper) _upper = (upper);                     \
-        __typeof__(lower) _lower = (lower);                     \
-        (_x > _upper) ? _lower : ((_x < _lower) ? _upper : _x); \
+#define CLAMP_WRAPAROUND(x, upper, lower)                                                          \
+    ({                                                                                             \
+        __typeof__(x) _x = (x);                                                                    \
+        __typeof__(upper) _upper = (upper);                                                        \
+        __typeof__(lower) _lower = (lower);                                                        \
+        (_x > _upper) ? _lower : ((_x < _lower) ? _upper : _x);                                    \
     })
 #endif
 
@@ -56,12 +56,12 @@ extern "C" {
 #endif
 
 #ifndef FURI_SWAP
-#define FURI_SWAP(x, y)     \
-    do {                    \
-        typeof(x) SWAP = x; \
-        x = y;              \
-        y = SWAP;           \
-    } while(0)
+#define FURI_SWAP(x, y)                                                                            \
+    do {                                                                                           \
+        typeof(x) SWAP = x;                                                                        \
+        x = y;                                                                                     \
+        y = SWAP;                                                                                  \
+    } while (0)
 #endif
 
 #ifndef PLACE_IN_SECTION
@@ -89,13 +89,13 @@ extern "C" {
 #endif
 
 #ifndef CONCATENATE
-#define CONCATENATE(a, b)  CONCATENATE_(a, b)
+#define CONCATENATE(a, b) CONCATENATE_(a, b)
 #define CONCATENATE_(a, b) a##b
 #endif
 
 #ifndef REVERSE_BYTES_U32
-#define REVERSE_BYTES_U32(x)                                                              \
-    ((((x) & 0x000000FF) << 24) | (((x) & 0x0000FF00) << 8) | (((x) & 0x00FF0000) >> 8) | \
+#define REVERSE_BYTES_U32(x)                                                                       \
+    ((((x) & 0x000000FF) << 24) | (((x) & 0x0000FF00) << 8) | (((x) & 0x00FF0000) >> 8) |          \
      (((x) & 0xFF000000) >> 24))
 #endif
 
@@ -104,18 +104,18 @@ extern "C" {
 #endif
 
 #ifndef FURI_BIT_SET
-#define FURI_BIT_SET(x, n)      \
-    ({                          \
-        __typeof__(x) _x = (1); \
-        (x) |= (_x << (n));     \
+#define FURI_BIT_SET(x, n)                                                                         \
+    ({                                                                                             \
+        __typeof__(x) _x = (1);                                                                    \
+        (x) |= (_x << (n));                                                                        \
     })
 #endif
 
 #ifndef FURI_BIT_CLEAR
-#define FURI_BIT_CLEAR(x, n)    \
-    ({                          \
-        __typeof__(x) _x = (1); \
-        (x) &= ~(_x << (n));    \
+#define FURI_BIT_CLEAR(x, n)                                                                       \
+    ({                                                                                             \
+        __typeof__(x) _x = (1);                                                                    \
+        (x) &= ~(_x << (n));                                                                       \
     })
 #endif
 

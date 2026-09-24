@@ -57,9 +57,9 @@ typedef void NfcGenericEventData;
  */
 typedef struct {
     NfcProtocol protocol; /**< Protocol identifier of the instance that produced the event. */
-    NfcGenericInstance*
-        instance; /**< Pointer to the protocol-specific instance that produced the event. */
-    NfcGenericEventData* event_data; /**< Pointer to the protocol-specific event. */
+    NfcGenericInstance
+        *instance; /**< Pointer to the protocol-specific instance that produced the event. */
+    NfcGenericEventData *event_data; /**< Pointer to the protocol-specific event. */
 } NfcGenericEvent;
 
 /**
@@ -69,10 +69,11 @@ typedef struct {
  * of a poller, listener or Nfc instance.
  *
  * @param [in] event Nfc generic event, passed by value, complete with protocol type and data.
- * @param [in,out] context pointer to the user-specific context (set when starting a poller/listener instance).
+ * @param [in,out] context pointer to the user-specific context (set when starting a poller/listener
+ * instance).
  * @returns the command which the event producer must execute.
  */
-typedef NfcCommand (*NfcGenericCallback)(NfcGenericEvent event, void* context);
+typedef NfcCommand (*NfcGenericCallback)(NfcGenericEvent event, void *context);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,6 @@
 #include "protocol_items.h" // IWYU pragma: keep
 
-const SubGhzProtocol* const subghz_protocol_registry_items[] = {
+const SubGhzProtocol *const subghz_protocol_registry_items[] = {
     &subghz_protocol_gate_tx,
     &subghz_protocol_keeloq,
     &subghz_protocol_nice_flo,
@@ -91,5 +91,4 @@ const SubGhzProtocol* const subghz_protocol_registry_items[] = {
 };
 
 const SubGhzProtocolRegistry subghz_protocol_registry = {
-    .items = subghz_protocol_registry_items,
-    .size = COUNT_OF(subghz_protocol_registry_items)};
+    .items = subghz_protocol_registry_items, .size = COUNT_OF(subghz_protocol_registry_items)};

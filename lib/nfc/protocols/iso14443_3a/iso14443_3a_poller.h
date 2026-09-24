@@ -35,8 +35,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Iso14443_3aPollerEventType type; /**< Type of emmitted event. */
-    Iso14443_3aPollerEventData* data; /**< Pointer to event specific data. */
+    Iso14443_3aPollerEventType type;  /**< Type of emmitted event. */
+    Iso14443_3aPollerEventData *data; /**< Pointer to event specific data. */
 } Iso14443_3aPollerEvent;
 
 /**
@@ -54,11 +54,8 @@ typedef struct {
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return Iso14443_3aErrorNone on success, an error code on failure.
  */
-Iso14443_3aError iso14443_3a_poller_txrx(
-    Iso14443_3aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+Iso14443_3aError iso14443_3a_poller_txrx(Iso14443_3aPoller *instance, const BitBuffer *tx_buffer,
+                                         BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Transmit and receive Iso14443_3a standard frames in poller mode.
@@ -74,11 +71,9 @@ Iso14443_3aError iso14443_3a_poller_txrx(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return Iso14443_3aErrorNone on success, an error code on failure.
  */
-Iso14443_3aError iso14443_3a_poller_send_standard_frame(
-    Iso14443_3aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+Iso14443_3aError iso14443_3a_poller_send_standard_frame(Iso14443_3aPoller *instance,
+                                                        const BitBuffer *tx_buffer,
+                                                        BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Transmit and receive Iso14443_3a frames with custom parity bits in poller mode.
@@ -97,11 +92,9 @@ Iso14443_3aError iso14443_3a_poller_send_standard_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return Iso14443_3aErrorNone on success, an error code on failure.
  */
-Iso14443_3aError iso14443_3a_poller_txrx_custom_parity(
-    Iso14443_3aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+Iso14443_3aError iso14443_3a_poller_txrx_custom_parity(Iso14443_3aPoller *instance,
+                                                       const BitBuffer *tx_buffer,
+                                                       BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Checks presence of Iso14443_3a complient card.
@@ -111,7 +104,7 @@ Iso14443_3aError iso14443_3a_poller_txrx_custom_parity(
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return Iso14443_3aErrorNone if card is present, an error code otherwise.
  */
-Iso14443_3aError iso14443_3a_poller_check_presence(Iso14443_3aPoller* instance);
+Iso14443_3aError iso14443_3a_poller_check_presence(Iso14443_3aPoller *instance);
 
 /**
  * @brief Perform collision resolution procedure.
@@ -125,8 +118,8 @@ Iso14443_3aError iso14443_3a_poller_check_presence(Iso14443_3aPoller* instance);
  * @param[out] iso14443_3a_data pointer to the Iso14443_3a data structure to be filled.
  * @return Iso14443_3aErrorNone on success, an error code on failure.
  */
-Iso14443_3aError
-    iso14443_3a_poller_activate(Iso14443_3aPoller* instance, Iso14443_3aData* iso14443_3a_data);
+Iso14443_3aError iso14443_3a_poller_activate(Iso14443_3aPoller *instance,
+                                             Iso14443_3aData *iso14443_3a_data);
 
 /**
  * @brief Send HALT command to the card.
@@ -138,7 +131,7 @@ Iso14443_3aError
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return Iso14443_3aErrorNone on success, an error code on failure.
  */
-Iso14443_3aError iso14443_3a_poller_halt(Iso14443_3aPoller* instance);
+Iso14443_3aError iso14443_3a_poller_halt(Iso14443_3aPoller *instance);
 
 #ifdef __cplusplus
 }

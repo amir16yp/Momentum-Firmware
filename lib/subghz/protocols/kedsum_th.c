@@ -7,11 +7,11 @@
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/kedsum.c
  *
  *  Frame structure:
- * 
+ *
  *     Byte:      0        1        2        3        4
  *     Nibble:    1   2    3   4    5   6    7   8    9   10
  *     Type:   00 IIIIIIII BBCC++++ ttttTTTT hhhhHHHH FFFFXXXX
- * 
+ *
  * - I: unique id. changes on powercycle
  * - B: Battery state 10 = Ok, 01 = weak, 00 = bad
  * - C: channel, 00 = ch1, 10=ch3
@@ -91,37 +91,38 @@ const SubGhzProtocol ws_protocol_kedsum_th = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_kedsum_th_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_kedsum_th_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderKedsumTH* instance = malloc(sizeof(WSProtocolDecoderKedsumTH));
+    WSProtocolDecoderKedsumTH *instance = malloc(sizeof(WSProtocolDecoderKedsumTH));
     instance->base.protocol = &ws_protocol_kedsum_th;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_kedsum_th_free(void* context) {
+void ws_protocol_decoder_kedsum_th_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_kedsum_th_reset(void* context) {
+void ws_protocol_decoder_kedsum_th_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
     instance->decoder.parser_step = KedsumTHDecoderStepReset;
 }
 
-static bool ws_protocol_kedsum_th_check_crc(WSProtocolDecoderKedsumTH* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 32,
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8,
-        instance->decoder.decode_data};
+static bool ws_protocol_kedsum_th_check_crc(WSProtocolDecoderKedsumTH *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 32, instance->decoder.decode_data >> 24,
+                     instance->decoder.decode_data >> 16, instance->decoder.decode_data >> 8,
+                     instance->decoder.decode_data};
 
     uint8_t crc =
         subghz_protocol_blocks_crc4(msg, 4, 0x03, 0); // CRC-4 poly 0x3 init 0x0 xor last 4 bits
-    crc ^= msg[4] >> 4; // last nibble is only XORed
+    crc ^= msg[4] >> 4;                               // last nibble is only XORed
     return (crc == (msg[4] & 0x0F));
 }
 
@@ -129,9 +130,10 @@ static bool ws_protocol_kedsum_th_check_crc(WSProtocolDecoderKedsumTH* instance)
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_kedsum_th_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_kedsum_th_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = instance->data >> 32;
-    if((instance->data >> 30) & 0x3) {
+    if ((instance->data >> 30) & 0x3) {
         instance->battery_low = 0;
     } else {
         instance->battery_low = 1;
@@ -144,14 +146,15 @@ static void ws_protocol_kedsum_th_remote_controller(WSBlockGeneric* instance) {
     instance->humidity = ((instance->data >> 8) & 0x0f) << 4 | ((instance->data >> 12) & 0x0f);
 }
 
-void ws_protocol_decoder_kedsum_th_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_kedsum_th_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case KedsumTHDecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_short) <
-                       ws_protocol_kedsum_th_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_short) <
+                        ws_protocol_kedsum_th_const.te_delta)) {
             instance->decoder.parser_step = KedsumTHDecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -159,38 +162,37 @@ void ws_protocol_decoder_kedsum_th_feed(void* context, bool level, uint32_t dura
         break;
 
     case KedsumTHDecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
-                ws_protocol_kedsum_th_const.te_delta) &&
-               (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 4) <
-                ws_protocol_kedsum_th_const.te_delta * 4)) {
-                //Found preambule
-                instance->header_count++;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
+            if ((DURATION_DIFF(instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
                  ws_protocol_kedsum_th_const.te_delta) &&
-                (duration < (ws_protocol_kedsum_th_const.te_long * 2 +
-                             ws_protocol_kedsum_th_const.te_delta * 2))) {
-                //Found syncPrefix
-                if(instance->header_count > 0) {
+                (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 4) <
+                 ws_protocol_kedsum_th_const.te_delta * 4)) {
+                // Found preambule
+                instance->header_count++;
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_kedsum_th_const.te_short) <
+                        ws_protocol_kedsum_th_const.te_delta) &&
+                       (duration < (ws_protocol_kedsum_th_const.te_long * 2 +
+                                    ws_protocol_kedsum_th_const.te_delta * 2))) {
+                // Found syncPrefix
+                if (instance->header_count > 0) {
                     instance->decoder.parser_step = KedsumTHDecoderStepSaveDuration;
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
-                    if((DURATION_DIFF(
-                            instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
-                        ws_protocol_kedsum_th_const.te_delta) &&
-                       (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long) <
-                        ws_protocol_kedsum_th_const.te_delta * 2)) {
+                    if ((DURATION_DIFF(instance->decoder.te_last,
+                                       ws_protocol_kedsum_th_const.te_short) <
+                         ws_protocol_kedsum_th_const.te_delta) &&
+                        (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long) <
+                         ws_protocol_kedsum_th_const.te_delta * 2)) {
                         subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                         instance->decoder.parser_step = KedsumTHDecoderStepSaveDuration;
-                    } else if(
-                        (DURATION_DIFF(
-                             instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
-                         ws_protocol_kedsum_th_const.te_delta) &&
-                        (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 2) <
-                         ws_protocol_kedsum_th_const.te_delta * 4)) {
+                    } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                              ws_protocol_kedsum_th_const.te_short) <
+                                ws_protocol_kedsum_th_const.te_delta) &&
+                               (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 2) <
+                                ws_protocol_kedsum_th_const.te_delta * 4)) {
                         subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                         instance->decoder.parser_step = KedsumTHDecoderStepSaveDuration;
                     } else {
@@ -204,7 +206,7 @@ void ws_protocol_decoder_kedsum_th_feed(void* context, bool level, uint32_t dura
         break;
 
     case KedsumTHDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = KedsumTHDecoderStepCheckDuration;
         } else {
@@ -213,35 +215,35 @@ void ws_protocol_decoder_kedsum_th_feed(void* context, bool level, uint32_t dura
         break;
 
     case KedsumTHDecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 4) <
-               ws_protocol_kedsum_th_const.te_delta * 4) {
-                //Found syncPostfix
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_kedsum_th_const.min_count_bit_for_found) &&
-                   ws_protocol_kedsum_th_check_crc(instance)) {
+        if (!level) {
+            if (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 4) <
+                ws_protocol_kedsum_th_const.te_delta * 4) {
+                // Found syncPostfix
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_kedsum_th_const.min_count_bit_for_found) &&
+                    ws_protocol_kedsum_th_check_crc(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_kedsum_th_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = KedsumTHDecoderStepReset;
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
-                 ws_protocol_kedsum_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long) <
-                 ws_protocol_kedsum_th_const.te_delta * 2)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_kedsum_th_const.te_short) <
+                        ws_protocol_kedsum_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long) <
+                        ws_protocol_kedsum_th_const.te_delta * 2)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = KedsumTHDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_kedsum_th_const.te_short) <
-                 ws_protocol_kedsum_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 2) <
-                 ws_protocol_kedsum_th_const.te_delta * 4)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_kedsum_th_const.te_short) <
+                        ws_protocol_kedsum_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_kedsum_th_const.te_long * 2) <
+                        ws_protocol_kedsum_th_const.te_delta * 4)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = KedsumTHDecoderStepSaveDuration;
             } else {
@@ -254,32 +256,35 @@ void ws_protocol_decoder_kedsum_th_feed(void* context, bool level, uint32_t dura
     }
 }
 
-uint32_t ws_protocol_decoder_kedsum_th_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_kedsum_th_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderKedsumTH *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_kedsum_th_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_kedsum_th_serialize(void *context,
+                                                             FlipperFormat *flipper_format,
+                                                             SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_kedsum_th_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_kedsum_th_deserialize(void *context,
+                                                               FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_kedsum_th_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_kedsum_th_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_kedsum_th_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderKedsumTH* instance = context;
+    WSProtocolDecoderKedsumTH *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

@@ -6,12 +6,13 @@
 #include <momentum/momentum.h>
 #include <rgb_backlight.h>
 
-#define LED_CURRENT_RED   (50u)
+#define LED_CURRENT_RED (50u)
 #define LED_CURRENT_GREEN (50u)
-#define LED_CURRENT_BLUE  (50u)
+#define LED_CURRENT_BLUE (50u)
 #define LED_CURRENT_WHITE (150u)
 
-void furi_hal_light_init(void) {
+void furi_hal_light_init(void)
+{
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
 
     lp5562_reset(&furi_hal_i2c_handle_power);
@@ -32,72 +33,76 @@ void furi_hal_light_init(void) {
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
-void furi_hal_light_set(Light light, uint8_t value) {
+void furi_hal_light_set(Light light, uint8_t value)
+{
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    if(light & LightRed) {
+    if (light & LightRed) {
         lp5562_set_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelRed, value);
     }
-    if(light & LightGreen) {
+    if (light & LightGreen) {
         lp5562_set_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelGreen, value);
     }
-    if(light & LightBlue) {
+    if (light & LightBlue) {
         lp5562_set_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelBlue, value);
     }
-    if(light & LightBacklight) {
-        if(momentum_settings.rgb_backlight) {
+    if (light & LightBacklight) {
+        if (momentum_settings.rgb_backlight) {
             rgb_backlight_update(value, false);
         } else {
-            uint8_t prev =
-                lp5562_get_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelWhite);
-            lp5562_execute_ramp(
-                &furi_hal_i2c_handle_power, LP5562Engine1, LP5562ChannelWhite, prev, value, 100);
+            uint8_t prev = lp5562_get_channel_value(&furi_hal_i2c_handle_power, LP5562ChannelWhite);
+            lp5562_execute_ramp(&furi_hal_i2c_handle_power, LP5562Engine1, LP5562ChannelWhite, prev,
+                                value, 100);
         }
     }
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
-void furi_hal_light_blink_start(Light light, uint8_t brightness, uint16_t on_time, uint16_t period) {
+void furi_hal_light_blink_start(Light light, uint8_t brightness, uint16_t on_time, uint16_t period)
+{
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    lp5562_set_channel_src(
-        &furi_hal_i2c_handle_power,
-        LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue,
-        LP5562Direct);
+    lp5562_set_channel_src(&furi_hal_i2c_handle_power,
+                           LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue, LP5562Direct);
     LP5562Channel led_ch = 0;
-    if(light & LightRed) led_ch |= LP5562ChannelRed;
-    if(light & LightGreen) led_ch |= LP5562ChannelGreen;
-    if(light & LightBlue) led_ch |= LP5562ChannelBlue;
-    lp5562_execute_blink(
-        &furi_hal_i2c_handle_power, LP5562Engine2, led_ch, on_time, period, brightness);
+    if (light & LightRed)
+        led_ch |= LP5562ChannelRed;
+    if (light & LightGreen)
+        led_ch |= LP5562ChannelGreen;
+    if (light & LightBlue)
+        led_ch |= LP5562ChannelBlue;
+    lp5562_execute_blink(&furi_hal_i2c_handle_power, LP5562Engine2, led_ch, on_time, period,
+                         brightness);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
-void furi_hal_light_blink_stop(void) {
+void furi_hal_light_blink_stop(void)
+{
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
-    lp5562_set_channel_src(
-        &furi_hal_i2c_handle_power,
-        LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue,
-        LP5562Direct);
+    lp5562_set_channel_src(&furi_hal_i2c_handle_power,
+                           LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue, LP5562Direct);
     lp5562_stop_program(&furi_hal_i2c_handle_power, LP5562Engine2);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
-void furi_hal_light_blink_set_color(Light light) {
+void furi_hal_light_blink_set_color(Light light)
+{
     furi_hal_i2c_acquire(&furi_hal_i2c_handle_power);
     LP5562Channel led_ch = 0;
-    lp5562_set_channel_src(
-        &furi_hal_i2c_handle_power,
-        LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue,
-        LP5562Direct);
-    if(light & LightRed) led_ch |= LP5562ChannelRed;
-    if(light & LightGreen) led_ch |= LP5562ChannelGreen;
-    if(light & LightBlue) led_ch |= LP5562ChannelBlue;
+    lp5562_set_channel_src(&furi_hal_i2c_handle_power,
+                           LP5562ChannelRed | LP5562ChannelGreen | LP5562ChannelBlue, LP5562Direct);
+    if (light & LightRed)
+        led_ch |= LP5562ChannelRed;
+    if (light & LightGreen)
+        led_ch |= LP5562ChannelGreen;
+    if (light & LightBlue)
+        led_ch |= LP5562ChannelBlue;
     lp5562_set_channel_src(&furi_hal_i2c_handle_power, led_ch, LP5562Engine2);
     furi_hal_i2c_release(&furi_hal_i2c_handle_power);
 }
 
-void furi_hal_light_sequence(const char* sequence) {
+void furi_hal_light_sequence(const char *sequence)
+{
     do {
-        switch(*sequence) {
+        switch (*sequence) {
         case 'R':
             furi_hal_light_set(LightRed, 0xFF);
             break;
@@ -132,5 +137,5 @@ void furi_hal_light_sequence(const char* sequence) {
             break;
         }
         sequence++;
-    } while(*sequence != 0);
+    } while (*sequence != 0);
 }

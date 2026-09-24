@@ -3,8 +3,9 @@
  * @brief Example application that demonstrates the FuriEventLoop and FuriMutex integration.
  *
  * This application simulates a use case where a time-consuming blocking operation is executed
- * in a separate thread and a mutex is being used for synchronization. The application runs 10 iterations
- * of the above mentioned simulated work and prints the results to the debug output each time, then exits.
+ * in a separate thread and a mutex is being used for synchronization. The application runs 10
+ * iterations of the above mentioned simulated work and prints the results to the debug output each
+ * time, then exits.
  */
 
 #include <furi.h>
@@ -16,25 +17,26 @@
 // We are interested in IN events (for the mutex, that means that the mutex has been released),
 // using edge trigger mode (reacting only to changes in mutex state) and
 // employing one-shot mode to automatically unsubscribe before the event is processed.
-#define MUTEX_EVENT_AND_FLAGS \
+#define MUTEX_EVENT_AND_FLAGS                                                                      \
     (FuriEventLoopEventIn | FuriEventLoopEventFlagEdge | FuriEventLoopEventFlagOnce)
 
 typedef struct {
-    FuriEventLoop* event_loop;
-    FuriThread* worker_thread;
-    FuriMutex* worker_mutex;
+    FuriEventLoop *event_loop;
+    FuriThread *worker_thread;
+    FuriMutex *worker_mutex;
     uint8_t worker_result;
 } EventLoopMutexApp;
 
 // This funciton is being run in a separate thread to simulate lengthy blocking operations
-static int32_t event_loop_mutex_app_worker_thread(void* context) {
+static int32_t event_loop_mutex_app_worker_thread(void *context)
+{
     furi_assert(context);
-    EventLoopMutexApp* app = context;
+    EventLoopMutexApp *app = context;
 
     FURI_LOG_I(TAG, "Worker thread started");
 
     // Run 10 iterations of simulated work
-    for(uint32_t i = 0; i < WORKER_ITERATION_COUNT; ++i) {
+    for (uint32_t i = 0; i < WORKER_ITERATION_COUNT; ++i) {
         FURI_LOG_I(TAG, "Doing work ...");
         // Take the mutex so that no-one can access the worker_result variable
         furi_check(furi_mutex_acquire(app->worker_mutex, FuriWaitForever) == FuriStatusOk);
@@ -59,10 +61,11 @@ static int32_t event_loop_mutex_app_worker_thread(void* context) {
 }
 
 // This function is being run each time when the mutex gets released
-static void event_loop_mutex_app_event_callback(FuriEventLoopObject* object, void* context) {
+static void event_loop_mutex_app_event_callback(FuriEventLoopObject *object, void *context)
+{
     furi_assert(context);
 
-    EventLoopMutexApp* app = context;
+    EventLoopMutexApp *app = context;
     furi_assert(object == app->worker_mutex);
 
     // Take the mutex so that no-one can access the worker_result variable
@@ -76,39 +79,33 @@ static void event_loop_mutex_app_event_callback(FuriEventLoopObject* object, voi
     furi_check(furi_mutex_release(app->worker_mutex) == FuriStatusOk);
     // Subscribe for the mutex release events again, since we were unsubscribed automatically
     // before processing the event.
-    furi_event_loop_subscribe_mutex(
-        app->event_loop,
-        app->worker_mutex,
-        MUTEX_EVENT_AND_FLAGS,
-        event_loop_mutex_app_event_callback,
-        app);
+    furi_event_loop_subscribe_mutex(app->event_loop, app->worker_mutex, MUTEX_EVENT_AND_FLAGS,
+                                    event_loop_mutex_app_event_callback, app);
 }
 
-static EventLoopMutexApp* event_loop_mutex_app_alloc(void) {
-    EventLoopMutexApp* app = malloc(sizeof(EventLoopMutexApp));
+static EventLoopMutexApp *event_loop_mutex_app_alloc(void)
+{
+    EventLoopMutexApp *app = malloc(sizeof(EventLoopMutexApp));
 
     // Create an event loop instance.
     app->event_loop = furi_event_loop_alloc();
     // Create a worker thread instance.
-    app->worker_thread = furi_thread_alloc_ex(
-        "EventLoopMutexWorker", 1024, event_loop_mutex_app_worker_thread, app);
+    app->worker_thread =
+        furi_thread_alloc_ex("EventLoopMutexWorker", 1024, event_loop_mutex_app_worker_thread, app);
     // Create a mutex instance.
     app->worker_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     // Subscribe for the mutex release events.
     // Note that since FuriEventLoopEventFlagOneShot is used, we will be automatically unsubscribed
     // from events before entering the event processing callback. This is necessary in order to not
     // trigger on events caused by releasing the mutex in the callback.
-    furi_event_loop_subscribe_mutex(
-        app->event_loop,
-        app->worker_mutex,
-        MUTEX_EVENT_AND_FLAGS,
-        event_loop_mutex_app_event_callback,
-        app);
+    furi_event_loop_subscribe_mutex(app->event_loop, app->worker_mutex, MUTEX_EVENT_AND_FLAGS,
+                                    event_loop_mutex_app_event_callback, app);
 
     return app;
 }
 
-static void event_loop_mutex_app_free(EventLoopMutexApp* app) {
+static void event_loop_mutex_app_free(EventLoopMutexApp *app)
+{
     // IMPORTANT: The user code MUST unsubscribe from all events before deleting the event loop.
     // Failure to do so will result in a crash.
     furi_event_loop_unsubscribe(app->event_loop, app->worker_mutex);
@@ -120,17 +117,19 @@ static void event_loop_mutex_app_free(EventLoopMutexApp* app) {
     free(app);
 }
 
-static void event_loop_mutex_app_run(EventLoopMutexApp* app) {
+static void event_loop_mutex_app_run(EventLoopMutexApp *app)
+{
     furi_thread_start(app->worker_thread);
     furi_event_loop_run(app->event_loop);
     furi_thread_join(app->worker_thread);
 }
 
 // The application's entry point - referenced in application.fam
-int32_t example_event_loop_mutex_app(void* arg) {
+int32_t example_event_loop_mutex_app(void *arg)
+{
     UNUSED(arg);
 
-    EventLoopMutexApp* app = event_loop_mutex_app_alloc();
+    EventLoopMutexApp *app = event_loop_mutex_app_alloc();
     event_loop_mutex_app_run(app);
     event_loop_mutex_app_free(app);
 

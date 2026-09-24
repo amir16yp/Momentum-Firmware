@@ -19,8 +19,8 @@ typedef enum {
     DataRate50Hz = 0x09,
     DataRate25Hz = 0x0A,
     DataRate12_5Hz = 0x0B,
-    DataRate6_25Hz = 0x0C, // Accelerometer only
-    DataRate3_125Hz = 0x0D, // Accelerometer only
+    DataRate6_25Hz = 0x0C,   // Accelerometer only
+    DataRate3_125Hz = 0x0D,  // Accelerometer only
     DataRate1_5625Hz = 0x0E, // Accelerometer only
     DataRate500Hz = 0x0F,
 } ICM42688PDataRate;
@@ -71,56 +71,47 @@ typedef struct {
 
 typedef struct ICM42688P ICM42688P;
 
-typedef void (*ICM42688PIrqCallback)(void* ctx);
+typedef void (*ICM42688PIrqCallback)(void *ctx);
 
-ICM42688P* icm42688p_alloc(FuriHalSpiBusHandle* spi_bus, const GpioPin* irq_pin);
+ICM42688P *icm42688p_alloc(FuriHalSpiBusHandle *spi_bus, const GpioPin *irq_pin);
 
-bool icm42688p_init(ICM42688P* icm42688p);
+bool icm42688p_init(ICM42688P *icm42688p);
 
-bool icm42688p_deinit(ICM42688P* icm42688p);
+bool icm42688p_deinit(ICM42688P *icm42688p);
 
-void icm42688p_free(ICM42688P* icm42688p);
+void icm42688p_free(ICM42688P *icm42688p);
 
-bool icm42688p_accel_config(
-    ICM42688P* icm42688p,
-    ICM42688PAccelFullScale full_scale,
-    ICM42688PDataRate rate);
+bool icm42688p_accel_config(ICM42688P *icm42688p, ICM42688PAccelFullScale full_scale,
+                            ICM42688PDataRate rate);
 
-float icm42688p_accel_get_full_scale(ICM42688P* icm42688p);
+float icm42688p_accel_get_full_scale(ICM42688P *icm42688p);
 
-bool icm42688p_gyro_config(
-    ICM42688P* icm42688p,
-    ICM42688PGyroFullScale full_scale,
-    ICM42688PDataRate rate);
+bool icm42688p_gyro_config(ICM42688P *icm42688p, ICM42688PGyroFullScale full_scale,
+                           ICM42688PDataRate rate);
 
-float icm42688p_gyro_get_full_scale(ICM42688P* icm42688p);
+float icm42688p_gyro_get_full_scale(ICM42688P *icm42688p);
 
-bool icm42688p_read_accel_raw(ICM42688P* icm42688p, ICM42688PRawData* data);
+bool icm42688p_read_accel_raw(ICM42688P *icm42688p, ICM42688PRawData *data);
 
-bool icm42688p_read_gyro_raw(ICM42688P* icm42688p, ICM42688PRawData* data);
+bool icm42688p_read_gyro_raw(ICM42688P *icm42688p, ICM42688PRawData *data);
 
-bool icm42688p_write_gyro_offset(ICM42688P* icm42688p, ICM42688PScaledData* scaled_data);
+bool icm42688p_write_gyro_offset(ICM42688P *icm42688p, ICM42688PScaledData *scaled_data);
 
-void icm42688p_apply_scale(ICM42688PRawData* raw_data, float full_scale, ICM42688PScaledData* data);
+void icm42688p_apply_scale(ICM42688PRawData *raw_data, float full_scale, ICM42688PScaledData *data);
 
-void icm42688p_apply_scale_fifo(
-    ICM42688P* icm42688p,
-    ICM42688PFifoPacket* fifo_data,
-    ICM42688PScaledData* accel_data,
-    ICM42688PScaledData* gyro_data);
+void icm42688p_apply_scale_fifo(ICM42688P *icm42688p, ICM42688PFifoPacket *fifo_data,
+                                ICM42688PScaledData *accel_data, ICM42688PScaledData *gyro_data);
 
-float icm42688p_read_temp(ICM42688P* icm42688p);
+float icm42688p_read_temp(ICM42688P *icm42688p);
 
-void icm42688_fifo_enable(
-    ICM42688P* icm42688p,
-    ICM42688PIrqCallback irq_callback,
-    void* irq_context);
+void icm42688_fifo_enable(ICM42688P *icm42688p, ICM42688PIrqCallback irq_callback,
+                          void *irq_context);
 
-void icm42688_fifo_disable(ICM42688P* icm42688p);
+void icm42688_fifo_disable(ICM42688P *icm42688p);
 
-uint16_t icm42688_fifo_get_count(ICM42688P* icm42688p);
+uint16_t icm42688_fifo_get_count(ICM42688P *icm42688p);
 
-bool icm42688_fifo_read(ICM42688P* icm42688p, ICM42688PFifoPacket* data);
+bool icm42688_fifo_read(ICM42688P *icm42688p, ICM42688PFifoPacket *data);
 
 #ifdef __cplusplus
 }

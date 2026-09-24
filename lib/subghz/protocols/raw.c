@@ -22,12 +22,12 @@ static const SubGhzBlockConst subghz_protocol_raw_const = {
 struct SubGhzProtocolDecoderRAW {
     SubGhzProtocolDecoderBase base;
 
-    int32_t* upload_raw;
+    int32_t *upload_raw;
     uint16_t ind_write;
-    Storage* storage;
-    FlipperFormat* flipper_file;
+    Storage *storage;
+    FlipperFormat *flipper_file;
     uint32_t file_is_open;
-    FuriString* file_name;
+    FuriString *file_name;
     size_t sample_write;
     bool last_level;
     bool pause;
@@ -37,9 +37,9 @@ struct SubGhzProtocolEncoderRAW {
     SubGhzProtocolEncoderBase base;
 
     bool is_running;
-    FuriString* file_name;
-    FuriString* radio_device_name;
-    SubGhzFileEncoderWorker* file_worker_encoder;
+    FuriString *file_name;
+    FuriString *radio_device_name;
+    SubGhzFileEncoderWorker *file_worker_encoder;
 };
 
 typedef enum {
@@ -83,73 +83,72 @@ const SubGhzProtocol subghz_protocol_raw = {
     .encoder = &subghz_protocol_raw_encoder,
 };
 
-bool subghz_protocol_raw_save_to_file_init(
-    SubGhzProtocolDecoderRAW* instance,
-    const char* dev_name,
-    SubGhzRadioPreset* preset) {
+bool subghz_protocol_raw_save_to_file_init(SubGhzProtocolDecoderRAW *instance, const char *dev_name,
+                                           SubGhzRadioPreset *preset)
+{
     furi_check(instance);
 
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->flipper_file = flipper_format_file_alloc(instance->storage);
 
-    FuriString* temp_str;
+    FuriString *temp_str;
     temp_str = furi_string_alloc();
     bool init = false;
 
     do {
         // Create subghz folder directory if necessary
-        if(!storage_simply_mkdir(instance->storage, SUBGHZ_RAW_FOLDER)) {
+        if (!storage_simply_mkdir(instance->storage, SUBGHZ_RAW_FOLDER)) {
             break;
         }
 
         furi_string_set(instance->file_name, dev_name);
         // First remove subghz device file if it was saved
-        furi_string_printf(
-            temp_str, "%s/%s%s", SUBGHZ_RAW_FOLDER, dev_name, SUBGHZ_APP_FILENAME_EXTENSION);
+        furi_string_printf(temp_str, "%s/%s%s", SUBGHZ_RAW_FOLDER, dev_name,
+                           SUBGHZ_APP_FILENAME_EXTENSION);
 
-        if(!storage_simply_remove(instance->storage, furi_string_get_cstr(temp_str))) {
+        if (!storage_simply_remove(instance->storage, furi_string_get_cstr(temp_str))) {
             break;
         }
 
         // Open file
-        if(!flipper_format_file_open_always(
-               instance->flipper_file, furi_string_get_cstr(temp_str))) {
+        if (!flipper_format_file_open_always(instance->flipper_file,
+                                             furi_string_get_cstr(temp_str))) {
             FURI_LOG_E(TAG, "Unable to open file for write: %s", furi_string_get_cstr(temp_str));
             break;
         }
 
-        if(!flipper_format_write_header_cstr(
-               instance->flipper_file, SUBGHZ_RAW_FILE_TYPE, SUBGHZ_RAW_FILE_VERSION)) {
+        if (!flipper_format_write_header_cstr(instance->flipper_file, SUBGHZ_RAW_FILE_TYPE,
+                                              SUBGHZ_RAW_FILE_VERSION)) {
             FURI_LOG_E(TAG, "Unable to add header");
             break;
         }
 
-        if(!flipper_format_write_uint32(
-               instance->flipper_file, "Frequency", &preset->frequency, 1)) {
+        if (!flipper_format_write_uint32(instance->flipper_file, "Frequency", &preset->frequency,
+                                         1)) {
             FURI_LOG_E(TAG, "Unable to add Frequency");
             break;
         }
 
         subghz_block_generic_get_preset_name(furi_string_get_cstr(preset->name), temp_str);
-        if(!flipper_format_write_string_cstr(
-               instance->flipper_file, "Preset", furi_string_get_cstr(temp_str))) {
+        if (!flipper_format_write_string_cstr(instance->flipper_file, "Preset",
+                                              furi_string_get_cstr(temp_str))) {
             FURI_LOG_E(TAG, "Unable to add Preset");
             break;
         }
-        if(!strcmp(furi_string_get_cstr(temp_str), "FuriHalSubGhzPresetCustom")) {
-            if(!flipper_format_write_string_cstr(
-                   instance->flipper_file, "Custom_preset_module", "CC1101")) {
+        if (!strcmp(furi_string_get_cstr(temp_str), "FuriHalSubGhzPresetCustom")) {
+            if (!flipper_format_write_string_cstr(instance->flipper_file, "Custom_preset_module",
+                                                  "CC1101")) {
                 FURI_LOG_E(TAG, "Unable to add Custom_preset_module");
                 break;
             }
-            if(!flipper_format_write_hex(
-                   instance->flipper_file, "Custom_preset_data", preset->data, preset->data_size)) {
+            if (!flipper_format_write_hex(instance->flipper_file, "Custom_preset_data",
+                                          preset->data, preset->data_size)) {
                 FURI_LOG_E(TAG, "Unable to add Custom_preset_data");
                 break;
             }
         }
-        if(!flipper_format_write_string_cstr(
-               instance->flipper_file, "Protocol", instance->base.protocol->name)) {
+        if (!flipper_format_write_string_cstr(instance->flipper_file, "Protocol",
+                                              instance->base.protocol->name)) {
             FURI_LOG_E(TAG, "Unable to add Protocol");
             break;
         }
@@ -160,20 +159,21 @@ bool subghz_protocol_raw_save_to_file_init(
         instance->last_level = false;
         instance->pause = false;
         init = true;
-    } while(0);
+    } while (0);
 
     furi_string_free(temp_str);
 
     return init;
 }
 
-static bool subghz_protocol_raw_save_to_file_write(SubGhzProtocolDecoderRAW* instance) {
+static bool subghz_protocol_raw_save_to_file_write(SubGhzProtocolDecoderRAW *instance)
+{
     furi_assert(instance);
 
     bool is_write = false;
-    if(instance->file_is_open == RAWFileIsOpenWrite) {
-        if(!flipper_format_write_int32(
-               instance->flipper_file, "RAW_Data", instance->upload_raw, instance->ind_write)) {
+    if (instance->file_is_open == RAWFileIsOpenWrite) {
+        if (!flipper_format_write_int32(instance->flipper_file, "RAW_Data", instance->upload_raw,
+                                        instance->ind_write)) {
             FURI_LOG_E(TAG, "Unable to add RAW_Data");
         } else {
             instance->sample_write += instance->ind_write;
@@ -184,12 +184,13 @@ static bool subghz_protocol_raw_save_to_file_write(SubGhzProtocolDecoderRAW* ins
     return is_write;
 }
 
-void subghz_protocol_raw_save_to_file_stop(SubGhzProtocolDecoderRAW* instance) {
+void subghz_protocol_raw_save_to_file_stop(SubGhzProtocolDecoderRAW *instance)
+{
     furi_check(instance);
 
-    if(instance->file_is_open == RAWFileIsOpenWrite && instance->ind_write)
+    if (instance->file_is_open == RAWFileIsOpenWrite && instance->ind_write)
         subghz_protocol_raw_save_to_file_write(instance);
-    if(instance->file_is_open != RAWFileIsOpenClose) {
+    if (instance->file_is_open != RAWFileIsOpenClose) {
         free(instance->upload_raw);
         instance->upload_raw = NULL;
         flipper_format_file_close(instance->flipper_file);
@@ -200,22 +201,25 @@ void subghz_protocol_raw_save_to_file_stop(SubGhzProtocolDecoderRAW* instance) {
     instance->file_is_open = RAWFileIsOpenClose;
 }
 
-void subghz_protocol_raw_save_to_file_pause(SubGhzProtocolDecoderRAW* instance, bool pause) {
+void subghz_protocol_raw_save_to_file_pause(SubGhzProtocolDecoderRAW *instance, bool pause)
+{
     furi_check(instance);
 
-    if(instance->pause != pause) {
+    if (instance->pause != pause) {
         instance->pause = pause;
     }
 }
 
-size_t subghz_protocol_raw_get_sample_write(SubGhzProtocolDecoderRAW* instance) {
+size_t subghz_protocol_raw_get_sample_write(SubGhzProtocolDecoderRAW *instance)
+{
     furi_check(instance);
     return instance->sample_write + instance->ind_write;
 }
 
-void* subghz_protocol_decoder_raw_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_raw_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderRAW* instance = malloc(sizeof(SubGhzProtocolDecoderRAW));
+    SubGhzProtocolDecoderRAW *instance = malloc(sizeof(SubGhzProtocolDecoderRAW));
     instance->base.protocol = &subghz_protocol_raw;
     instance->upload_raw = NULL;
     instance->ind_write = 0;
@@ -226,40 +230,44 @@ void* subghz_protocol_decoder_raw_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void subghz_protocol_decoder_raw_free(void* context) {
+void subghz_protocol_decoder_raw_free(void *context)
+{
     furi_check(context);
-    SubGhzProtocolDecoderRAW* instance = context;
+    SubGhzProtocolDecoderRAW *instance = context;
     furi_string_free(instance->file_name);
     free(instance);
 }
 
-void subghz_protocol_decoder_raw_reset(void* context) {
+void subghz_protocol_decoder_raw_reset(void *context)
+{
     furi_check(context);
-    SubGhzProtocolDecoderRAW* instance = context;
+    SubGhzProtocolDecoderRAW *instance = context;
     instance->ind_write = 0;
     instance->last_level = false;
 }
 
-void subghz_protocol_decoder_raw_feed(void* context, bool level, uint32_t duration) {
+void subghz_protocol_decoder_raw_feed(void *context, bool level, uint32_t duration)
+{
     furi_check(context);
-    SubGhzProtocolDecoderRAW* instance = context;
+    SubGhzProtocolDecoderRAW *instance = context;
     // Add check if we got duration higher than 1 second, we skipping it, temp fix
-    if((!instance->pause && (instance->upload_raw != NULL)) && (duration < ((uint32_t)1000000))) {
-        if(duration > subghz_protocol_raw_const.te_short) {
-            if(instance->last_level != level) {
+    if ((!instance->pause && (instance->upload_raw != NULL)) && (duration < ((uint32_t)1000000))) {
+        if (duration > subghz_protocol_raw_const.te_short) {
+            if (instance->last_level != level) {
                 instance->last_level = (level ? true : false);
                 instance->upload_raw[instance->ind_write++] = (level ? duration : -duration);
             }
         }
 
-        if(instance->ind_write == SUBGHZ_DOWNLOAD_MAX_SIZE) {
+        if (instance->ind_write == SUBGHZ_DOWNLOAD_MAX_SIZE) {
             subghz_protocol_raw_save_to_file_write(instance);
         }
     }
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_raw_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_raw_deserialize(void *context,
+                                                             FlipperFormat *flipper_format)
+{
     furi_check(context);
     UNUSED(context);
     UNUSED(flipper_format);
@@ -267,16 +275,18 @@ SubGhzProtocolStatus
     return SubGhzProtocolStatusOk;
 }
 
-void subghz_protocol_decoder_raw_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_raw_get_string(void *context, FuriString *output)
+{
     furi_check(context);
-    //SubGhzProtocolDecoderRAW* instance = context;
+    // SubGhzProtocolDecoderRAW* instance = context;
     UNUSED(context);
     furi_string_cat_printf(output, "RAW Data");
 }
 
-void* subghz_protocol_encoder_raw_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_raw_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderRAW* instance = malloc(sizeof(SubGhzProtocolEncoderRAW));
+    SubGhzProtocolEncoderRAW *instance = malloc(sizeof(SubGhzProtocolEncoderRAW));
 
     instance->base.protocol = &subghz_protocol_raw;
     instance->file_name = furi_string_alloc();
@@ -285,21 +295,23 @@ void* subghz_protocol_encoder_raw_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void subghz_protocol_encoder_raw_stop(void* context) {
+void subghz_protocol_encoder_raw_stop(void *context)
+{
     furi_check(context);
-    SubGhzProtocolEncoderRAW* instance = context;
+    SubGhzProtocolEncoderRAW *instance = context;
     instance->is_running = false;
-    if(instance->file_worker_encoder &&
-       subghz_file_encoder_worker_is_running(instance->file_worker_encoder)) {
+    if (instance->file_worker_encoder &&
+        subghz_file_encoder_worker_is_running(instance->file_worker_encoder)) {
         subghz_file_encoder_worker_stop(instance->file_worker_encoder);
         subghz_file_encoder_worker_free(instance->file_worker_encoder);
         instance->file_worker_encoder = NULL;
     }
 }
 
-void subghz_protocol_encoder_raw_free(void* context) {
+void subghz_protocol_encoder_raw_free(void *context)
+{
     furi_check(context);
-    SubGhzProtocolEncoderRAW* instance = context;
+    SubGhzProtocolEncoderRAW *instance = context;
     subghz_protocol_encoder_raw_stop(instance);
     furi_string_free(instance->file_name);
     furi_string_free(instance->radio_device_name);
@@ -307,25 +319,25 @@ void subghz_protocol_encoder_raw_free(void* context) {
 }
 
 void subghz_protocol_raw_file_encoder_worker_set_callback_end(
-    SubGhzProtocolEncoderRAW* instance,
-    SubGhzProtocolEncoderRAWCallbackEnd callback_end,
-    void* context_end) {
+    SubGhzProtocolEncoderRAW *instance, SubGhzProtocolEncoderRAWCallbackEnd callback_end,
+    void *context_end)
+{
     furi_check(instance);
     furi_check(callback_end);
-    subghz_file_encoder_worker_callback_end(
-        instance->file_worker_encoder, callback_end, context_end);
+    subghz_file_encoder_worker_callback_end(instance->file_worker_encoder, callback_end,
+                                            context_end);
 }
 
-static bool subghz_protocol_encoder_raw_worker_init(SubGhzProtocolEncoderRAW* instance) {
+static bool subghz_protocol_encoder_raw_worker_init(SubGhzProtocolEncoderRAW *instance)
+{
     furi_assert(instance);
     furi_check(!instance->file_worker_encoder);
 
     instance->file_worker_encoder = subghz_file_encoder_worker_alloc();
-    if(subghz_file_encoder_worker_start(
-           instance->file_worker_encoder,
-           furi_string_get_cstr(instance->file_name),
-           furi_string_get_cstr(instance->radio_device_name))) {
-        //the worker needs a file in order to open and read part of the file
+    if (subghz_file_encoder_worker_start(instance->file_worker_encoder,
+                                         furi_string_get_cstr(instance->file_name),
+                                         furi_string_get_cstr(instance->radio_device_name))) {
+        // the worker needs a file in order to open and read part of the file
         furi_delay_ms(100);
         instance->is_running = true;
     } else {
@@ -334,74 +346,76 @@ static bool subghz_protocol_encoder_raw_worker_init(SubGhzProtocolEncoderRAW* in
     return instance->is_running;
 }
 
-void subghz_protocol_raw_gen_fff_data(
-    FlipperFormat* flipper_format,
-    const char* file_path,
-    const char* radio_device_name) {
+void subghz_protocol_raw_gen_fff_data(FlipperFormat *flipper_format, const char *file_path,
+                                      const char *radio_device_name)
+{
     furi_check(flipper_format);
 
     do {
         stream_clean(flipper_format_get_raw_stream(flipper_format));
-        if(!flipper_format_write_string_cstr(flipper_format, "Protocol", "RAW")) {
+        if (!flipper_format_write_string_cstr(flipper_format, "Protocol", "RAW")) {
             FURI_LOG_E(TAG, "Unable to add Protocol");
             break;
         }
 
-        if(!flipper_format_write_string_cstr(flipper_format, "File_name", file_path)) {
+        if (!flipper_format_write_string_cstr(flipper_format, "File_name", file_path)) {
             FURI_LOG_E(TAG, "Unable to add File_name");
             break;
         }
 
-        if(!flipper_format_write_string_cstr(
-               flipper_format, "Radio_device_name", radio_device_name)) {
+        if (!flipper_format_write_string_cstr(flipper_format, "Radio_device_name",
+                                              radio_device_name)) {
             FURI_LOG_E(TAG, "Unable to add Radio_device_name");
             break;
         }
-    } while(false);
+    } while (false);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_encoder_raw_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_encoder_raw_deserialize(void *context,
+                                                             FlipperFormat *flipper_format)
+{
     furi_check(context);
-    SubGhzProtocolEncoderRAW* instance = context;
+    SubGhzProtocolEncoderRAW *instance = context;
     SubGhzProtocolStatus res = SubGhzProtocolStatusError;
-    FuriString* temp_str;
+    FuriString *temp_str;
     temp_str = furi_string_alloc();
     do {
-        if(!flipper_format_rewind(flipper_format)) {
+        if (!flipper_format_rewind(flipper_format)) {
             FURI_LOG_E(TAG, "Rewind error");
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
 
-        if(!flipper_format_read_string(flipper_format, "File_name", temp_str)) {
+        if (!flipper_format_read_string(flipper_format, "File_name", temp_str)) {
             FURI_LOG_E(TAG, "Missing File_name");
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
         furi_string_set(instance->file_name, temp_str);
 
-        if(!flipper_format_read_string(flipper_format, "Radio_device_name", temp_str)) {
+        if (!flipper_format_read_string(flipper_format, "Radio_device_name", temp_str)) {
             FURI_LOG_E(TAG, "Missing Radio_device_name");
             res = SubGhzProtocolStatusErrorParserOthers;
             break;
         }
         furi_string_set(instance->radio_device_name, temp_str);
 
-        if(!subghz_protocol_encoder_raw_worker_init(instance)) {
+        if (!subghz_protocol_encoder_raw_worker_init(instance)) {
             res = SubGhzProtocolStatusErrorEncoderGetUpload;
             break;
         }
         res = SubGhzProtocolStatusOk;
-    } while(false);
+    } while (false);
     furi_string_free(temp_str);
     return res;
 }
 
-LevelDuration subghz_protocol_encoder_raw_yield(void* context) {
+LevelDuration subghz_protocol_encoder_raw_yield(void *context)
+{
     furi_check(context);
-    SubGhzProtocolEncoderRAW* instance = context;
+    SubGhzProtocolEncoderRAW *instance = context;
 
-    if(!instance->is_running) return level_duration_reset();
+    if (!instance->is_running)
+        return level_duration_reset();
     return subghz_file_encoder_worker_get_level_duration(instance->file_worker_encoder);
 }

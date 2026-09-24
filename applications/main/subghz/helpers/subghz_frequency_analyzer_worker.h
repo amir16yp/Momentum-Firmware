@@ -5,11 +5,8 @@
 
 typedef struct SubGhzFrequencyAnalyzerWorker SubGhzFrequencyAnalyzerWorker;
 
-typedef void (*SubGhzFrequencyAnalyzerWorkerPairCallback)(
-    void* context,
-    uint32_t frequency,
-    float rssi,
-    bool signal);
+typedef void (*SubGhzFrequencyAnalyzerWorkerPairCallback)(void *context, uint32_t frequency,
+                                                          float rssi, bool signal);
 
 typedef struct {
     uint32_t frequency_coarse;
@@ -19,65 +16,62 @@ typedef struct {
 } FrequencyRSSI;
 
 /** Allocate SubGhzFrequencyAnalyzerWorker
- * 
+ *
  * @param context SubGhz* context
- * @return SubGhzFrequencyAnalyzerWorker* 
+ * @return SubGhzFrequencyAnalyzerWorker*
  */
-SubGhzFrequencyAnalyzerWorker* subghz_frequency_analyzer_worker_alloc(void* context);
+SubGhzFrequencyAnalyzerWorker *subghz_frequency_analyzer_worker_alloc(void *context);
 
 /** Free SubGhzFrequencyAnalyzerWorker
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  */
-void subghz_frequency_analyzer_worker_free(SubGhzFrequencyAnalyzerWorker* instance);
+void subghz_frequency_analyzer_worker_free(SubGhzFrequencyAnalyzerWorker *instance);
 
 /** Pair callback SubGhzFrequencyAnalyzerWorker
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  * @param callback SubGhzFrequencyAnalyzerWorkerOverrunCallback callback
- * @param context 
+ * @param context
  */
 void subghz_frequency_analyzer_worker_set_pair_callback(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    SubGhzFrequencyAnalyzerWorkerPairCallback callback,
-    void* context);
+    SubGhzFrequencyAnalyzerWorker *instance, SubGhzFrequencyAnalyzerWorkerPairCallback callback,
+    void *context);
 
 /** Start SubGhzFrequencyAnalyzerWorker
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  * @param txrx pointer to SubGhzTxRx
  */
-void subghz_frequency_analyzer_worker_start(SubGhzFrequencyAnalyzerWorker* instance);
+void subghz_frequency_analyzer_worker_start(SubGhzFrequencyAnalyzerWorker *instance);
 
 /** Stop SubGhzFrequencyAnalyzerWorker
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  */
-void subghz_frequency_analyzer_worker_stop(SubGhzFrequencyAnalyzerWorker* instance);
+void subghz_frequency_analyzer_worker_stop(SubGhzFrequencyAnalyzerWorker *instance);
 
 /** Check if worker is running
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  * @return bool - true if running
  */
-bool subghz_frequency_analyzer_worker_is_running(SubGhzFrequencyAnalyzerWorker* instance);
+bool subghz_frequency_analyzer_worker_is_running(SubGhzFrequencyAnalyzerWorker *instance);
 
 /** Set RSSI trigger level
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  * @param value RSSI level
  */
-void subghz_frequency_analyzer_worker_set_trigger_level(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    float value);
+void subghz_frequency_analyzer_worker_set_trigger_level(SubGhzFrequencyAnalyzerWorker *instance,
+                                                        float value);
 
 /** Get RSSI trigger level
- * 
+ *
  * @param instance SubGhzFrequencyAnalyzerWorker instance
  * @return RSSI trigger level
  */
-float subghz_frequency_analyzer_worker_get_trigger_level(SubGhzFrequencyAnalyzerWorker* instance);
+float subghz_frequency_analyzer_worker_get_trigger_level(SubGhzFrequencyAnalyzerWorker *instance);
 
 // Round up the frequency
-uint32_t subghz_frequency_analyzer_get_nearest_frequency(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    uint32_t input);
+uint32_t subghz_frequency_analyzer_get_nearest_frequency(SubGhzFrequencyAnalyzerWorker *instance,
+                                                         uint32_t input);

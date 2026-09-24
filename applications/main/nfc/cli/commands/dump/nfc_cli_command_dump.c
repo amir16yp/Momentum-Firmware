@@ -25,15 +25,15 @@
 #include <toolbox/path.h>
 #include <toolbox/args.h>
 
-#define NFC_DEFAULT_FOLDER              EXT_PATH("nfc")
-#define NFC_FILE_EXTENSION              ".nfc"
+#define NFC_DEFAULT_FOLDER EXT_PATH("nfc")
+#define NFC_FILE_EXTENSION ".nfc"
 #define NFC_CLI_DEFAULT_FILENAME_PREFIX "dump"
 
 #define NFC_CLI_DUMP_DEFAULT_TIMEOUT (5000)
 
 #define TAG "DUMP"
 
-static const char* nfc_cli_dump_error_names[NfcCliDumpErrorNum] = {
+static const char *nfc_cli_dump_error_names[NfcCliDumpErrorNum] = {
     [NfcCliDumpErrorNone] = "",
     [NfcCliDumpErrorNotPresent] = "card not present",
     [NfcCliDumpErrorAuthFailed] = "authentication failed",
@@ -41,9 +41,10 @@ static const char* nfc_cli_dump_error_names[NfcCliDumpErrorNum] = {
     [NfcCliDumpErrorFailedToRead] = "failed to read",
 };
 
-static NfcCliActionContext* nfc_cli_dump_alloc_ctx(Nfc* nfc) {
+static NfcCliActionContext *nfc_cli_dump_alloc_ctx(Nfc *nfc)
+{
     furi_assert(nfc);
-    NfcCliDumpContext* instance = malloc(sizeof(NfcCliDumpContext));
+    NfcCliDumpContext *instance = malloc(sizeof(NfcCliDumpContext));
     instance->nfc = nfc;
     instance->file_path = furi_string_alloc();
     instance->storage = furi_record_open(RECORD_STORAGE);
@@ -59,9 +60,10 @@ static NfcCliActionContext* nfc_cli_dump_alloc_ctx(Nfc* nfc) {
     return instance;
 }
 
-static void nfc_cli_dump_free_ctx(NfcCliActionContext* ctx) {
+static void nfc_cli_dump_free_ctx(NfcCliActionContext *ctx)
+{
     furi_assert(ctx);
-    NfcCliDumpContext* instance = ctx;
+    NfcCliDumpContext *instance = ctx;
     instance->desired_protocol = NfcProtocolInvalid;
     furi_string_free(instance->file_path);
     instance->nfc = NULL;
@@ -74,10 +76,11 @@ static void nfc_cli_dump_free_ctx(NfcCliActionContext* ctx) {
     free(instance);
 }
 
-static bool nfc_cli_dump_parse_filename_key(FuriString* value, void* output) {
+static bool nfc_cli_dump_parse_filename_key(FuriString *value, void *output)
+{
     furi_assert(value);
     furi_assert(output);
-    NfcCliDumpContext* ctx = output;
+    NfcCliDumpContext *ctx = output;
     furi_string_set(ctx->file_path, value);
     return true;
 }
@@ -99,41 +102,34 @@ NfcGenericCallback protocol_poller_callbacks[NfcProtocolNum] = {
     [NfcProtocolType4Tag] = nfc_cli_dump_poller_callback_type_4_tag,
 };
 
-static void nfc_cli_dump_generate_filename(FuriString* file_path) {
+static void nfc_cli_dump_generate_filename(FuriString *file_path)
+{
     furi_string_set_str(file_path, NFC_DEFAULT_FOLDER);
     DateTime dt;
     furi_hal_rtc_get_datetime(&dt);
-    furi_string_cat_printf(
-        file_path,
-        "/%s-%.4d%.2d%.2d-%.2d%.2d%.2d%s",
-        NFC_CLI_DEFAULT_FILENAME_PREFIX,
-        dt.year,
-        dt.month,
-        dt.day,
-        dt.hour,
-        dt.minute,
-        dt.second,
-        NFC_FILE_EXTENSION);
+    furi_string_cat_printf(file_path, "/%s-%.4d%.2d%.2d-%.2d%.2d%.2d%s",
+                           NFC_CLI_DEFAULT_FILENAME_PREFIX, dt.year, dt.month, dt.day, dt.hour,
+                           dt.minute, dt.second, NFC_FILE_EXTENSION);
 }
 
-static bool nfc_cli_dump_check_filepath_valid(FuriString* file_path, Storage* storage) {
+static bool nfc_cli_dump_check_filepath_valid(FuriString *file_path, Storage *storage)
+{
     bool file_exists = false;
     bool dir_exists = false;
 
-    FuriString* buf = furi_string_alloc();
+    FuriString *buf = furi_string_alloc();
 
     path_extract_dirname(furi_string_get_cstr(file_path), buf);
     dir_exists = storage_dir_exists(storage, furi_string_get_cstr(buf));
     file_exists = storage_file_exists(storage, furi_string_get_cstr(file_path));
 
     bool result = true;
-    if(!dir_exists) {
+    if (!dir_exists) {
         printf(ANSI_FG_RED "Path \'%s\' doesn't exist\r\n" ANSI_RESET, furi_string_get_cstr(buf));
         result = false;
-    } else if(file_exists) {
-        printf(
-            ANSI_FG_RED "File \'%s\' already exists\r\n" ANSI_RESET,
-            furi_string_get_cstr(file_path));
+    } else if (file_exists) {
+        printf(ANSI_FG_RED "File \'%s\' already exists\r\n" ANSI_RESET,
+               furi_string_get_cstr(file_path));
         result = false;
     }
     furi_string_free(buf);
@@ -141,9 +137,10 @@ static bool nfc_cli_dump_check_filepath_valid(FuriString* file_path, Storage* st
     return result;
 }
 
-static bool nfc_cli_dump_process_filename(NfcCliDumpContext* instance) {
+static bool nfc_cli_dump_process_filename(NfcCliDumpContext *instance)
+{
     bool result = false;
-    if(furi_string_empty(instance->file_path)) {
+    if (furi_string_empty(instance->file_path)) {
         nfc_cli_dump_generate_filename(instance->file_path);
         result = true;
     } else {
@@ -152,12 +149,13 @@ static bool nfc_cli_dump_process_filename(NfcCliDumpContext* instance) {
     return result;
 }
 
-static size_t nfc_cli_dump_set_protocol(NfcCliDumpContext* instance) {
+static size_t nfc_cli_dump_set_protocol(NfcCliDumpContext *instance)
+{
     size_t protocol_count = 0;
-    if(instance->desired_protocol != NfcProtocolInvalid) {
+    if (instance->desired_protocol != NfcProtocolInvalid) {
         protocol_count = 1;
     } else {
-        if(!nfc_cli_scanner_detect_protocol(instance->scanner, instance->timeout)) {
+        if (!nfc_cli_scanner_detect_protocol(instance->scanner, instance->timeout)) {
             NfcCliDumpError error = NfcCliDumpErrorTimeout;
             printf(ANSI_FG_RED "Error: %s\r\n" ANSI_RESET, nfc_cli_dump_error_names[error]);
         } else {
@@ -169,14 +167,16 @@ static size_t nfc_cli_dump_set_protocol(NfcCliDumpContext* instance) {
     return protocol_count;
 }
 
-static bool nfc_cli_dump_card(NfcCliDumpContext* instance) {
+static bool nfc_cli_dump_card(NfcCliDumpContext *instance)
+{
     instance->poller = nfc_poller_alloc(instance->nfc, instance->desired_protocol);
     NfcGenericCallback callback = protocol_poller_callbacks[instance->desired_protocol];
-    if(callback) {
+    if (callback) {
         nfc_poller_start(instance->poller, callback, instance);
         FuriStatus status = furi_semaphore_acquire(instance->sem_done, instance->timeout);
 
-        if(status == FuriStatusErrorTimeout) instance->result = NfcCliDumpErrorTimeout;
+        if (status == FuriStatusErrorTimeout)
+            instance->result = NfcCliDumpErrorTimeout;
         nfc_poller_stop(instance->poller);
     }
     nfc_poller_free(instance->poller);
@@ -184,30 +184,33 @@ static bool nfc_cli_dump_card(NfcCliDumpContext* instance) {
     return instance->result == NfcCliDumpErrorNone;
 }
 
-static void nfc_cli_dump_execute(PipeSide* pipe, NfcCliActionContext* context) {
+static void nfc_cli_dump_execute(PipeSide *pipe, NfcCliActionContext *context)
+{
     UNUSED(pipe);
     furi_assert(context);
-    NfcCliDumpContext* instance = context;
+    NfcCliDumpContext *instance = context;
     do {
-        if(!nfc_cli_dump_process_filename(instance)) break;
+        if (!nfc_cli_dump_process_filename(instance))
+            break;
 
         size_t protocol_count = nfc_cli_dump_set_protocol(instance);
-        if(instance->desired_protocol == NfcProtocolInvalid) break;
+        if (instance->desired_protocol == NfcProtocolInvalid)
+            break;
 
         printf("Dumping as \"%s\"\r\n", nfc_cli_get_protocol_name(instance->desired_protocol));
-        if(protocol_count > 1) printf("Use \'-p\' key to specify another protocol\r\n");
+        if (protocol_count > 1)
+            printf("Use \'-p\' key to specify another protocol\r\n");
 
-        if(nfc_cli_dump_card(instance)) {
-            const char* path = furi_string_get_cstr(instance->file_path);
-            if(nfc_device_save(instance->nfc_device, path)) {
+        if (nfc_cli_dump_card(instance)) {
+            const char *path = furi_string_get_cstr(instance->file_path);
+            if (nfc_device_save(instance->nfc_device, path)) {
                 printf("Dump saved to \'%s\'\r\n", path);
             }
         } else {
-            printf(
-                ANSI_FG_RED "Error: %s\r\n" ANSI_RESET,
-                nfc_cli_dump_error_names[instance->result]);
+            printf(ANSI_FG_RED "Error: %s\r\n" ANSI_RESET,
+                   nfc_cli_dump_error_names[instance->result]);
         }
-    } while(false);
+    } while (false);
 }
 
 static const NfcProtocolNameValuePair supported_protocols[] = {
@@ -227,12 +230,13 @@ static const NfcProtocolNameValuePair supported_protocols[] = {
     {.name = "t4t", .value = NfcProtocolType4Tag},
 };
 
-static bool nfc_cli_dump_parse_protocol(FuriString* value, void* output) {
+static bool nfc_cli_dump_parse_protocol(FuriString *value, void *output)
+{
     furi_assert(value);
     furi_assert(output);
-    NfcCliDumpContext* ctx = output;
+    NfcCliDumpContext *ctx = output;
 
-    NfcCliProtocolParser* parser =
+    NfcCliProtocolParser *parser =
         nfc_cli_protocol_parser_alloc(supported_protocols, COUNT_OF(supported_protocols));
 
     bool result = nfc_cli_protocol_parser_get(parser, value, &ctx->desired_protocol);
@@ -241,35 +245,39 @@ static bool nfc_cli_dump_parse_protocol(FuriString* value, void* output) {
     return result;
 }
 
-static bool nfc_cli_dump_parse_key(FuriString* value, void* output) {
+static bool nfc_cli_dump_parse_key(FuriString *value, void *output)
+{
     furi_assert(value);
     furi_assert(output);
-    NfcCliDumpContext* ctx = output;
-    NfcCliDumpAuthContext* auth_ctx = &ctx->auth_ctx;
+    NfcCliDumpContext *ctx = output;
+    NfcCliDumpAuthContext *auth_ctx = &ctx->auth_ctx;
 
     bool result = false;
     do {
         size_t len = furi_string_size(value);
-        if(len % 2 != 0) break;
+        if (len % 2 != 0)
+            break;
         size_t data_length = len / 2;
 
-        if(data_length != MF_ULTRALIGHT_AUTH_PASSWORD_SIZE &&
-           data_length != MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE) {
+        if (data_length != MF_ULTRALIGHT_AUTH_PASSWORD_SIZE &&
+            data_length != MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE) {
             printf(ANSI_FG_RED "Error: Wrong key size" ANSI_RESET);
             break;
         }
 
-        if(!args_read_hex_bytes(value, auth_ctx->key.key, data_length)) break;
+        if (!args_read_hex_bytes(value, auth_ctx->key.key, data_length))
+            break;
         auth_ctx->key_size = data_length;
         auth_ctx->skip_auth = false;
         result = true;
-    } while(false);
+    } while (false);
 
     return result;
 }
 
-bool nfc_cli_dump_parse_timeout(FuriString* value, NfcCliActionContext* output) {
-    NfcCliDumpContext* ctx = output;
+bool nfc_cli_dump_parse_timeout(FuriString *value, NfcCliActionContext *output)
+{
+    NfcCliDumpContext *ctx = output;
 
     StrintParseError err = strint_to_uint32(furi_string_get_cstr(value), NULL, &ctx->timeout, 10);
     return err == StrintParseNoError;
@@ -316,10 +324,10 @@ const NfcCliActionDescriptor dump_action = {
     .keys = dump_keys,
 };
 
-const NfcCliActionDescriptor* dump_actions_collection[] = {&dump_action};
+const NfcCliActionDescriptor *dump_actions_collection[] = {&dump_action};
 
-//Command descriptor
+// Command descriptor
 ADD_NFC_CLI_COMMAND(dump, "", dump_actions_collection);
 
-//Command examples:
-//dump -f ext/nfc/test.nfc
+// Command examples:
+// dump -f ext/nfc/test.nfc

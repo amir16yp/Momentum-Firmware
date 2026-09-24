@@ -46,14 +46,14 @@ mjs_val_t mjs_mk_undefined(void);
 int mjs_is_undefined(mjs_val_t v);
 
 /* Make numeric primitive value */
-mjs_val_t mjs_mk_number(struct mjs* mjs, double num);
+mjs_val_t mjs_mk_number(struct mjs *mjs, double num);
 
 /*
  * Returns number value stored in `mjs_val_t` as `double`.
  *
  * Returns NaN for non-numbers.
  */
-double mjs_get_double(struct mjs* mjs, mjs_val_t v);
+double mjs_get_double(struct mjs *mjs, mjs_val_t v);
 
 /*
  * Returns number value stored in `mjs_val_t` as `int`. If the number value is
@@ -61,13 +61,13 @@ double mjs_get_double(struct mjs* mjs, mjs_val_t v);
  *
  * If the given value is a non-number, or NaN, the result is undefined.
  */
-int mjs_get_int(struct mjs* mjs, mjs_val_t v);
+int mjs_get_int(struct mjs *mjs, mjs_val_t v);
 
 /*
  * Like mjs_get_int but ensures that the returned type
  * is a 32-bit signed integer.
  */
-int32_t mjs_get_int32(struct mjs* mjs, mjs_val_t v);
+int32_t mjs_get_int32(struct mjs *mjs, mjs_val_t v);
 
 /* Returns true if given value is a primitive number value */
 int mjs_is_number(mjs_val_t v);
@@ -91,29 +91,29 @@ int mjs_is_number(mjs_val_t v);
  * If you need to store exactly sizeof(void*) bytes of raw data where
  * `sizeof(void*)` >= 8, please use byte arrays instead.
  */
-mjs_val_t mjs_mk_foreign(struct mjs* mjs, void* ptr);
+mjs_val_t mjs_mk_foreign(struct mjs *mjs, void *ptr);
 
 /*
  * Make JavaScript value that holds C/C++ function pointer, similarly to
  * `mjs_mk_foreign`.
  */
-mjs_val_t mjs_mk_foreign_func(struct mjs* mjs, mjs_func_ptr_t fn);
+mjs_val_t mjs_mk_foreign_func(struct mjs *mjs, mjs_func_ptr_t fn);
 
 /*
  * Returns `void *` pointer stored in `mjs_val_t`.
  *
  * Returns NULL if the value is not a foreign pointer.
  */
-void* mjs_get_ptr(struct mjs* mjs, mjs_val_t v);
+void *mjs_get_ptr(struct mjs *mjs, mjs_val_t v);
 
 /* Returns true if given value holds `void *` pointer */
 int mjs_is_foreign(mjs_val_t v);
 
-mjs_val_t mjs_mk_boolean(struct mjs* mjs, int v);
-int mjs_get_bool(struct mjs* mjs, mjs_val_t v);
+mjs_val_t mjs_mk_boolean(struct mjs *mjs, int v);
+int mjs_get_bool(struct mjs *mjs, mjs_val_t v);
 int mjs_is_boolean(mjs_val_t v);
 
-mjs_val_t mjs_mk_function(struct mjs* mjs, size_t off);
+mjs_val_t mjs_mk_function(struct mjs *mjs, size_t off);
 int mjs_is_function(mjs_val_t v);
 
 #if defined(__cplusplus)

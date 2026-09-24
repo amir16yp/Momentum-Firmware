@@ -2,21 +2,24 @@
 
 #include <furi.h>
 
-static FuriHalBleProfileBase* ble_profile_hid_ext_start(FuriHalBleProfileParams profile_params) {
+static FuriHalBleProfileBase *ble_profile_hid_ext_start(FuriHalBleProfileParams profile_params)
+{
     UNUSED(profile_params);
 
     return ble_profile_hid->start(NULL);
 }
 
-static void ble_profile_hid_ext_stop(FuriHalBleProfileBase* profile) {
+static void ble_profile_hid_ext_stop(FuriHalBleProfileBase *profile)
+{
     ble_profile_hid->stop(profile);
 }
 
-static void
-    ble_profile_hid_ext_get_config(GapConfig* config, FuriHalBleProfileParams profile_params) {
+static void ble_profile_hid_ext_get_config(GapConfig *config,
+                                           FuriHalBleProfileParams profile_params)
+{
     furi_check(config);
     furi_check(profile_params);
-    BleProfileHidExtParams* hid_ext_profile_params = profile_params;
+    BleProfileHidExtParams *hid_ext_profile_params = profile_params;
 
     // Setup config with basic profile
     ble_profile_hid->get_gap_config(config, NULL);
@@ -40,4 +43,4 @@ static const FuriHalBleProfileTemplate profile_callbacks = {
     .get_gap_config = ble_profile_hid_ext_get_config,
 };
 
-const FuriHalBleProfileTemplate* ble_profile_hid_ext = &profile_callbacks;
+const FuriHalBleProfileTemplate *ble_profile_hid_ext = &profile_callbacks;

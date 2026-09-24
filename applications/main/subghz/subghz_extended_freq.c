@@ -7,16 +7,17 @@
 
 #define TAG "SubGhzExtendedFreq"
 
-static int32_t subghz_extended_freq_apply(void* context) {
+static int32_t subghz_extended_freq_apply(void *context)
+{
     UNUSED(context);
     FURI_LOG_D(TAG, "Loading settings");
 
     bool is_extended_i = false;
     bool is_bypassed = false;
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FlipperFormat* file = flipper_format_file_alloc(storage);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FlipperFormat *file = flipper_format_file_alloc(storage);
 
-    if(flipper_format_file_open_existing(file, "/ext/subghz/assets/extend_range.txt")) {
+    if (flipper_format_file_open_existing(file, "/ext/subghz/assets/extend_range.txt")) {
         flipper_format_read_bool(file, "use_ext_range_at_own_risk", &is_extended_i, 1);
         flipper_format_read_bool(file, "ignore_default_tx_region", &is_bypassed, 1);
         flipper_format_file_close(file);
@@ -30,22 +31,25 @@ static int32_t subghz_extended_freq_apply(void* context) {
     return 0;
 }
 
-static void subghz_extended_freq_mount_callback(const void* message, void* context) {
+static void subghz_extended_freq_mount_callback(const void *message, void *context)
+{
     UNUSED(context);
-    const StorageEvent* event = message;
+    const StorageEvent *event = message;
 
-    if(event->type == StorageEventTypeCardMount) {
+    if (event->type == StorageEventTypeCardMount) {
         run_parallel(subghz_extended_freq_apply, NULL, 1024);
     }
 }
 
-void subghz_extended_freq() {
-    if(!furi_hal_is_normal_boot()) return;
+void subghz_extended_freq()
+{
+    if (!furi_hal_is_normal_boot())
+        return;
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
     furi_pubsub_subscribe(storage_get_pubsub(storage), subghz_extended_freq_mount_callback, NULL);
 
-    if(storage_sd_status(storage) != FSE_OK) {
+    if (storage_sd_status(storage) != FSE_OK) {
         FURI_LOG_D(TAG, "SD Card not ready, skipping settings");
     } else {
         subghz_extended_freq_apply(NULL);

@@ -22,22 +22,22 @@ typedef enum {
 } SlixPollerState;
 
 struct SlixPoller {
-    Iso15693_3Poller* iso15693_3_poller;
+    Iso15693_3Poller *iso15693_3_poller;
     SlixType type;
-    SlixData* data;
+    SlixData *data;
     SlixPollerState poller_state;
     SlixError error;
     SlixRandomNumber random_number;
     bool privacy_password_checked;
 
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
 
     SlixPollerEventData slix_event_data;
     SlixPollerEvent slix_event;
     NfcGenericEvent general_event;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 #ifdef __cplusplus

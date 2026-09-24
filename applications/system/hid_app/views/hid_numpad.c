@@ -8,8 +8,8 @@
 #define TAG "HidNumpad"
 
 struct HidNumpad {
-    View* view;
-    Hid* hid;
+    View *view;
+    Hid *hid;
 };
 
 typedef struct {
@@ -27,9 +27,9 @@ typedef struct {
 
 typedef struct {
     uint8_t width;
-    char* key;
+    char *key;
     uint8_t height;
-    const Icon* icon;
+    const Icon *icon;
     uint8_t value;
 } HidNumpadKey;
 
@@ -38,12 +38,12 @@ typedef struct {
     int8_t y;
 } HidNumpadPoint;
 
-#define MARGIN_TOP   32
-#define MARGIN_LEFT  1
-#define KEY_WIDTH    20
-#define KEY_HEIGHT   15
-#define KEY_PADDING  1
-#define ROW_COUNT    6
+#define MARGIN_TOP 32
+#define MARGIN_LEFT 1
+#define KEY_WIDTH 20
+#define KEY_HEIGHT 15
+#define KEY_PADDING 1
+#define ROW_COUNT 6
 #define COLUMN_COUNT 3
 
 const HidNumpadKey hid_numpad_keyset[ROW_COUNT][COLUMN_COUNT] = {
@@ -82,35 +82,26 @@ const HidNumpadKey hid_numpad_keyset[ROW_COUNT][COLUMN_COUNT] = {
     },
 };
 
-static void hid_numpad_draw_key(
-    Canvas* canvas,
-    HidNumpadModel* model,
-    uint8_t x,
-    uint8_t y,
-    HidNumpadKey key,
-    bool selected) {
-    if(!key.width || !key.height) return;
+static void hid_numpad_draw_key(Canvas *canvas, HidNumpadModel *model, uint8_t x, uint8_t y,
+                                HidNumpadKey key, bool selected)
+{
+    if (!key.width || !key.height)
+        return;
 
     canvas_set_color(canvas, ColorBlack);
     uint8_t keyWidth = KEY_WIDTH * key.width + KEY_PADDING * (key.width - 1);
     uint8_t keyHeight = KEY_HEIGHT * key.height + KEY_PADDING * (key.height - 1);
-    if(selected) {
-        elements_slightly_rounded_box(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING),
-            keyWidth,
-            keyHeight);
+    if (selected) {
+        elements_slightly_rounded_box(canvas, MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
+                                      MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING), keyWidth,
+                                      keyHeight);
         canvas_set_color(canvas, ColorWhite);
     } else {
-        elements_slightly_rounded_frame(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING),
-            keyWidth,
-            keyHeight);
+        elements_slightly_rounded_frame(canvas, MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
+                                        MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING), keyWidth,
+                                        keyHeight);
     }
-    if(key.icon != NULL) {
+    if (key.icon != NULL) {
         canvas_draw_icon(
             canvas,
             MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 - key.icon->width / 2,
@@ -118,29 +109,27 @@ static void hid_numpad_draw_key(
             key.icon);
     } else {
         strcpy(model->key_string, key.key);
-        canvas_draw_str_aligned(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + keyHeight / 2 + 1,
-            AlignCenter,
-            AlignCenter,
-            model->key_string);
+        canvas_draw_str_aligned(canvas,
+                                MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
+                                MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + keyHeight / 2 + 1,
+                                AlignCenter, AlignCenter, model->key_string);
     }
 }
 
-static void hid_numpad_draw_callback(Canvas* canvas, void* context) {
+static void hid_numpad_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
-    HidNumpadModel* model = context;
+    HidNumpadModel *model = context;
 
     // Header
     canvas_set_font(canvas, FontPrimary);
 #ifdef HID_TRANSPORT_BLE
-    if(model->connected) {
+    if (model->connected) {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_connected_15x15);
     } else {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
-        elements_multiline_text_aligned(
-            canvas, 7, 60, AlignLeft, AlignBottom, "Waiting for\nConnection...");
+        elements_multiline_text_aligned(canvas, 7, 60, AlignLeft, AlignBottom,
+                                        "Waiting for\nConnection...");
     }
     elements_multiline_text_aligned(canvas, 20, 3, AlignLeft, AlignTop, "Numpad");
 
@@ -153,7 +142,7 @@ static void hid_numpad_draw_callback(Canvas* canvas, void* context) {
     elements_multiline_text_aligned(canvas, 15, 19, AlignLeft, AlignTop, "Hold to exit");
 
 #ifdef HID_TRANSPORT_BLE
-    if(!model->connected) {
+    if (!model->connected) {
         return;
     }
 #endif
@@ -165,93 +154,89 @@ static void hid_numpad_draw_callback(Canvas* canvas, void* context) {
     //     initY = model->y - (ROW_COUNT - 1);
     // }
 
-    for(uint8_t y = initY; y < ROW_COUNT; y++) {
-        const HidNumpadKey* numpadKeyRow = hid_numpad_keyset[y];
+    for (uint8_t y = initY; y < ROW_COUNT; y++) {
+        const HidNumpadKey *numpadKeyRow = hid_numpad_keyset[y];
         uint8_t x = 0;
-        for(uint8_t i = 0; i < COLUMN_COUNT; i++) {
+        for (uint8_t i = 0; i < COLUMN_COUNT; i++) {
             HidNumpadKey key = numpadKeyRow[i];
             bool keySelected = (x <= model->x && model->x < (x + key.width)) && y == model->y;
             bool backSelected = model->back_pressed && key.value == HID_KEYBOARD_DELETE;
-            hid_numpad_draw_key(
-                canvas,
-                model,
-                x,
-                y - initY,
-                key,
-                (!model->ok_pressed && keySelected) || backSelected);
+            hid_numpad_draw_key(canvas, model, x, y - initY, key,
+                                (!model->ok_pressed && keySelected) || backSelected);
             x += key.width;
         }
     }
 }
 
-static uint8_t hid_numpad_get_selected_key(HidNumpadModel* model) {
+static uint8_t hid_numpad_get_selected_key(HidNumpadModel *model)
+{
     HidNumpadKey key = hid_numpad_keyset[model->y][model->x];
     return key.value;
 }
 
-static void hid_numpad_get_select_key(HidNumpadModel* model, HidNumpadPoint delta) {
+static void hid_numpad_get_select_key(HidNumpadModel *model, HidNumpadPoint delta)
+{
     do {
         const int delta_sum = model->y + delta.y;
         model->y = delta_sum < 0 ? ROW_COUNT - 1 : delta_sum % ROW_COUNT;
-    } while(delta.y != 0 && hid_numpad_keyset[model->y][model->x].value == 0);
+    } while (delta.y != 0 && hid_numpad_keyset[model->y][model->x].value == 0);
 
     do {
         const int delta_sum = model->x + delta.x;
         model->x = delta_sum < 0 ? COLUMN_COUNT - 1 : delta_sum % COLUMN_COUNT;
-    } while(delta.x != 0 && hid_numpad_keyset[model->y][model->x].width == 0);
+    } while (delta.x != 0 && hid_numpad_keyset[model->y][model->x].width == 0);
 }
 
-static void hid_numpad_process(HidNumpad* hid_numpad, InputEvent* event) {
+static void hid_numpad_process(HidNumpad *hid_numpad, InputEvent *event)
+{
     with_view_model(
-        hid_numpad->view,
-        HidNumpadModel * model,
+        hid_numpad->view, HidNumpadModel * model,
         {
-            if(event->key == InputKeyOk) {
-                if(event->type == InputTypePress) {
+            if (event->key == InputKeyOk) {
+                if (event->type == InputTypePress) {
                     model->ok_pressed = true;
-                } else if(event->type == InputTypeLong || event->type == InputTypeShort) {
+                } else if (event->type == InputTypeLong || event->type == InputTypeShort) {
                     model->last_key_code = hid_numpad_get_selected_key(model);
-                    hid_hal_keyboard_press(
-                        hid_numpad->hid, model->modifier_code | model->last_key_code);
-                } else if(event->type == InputTypeRelease) {
-                    hid_hal_keyboard_release(
-                        hid_numpad->hid, model->modifier_code | model->last_key_code);
+                    hid_hal_keyboard_press(hid_numpad->hid,
+                                           model->modifier_code | model->last_key_code);
+                } else if (event->type == InputTypeRelease) {
+                    hid_hal_keyboard_release(hid_numpad->hid,
+                                             model->modifier_code | model->last_key_code);
                     model->ok_pressed = false;
                 }
-            } else if(event->key == InputKeyBack) {
-                if(event->type == InputTypePress) {
+            } else if (event->key == InputKeyBack) {
+                if (event->type == InputTypePress) {
                     model->back_pressed = true;
-                } else if(event->type == InputTypeShort) {
+                } else if (event->type == InputTypeShort) {
                     hid_hal_keyboard_press(hid_numpad->hid, HID_KEYBOARD_DELETE);
                     hid_hal_keyboard_release(hid_numpad->hid, HID_KEYBOARD_DELETE);
-                } else if(event->type == InputTypeRelease) {
+                } else if (event->type == InputTypeRelease) {
                     model->back_pressed = false;
                 }
-            } else if(event->type == InputTypePress || event->type == InputTypeRepeat) {
-                if(event->key == InputKeyUp) {
+            } else if (event->type == InputTypePress || event->type == InputTypeRepeat) {
+                if (event->key == InputKeyUp) {
                     hid_numpad_get_select_key(model, (HidNumpadPoint){.x = 0, .y = -1});
-                } else if(event->key == InputKeyDown) {
+                } else if (event->key == InputKeyDown) {
                     hid_numpad_get_select_key(model, (HidNumpadPoint){.x = 0, .y = 1});
-                } else if(event->key == InputKeyLeft) {
-                    if(model->last_x == 2 && model->last_y == 2 && model->y == 1 &&
-                       model->x == 3) {
+                } else if (event->key == InputKeyLeft) {
+                    if (model->last_x == 2 && model->last_y == 2 && model->y == 1 &&
+                        model->x == 3) {
                         model->x = model->last_x;
                         model->y = model->last_y;
-                    } else if(
-                        model->last_x == 2 && model->last_y == 4 && model->y == 3 &&
-                        model->x == 3) {
+                    } else if (model->last_x == 2 && model->last_y == 4 && model->y == 3 &&
+                               model->x == 3) {
                         model->x = model->last_x;
                         model->y = model->last_y;
                     } else
                         hid_numpad_get_select_key(model, (HidNumpadPoint){.x = -1, .y = 0});
                     model->last_x = 0;
                     model->last_y = 0;
-                } else if(event->key == InputKeyRight) {
-                    if(model->x == 2 && model->y == 2) {
+                } else if (event->key == InputKeyRight) {
+                    if (model->x == 2 && model->y == 2) {
                         model->last_x = model->x;
                         model->last_y = model->y;
                         hid_numpad_get_select_key(model, (HidNumpadPoint){.x = 1, .y = -1});
-                    } else if(model->x == 2 && model->y == 4) {
+                    } else if (model->x == 2 && model->y == 4) {
                         model->last_x = model->x;
                         model->last_y = model->y;
                         hid_numpad_get_select_key(model, (HidNumpadPoint){.x = 1, .y = -1});
@@ -264,12 +249,13 @@ static void hid_numpad_process(HidNumpad* hid_numpad, InputEvent* event) {
         true);
 }
 
-static bool hid_numpad_input_callback(InputEvent* event, void* context) {
+static bool hid_numpad_input_callback(InputEvent *event, void *context)
+{
     furi_assert(context);
-    HidNumpad* hid_numpad = context;
+    HidNumpad *hid_numpad = context;
     bool consumed = false;
 
-    if(event->type == InputTypeLong && event->key == InputKeyBack) {
+    if (event->type == InputTypeLong && event->key == InputKeyBack) {
         hid_hal_keyboard_release_all(hid_numpad->hid);
     } else {
         hid_numpad_process(hid_numpad, event);
@@ -279,8 +265,9 @@ static bool hid_numpad_input_callback(InputEvent* event, void* context) {
     return consumed;
 }
 
-HidNumpad* hid_numpad_alloc(Hid* bt_hid) {
-    HidNumpad* hid_numpad = malloc(sizeof(HidNumpad));
+HidNumpad *hid_numpad_alloc(Hid *bt_hid)
+{
+    HidNumpad *hid_numpad = malloc(sizeof(HidNumpad));
     hid_numpad->view = view_alloc();
     hid_numpad->hid = bt_hid;
     view_set_context(hid_numpad->view, hid_numpad);
@@ -294,18 +281,21 @@ HidNumpad* hid_numpad_alloc(Hid* bt_hid) {
     return hid_numpad;
 }
 
-void hid_numpad_free(HidNumpad* hid_numpad) {
+void hid_numpad_free(HidNumpad *hid_numpad)
+{
     furi_assert(hid_numpad);
     view_free(hid_numpad->view);
     free(hid_numpad);
 }
 
-View* hid_numpad_get_view(HidNumpad* hid_numpad) {
+View *hid_numpad_get_view(HidNumpad *hid_numpad)
+{
     furi_assert(hid_numpad);
     return hid_numpad->view;
 }
 
-void hid_numpad_set_connected_status(HidNumpad* hid_numpad, bool connected) {
+void hid_numpad_set_connected_status(HidNumpad *hid_numpad, bool connected)
+{
     furi_assert(hid_numpad);
     with_view_model(
         hid_numpad->view, HidNumpadModel * model, { model->connected = connected; }, true);

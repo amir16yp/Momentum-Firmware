@@ -10,10 +10,10 @@
 extern "C" {
 #endif
 
-typedef void (*FuriTimerCallback)(void* context);
+typedef void (*FuriTimerCallback)(void *context);
 
 typedef enum {
-    FuriTimerTypeOnce = 0, ///< One-shot timer.
+    FuriTimerTypeOnce = 0,    ///< One-shot timer.
     FuriTimerTypePeriodic = 1 ///< Repeating timer.
 } FuriTimerType;
 
@@ -27,13 +27,13 @@ typedef struct FuriTimer FuriTimer;
  *
  * @return     The pointer to FuriTimer instance
  */
-FuriTimer* furi_timer_alloc(FuriTimerCallback func, FuriTimerType type, void* context);
+FuriTimer *furi_timer_alloc(FuriTimerCallback func, FuriTimerType type, void *context);
 
 /** Free timer
  *
  * @param      instance  The pointer to FuriTimer instance
  */
-void furi_timer_free(FuriTimer* instance);
+void furi_timer_free(FuriTimer *instance);
 
 /** Flush timer task control message queue
  *
@@ -51,7 +51,7 @@ void furi_timer_flush(void);
  *
  * @return     The furi status.
  */
-FuriStatus furi_timer_start(FuriTimer* instance, uint32_t ticks);
+FuriStatus furi_timer_start(FuriTimer *instance, uint32_t ticks);
 
 /** Restart timer with previous timeout value
  *
@@ -63,7 +63,7 @@ FuriStatus furi_timer_start(FuriTimer* instance, uint32_t ticks);
  *
  * @return     The furi status.
  */
-FuriStatus furi_timer_restart(FuriTimer* instance, uint32_t ticks);
+FuriStatus furi_timer_restart(FuriTimer *instance, uint32_t ticks);
 
 /** Stop timer
  *
@@ -73,7 +73,7 @@ FuriStatus furi_timer_restart(FuriTimer* instance, uint32_t ticks);
  *
  * @return     The furi status.
  */
-FuriStatus furi_timer_stop(FuriTimer* instance);
+FuriStatus furi_timer_stop(FuriTimer *instance);
 
 /** Is timer running
  *
@@ -85,7 +85,7 @@ FuriStatus furi_timer_stop(FuriTimer* instance);
  *
  * @return     0: not running, 1: running
  */
-uint32_t furi_timer_is_running(FuriTimer* instance);
+uint32_t furi_timer_is_running(FuriTimer *instance);
 
 /** Get timer expire time
  *
@@ -93,14 +93,14 @@ uint32_t furi_timer_is_running(FuriTimer* instance);
  *
  * @return     expire tick
  */
-uint32_t furi_timer_get_expire_time(FuriTimer* instance);
+uint32_t furi_timer_get_expire_time(FuriTimer *instance);
 
-typedef void (*FuriTimerPendigCallback)(void* context, uint32_t arg);
+typedef void (*FuriTimerPendigCallback)(void *context, uint32_t arg);
 
-void furi_timer_pending_callback(FuriTimerPendigCallback callback, void* context, uint32_t arg);
+void furi_timer_pending_callback(FuriTimerPendigCallback callback, void *context, uint32_t arg);
 
 typedef enum {
-    FuriTimerThreadPriorityNormal, /**< Lower then other threads */
+    FuriTimerThreadPriorityNormal,   /**< Lower then other threads */
     FuriTimerThreadPriorityElevated, /**< Same as other threads */
 } FuriTimerThreadPriority;
 
@@ -114,7 +114,7 @@ void furi_timer_set_thread_priority(FuriTimerThreadPriority priority);
  *
  * @return     The pointer to the timer name, or NULL
  */
-const char* furi_timer_get_current_name(void);
+const char *furi_timer_get_current_name(void);
 
 #ifdef __cplusplus
 }

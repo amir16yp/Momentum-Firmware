@@ -9,12 +9,12 @@ extern "C" {
 #endif
 
 #define MF_ULTRALIGHT_POLLER_STANDARD_FWT_FC (60000)
-#define MF_ULTRALIGHT_MAX_BUFF_SIZE          (64)
+#define MF_ULTRALIGHT_MAX_BUFF_SIZE (64)
 
 #define MF_ULTRALIGHT_DEFAULT_PASSWORD (0xffffffffUL)
 
-#define MF_ULTRALIGHT_IS_NTAG_I2C(type)                                                \
-    (((type) == MfUltralightTypeNTAGI2C1K) || ((type) == MfUltralightTypeNTAGI2C2K) || \
+#define MF_ULTRALIGHT_IS_NTAG_I2C(type)                                                            \
+    (((type) == MfUltralightTypeNTAGI2C1K) || ((type) == MfUltralightTypeNTAGI2C2K) ||             \
      ((type) == MfUltralightTypeNTAGI2CPlus1K) || ((type) == MfUltralightTypeNTAGI2CPlus2K))
 
 typedef struct {
@@ -44,7 +44,7 @@ typedef union {
     MfUltralightSignature signature;
     MfUltralightPollerReadCounterCommand counter_cmd;
     MfUltralightPollerReadTearingFlagCommand tearing_flag_cmd;
-    MfUltralightData* data;
+    MfUltralightData *data;
 } MfUltralightPollerContextData;
 
 typedef enum {
@@ -73,12 +73,12 @@ typedef enum {
 } MfUltralightPollerState;
 
 struct MfUltralightPoller {
-    Iso14443_3aPoller* iso14443_3a_poller;
+    Iso14443_3aPoller *iso14443_3a_poller;
     MfUltralightPollerState state;
     MfUltralightPollerMode mode;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
-    MfUltralightData* data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
+    MfUltralightData *data;
     MfUltralightPollerAuthContext auth_context;
     uint32_t feature_set;
     uint16_t pages_read;
@@ -89,7 +89,7 @@ struct MfUltralightPoller {
     uint8_t tearing_flag_total;
     uint16_t current_page;
     bool write_skip_key; // If true, skip writing pages 44-47 (3DES key) during ULC write
-    const MfUltralightData* write_data; // Saved pointer to source data for write phase
+    const MfUltralightData *write_data; // Saved pointer to source data for write phase
     MfUltralightError error;
     mbedtls_des3_context des_context;
 
@@ -97,25 +97,22 @@ struct MfUltralightPoller {
     MfUltralightPollerEvent mfu_event;
     MfUltralightPollerEventData mfu_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 MfUltralightError mf_ultralight_process_error(Iso14443_3aError error);
 
-MfUltralightPoller* mf_ultralight_poller_alloc(Iso14443_3aPoller* iso14443_3a_poller);
+MfUltralightPoller *mf_ultralight_poller_alloc(Iso14443_3aPoller *iso14443_3a_poller);
 
-void mf_ultralight_poller_free(MfUltralightPoller* instance);
+void mf_ultralight_poller_free(MfUltralightPoller *instance);
 
-const MfUltralightData* mf_ultralight_poller_get_data(MfUltralightPoller* instance);
+const MfUltralightData *mf_ultralight_poller_get_data(MfUltralightPoller *instance);
 
-bool mf_ultralight_poller_ntag_i2c_addr_lin_to_tag(
-    MfUltralightPoller* instance,
-    uint16_t lin_addr,
-    uint8_t* sector,
-    uint8_t* tag,
-    uint8_t* pages_left);
+bool mf_ultralight_poller_ntag_i2c_addr_lin_to_tag(MfUltralightPoller *instance, uint16_t lin_addr,
+                                                   uint8_t *sector, uint8_t *tag,
+                                                   uint8_t *pages_left);
 
-MfUltralightError mf_ultralight_poller_authentication_test(MfUltralightPoller* instance);
+MfUltralightError mf_ultralight_poller_authentication_test(MfUltralightPoller *instance);
 
 #ifdef __cplusplus
 }

@@ -61,20 +61,20 @@ typedef struct {
 
 /** Power off device
  */
-void power_off(Power* power);
+void power_off(Power *power);
 
 /** Reboot device
  *
  * @param mode      PowerBootMode
  */
-void power_reboot(Power* power, PowerBootMode mode);
+void power_reboot(Power *power, PowerBootMode mode);
 
 /** Get power info
  *
  * @param power     Power instance
  * @param info      PowerInfo instance
  */
-void power_get_info(Power* power, PowerInfo* info);
+void power_get_info(Power *power, PowerInfo *info);
 
 /** Get power event pubsub handler
  *
@@ -82,33 +82,33 @@ void power_get_info(Power* power, PowerInfo* info);
  *
  * @return          FuriPubSub instance
  */
-FuriPubSub* power_get_pubsub(Power* power);
+FuriPubSub *power_get_pubsub(Power *power);
 
 /** Check battery health
  *
  * @return          true if battery is healthy
  */
-bool power_is_battery_healthy(Power* power);
+bool power_is_battery_healthy(Power *power);
 
 /** Enable or disable battery low level notification message
  *
  * @param power     Power instance
  * @param enable    true - enable, false - disable
  */
-void power_enable_low_battery_level_notification(Power* power, bool enable);
+void power_enable_low_battery_level_notification(Power *power, bool enable);
 
 /** Enable or disable OTG
  *
  * @param power     Power instance
  * @param enable    true - enable, false - disable
  */
-void power_enable_otg(Power* power, bool enable);
+void power_enable_otg(Power *power, bool enable);
 
 /** Check OTG status
- * 
+ *
  * @return          true if OTG  is requested
  */
-bool power_is_otg_enabled(Power* power);
+bool power_is_otg_enabled(Power *power);
 
 #ifdef __cplusplus
 }

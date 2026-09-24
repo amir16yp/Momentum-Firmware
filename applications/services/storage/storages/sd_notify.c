@@ -61,22 +61,27 @@ static const NotificationSequence sd_sequence_wait_off = {
     NULL,
 };
 
-void sd_notify_wait(NotificationApp* notifications) {
+void sd_notify_wait(NotificationApp *notifications)
+{
     notification_message(notifications, &sd_sequence_wait);
 }
 
-void sd_notify_wait_off(NotificationApp* notifications) {
+void sd_notify_wait_off(NotificationApp *notifications)
+{
     notification_message(notifications, &sd_sequence_wait_off);
 }
 
-void sd_notify_success(NotificationApp* notifications) {
+void sd_notify_success(NotificationApp *notifications)
+{
     notification_message(notifications, &sd_sequence_success);
 }
 
-void sd_notify_eject(NotificationApp* notifications) {
+void sd_notify_eject(NotificationApp *notifications)
+{
     notification_message(notifications, &sd_sequence_eject);
 }
 
-void sd_notify_error(NotificationApp* notifications) {
+void sd_notify_error(NotificationApp *notifications)
+{
     notification_message(notifications, &sd_sequence_error);
 }

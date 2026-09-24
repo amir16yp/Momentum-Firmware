@@ -33,7 +33,7 @@ DICT_DEF2(RpcHandlerDict, pb_size_t, M_DEFAULT_OPLIST, RpcHandler, M_POD_OPLIST)
 typedef struct {
     RpcSystemAlloc alloc;
     RpcSystemFree free;
-    void* context;
+    void *context;
 } RpcSystemCallbacks;
 
 static const RpcSystemCallbacks rpc_systems[] = {
@@ -68,45 +68,47 @@ static const RpcSystemCallbacks rpc_systems[] = {
 };
 
 struct RpcSession {
-    Rpc* rpc;
+    Rpc *rpc;
 
-    FuriThread* thread;
+    FuriThread *thread;
 
     RpcHandlerDict_t handlers;
-    FuriStreamBuffer* stream;
-    PB_Main* decoded_message;
+    FuriStreamBuffer *stream;
+    PB_Main *decoded_message;
     bool terminate;
-    void** system_contexts;
+    void **system_contexts;
     bool decode_error;
 
-    FuriMutex* callbacks_mutex;
+    FuriMutex *callbacks_mutex;
     RpcSendBytesCallback send_bytes_callback;
     RpcBufferIsEmptyCallback buffer_is_empty_callback;
     RpcSessionClosedCallback closed_callback;
     RpcSessionTerminatedCallback terminated_callback;
     RpcOwner owner;
-    void* context;
+    void *context;
 };
 
 struct Rpc {
-    FuriMutex* busy_mutex;
+    FuriMutex *busy_mutex;
     size_t sessions_count;
 };
 
-RpcOwner rpc_session_get_owner(RpcSession* session) {
+RpcOwner rpc_session_get_owner(RpcSession *session)
+{
     furi_check(session);
     return session->owner;
 }
 
-static void rpc_close_session_process(const PB_Main* request, void* context) {
+static void rpc_close_session_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(context);
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
 
     rpc_send_and_release_empty(session, request->command_id, PB_CommandStatus_OK);
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
-    if(session->closed_callback) {
+    if (session->closed_callback) {
         session->closed_callback(session->context);
     } else {
         FURI_LOG_W(TAG, "Session stop isn't processed by transport layer");
@@ -114,7 +116,8 @@ static void rpc_close_session_process(const PB_Main* request, void* context) {
     furi_mutex_release(session->callbacks_mutex);
 }
 
-void rpc_session_set_context(RpcSession* session, void* context) {
+void rpc_session_set_context(RpcSession *session, void *context)
+{
     furi_check(session);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
@@ -122,7 +125,8 @@ void rpc_session_set_context(RpcSession* session, void* context) {
     furi_mutex_release(session->callbacks_mutex);
 }
 
-void rpc_session_set_close_callback(RpcSession* session, RpcSessionClosedCallback callback) {
+void rpc_session_set_close_callback(RpcSession *session, RpcSessionClosedCallback callback)
+{
     furi_check(session);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
@@ -130,7 +134,8 @@ void rpc_session_set_close_callback(RpcSession* session, RpcSessionClosedCallbac
     furi_mutex_release(session->callbacks_mutex);
 }
 
-void rpc_session_set_send_bytes_callback(RpcSession* session, RpcSendBytesCallback callback) {
+void rpc_session_set_send_bytes_callback(RpcSession *session, RpcSendBytesCallback callback)
+{
     furi_check(session);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
@@ -138,9 +143,9 @@ void rpc_session_set_send_bytes_callback(RpcSession* session, RpcSendBytesCallba
     furi_mutex_release(session->callbacks_mutex);
 }
 
-void rpc_session_set_buffer_is_empty_callback(
-    RpcSession* session,
-    RpcBufferIsEmptyCallback callback) {
+void rpc_session_set_buffer_is_empty_callback(RpcSession *session,
+                                              RpcBufferIsEmptyCallback callback)
+{
     furi_check(session);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
@@ -148,9 +153,8 @@ void rpc_session_set_buffer_is_empty_callback(
     furi_mutex_release(session->callbacks_mutex);
 }
 
-void rpc_session_set_terminated_callback(
-    RpcSession* session,
-    RpcSessionTerminatedCallback callback) {
+void rpc_session_set_terminated_callback(RpcSession *session, RpcSessionTerminatedCallback callback)
+{
     furi_check(session);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
@@ -164,15 +168,14 @@ void rpc_session_set_terminated_callback(
  * command is gets processed - it's safe either way. But case of it is quite
  * odd: client sends close request and sends command after.
  */
-size_t rpc_session_feed(
-    RpcSession* session,
-    const uint8_t* encoded_bytes,
-    size_t size,
-    uint32_t timeout) {
+size_t rpc_session_feed(RpcSession *session, const uint8_t *encoded_bytes, size_t size,
+                        uint32_t timeout)
+{
     furi_check(session);
     furi_check(encoded_bytes);
 
-    if(!size) return 0;
+    if (!size)
+        return 0;
 
     size_t bytes_sent = furi_stream_buffer_send(session->stream, encoded_bytes, size, timeout);
 
@@ -181,43 +184,45 @@ size_t rpc_session_feed(
     return bytes_sent;
 }
 
-size_t rpc_session_get_available_size(RpcSession* session) {
+size_t rpc_session_get_available_size(RpcSession *session)
+{
     furi_check(session);
     return furi_stream_buffer_spaces_available(session->stream);
 }
 
-bool rpc_pb_stream_read(pb_istream_t* istream, pb_byte_t* buf, size_t count) {
+bool rpc_pb_stream_read(pb_istream_t *istream, pb_byte_t *buf, size_t count)
+{
     furi_assert(istream);
     furi_assert(buf);
-    RpcSession* session = istream->state;
+    RpcSession *session = istream->state;
     furi_assert(session);
     furi_assert(istream->bytes_left);
 
-    if(session->terminate) {
+    if (session->terminate) {
         return false;
     }
 
     uint32_t flags = 0;
     size_t bytes_received = 0;
 
-    while(1) {
-        bytes_received += furi_stream_buffer_receive(
-            session->stream, buf + bytes_received, count - bytes_received, 0);
-        if(furi_stream_buffer_is_empty(session->stream)) {
-            if(session->buffer_is_empty_callback) {
+    while (1) {
+        bytes_received += furi_stream_buffer_receive(session->stream, buf + bytes_received,
+                                                     count - bytes_received, 0);
+        if (furi_stream_buffer_is_empty(session->stream)) {
+            if (session->buffer_is_empty_callback) {
                 session->buffer_is_empty_callback(session->context);
             }
         }
-        if(session->decode_error) {
+        if (session->decode_error) {
             /* never go out till RPC_EVENT_DISCONNECT come */
             bytes_received = 0;
         }
-        if(count == bytes_received) {
+        if (count == bytes_received) {
             break;
         } else {
             flags = furi_thread_flags_wait(RPC_ALL_EVENTS, FuriFlagWaitAny, FuriWaitForever);
-            if(flags & RpcEvtDisconnect) {
-                if(furi_stream_buffer_is_empty(session->stream)) {
+            if (flags & RpcEvtDisconnect) {
+                if (furi_stream_buffer_is_empty(session->stream)) {
                     session->terminate = true;
                     istream->bytes_left = 0;
                     bytes_received = 0;
@@ -226,7 +231,7 @@ bool rpc_pb_stream_read(pb_istream_t* istream, pb_byte_t* buf, size_t count) {
                     /* Save disconnect flag and continue reading buffer */
                     furi_thread_flags_set(furi_thread_get_id(session->thread), RpcEvtDisconnect);
                 }
-            } else if(flags & RpcEvtNewData) {
+            } else if (flags & RpcEvtNewData) {
                 // Just wake thread up
             }
         }
@@ -239,29 +244,31 @@ bool rpc_pb_stream_read(pb_istream_t* istream, pb_byte_t* buf, size_t count) {
     return count == bytes_received;
 }
 
-static bool rpc_pb_content_callback(pb_istream_t* stream, const pb_field_t* field, void** arg) {
+static bool rpc_pb_content_callback(pb_istream_t *stream, const pb_field_t *field, void **arg)
+{
     furi_assert(stream);
-    RpcSession* session = stream->state;
+    RpcSession *session = stream->state;
     furi_assert(session);
     furi_assert(field);
 
-    RpcHandler* handler = RpcHandlerDict_get(session->handlers, field->tag);
+    RpcHandler *handler = RpcHandlerDict_get(session->handlers, field->tag);
 
-    if(handler && handler->decode_submessage) {
+    if (handler && handler->decode_submessage) {
         handler->decode_submessage(stream, field, arg);
     }
 
     return true;
 }
 
-static int32_t rpc_session_worker(void* context) {
+static int32_t rpc_session_worker(void *context)
+{
     furi_assert(context);
-    RpcSession* session = (RpcSession*)context;
-    Rpc* rpc = session->rpc;
+    RpcSession *session = (RpcSession *)context;
+    Rpc *rpc = session->rpc;
 
     FURI_LOG_D(TAG, "Session started");
 
-    while(1) {
+    while (1) {
         pb_istream_t istream = {
             .callback = rpc_pb_stream_read,
             .state = session,
@@ -271,19 +278,19 @@ static int32_t rpc_session_worker(void* context) {
 
         bool message_decode_failed = false;
 
-        if(pb_decode_ex(&istream, &PB_Main_msg, session->decoded_message, PB_DECODE_DELIMITED)) {
+        if (pb_decode_ex(&istream, &PB_Main_msg, session->decoded_message, PB_DECODE_DELIMITED)) {
 #ifdef SRV_RPC_DEBUG
             FURI_LOG_I(TAG, "INPUT:");
             rpc_debug_print_message(session->decoded_message);
 #endif
-            RpcHandler* handler =
+            RpcHandler *handler =
                 RpcHandlerDict_get(session->handlers, session->decoded_message->which_content);
 
-            if(handler && handler->message_handler) {
+            if (handler && handler->message_handler) {
                 furi_check(furi_mutex_acquire(rpc->busy_mutex, FuriWaitForever) == FuriStatusOk);
                 handler->message_handler(session->decoded_message, handler->context);
                 furi_check(furi_mutex_release(rpc->busy_mutex) == FuriStatusOk);
-            } else if(session->decoded_message->which_content == 0) {
+            } else if (session->decoded_message->which_content == 0) {
                 /* Receiving zeroes means message is 0-length, which
                  * is valid for proto3: all fields are filled with default values.
                  * 0 - is default value for which_content field.
@@ -291,23 +298,19 @@ static int32_t rpc_session_worker(void* context) {
                  * in Main message with tag 0.
                  */
                 message_decode_failed = true;
-            } else if(!handler && !session->terminate) {
-                FURI_LOG_E(
-                    TAG,
-                    "Message(%d) decoded, but not implemented",
-                    session->decoded_message->which_content);
-                rpc_send_and_release_empty(
-                    session,
-                    session->decoded_message->command_id,
-                    PB_CommandStatus_ERROR_NOT_IMPLEMENTED);
+            } else if (!handler && !session->terminate) {
+                FURI_LOG_E(TAG, "Message(%d) decoded, but not implemented",
+                           session->decoded_message->which_content);
+                rpc_send_and_release_empty(session, session->decoded_message->command_id,
+                                           PB_CommandStatus_ERROR_NOT_IMPLEMENTED);
             }
         } else {
             message_decode_failed = true;
         }
 
-        if(message_decode_failed) {
+        if (message_decode_failed) {
             furi_stream_buffer_reset(session->stream);
-            if(!session->terminate) {
+            if (!session->terminate) {
                 /* Protobuf can't determine start and end of message.
                  * Handle this by adding varint at beginning
                  * of a message (PB_ENCODE_DELIMITED). But decoding fail
@@ -324,15 +327,15 @@ static int32_t rpc_session_worker(void* context) {
                 session->decode_error = true;
                 rpc_send_and_release_empty(session, 0, PB_CommandStatus_ERROR_DECODE);
                 furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
-                if(session->closed_callback) {
+                if (session->closed_callback) {
                     session->closed_callback(session->context);
                 }
                 furi_mutex_release(session->callbacks_mutex);
 
-                if(session->owner == RpcOwnerBle) {
+                if (session->owner == RpcOwnerBle) {
                     // Disconnect BLE session
                     FURI_LOG_E("RPC", "BLE session closed due to a decode error");
-                    Bt* bt = furi_record_open(RECORD_BT);
+                    Bt *bt = furi_record_open(RECORD_BT);
                     bt_profile_restore_default(bt);
                     furi_record_close(RECORD_BT);
                     FURI_LOG_E("RPC", "Finished disconnecting the BLE session");
@@ -342,7 +345,7 @@ static int32_t rpc_session_worker(void* context) {
 
         pb_release(&PB_Main_msg, session->decoded_message);
 
-        if(session->terminate) {
+        if (session->terminate) {
             FURI_LOG_D(TAG, "Session terminated");
             break;
         }
@@ -351,12 +354,13 @@ static int32_t rpc_session_worker(void* context) {
     return 0;
 }
 
-static void rpc_session_thread_pending_callback(void* context, uint32_t arg) {
+static void rpc_session_thread_pending_callback(void *context, uint32_t arg)
+{
     UNUSED(arg);
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
 
-    for(size_t i = 0; i < COUNT_OF(rpc_systems); ++i) {
-        if(rpc_systems[i].free) {
+    for (size_t i = 0; i < COUNT_OF(rpc_systems); ++i) {
+        if (rpc_systems[i].free) {
             (rpc_systems[i].free)(session->system_contexts[i]);
         }
     }
@@ -366,7 +370,7 @@ static void rpc_session_thread_pending_callback(void* context, uint32_t arg) {
     furi_stream_buffer_free(session->stream);
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
-    if(session->terminated_callback) {
+    if (session->terminated_callback) {
         session->terminated_callback(session->context);
     }
     furi_mutex_release(session->callbacks_mutex);
@@ -377,23 +381,27 @@ static void rpc_session_thread_pending_callback(void* context, uint32_t arg) {
     free(session);
 }
 
-static void
-    rpc_session_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
+static void rpc_session_thread_state_callback(FuriThread *thread, FuriThreadState state,
+                                              void *context)
+{
     UNUSED(thread);
-    if(state == FuriThreadStateStopped) {
+    if (state == FuriThreadStateStopped) {
         furi_timer_pending_callback(rpc_session_thread_pending_callback, context, 0);
     }
 }
 
-RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner) {
-    if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock)) {
-        if(owner == RpcOwnerUsb && !momentum_settings.allow_locked_rpc_usb) return NULL;
-        if(owner == RpcOwnerBle && !momentum_settings.allow_locked_rpc_ble) return NULL;
+RpcSession *rpc_session_open(Rpc *rpc, RpcOwner owner)
+{
+    if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock)) {
+        if (owner == RpcOwnerUsb && !momentum_settings.allow_locked_rpc_usb)
+            return NULL;
+        if (owner == RpcOwnerBle && !momentum_settings.allow_locked_rpc_ble)
+            return NULL;
     }
 
     furi_check(rpc);
 
-    RpcSession* session = malloc(sizeof(RpcSession));
+    RpcSession *session = malloc(sizeof(RpcSession));
     session->callbacks_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     session->stream = furi_stream_buffer_alloc(RPC_BUFFER_SIZE, 1);
     session->rpc = rpc;
@@ -406,8 +414,8 @@ RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner) {
     session->decoded_message->cb_content.funcs.decode = rpc_pb_content_callback;
     session->decoded_message->cb_content.arg = session;
 
-    session->system_contexts = malloc(COUNT_OF(rpc_systems) * sizeof(void*));
-    for(size_t i = 0; i < COUNT_OF(rpc_systems); ++i) {
+    session->system_contexts = malloc(COUNT_OF(rpc_systems) * sizeof(void *));
+    for (size_t i = 0; i < COUNT_OF(rpc_systems); ++i) {
         session->system_contexts[i] = rpc_systems[i].alloc(session);
     }
 
@@ -430,7 +438,8 @@ RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner) {
     return session;
 }
 
-void rpc_session_close(RpcSession* session) {
+void rpc_session_close(RpcSession *session)
+{
     furi_check(session);
     furi_check(session->rpc);
 
@@ -442,31 +451,30 @@ void rpc_session_close(RpcSession* session) {
     furi_thread_flags_set(furi_thread_get_id(session->thread), RpcEvtDisconnect);
 }
 
-void rpc_on_system_start(void* p) {
+void rpc_on_system_start(void *p)
+{
     UNUSED(p);
-    Rpc* rpc = malloc(sizeof(Rpc));
+    Rpc *rpc = malloc(sizeof(Rpc));
 
     rpc->busy_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    CliRegistry* registry = furi_record_open(RECORD_CLI);
-    cli_registry_add_command(
-        registry,
-        "start_rpc_session",
-        CliCommandFlagParallelSafe,
-        rpc_cli_command_start_session,
-        rpc);
+    CliRegistry *registry = furi_record_open(RECORD_CLI);
+    cli_registry_add_command(registry, "start_rpc_session", CliCommandFlagParallelSafe,
+                             rpc_cli_command_start_session, rpc);
     furi_record_close(RECORD_CLI);
 
     furi_record_create(RECORD_RPC, rpc);
 }
 
-void rpc_add_handler(RpcSession* session, pb_size_t message_tag, RpcHandler* handler) {
+void rpc_add_handler(RpcSession *session, pb_size_t message_tag, RpcHandler *handler)
+{
     furi_assert(RpcHandlerDict_get(session->handlers, message_tag) == NULL);
 
     RpcHandlerDict_set_at(session->handlers, message_tag, *handler);
 }
 
-void rpc_send(RpcSession* session, PB_Main* message) {
+void rpc_send(RpcSession *session, PB_Main *message)
+{
     furi_assert(session);
     furi_assert(message);
 
@@ -480,7 +488,7 @@ void rpc_send(RpcSession* session, PB_Main* message) {
     bool result = pb_encode_ex(&ostream, &PB_Main_msg, message, PB_ENCODE_DELIMITED);
     furi_check(result && ostream.bytes_written);
 
-    uint8_t* buffer = malloc(ostream.bytes_written);
+    uint8_t *buffer = malloc(ostream.bytes_written);
     ostream = pb_ostream_from_buffer(buffer, ostream.bytes_written);
 
     pb_encode_ex(&ostream, &PB_Main_msg, message, PB_ENCODE_DELIMITED);
@@ -490,7 +498,7 @@ void rpc_send(RpcSession* session, PB_Main* message) {
 #endif
 
     furi_mutex_acquire(session->callbacks_mutex, FuriWaitForever);
-    if(session->send_bytes_callback) {
+    if (session->send_bytes_callback) {
         session->send_bytes_callback(session->context, buffer, ostream.bytes_written);
     }
     furi_mutex_release(session->callbacks_mutex);
@@ -498,12 +506,14 @@ void rpc_send(RpcSession* session, PB_Main* message) {
     free(buffer);
 }
 
-void rpc_send_and_release(RpcSession* session, PB_Main* message) {
+void rpc_send_and_release(RpcSession *session, PB_Main *message)
+{
     rpc_send(session, message);
     pb_release(&PB_Main_msg, message);
 }
 
-void rpc_send_and_release_empty(RpcSession* session, uint32_t command_id, PB_CommandStatus status) {
+void rpc_send_and_release_empty(RpcSession *session, uint32_t command_id, PB_CommandStatus status)
+{
     furi_assert(session);
 
     PB_Main message = {
@@ -517,6 +527,7 @@ void rpc_send_and_release_empty(RpcSession* session, uint32_t command_id, PB_Com
     pb_release(&PB_Main_msg, &message);
 }
 
-size_t rpc_get_sessions_count(Rpc* rpc) {
+size_t rpc_get_sessions_count(Rpc *rpc)
+{
     return rpc->sessions_count;
 }

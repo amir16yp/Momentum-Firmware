@@ -1,7 +1,8 @@
 #pragma once
 
-class WIEGAND {
-public:
+class WIEGAND
+{
+  public:
     WIEGAND(void);
     void begin(void);
     void end(void);
@@ -13,10 +14,9 @@ public:
     static void ReadD0(void);
     static void ReadD1(void);
 
-private:
+  private:
     static bool DoWiegandConversion(void);
-    static unsigned long
-        GetCardId(unsigned long* codehigh, unsigned long* codelow, char bitlength);
+    static unsigned long GetCardId(unsigned long *codehigh, unsigned long *codelow, char bitlength);
 
     static unsigned long _cardTempHigh;
     static unsigned long _cardTemp;

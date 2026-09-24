@@ -14,13 +14,13 @@ extern "C" {
 
 typedef struct Icon Icon;
 
-/** Get icon width 
+/** Get icon width
  *
  * @param[in]  instance  pointer to Icon data
  *
  * @return     width in pixels
  */
-uint16_t icon_get_width(const Icon* instance);
+uint16_t icon_get_width(const Icon *instance);
 
 /** Get icon height
  *
@@ -28,7 +28,7 @@ uint16_t icon_get_width(const Icon* instance);
  *
  * @return     height in pixels
  */
-uint16_t icon_get_height(const Icon* instance);
+uint16_t icon_get_height(const Icon *instance);
 
 /** Get Icon XBM bitmap data for the first frame
  *
@@ -36,7 +36,7 @@ uint16_t icon_get_height(const Icon* instance);
  *
  * @return     pointer to compressed XBM bitmap data
  */
-FURI_DEPRECATED const uint8_t* icon_get_data(const Icon* instance);
+FURI_DEPRECATED const uint8_t *icon_get_data(const Icon *instance);
 
 /** Get Icon frame count
  *
@@ -44,7 +44,7 @@ FURI_DEPRECATED const uint8_t* icon_get_data(const Icon* instance);
  *
  * @return     frame count
  */
-uint32_t icon_get_frame_count(const Icon* instance);
+uint32_t icon_get_frame_count(const Icon *instance);
 
 /** Get Icon XBM bitmap data for a particular frame
  *
@@ -53,7 +53,7 @@ uint32_t icon_get_frame_count(const Icon* instance);
  *
  * @return     pointer to compressed XBM bitmap data
  */
-const uint8_t* icon_get_frame_data(const Icon* instance, uint32_t frame);
+const uint8_t *icon_get_frame_data(const Icon *instance, uint32_t frame);
 
 #ifdef __cplusplus
 }

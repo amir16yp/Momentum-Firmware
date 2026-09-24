@@ -8,20 +8,19 @@ extern "C" {
 
 typedef struct SubGhzProtocolDecoderBase SubGhzProtocolDecoderBase;
 
-typedef void (
-    *SubGhzProtocolDecoderBaseRxCallback)(SubGhzProtocolDecoderBase* instance, void* context);
+typedef void (*SubGhzProtocolDecoderBaseRxCallback)(SubGhzProtocolDecoderBase *instance,
+                                                    void *context);
 
-typedef void (*SubGhzProtocolDecoderBaseSerialize)(
-    SubGhzProtocolDecoderBase* decoder_base,
-    FuriString* output);
+typedef void (*SubGhzProtocolDecoderBaseSerialize)(SubGhzProtocolDecoderBase *decoder_base,
+                                                   FuriString *output);
 
 struct SubGhzProtocolDecoderBase {
     // Decoder general section
-    const SubGhzProtocol* protocol;
+    const SubGhzProtocol *protocol;
 
     // Callback section
     SubGhzProtocolDecoderBaseRxCallback callback;
-    void* context;
+    void *context;
 };
 
 /**
@@ -30,19 +29,17 @@ struct SubGhzProtocolDecoderBase {
  * @param callback Callback, SubGhzProtocolDecoderBaseRxCallback
  * @param context Context
  */
-void subghz_protocol_decoder_base_set_decoder_callback(
-    SubGhzProtocolDecoderBase* decoder_base,
-    SubGhzProtocolDecoderBaseRxCallback callback,
-    void* context);
+void subghz_protocol_decoder_base_set_decoder_callback(SubGhzProtocolDecoderBase *decoder_base,
+                                                       SubGhzProtocolDecoderBaseRxCallback callback,
+                                                       void *context);
 
 /**
  * Getting a textual representation of the received data.
  * @param decoder_base Pointer to a SubGhzProtocolDecoderBase instance
  * @param output Resulting text
  */
-bool subghz_protocol_decoder_base_get_string(
-    SubGhzProtocolDecoderBase* decoder_base,
-    FuriString* output);
+bool subghz_protocol_decoder_base_get_string(SubGhzProtocolDecoderBase *decoder_base,
+                                             FuriString *output);
 
 /**
  * Serialize data SubGhzProtocolDecoderBase.
@@ -51,10 +48,9 @@ bool subghz_protocol_decoder_base_get_string(
  * @param preset The modulation on which the signal was received, SubGhzRadioPreset
  * @return Status Error
  */
-SubGhzProtocolStatus subghz_protocol_decoder_base_serialize(
-    SubGhzProtocolDecoderBase* decoder_base,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset);
+SubGhzProtocolStatus subghz_protocol_decoder_base_serialize(SubGhzProtocolDecoderBase *decoder_base,
+                                                            FlipperFormat *flipper_format,
+                                                            SubGhzRadioPreset *preset);
 
 /**
  * Deserialize data SubGhzProtocolDecoderBase.
@@ -62,30 +58,30 @@ SubGhzProtocolStatus subghz_protocol_decoder_base_serialize(
  * @param flipper_format Pointer to a FlipperFormat instance
  * @return Status Error
  */
-SubGhzProtocolStatus subghz_protocol_decoder_base_deserialize(
-    SubGhzProtocolDecoderBase* decoder_base,
-    FlipperFormat* flipper_format);
+SubGhzProtocolStatus
+subghz_protocol_decoder_base_deserialize(SubGhzProtocolDecoderBase *decoder_base,
+                                         FlipperFormat *flipper_format);
 
 /**
  * Getting the hash sum of the last randomly received parcel.
  * @param decoder_base Pointer to a SubGhzProtocolDecoderBase instance
  * @return hash Hash sum
  */
-uint8_t subghz_protocol_decoder_base_get_hash_data(SubGhzProtocolDecoderBase* decoder_base);
+uint8_t subghz_protocol_decoder_base_get_hash_data(SubGhzProtocolDecoderBase *decoder_base);
 
 /**
  * Getting the long hash sum of the last randomly received parcel.
  * @param decoder_base Pointer to a SubGhzProtocolDecoderBase instance
  * @return hash Hash sum
  */
-uint32_t subghz_protocol_decoder_base_get_hash_data_long(SubGhzProtocolDecoderBase* decoder_base);
+uint32_t subghz_protocol_decoder_base_get_hash_data_long(SubGhzProtocolDecoderBase *decoder_base);
 
 // Encoder Base
 typedef struct SubGhzProtocolEncoderBase SubGhzProtocolEncoderBase;
 
 struct SubGhzProtocolEncoderBase {
     // Decoder general section
-    const SubGhzProtocol* protocol;
+    const SubGhzProtocol *protocol;
 
     // Callback section
 };

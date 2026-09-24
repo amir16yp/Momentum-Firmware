@@ -33,7 +33,7 @@ double cs_time(void);
  * Similar to (non-standard) timegm, converts broken-down time into the number
  * of seconds since Unix Epoch.
  */
-double cs_timegm(const struct tm* tm);
+double cs_timegm(const struct tm *tm);
 
 #ifdef __cplusplus
 }

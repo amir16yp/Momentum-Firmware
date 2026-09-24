@@ -24,26 +24,25 @@ typedef enum {
     NfcPollerStateStarted,
 } NfcPollerState;
 
-typedef NfcCommand (*NfcCliRawProtocolSpecificHandler)(
-    NfcGenericInstance* poller,
-    const NfcCliRawRequest* request,
-    NfcCliRawResponse* const response);
+typedef NfcCommand (*NfcCliRawProtocolSpecificHandler)(NfcGenericInstance *poller,
+                                                       const NfcCliRawRequest *request,
+                                                       NfcCliRawResponse *const response);
 
 typedef struct {
-    Nfc* nfc;
+    Nfc *nfc;
     NfcCliRawRequest request;
     NfcCliRawResponse response;
 
-    NfcPoller* poller;
+    NfcPoller *poller;
     NfcPollerState poller_state;
 
     NfcCliProtocolRequestType request_type;
-    FuriMessageQueue* input_queue;
-    FuriSemaphore* sem_done;
+    FuriMessageQueue *input_queue;
+    FuriSemaphore *sem_done;
 
 } NfcCliRawCmdContext;
 
-static const char* raw_error_names[] = {
+static const char *raw_error_names[] = {
     [NfcCliRawErrorNone] = "None",
     [NfcCliRawErrorTimeout] = "Timeout",
     [NfcCliRawErrorProtocol] = "Internal protocol",
@@ -51,9 +50,10 @@ static const char* raw_error_names[] = {
     [NfcCliRawErrorNotPresent] = "No card",
 };
 
-static NfcCliActionContext* nfc_cli_raw_alloc_ctx(Nfc* nfc) {
+static NfcCliActionContext *nfc_cli_raw_alloc_ctx(Nfc *nfc)
+{
     furi_assert(nfc);
-    NfcCliRawCmdContext* instance = malloc(sizeof(NfcCliRawCmdContext));
+    NfcCliRawCmdContext *instance = malloc(sizeof(NfcCliRawCmdContext));
     instance->nfc = nfc;
 
     instance->request.protocol = NfcProtocolInvalid;
@@ -68,22 +68,26 @@ static NfcCliActionContext* nfc_cli_raw_alloc_ctx(Nfc* nfc) {
     return instance;
 }
 
-static void nfc_cli_raw_abort_nfc_thread(NfcCliRawCmdContext* instance) {
-    if(instance->poller_state == NfcPollerStateStarted) {
+static void nfc_cli_raw_abort_nfc_thread(NfcCliRawCmdContext *instance)
+{
+    if (instance->poller_state == NfcPollerStateStarted) {
         instance->request_type = NfcCliProtocolRequestTypeAbort;
         furi_message_queue_put(instance->input_queue, &instance->request_type, FuriWaitForever);
         furi_semaphore_acquire(instance->sem_done, FuriWaitForever);
         instance->poller_state = NfcPollerStateStopped;
     }
-    if(instance->poller) nfc_poller_stop(instance->poller);
+    if (instance->poller)
+        nfc_poller_stop(instance->poller);
 }
 
-static void nfc_cli_raw_free_ctx(NfcCliActionContext* ctx) {
+static void nfc_cli_raw_free_ctx(NfcCliActionContext *ctx)
+{
     furi_assert(ctx);
-    NfcCliRawCmdContext* instance = ctx;
+    NfcCliRawCmdContext *instance = ctx;
 
     nfc_cli_raw_abort_nfc_thread(instance);
-    if(instance->poller) nfc_poller_free(instance->poller);
+    if (instance->poller)
+        nfc_poller_free(instance->poller);
 
     furi_message_queue_free(instance->input_queue);
     furi_semaphore_free(instance->sem_done);
@@ -95,10 +99,11 @@ static void nfc_cli_raw_free_ctx(NfcCliActionContext* ctx) {
     free(instance);
 }
 
-static bool nfc_cli_raw_can_reuse_ctx(NfcCliActionContext* ctx) {
+static bool nfc_cli_raw_can_reuse_ctx(NfcCliActionContext *ctx)
+{
     furi_assert(ctx);
-    NfcCliRawCmdContext* instance = ctx;
-    NfcCliRawRequest* request = &instance->request;
+    NfcCliRawCmdContext *instance = ctx;
+    NfcCliRawRequest *request = &instance->request;
 
     bool result = request->keep_field;
     request->keep_field = false;
@@ -125,63 +130,63 @@ const NfcCliRawProtocolSpecificHandler nfc_cli_raw_protocol_handlers[] = {
     [NfcProtocolType4Tag] = NULL,
 };
 
-static NfcCommand nfc_cli_raw_poller_callback(NfcGenericEventEx event, void* context) {
-    NfcEvent* nfc_event = event.parent_event_data;
-    NfcCliRawCmdContext* instance = context;
+static NfcCommand nfc_cli_raw_poller_callback(NfcGenericEventEx event, void *context)
+{
+    NfcEvent *nfc_event = event.parent_event_data;
+    NfcCliRawCmdContext *instance = context;
 
     NfcCommand command = NfcCommandContinue;
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         FURI_LOG_D(TAG, "Poller callback");
         NfcCliProtocolRequestType request_type = NfcCliProtocolRequestTypeAbort;
         furi_message_queue_get(instance->input_queue, &request_type, FuriWaitForever);
 
-        if(request_type == NfcCliProtocolRequestTypeAbort) {
+        if (request_type == NfcCliProtocolRequestTypeAbort) {
             command = NfcCommandStop;
         } else {
             const NfcCliRawProtocolSpecificHandler handler =
                 nfc_cli_raw_protocol_handlers[instance->request.protocol];
-            if(handler) handler(event.poller, &instance->request, &instance->response);
+            if (handler)
+                handler(event.poller, &instance->request, &instance->response);
         }
     }
     furi_semaphore_release(instance->sem_done);
-    if(command == NfcCommandStop) {
+    if (command == NfcCommandStop) {
         FURI_LOG_D(TAG, "Aborting poller callback");
         instance->poller_state = NfcPollerStateStopped;
     }
     return command;
 }
 
-static inline void nfc_cli_raw_print_result(const NfcCliRawCmdContext* instance) {
-    if(!furi_string_empty(instance->response.activation_string))
+static inline void nfc_cli_raw_print_result(const NfcCliRawCmdContext *instance)
+{
+    if (!furi_string_empty(instance->response.activation_string))
         printf("%s\r\n", furi_string_get_cstr(instance->response.activation_string));
 
-    nfc_cli_printf_array(
-        bit_buffer_get_data(instance->request.tx_buffer),
-        bit_buffer_get_size_bytes(instance->request.tx_buffer),
-        "Tx: ");
+    nfc_cli_printf_array(bit_buffer_get_data(instance->request.tx_buffer),
+                         bit_buffer_get_size_bytes(instance->request.tx_buffer), "Tx: ");
 
-    if(instance->response.result != NfcCliRawErrorNone)
+    if (instance->response.result != NfcCliRawErrorNone)
         printf("\r\nError: \"%s\"\r\n", raw_error_names[instance->response.result]);
 
     size_t rx_size = bit_buffer_get_size_bytes(instance->response.rx_buffer);
-    if(rx_size > 0) {
-        nfc_cli_printf_array(
-            bit_buffer_get_data(instance->response.rx_buffer),
-            bit_buffer_get_size_bytes(instance->response.rx_buffer),
-            "\r\nRx: ");
+    if (rx_size > 0) {
+        nfc_cli_printf_array(bit_buffer_get_data(instance->response.rx_buffer),
+                             bit_buffer_get_size_bytes(instance->response.rx_buffer), "\r\nRx: ");
     }
 }
 
-static void nfc_cli_raw_execute(PipeSide* pipe, void* context) {
+static void nfc_cli_raw_execute(PipeSide *pipe, void *context)
+{
     UNUSED(pipe);
     furi_assert(context);
-    NfcCliRawCmdContext* instance = context;
+    NfcCliRawCmdContext *instance = context;
 
     furi_string_reset(instance->response.activation_string);
 
-    if(instance->poller_state == NfcPollerStateStopped) {
-        if(instance->poller == NULL)
+    if (instance->poller_state == NfcPollerStateStopped) {
+        if (instance->poller == NULL)
             instance->poller = nfc_poller_alloc(instance->nfc, instance->request.protocol);
 
         nfc_poller_start_ex(instance->poller, nfc_cli_raw_poller_callback, instance);
@@ -206,87 +211,93 @@ static const NfcProtocolNameValuePair supported_protocols[] = {
     {.name = "felica", .value = NfcProtocolFelica},
 };
 
-static bool nfc_cli_raw_parse_protocol(FuriString* value, void* output) {
-    NfcCliRawCmdContext* ctx = output;
+static bool nfc_cli_raw_parse_protocol(FuriString *value, void *output)
+{
+    NfcCliRawCmdContext *ctx = output;
     NfcProtocol new_protocol = NfcProtocolInvalid;
 
-    NfcCliProtocolParser* parser =
+    NfcCliProtocolParser *parser =
         nfc_cli_protocol_parser_alloc(supported_protocols, COUNT_OF(supported_protocols));
 
     bool result = nfc_cli_protocol_parser_get(parser, value, &new_protocol);
 
     nfc_cli_protocol_parser_free(parser);
 
-    if(result && ctx->request.protocol != NfcProtocolInvalid &&
-       ctx->request.protocol != new_protocol) {
-        printf(
-            ANSI_FG_RED "Error: previous %s != new %s. Unable to continue." ANSI_RESET,
-            nfc_cli_get_protocol_name(ctx->request.protocol),
-            nfc_cli_get_protocol_name(new_protocol));
+    if (result && ctx->request.protocol != NfcProtocolInvalid &&
+        ctx->request.protocol != new_protocol) {
+        printf(ANSI_FG_RED "Error: previous %s != new %s. Unable to continue." ANSI_RESET,
+               nfc_cli_get_protocol_name(ctx->request.protocol),
+               nfc_cli_get_protocol_name(new_protocol));
         result = false;
     }
 
-    if(result) {
+    if (result) {
         ctx->request.protocol = new_protocol;
     }
     return result;
 }
 
-static bool nfc_cli_raw_parse_data(FuriString* value, void* output) {
-    NfcCliRawCmdContext* ctx = output;
+static bool nfc_cli_raw_parse_data(FuriString *value, void *output)
+{
+    NfcCliRawCmdContext *ctx = output;
 
     bool result = false;
     do {
         size_t len = furi_string_size(value);
-        if(len % 2 != 0) break;
+        if (len % 2 != 0)
+            break;
 
         size_t data_length = len / 2;
-        uint8_t* data = malloc(data_length);
+        uint8_t *data = malloc(data_length);
 
-        if(args_read_hex_bytes(value, data, data_length)) {
+        if (args_read_hex_bytes(value, data, data_length)) {
             bit_buffer_reset(ctx->request.tx_buffer);
             bit_buffer_copy_bytes(ctx->request.tx_buffer, data, data_length);
             result = true;
         }
 
         free(data);
-    } while(false);
+    } while (false);
 
     return result;
 }
 
-static bool nfc_cli_raw_parse_timeout(FuriString* value, void* output) {
+static bool nfc_cli_raw_parse_timeout(FuriString *value, void *output)
+{
     furi_assert(value);
     furi_assert(output);
-    NfcCliRawCmdContext* ctx = output;
+    NfcCliRawCmdContext *ctx = output;
 
     bool result = false;
 
     int timeout = 0;
-    if(args_read_int_and_trim(value, &timeout)) {
+    if (args_read_int_and_trim(value, &timeout)) {
         ctx->request.timeout = timeout;
         result = true;
     }
     return result;
 }
 
-static bool nfc_cli_raw_parse_select(FuriString* value, void* output) {
+static bool nfc_cli_raw_parse_select(FuriString *value, void *output)
+{
     UNUSED(value);
-    NfcCliRawCmdContext* ctx = output;
+    NfcCliRawCmdContext *ctx = output;
     ctx->request.select = true;
     return true;
 }
 
-static bool nfc_cli_raw_parse_crc(FuriString* value, void* output) {
+static bool nfc_cli_raw_parse_crc(FuriString *value, void *output)
+{
     UNUSED(value);
-    NfcCliRawCmdContext* ctx = output;
+    NfcCliRawCmdContext *ctx = output;
     ctx->request.append_crc = true;
     return true;
 }
 
-static bool nfc_cli_raw_parse_keep(FuriString* value, void* output) {
+static bool nfc_cli_raw_parse_keep(FuriString *value, void *output)
+{
     UNUSED(value);
-    NfcCliRawCmdContext* ctx = output;
+    NfcCliRawCmdContext *ctx = output;
     ctx->request.keep_field = true;
     return true;
 }
@@ -344,12 +355,12 @@ const NfcCliActionDescriptor raw_action = {
     .can_reuse = nfc_cli_raw_can_reuse_ctx,
 };
 
-const NfcCliActionDescriptor* raw_actions_collection[] = {&raw_action};
+const NfcCliActionDescriptor *raw_actions_collection[] = {&raw_action};
 
 ADD_NFC_CLI_COMMAND(raw, "", raw_actions_collection);
 
-//Command usage: raw <protocol> [keys] <data>
-//Command examples:
-//raw iso14a -sc 3000
-//raw iso14a 3000
-//raw iso14a 3000 -sc
+// Command usage: raw <protocol> [keys] <data>
+// Command examples:
+// raw iso14a -sc 3000
+// raw iso14a 3000
+// raw iso14a 3000 -sc

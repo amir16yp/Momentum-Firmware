@@ -6,7 +6,7 @@
 /*
  * Help
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/ambient_weather.c
- * 
+ *
  * Decode Ambient Weather F007TH, F012TH, TF 30.3208.02, SwitchDoc F016TH.
  * Devices supported:
  * - Ambient Weather F007TH Thermo-Hygrometer.
@@ -25,14 +25,14 @@
  * - T: Temperature 12 bits - Fahrenheit * 10 + 400
  * - H: Humidity (8 bits)
  * - M: Message integrity check LFSR Digest-8, gen 0x98, key 0x3e, init 0x64
- * 
+ *
  * three repeats without gap
  * full preamble is 0x00145 (the last bits might not be fixed, e.g. 0x00146)
  * and on decoding also 0xffd45
  */
 
-#define AMBIENT_WEATHER_PACKET_HEADER_1    0xFFD440000000000 //0xffd45 .. 0xffd46
-#define AMBIENT_WEATHER_PACKET_HEADER_2    0x001440000000000 //0x00145 .. 0x00146
+#define AMBIENT_WEATHER_PACKET_HEADER_1 0xFFD440000000000 // 0xffd45 .. 0xffd46
+#define AMBIENT_WEATHER_PACKET_HEADER_2 0x001440000000000 // 0x00145 .. 0x00146
 #define AMBIENT_WEATHER_PACKET_HEADER_MASK 0xFFFFC0000000000
 
 static const SubGhzBlockConst ws_protocol_ambient_weather_const = {
@@ -95,37 +95,35 @@ const SubGhzProtocol ws_protocol_ambient_weather = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_ambient_weather_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_ambient_weather_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderAmbient_Weather* instance = malloc(sizeof(WSProtocolDecoderAmbient_Weather));
+    WSProtocolDecoderAmbient_Weather *instance = malloc(sizeof(WSProtocolDecoderAmbient_Weather));
     instance->base.protocol = &ws_protocol_ambient_weather;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_ambient_weather_free(void* context) {
+void ws_protocol_decoder_ambient_weather_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
+    WSProtocolDecoderAmbient_Weather *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_ambient_weather_reset(void* context) {
+void ws_protocol_decoder_ambient_weather_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
-    manchester_advance(
-        instance->manchester_saved_state,
-        ManchesterEventReset,
-        &instance->manchester_saved_state,
-        NULL);
+    WSProtocolDecoderAmbient_Weather *instance = context;
+    manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                       &instance->manchester_saved_state, NULL);
 }
 
-static bool ws_protocol_ambient_weather_check_crc(WSProtocolDecoderAmbient_Weather* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 40,
-        instance->decoder.decode_data >> 32,
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8};
+static bool ws_protocol_ambient_weather_check_crc(WSProtocolDecoderAmbient_Weather *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 40, instance->decoder.decode_data >> 32,
+                     instance->decoder.decode_data >> 24, instance->decoder.decode_data >> 16,
+                     instance->decoder.decode_data >> 8};
 
     uint8_t crc = subghz_protocol_blocks_lfsr_digest8(msg, 5, 0x98, 0x3e) ^ 0x64;
     return (crc == (uint8_t)(instance->decoder.decode_data & 0xFF));
@@ -135,7 +133,8 @@ static bool ws_protocol_ambient_weather_check_crc(WSProtocolDecoderAmbient_Weath
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_ambient_weather_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_ambient_weather_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 32) & 0xFF;
     instance->battery_low = (instance->data >> 31) & 1;
     instance->channel = ((instance->data >> 28) & 0x07) + 1;
@@ -167,49 +166,48 @@ static void ws_protocol_ambient_weather_remote_controller(WSBlockGeneric* instan
     */
 }
 
-void ws_protocol_decoder_ambient_weather_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_ambient_weather_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
+    WSProtocolDecoderAmbient_Weather *instance = context;
 
     ManchesterEvent event = ManchesterEventReset;
-    if(!level) {
-        if(DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_short) <
-           ws_protocol_ambient_weather_const.te_delta) {
+    if (!level) {
+        if (DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_short) <
+            ws_protocol_ambient_weather_const.te_delta) {
             event = ManchesterEventShortLow;
-        } else if(
-            DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_long) <
-            ws_protocol_ambient_weather_const.te_delta * 2) {
+        } else if (DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_long) <
+                   ws_protocol_ambient_weather_const.te_delta * 2) {
             event = ManchesterEventLongLow;
         }
     } else {
-        if(DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_short) <
-           ws_protocol_ambient_weather_const.te_delta) {
+        if (DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_short) <
+            ws_protocol_ambient_weather_const.te_delta) {
             event = ManchesterEventShortHigh;
-        } else if(
-            DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_long) <
-            ws_protocol_ambient_weather_const.te_delta * 2) {
+        } else if (DURATION_DIFF(duration, ws_protocol_ambient_weather_const.te_long) <
+                   ws_protocol_ambient_weather_const.te_delta * 2) {
             event = ManchesterEventLongHigh;
         }
     }
-    if(event != ManchesterEventReset) {
+    if (event != ManchesterEventReset) {
         bool data;
-        bool data_ok = manchester_advance(
-            instance->manchester_saved_state, event, &instance->manchester_saved_state, &data);
+        bool data_ok = manchester_advance(instance->manchester_saved_state, event,
+                                          &instance->manchester_saved_state, &data);
 
-        if(data_ok) {
+        if (data_ok) {
             instance->decoder.decode_data = (instance->decoder.decode_data << 1) | !data;
         }
 
-        if(((instance->decoder.decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) ==
-            AMBIENT_WEATHER_PACKET_HEADER_1) ||
-           ((instance->decoder.decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) ==
-            AMBIENT_WEATHER_PACKET_HEADER_2)) {
-            if(ws_protocol_ambient_weather_check_crc(instance)) {
+        if (((instance->decoder.decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) ==
+             AMBIENT_WEATHER_PACKET_HEADER_1) ||
+            ((instance->decoder.decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) ==
+             AMBIENT_WEATHER_PACKET_HEADER_2)) {
+            if (ws_protocol_ambient_weather_check_crc(instance)) {
                 instance->generic.data = instance->decoder.decode_data;
                 instance->generic.data_count_bit =
                     ws_protocol_ambient_weather_const.min_count_bit_for_found;
                 ws_protocol_ambient_weather_remote_controller(&instance->generic);
-                if(instance->base.callback)
+                if (instance->base.callback)
                     instance->base.callback(&instance->base, instance->base.context);
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
@@ -218,42 +216,41 @@ void ws_protocol_decoder_ambient_weather_feed(void* context, bool level, uint32_
     } else {
         instance->decoder.decode_data = 0;
         instance->decoder.decode_count_bit = 0;
-        manchester_advance(
-            instance->manchester_saved_state,
-            ManchesterEventReset,
-            &instance->manchester_saved_state,
-            NULL);
+        manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                           &instance->manchester_saved_state, NULL);
     }
 }
 
-uint32_t ws_protocol_decoder_ambient_weather_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_ambient_weather_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderAmbient_Weather *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_serialize(void *context,
+                                                                   FlipperFormat *flipper_format,
+                                                                   SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
+    WSProtocolDecoderAmbient_Weather *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_ambient_weather_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_deserialize(void *context,
+                                                                     FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
+    WSProtocolDecoderAmbient_Weather *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         ws_protocol_ambient_weather_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_ambient_weather_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_ambient_weather_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderAmbient_Weather* instance = context;
+    WSProtocolDecoderAmbient_Weather *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

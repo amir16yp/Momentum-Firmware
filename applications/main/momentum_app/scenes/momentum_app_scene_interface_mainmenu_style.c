@@ -1,24 +1,22 @@
 #include "../momentum_app.h"
 
 // Reference the menu style names from mainmenu scene
-extern const char* const menu_style_names[MenuStyleCount];
+extern const char *const menu_style_names[MenuStyleCount];
 
-void momentum_app_scene_interface_mainmenu_style_submenu_callback(void* context, uint32_t index) {
-    MomentumApp* app = context;
+void momentum_app_scene_interface_mainmenu_style_submenu_callback(void *context, uint32_t index)
+{
+    MomentumApp *app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, index);
 }
 
-void momentum_app_scene_interface_mainmenu_style_on_enter(void* context) {
-    MomentumApp* app = context;
-    Submenu* submenu = app->submenu;
+void momentum_app_scene_interface_mainmenu_style_on_enter(void *context)
+{
+    MomentumApp *app = context;
+    Submenu *submenu = app->submenu;
 
-    for(size_t i = 0; i < MenuStyleCount; i++) {
-        submenu_add_item(
-            submenu,
-            menu_style_names[i],
-            i,
-            momentum_app_scene_interface_mainmenu_style_submenu_callback,
-            app);
+    for (size_t i = 0; i < MenuStyleCount; i++) {
+        submenu_add_item(submenu, menu_style_names[i], i,
+                         momentum_app_scene_interface_mainmenu_style_submenu_callback, app);
     }
 
     submenu_set_header(submenu, "Choose Menu Style:");
@@ -26,11 +24,12 @@ void momentum_app_scene_interface_mainmenu_style_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MomentumAppViewSubmenu);
 }
 
-bool momentum_app_scene_interface_mainmenu_style_on_event(void* context, SceneManagerEvent event) {
-    MomentumApp* app = context;
+bool momentum_app_scene_interface_mainmenu_style_on_event(void *context, SceneManagerEvent event)
+{
+    MomentumApp *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
         momentum_settings.menu_style = event.event;
         app->save_settings = true;
@@ -40,7 +39,8 @@ bool momentum_app_scene_interface_mainmenu_style_on_event(void* context, SceneMa
     return consumed;
 }
 
-void momentum_app_scene_interface_mainmenu_style_on_exit(void* context) {
-    MomentumApp* app = context;
+void momentum_app_scene_interface_mainmenu_style_on_exit(void *context)
+{
+    MomentumApp *app = context;
     submenu_reset(app->submenu);
 }

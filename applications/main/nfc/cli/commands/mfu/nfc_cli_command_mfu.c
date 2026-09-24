@@ -5,7 +5,7 @@
 
 #define TAG "MFU"
 
-//mfu info
+// mfu info
 const NfcCliActionDescriptor info_action = {
     .name = "info",
     .description = "Get basic information about the card",
@@ -26,8 +26,8 @@ const NfcCliKeyDescriptor rdbl_action_keys[] = {
     },
 };
 
-//mfu rdbl -b 0
-//mfu rdbl --block 0
+// mfu rdbl -b 0
+// mfu rdbl --block 0
 const NfcCliActionDescriptor rdbl_action = {
     .name = "rdbl",
     .description = "Read block from ultralight card",
@@ -55,8 +55,8 @@ const NfcCliKeyDescriptor wrbl_action_keys[] = {
     },
 };
 
-//mfu wrbl -b 0 -d DEADBEAF
-//mfu rdbl --block 0 -- data DEADBEEF
+// mfu wrbl -b 0 -d DEADBEAF
+// mfu rdbl --block 0 -- data DEADBEEF
 const NfcCliActionDescriptor wrbl_action = {
     .name = "wrbl",
     .description = "Write block to ultralight card",
@@ -67,11 +67,11 @@ const NfcCliActionDescriptor wrbl_action = {
     .keys = wrbl_action_keys,
 };
 
-const NfcCliActionDescriptor* mfu_actions[] = {
+const NfcCliActionDescriptor *mfu_actions[] = {
     &rdbl_action,
     &info_action,
     &wrbl_action,
 };
 
-//Command descriptor
+// Command descriptor
 ADD_NFC_CLI_COMMAND(mfu, "Mifare Ultralight specific commands", mfu_actions);

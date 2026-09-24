@@ -17,26 +17,29 @@
 #include <momentum/settings.h>
 
 #define WRONG_PIN_HEADER_TIMEOUT 3000
-#define INPUT_PIN_VIEW_TIMEOUT   15000
+#define INPUT_PIN_VIEW_TIMEOUT 15000
 
-static void desktop_scene_locked_callback(DesktopEvent event, void* context) {
-    Desktop* desktop = (Desktop*)context;
+static void desktop_scene_locked_callback(DesktopEvent event, void *context)
+{
+    Desktop *desktop = (Desktop *)context;
     view_dispatcher_send_custom_event(desktop->view_dispatcher, event);
 }
 
-static void desktop_scene_locked_new_idle_animation_callback(void* context) {
+static void desktop_scene_locked_new_idle_animation_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    view_dispatcher_send_custom_event(
-        desktop->view_dispatcher, DesktopAnimationEventNewIdleAnimation);
+    Desktop *desktop = context;
+    view_dispatcher_send_custom_event(desktop->view_dispatcher,
+                                      DesktopAnimationEventNewIdleAnimation);
 }
 
-void desktop_scene_locked_on_enter(void* context) {
-    Desktop* desktop = (Desktop*)context;
+void desktop_scene_locked_on_enter(void *context)
+{
+    Desktop *desktop = (Desktop *)context;
 
     // callbacks for 1-st layer
-    animation_manager_set_new_idle_callback(
-        desktop->animation_manager, desktop_scene_locked_new_idle_animation_callback);
+    animation_manager_set_new_idle_callback(desktop->animation_manager,
+                                            desktop_scene_locked_new_idle_animation_callback);
     animation_manager_set_check_callback(desktop->animation_manager, NULL);
     animation_manager_set_interact_callback(desktop->animation_manager, NULL);
 
@@ -45,18 +48,18 @@ void desktop_scene_locked_on_enter(void* context) {
 
     bool switch_to_timeout_scene = false;
     uint32_t state = scene_manager_get_scene_state(desktop->scene_manager, DesktopSceneLocked);
-    if(state == DesktopSceneLockedStateFirstEnter) {
+    if (state == DesktopSceneLockedStateFirstEnter) {
         view_port_enabled_set(desktop->lock_icon_viewport, true);
-        Gui* gui = furi_record_open(RECORD_GUI);
+        Gui *gui = furi_record_open(RECORD_GUI);
         gui_set_lockdown(gui, true);
         furi_record_close(RECORD_GUI);
 
-        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock)) {
+        if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock)) {
             desktop_view_locked_lock(desktop->locked_view, true);
             uint32_t pin_timeout = desktop_pin_lock_get_fail_timeout();
-            if(pin_timeout > 0) {
-                scene_manager_set_scene_state(
-                    desktop->scene_manager, DesktopScenePinTimeout, pin_timeout);
+            if (pin_timeout > 0) {
+                scene_manager_set_scene_state(desktop->scene_manager, DesktopScenePinTimeout,
+                                              pin_timeout);
                 switch_to_timeout_scene = true;
             } else {
                 desktop_view_locked_close_cover(desktop->locked_view);
@@ -65,25 +68,26 @@ void desktop_scene_locked_on_enter(void* context) {
             desktop_view_locked_lock(desktop->locked_view, false);
             desktop_view_locked_close_cover(desktop->locked_view);
         }
-        scene_manager_set_scene_state(
-            desktop->scene_manager, DesktopSceneLocked, DesktopSceneLockedStateRepeatEnter);
+        scene_manager_set_scene_state(desktop->scene_manager, DesktopSceneLocked,
+                                      DesktopSceneLockedStateRepeatEnter);
     }
 
-    if(switch_to_timeout_scene) {
+    if (switch_to_timeout_scene) {
         scene_manager_next_scene(desktop->scene_manager, DesktopScenePinTimeout);
     } else {
         view_dispatcher_switch_to_view(desktop->view_dispatcher, DesktopViewIdLocked);
     }
 }
 
-bool desktop_scene_locked_on_event(void* context, SceneManagerEvent event) {
-    Desktop* desktop = (Desktop*)context;
+bool desktop_scene_locked_on_event(void *context, SceneManagerEvent event)
+{
+    Desktop *desktop = (Desktop *)context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        switch(event.event) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        switch (event.event) {
         case DesktopLockedEventOpenPowerOff: {
-            if(momentum_settings.lockscreen_poweroff) {
+            if (momentum_settings.lockscreen_poweroff) {
                 // Workaround for shutdown when app can't be opened
                 run_parallel(desktop_shutdown, desktop, 512);
             }
@@ -100,7 +104,7 @@ bool desktop_scene_locked_on_event(void* context, SceneManagerEvent event) {
             consumed = true;
             break;
         case DesktopLockedEventUpdate:
-            if(desktop_view_locked_is_locked_hint_visible(desktop->locked_view)) {
+            if (desktop_view_locked_is_locked_hint_visible(desktop->locked_view)) {
                 notification_message(desktop->notification, &sequence_display_backlight_off);
             }
             desktop_view_locked_update(desktop->locked_view);
@@ -120,6 +124,7 @@ bool desktop_scene_locked_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void desktop_scene_locked_on_exit(void* context) {
+void desktop_scene_locked_on_exit(void *context)
+{
     UNUSED(context);
 }

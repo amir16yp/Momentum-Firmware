@@ -31,7 +31,7 @@ typedef struct Expansion Expansion;
  *
  * @param[in,out] instance pointer to the Expansion instance.
  */
-void expansion_enable(Expansion* instance);
+void expansion_enable(Expansion *instance);
 
 /**
  * @brief Disable support for expansion modules.
@@ -48,7 +48,7 @@ void expansion_enable(Expansion* instance);
  *
  * @param[in,out] instance pointer to the Expansion instance.
  */
-void expansion_disable(Expansion* instance);
+void expansion_disable(Expansion *instance);
 
 /**
  * @brief Check if an expansion module is connected.
@@ -57,7 +57,7 @@ void expansion_disable(Expansion* instance);
  *
  * @returns true if the module is connected and initialized, false otherwise.
  */
-bool expansion_is_connected(Expansion* instance);
+bool expansion_is_connected(Expansion *instance);
 
 /**
  * @brief Enable support for expansion modules on designated serial port.
@@ -75,7 +75,7 @@ bool expansion_is_connected(Expansion* instance);
  * @param[in,out] instance pointer to the Expansion instance.
  * @param[in] serial_id numerical identifier of the serial.
  */
-void expansion_set_listen_serial(Expansion* instance, FuriHalSerialId serial_id);
+void expansion_set_listen_serial(Expansion *instance, FuriHalSerialId serial_id);
 
 #ifdef __cplusplus
 }

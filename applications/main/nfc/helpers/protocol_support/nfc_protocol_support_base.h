@@ -16,7 +16,7 @@
  *
  * @param[in,out] instance pointer to the NFC application instance.
  */
-typedef void (*NfcProtocolSupportOnEnter)(NfcApp* instance);
+typedef void (*NfcProtocolSupportOnEnter)(NfcApp *instance);
 
 /**
  * @brief Scene event handler.
@@ -25,7 +25,7 @@ typedef void (*NfcProtocolSupportOnEnter)(NfcApp* instance);
  * @param[in] event scene manager event that has occurred.
  * @returns true if the event was handled, false otherwise.
  */
-typedef bool (*NfcProtocolSupportOnEvent)(NfcApp* instance, SceneManagerEvent event);
+typedef bool (*NfcProtocolSupportOnEvent)(NfcApp *instance, SceneManagerEvent event);
 
 /**
  * @brief Abstract scene interface.
@@ -141,22 +141,23 @@ typedef struct {
  * @brief Protocol support plugin interface.
  */
 typedef struct {
-    NfcProtocol protocol; /**< Identifier of the protocol this plugin implements. */
-    const NfcProtocolSupportBase* base; /**< Pointer to the protocol support interface. */
+    NfcProtocol protocol;               /**< Identifier of the protocol this plugin implements. */
+    const NfcProtocolSupportBase *base; /**< Pointer to the protocol support interface. */
 } NfcProtocolSupportPlugin;
 
-#define NFC_PROTOCOL_SUPPORT_PLUGIN(name, protocol)                              \
-    static const NfcProtocolSupportPlugin nfc_protocol_support_##name##_desc = { \
-        protocol,                                                                \
-        &nfc_protocol_support_##name,                                            \
-    };                                                                           \
-                                                                                 \
-    static const FlipperAppPluginDescriptor plugin_descriptor_##name = {         \
-        .appid = NFC_PROTOCOL_SUPPORT_PLUGIN_APP_ID,                             \
-        .ep_api_version = NFC_PROTOCOL_SUPPORT_PLUGIN_API_VERSION,               \
-        .entry_point = &nfc_protocol_support_##name##_desc,                      \
-    };                                                                           \
-                                                                                 \
-    const FlipperAppPluginDescriptor* nfc_##name##_ep(void) {                    \
-        return &plugin_descriptor_##name;                                        \
+#define NFC_PROTOCOL_SUPPORT_PLUGIN(name, protocol)                                                \
+    static const NfcProtocolSupportPlugin nfc_protocol_support_##name##_desc = {                   \
+        protocol,                                                                                  \
+        &nfc_protocol_support_##name,                                                              \
+    };                                                                                             \
+                                                                                                   \
+    static const FlipperAppPluginDescriptor plugin_descriptor_##name = {                           \
+        .appid = NFC_PROTOCOL_SUPPORT_PLUGIN_APP_ID,                                               \
+        .ep_api_version = NFC_PROTOCOL_SUPPORT_PLUGIN_API_VERSION,                                 \
+        .entry_point = &nfc_protocol_support_##name##_desc,                                        \
+    };                                                                                             \
+                                                                                                   \
+    const FlipperAppPluginDescriptor *nfc_##name##_ep(void)                                        \
+    {                                                                                              \
+        return &plugin_descriptor_##name;                                                          \
     }

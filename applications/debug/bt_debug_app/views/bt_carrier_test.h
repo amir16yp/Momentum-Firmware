@@ -3,8 +3,8 @@
 
 typedef struct BtCarrierTest BtCarrierTest;
 
-BtCarrierTest* bt_carrier_test_alloc(void);
+BtCarrierTest *bt_carrier_test_alloc(void);
 
-void bt_carrier_test_free(BtCarrierTest* bt_carrier_test);
+void bt_carrier_test_free(BtCarrierTest *bt_carrier_test);
 
-View* bt_carrier_test_get_view(BtCarrierTest* bt_carrier_test);
+View *bt_carrier_test_get_view(BtCarrierTest *bt_carrier_test);

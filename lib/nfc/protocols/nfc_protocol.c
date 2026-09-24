@@ -44,9 +44,9 @@
  * in the parent_protocol field.
  */
 typedef struct {
-    NfcProtocol parent_protocol; /**< Parent protocol identifier. */
-    size_t children_num; /** < Number of the child protocols. */
-    const NfcProtocol* children_protocol; /**< Pointer to an array of child protocol identifiers. */
+    NfcProtocol parent_protocol;          /**< Parent protocol identifier. */
+    size_t children_num;                  /** < Number of the child protocols. */
+    const NfcProtocol *children_protocol; /**< Pointer to an array of child protocol identifiers. */
 } NfcProtocolTreeNode;
 
 /** List of ISO14443-3A child protocols. */
@@ -62,11 +62,8 @@ static const NfcProtocol nfc_protocol_iso14443_3b_children_protocol[] = {
 
 /** List of ISO14443-4A child protocols. */
 static const NfcProtocol nfc_protocol_iso14443_4a_children_protocol[] = {
-    NfcProtocolMfPlus,
-    NfcProtocolMfDesfire,
-    NfcProtocolNtag4xx,
-    NfcProtocolType4Tag,
-    NfcProtocolEmv,
+    NfcProtocolMfPlus,   NfcProtocolMfDesfire, NfcProtocolNtag4xx,
+    NfcProtocolType4Tag, NfcProtocolEmv,
 };
 
 /** List of ISO115693-3 child protocols. */
@@ -179,21 +176,23 @@ static const NfcProtocolTreeNode nfc_protocol_nodes[NfcProtocolNum] = {
     /* Add new protocols here */
 };
 
-NfcProtocol nfc_protocol_get_parent(NfcProtocol protocol) {
+NfcProtocol nfc_protocol_get_parent(NfcProtocol protocol)
+{
     furi_check(protocol < NfcProtocolNum);
 
     return nfc_protocol_nodes[protocol].parent_protocol;
 }
 
-bool nfc_protocol_has_parent(NfcProtocol protocol, NfcProtocol parent_protocol) {
+bool nfc_protocol_has_parent(NfcProtocol protocol, NfcProtocol parent_protocol)
+{
     furi_check(protocol < NfcProtocolNum);
     furi_check(parent_protocol < NfcProtocolNum);
 
     bool parent_found = false;
-    const NfcProtocolTreeNode* iter = &nfc_protocol_nodes[protocol];
+    const NfcProtocolTreeNode *iter = &nfc_protocol_nodes[protocol];
 
-    while(iter->parent_protocol != NfcProtocolInvalid) {
-        if(iter->parent_protocol == parent_protocol) {
+    while (iter->parent_protocol != NfcProtocolInvalid) {
+        if (iter->parent_protocol == parent_protocol) {
             parent_found = true;
             break;
         }

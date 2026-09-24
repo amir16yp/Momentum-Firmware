@@ -70,42 +70,46 @@ const SubGhzProtocol subghz_protocol_ido = {
     .encoder = &subghz_protocol_ido_encoder,
 };
 
-void* subghz_protocol_decoder_ido_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_ido_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderIDo* instance = malloc(sizeof(SubGhzProtocolDecoderIDo));
+    SubGhzProtocolDecoderIDo *instance = malloc(sizeof(SubGhzProtocolDecoderIDo));
     instance->base.protocol = &subghz_protocol_ido;
     instance->generic.protocol_name = instance->base.protocol->name;
 
     return instance;
 }
 
-void subghz_protocol_decoder_ido_free(void* context) {
+void subghz_protocol_decoder_ido_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_ido_reset(void* context) {
+void subghz_protocol_decoder_ido_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
     instance->decoder.parser_step = IDoDecoderStepReset;
 }
 
-void subghz_protocol_decoder_ido_feed(void* context, bool level, uint32_t duration) {
+void subghz_protocol_decoder_ido_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case IDoDecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short * 10) <
-                       subghz_protocol_ido_const.te_delta * 5)) {
+        if ((level) && (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short * 10) <
+                        subghz_protocol_ido_const.te_delta * 5)) {
             instance->decoder.parser_step = IDoDecoderStepFoundPreambula;
         }
         break;
     case IDoDecoderStepFoundPreambula:
-        if((!level) && (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short * 10) <
-                        subghz_protocol_ido_const.te_delta * 5)) {
-            //Found Preambula
+        if ((!level) && (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short * 10) <
+                         subghz_protocol_ido_const.te_delta * 5)) {
+            // Found Preambula
             instance->decoder.parser_step = IDoDecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -114,15 +118,15 @@ void subghz_protocol_decoder_ido_feed(void* context, bool level, uint32_t durati
         }
         break;
     case IDoDecoderStepSaveDuration:
-        if(level) {
-            if(duration >= ((uint32_t)subghz_protocol_ido_const.te_short * 5 +
-                            subghz_protocol_ido_const.te_delta)) {
+        if (level) {
+            if (duration >= ((uint32_t)subghz_protocol_ido_const.te_short * 5 +
+                             subghz_protocol_ido_const.te_delta)) {
                 instance->decoder.parser_step = IDoDecoderStepFoundPreambula;
-                if(instance->decoder.decode_count_bit >=
-                   subghz_protocol_ido_const.min_count_bit_for_found) {
+                if (instance->decoder.decode_count_bit >=
+                    subghz_protocol_ido_const.min_count_bit_for_found) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
@@ -138,18 +142,18 @@ void subghz_protocol_decoder_ido_feed(void* context, bool level, uint32_t durati
         }
         break;
     case IDoDecoderStepCheckDuration:
-        if(!level) {
-            if((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_ido_const.te_short) <
-                subghz_protocol_ido_const.te_delta) &&
-               (DURATION_DIFF(duration, subghz_protocol_ido_const.te_long) <
-                subghz_protocol_ido_const.te_delta * 3)) {
+        if (!level) {
+            if ((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_ido_const.te_short) <
+                 subghz_protocol_ido_const.te_delta) &&
+                (DURATION_DIFF(duration, subghz_protocol_ido_const.te_long) <
+                 subghz_protocol_ido_const.te_delta * 3)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = IDoDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, subghz_protocol_ido_const.te_short) <
-                 subghz_protocol_ido_const.te_delta * 3) &&
-                (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short) <
-                 subghz_protocol_ido_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      subghz_protocol_ido_const.te_short) <
+                        subghz_protocol_ido_const.te_delta * 3) &&
+                       (DURATION_DIFF(duration, subghz_protocol_ido_const.te_short) <
+                        subghz_protocol_ido_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = IDoDecoderStepSaveDuration;
             } else {
@@ -162,11 +166,12 @@ void subghz_protocol_decoder_ido_feed(void* context, bool level, uint32_t durati
     }
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzBlockGeneric* instance
  */
-static void subghz_protocol_ido_check_remote_controller(SubGhzBlockGeneric* instance) {
+static void subghz_protocol_ido_check_remote_controller(SubGhzBlockGeneric *instance)
+{
     uint64_t code_found_reverse =
         subghz_protocol_blocks_reverse_key(instance->data, instance->data_count_bit);
     uint32_t code_fix = code_found_reverse & 0xFFFFFF;
@@ -175,33 +180,36 @@ static void subghz_protocol_ido_check_remote_controller(SubGhzBlockGeneric* inst
     instance->btn = (code_fix >> 20) & 0x0F;
 }
 
-uint32_t subghz_protocol_decoder_ido_get_hash_data(void* context) {
+uint32_t subghz_protocol_decoder_ido_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderIDo *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_ido_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_ido_serialize(void *context,
+                                                           FlipperFormat *flipper_format,
+                                                           SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_ido_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_ido_deserialize(void *context,
+                                                             FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, subghz_protocol_ido_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_ido_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_ido_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderIDo* instance = context;
+    SubGhzProtocolDecoderIDo *instance = context;
 
     subghz_protocol_ido_check_remote_controller(&instance->generic);
     uint64_t code_found_reverse = subghz_protocol_blocks_reverse_key(
@@ -215,19 +223,14 @@ void subghz_protocol_decoder_ido_get_string(void* context, FuriString* output) {
     subghz_block_generic_global.btn_length_bit = 4;
     //
 
-    furi_string_cat_printf(
-        output,
-        "%s %dbit\r\n"
-        "Key:0x%lX%08lX\r\n"
-        "Fix:%06lX \r\n"
-        "Hop:%06lX \r\n"
-        "Sn:%05lX Btn:%X\r\n",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint32_t)(instance->generic.data >> 32),
-        (uint32_t)instance->generic.data,
-        code_fix,
-        code_hop,
-        instance->generic.serial,
-        instance->generic.btn);
+    furi_string_cat_printf(output,
+                           "%s %dbit\r\n"
+                           "Key:0x%lX%08lX\r\n"
+                           "Fix:%06lX \r\n"
+                           "Hop:%06lX \r\n"
+                           "Sn:%05lX Btn:%X\r\n",
+                           instance->generic.protocol_name, instance->generic.data_count_bit,
+                           (uint32_t)(instance->generic.data >> 32),
+                           (uint32_t)instance->generic.data, code_fix, code_hop,
+                           instance->generic.serial, instance->generic.btn);
 }

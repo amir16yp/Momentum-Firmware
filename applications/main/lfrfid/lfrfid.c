@@ -2,7 +2,7 @@
 #include <dolphin/dolphin.h>
 #include <applications/main/archive/helpers/archive_helpers_ext.h>
 
-//TODO: use .txt file in resources for passwords.
+// TODO: use .txt file in resources for passwords.
 const uint32_t default_passwords[] = {
     0x00000000, 0x00000001, 0x00000002, 0x0000000A, 0x0000000B, 0x00012323, 0x000D8787, 0x00434343,
     0x01010101, 0x01020304, 0x01234567, 0x02030405, 0x03040506, 0x04050607, 0x05060708, 0x05D73B9F,
@@ -21,35 +21,39 @@ const uint32_t default_passwords[] = {
     0xCCCCCCCC, 0xCCDDEEFF, 0xD0000000, 0xDDDDDDDD, 0xDEADC0DE, 0xE0000000, 0xE4204998, 0xE9920427,
     0xEEEEEEEE, 0xF0000000, 0xF1EA5EED, 0xF9DCEBA0, 0xFABADA11, 0xFEEDBEEF, 0xFFFFFFFF};
 
-const uint32_t* lfrfid_get_t5577_default_passwords(uint8_t* len) {
+const uint32_t *lfrfid_get_t5577_default_passwords(uint8_t *len)
+{
     *len = sizeof(default_passwords) / sizeof(uint32_t);
     return default_passwords;
 }
 
-static bool lfrfid_debug_custom_event_callback(void* context, uint32_t event) {
+static bool lfrfid_debug_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    LfRfid* app = context;
+    LfRfid *app = context;
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-static bool lfrfid_debug_back_event_callback(void* context) {
+static bool lfrfid_debug_back_event_callback(void *context)
+{
     furi_assert(context);
-    LfRfid* app = context;
+    LfRfid *app = context;
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-static void rpc_command_callback(const RpcAppSystemEvent* event, void* context) {
+static void rpc_command_callback(const RpcAppSystemEvent *event, void *context)
+{
     furi_assert(context);
-    LfRfid* app = (LfRfid*)context;
+    LfRfid *app = (LfRfid *)context;
 
-    if(event->type == RpcAppEventTypeSessionClose) {
+    if (event->type == RpcAppEventTypeSessionClose) {
         view_dispatcher_send_custom_event(app->view_dispatcher, LfRfidEventRpcSessionClose);
         // Detach RPC
         rpc_system_app_set_callback(app->rpc_ctx, NULL, NULL);
         app->rpc_ctx = NULL;
-    } else if(event->type == RpcAppEventTypeAppExit) {
+    } else if (event->type == RpcAppEventTypeAppExit) {
         view_dispatcher_send_custom_event(app->view_dispatcher, LfRfidEventExit);
-    } else if(event->type == RpcAppEventTypeLoadFile) {
+    } else if (event->type == RpcAppEventTypeLoadFile) {
         furi_assert(event->data.type == RpcAppSystemEventDataTypeString);
         furi_string_set(app->file_path, event->data.string);
         view_dispatcher_send_custom_event(app->view_dispatcher, LfRfidEventRpcLoadFile);
@@ -58,8 +62,9 @@ static void rpc_command_callback(const RpcAppSystemEvent* event, void* context) 
     }
 }
 
-static LfRfid* lfrfid_alloc(void) {
-    LfRfid* lfrfid = malloc(sizeof(LfRfid));
+static LfRfid *lfrfid_alloc(void)
+{
+    LfRfid *lfrfid = malloc(sizeof(LfRfid));
 
     lfrfid->storage = furi_record_open(RECORD_STORAGE);
     lfrfid->dialogs = furi_record_open(RECORD_DIALOGS);
@@ -71,18 +76,18 @@ static LfRfid* lfrfid_alloc(void) {
     lfrfid->dict = protocol_dict_alloc(lfrfid_protocols, LFRFIDProtocolMax);
 
     size_t size = protocol_dict_get_max_data_size(lfrfid->dict);
-    lfrfid->new_key_data = (uint8_t*)malloc(size);
-    lfrfid->old_key_data = (uint8_t*)malloc(size);
+    lfrfid->new_key_data = (uint8_t *)malloc(size);
+    lfrfid->old_key_data = (uint8_t *)malloc(size);
 
     lfrfid->lfworker = lfrfid_worker_alloc(lfrfid->dict);
 
     lfrfid->view_dispatcher = view_dispatcher_alloc();
     lfrfid->scene_manager = scene_manager_alloc(&lfrfid_scene_handlers, lfrfid);
     view_dispatcher_set_event_callback_context(lfrfid->view_dispatcher, lfrfid);
-    view_dispatcher_set_custom_event_callback(
-        lfrfid->view_dispatcher, lfrfid_debug_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        lfrfid->view_dispatcher, lfrfid_debug_back_event_callback);
+    view_dispatcher_set_custom_event_callback(lfrfid->view_dispatcher,
+                                              lfrfid_debug_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(lfrfid->view_dispatcher,
+                                                  lfrfid_debug_back_event_callback);
 
     // Open GUI record
     lfrfid->gui = furi_record_open(RECORD_GUI);
@@ -92,43 +97,44 @@ static LfRfid* lfrfid_alloc(void) {
 
     // Submenu
     lfrfid->submenu = submenu_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewSubmenu, submenu_get_view(lfrfid->submenu));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewSubmenu,
+                             submenu_get_view(lfrfid->submenu));
 
     // Dialog
     lfrfid->dialog_ex = dialog_ex_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewDialogEx, dialog_ex_get_view(lfrfid->dialog_ex));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewDialogEx,
+                             dialog_ex_get_view(lfrfid->dialog_ex));
 
     // Popup
     lfrfid->popup = popup_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewPopup, popup_get_view(lfrfid->popup));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewPopup,
+                             popup_get_view(lfrfid->popup));
 
     // Widget
     lfrfid->widget = widget_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewWidget, widget_get_view(lfrfid->widget));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewWidget,
+                             widget_get_view(lfrfid->widget));
 
     // Text Input
     lfrfid->text_input = text_input_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewTextInput, text_input_get_view(lfrfid->text_input));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewTextInput,
+                             text_input_get_view(lfrfid->text_input));
 
     // Byte Input
     lfrfid->byte_input = byte_input_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewByteInput, byte_input_get_view(lfrfid->byte_input));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewByteInput,
+                             byte_input_get_view(lfrfid->byte_input));
 
     // Read custom view
     lfrfid->read_view = lfrfid_view_read_alloc();
-    view_dispatcher_add_view(
-        lfrfid->view_dispatcher, LfRfidViewRead, lfrfid_view_read_get_view(lfrfid->read_view));
+    view_dispatcher_add_view(lfrfid->view_dispatcher, LfRfidViewRead,
+                             lfrfid_view_read_get_view(lfrfid->read_view));
 
     return lfrfid;
 } //-V773
 
-static void lfrfid_free(LfRfid* lfrfid) {
+static void lfrfid_free(LfRfid *lfrfid)
+{
     furi_assert(lfrfid);
 
     furi_string_free(lfrfid->raw_file_name);
@@ -138,7 +144,7 @@ static void lfrfid_free(LfRfid* lfrfid) {
 
     lfrfid_worker_free(lfrfid->lfworker);
 
-    if(lfrfid->rpc_ctx) {
+    if (lfrfid->rpc_ctx) {
         rpc_system_app_set_callback(lfrfid->rpc_ctx, NULL, NULL);
         rpc_system_app_send_exited(lfrfid->rpc_ctx);
     }
@@ -194,27 +200,28 @@ static void lfrfid_free(LfRfid* lfrfid) {
     free(lfrfid);
 }
 
-int32_t lfrfid_app(char* args) {
-    LfRfid* app = lfrfid_alloc();
+int32_t lfrfid_app(char *args)
+{
+    LfRfid *app = lfrfid_alloc();
 
     lfrfid_make_app_folder(app);
 
     bool is_favorite = process_favorite_launch(&args);
-    if(args && strlen(args)) {
+    if (args && strlen(args)) {
         uint32_t rpc_ctx_ptr = 0;
-        if(sscanf(args, "RPC %lX", &rpc_ctx_ptr) == 1) {
-            app->rpc_ctx = (RpcAppSystem*)rpc_ctx_ptr;
+        if (sscanf(args, "RPC %lX", &rpc_ctx_ptr) == 1) {
+            app->rpc_ctx = (RpcAppSystem *)rpc_ctx_ptr;
             rpc_system_app_set_callback(app->rpc_ctx, rpc_command_callback, app);
             rpc_system_app_send_started(app->rpc_ctx);
-            view_dispatcher_attach_to_gui(
-                app->view_dispatcher, app->gui, ViewDispatcherTypeDesktop);
+            view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui,
+                                          ViewDispatcherTypeDesktop);
             scene_manager_next_scene(app->scene_manager, LfRfidSceneRpc);
             dolphin_deed(DolphinDeedRfidEmulate);
         } else {
             furi_string_set(app->file_path, args);
-            if(lfrfid_load_key_data(app, app->file_path, true)) {
-                view_dispatcher_attach_to_gui(
-                    app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
+            if (lfrfid_load_key_data(app, app->file_path, true)) {
+                view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui,
+                                              ViewDispatcherTypeFullscreen);
                 app->fav_timeout = is_favorite;
                 scene_manager_next_scene(app->scene_manager, LfRfidSceneEmulate);
                 dolphin_deed(DolphinDeedRfidEmulate);
@@ -223,8 +230,7 @@ int32_t lfrfid_app(char* args) {
             }
         }
     } else {
-        view_dispatcher_attach_to_gui(
-            app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
+        view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
         scene_manager_next_scene(app->scene_manager, LfRfidSceneStart);
     }
 
@@ -235,48 +241,48 @@ int32_t lfrfid_app(char* args) {
     return 0;
 }
 
-bool lfrfid_save_key(LfRfid* app) {
+bool lfrfid_save_key(LfRfid *app)
+{
     furi_assert(app);
 
     bool result = false;
 
     lfrfid_make_app_folder(app);
 
-    if(furi_string_end_with(app->file_path, LFRFID_APP_FILENAME_EXTENSION)) {
+    if (furi_string_end_with(app->file_path, LFRFID_APP_FILENAME_EXTENSION)) {
         size_t filename_start = furi_string_search_rchar(app->file_path, '/');
         furi_string_left(app->file_path, filename_start);
     }
 
-    furi_string_cat_printf(
-        app->file_path,
-        "/%s%s",
-        furi_string_get_cstr(app->file_name),
-        LFRFID_APP_FILENAME_EXTENSION);
+    furi_string_cat_printf(app->file_path, "/%s%s", furi_string_get_cstr(app->file_name),
+                           LFRFID_APP_FILENAME_EXTENSION);
 
     result = lfrfid_save_key_data(app, app->file_path);
     return result;
 }
 
-bool lfrfid_load_key_from_file_select(LfRfid* app) {
+bool lfrfid_load_key_from_file_select(LfRfid *app)
+{
     furi_assert(app);
 
     DialogsFileBrowserOptions browser_options;
-    dialog_file_browser_set_basic_options(
-        &browser_options, LFRFID_APP_FILENAME_EXTENSION, &I_125_10px);
+    dialog_file_browser_set_basic_options(&browser_options, LFRFID_APP_FILENAME_EXTENSION,
+                                          &I_125_10px);
     browser_options.base_path = LFRFID_APP_FOLDER;
 
     // Input events and views are managed by file_browser
     bool result =
         dialog_file_browser_show(app->dialogs, app->file_path, app->file_path, &browser_options);
 
-    if(result) {
+    if (result) {
         result = lfrfid_load_key_data(app, app->file_path, true);
     }
 
     return result;
 }
 
-bool lfrfid_load_raw_key_from_file_select(LfRfid* app) {
+bool lfrfid_load_raw_key_from_file_select(LfRfid *app)
+{
     furi_assert(app);
 
     DialogsFileBrowserOptions browser_options;
@@ -287,58 +293,64 @@ bool lfrfid_load_raw_key_from_file_select(LfRfid* app) {
     bool result =
         dialog_file_browser_show(app->dialogs, app->file_path, app->file_path, &browser_options);
 
-    if(result) {
+    if (result) {
         // Extract .raw
         path_extract_filename(app->file_path, app->file_name, true);
-        //path_extract_filename(app->file_name, app->file_name, true);
+        // path_extract_filename(app->file_name, app->file_name, true);
     }
 
     return result;
 }
 
-bool lfrfid_delete_key(LfRfid* app) {
+bool lfrfid_delete_key(LfRfid *app)
+{
     furi_assert(app);
 
     return storage_simply_remove(app->storage, furi_string_get_cstr(app->file_path));
 }
 
-bool lfrfid_load_key_data(LfRfid* app, FuriString* path, bool show_dialog) {
+bool lfrfid_load_key_data(LfRfid *app, FuriString *path, bool show_dialog)
+{
     bool result = false;
 
     do {
         app->protocol_id = lfrfid_dict_file_load(app->dict, furi_string_get_cstr(path));
-        if(app->protocol_id == PROTOCOL_NO) break;
+        if (app->protocol_id == PROTOCOL_NO)
+            break;
 
         path_extract_filename(path, app->file_name, true);
         result = true;
-    } while(0);
+    } while (0);
 
-    if((!result) && (show_dialog)) {
+    if ((!result) && (show_dialog)) {
         dialog_message_show_storage_error(app->dialogs, "Cannot load\nkey file");
     }
 
     return result;
 }
 
-bool lfrfid_save_key_data(LfRfid* app, FuriString* path) {
+bool lfrfid_save_key_data(LfRfid *app, FuriString *path)
+{
     bool result = lfrfid_dict_file_save(app->dict, app->protocol_id, furi_string_get_cstr(path));
 
-    if(!result) {
+    if (!result) {
         dialog_message_show_storage_error(app->dialogs, "Cannot save\nkey file");
     }
 
     return result;
 }
 
-void lfrfid_make_app_folder(LfRfid* app) {
+void lfrfid_make_app_folder(LfRfid *app)
+{
     furi_assert(app);
 
-    if(!storage_simply_mkdir(app->storage, LFRFID_APP_FOLDER)) {
+    if (!storage_simply_mkdir(app->storage, LFRFID_APP_FOLDER)) {
         dialog_message_show_storage_error(app->dialogs, "Cannot create\napp folder");
     }
 }
 
-void lfrfid_text_store_set(LfRfid* app, const char* text, ...) {
+void lfrfid_text_store_set(LfRfid *app, const char *text, ...)
+{
     furi_assert(app);
     va_list args;
     va_start(args, text);
@@ -348,24 +360,28 @@ void lfrfid_text_store_set(LfRfid* app, const char* text, ...) {
     va_end(args);
 }
 
-void lfrfid_text_store_clear(LfRfid* app) {
+void lfrfid_text_store_clear(LfRfid *app)
+{
     furi_assert(app);
     memset(app->text_store, 0, sizeof(app->text_store));
 }
 
-void lfrfid_popup_timeout_callback(void* context) {
-    LfRfid* app = context;
+void lfrfid_popup_timeout_callback(void *context)
+{
+    LfRfid *app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, LfRfidEventPopupClosed);
 }
 
-void lfrfid_widget_callback(GuiButtonType result, InputType type, void* context) {
-    LfRfid* app = context;
-    if(type == InputTypeShort) {
+void lfrfid_widget_callback(GuiButtonType result, InputType type, void *context)
+{
+    LfRfid *app = context;
+    if (type == InputTypeShort) {
         view_dispatcher_send_custom_event(app->view_dispatcher, result);
     }
 }
 
-void lfrfid_text_input_callback(void* context) {
-    LfRfid* app = context;
+void lfrfid_text_input_callback(void *context)
+{
+    LfRfid *app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, LfRfidEventNext);
 }

@@ -25,7 +25,7 @@ extern "C" {
  * @param[in,out] handle pointer to the NFC chip SPI handle.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-typedef FuriHalNfcError (*FuriHalNfcChipConfig)(const FuriHalSpiBusHandle* handle);
+typedef FuriHalNfcError (*FuriHalNfcChipConfig)(const FuriHalSpiBusHandle *handle);
 
 /**
  * @brief Transmit data using technology-specific framing and timings.
@@ -35,8 +35,8 @@ typedef FuriHalNfcError (*FuriHalNfcChipConfig)(const FuriHalSpiBusHandle* handl
  * @param[in] tx_bits transmit data size, in bits.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-typedef FuriHalNfcError (
-    *FuriHalNfcTx)(const FuriHalSpiBusHandle* handle, const uint8_t* tx_data, size_t tx_bits);
+typedef FuriHalNfcError (*FuriHalNfcTx)(const FuriHalSpiBusHandle *handle, const uint8_t *tx_data,
+                                        size_t tx_bits);
 
 /**
  * @brief Receive data using technology-specific framing and timings.
@@ -47,11 +47,8 @@ typedef FuriHalNfcError (
  * @param[out] rx_bits pointer to a variable to contain received data length, in bits.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-typedef FuriHalNfcError (*FuriHalNfcRx)(
-    const FuriHalSpiBusHandle* handle,
-    uint8_t* rx_data,
-    size_t rx_data_size,
-    size_t* rx_bits);
+typedef FuriHalNfcError (*FuriHalNfcRx)(const FuriHalSpiBusHandle *handle, uint8_t *rx_data,
+                                        size_t rx_data_size, size_t *rx_bits);
 
 /**
  * @brief Wait for an event using technology-specific method.
@@ -69,7 +66,7 @@ typedef FuriHalNfcEvent (*FuriHalNfcWaitEvent)(uint32_t timeout_ms);
  * @param[in,out] handle pointer to the NFC chip SPI handle.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-typedef FuriHalNfcError (*FuriHalNfcSleep)(const FuriHalSpiBusHandle* handle);
+typedef FuriHalNfcError (*FuriHalNfcSleep)(const FuriHalSpiBusHandle *handle);
 
 /**
  * @brief Go to idle in listener mode.
@@ -79,7 +76,7 @@ typedef FuriHalNfcError (*FuriHalNfcSleep)(const FuriHalSpiBusHandle* handle);
  * @param[in,out] handle pointer to the NFC chip SPI handle.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-typedef FuriHalNfcError (*FuriHalNfcIdle)(const FuriHalSpiBusHandle* handle);
+typedef FuriHalNfcError (*FuriHalNfcIdle)(const FuriHalSpiBusHandle *handle);
 
 /**
  * @brief Technology-specific compenstaion values for pollers.
@@ -100,11 +97,11 @@ typedef struct {
  */
 typedef struct {
     FuriHalNfcPollerCompensation compensation; /**< Compensation values in poller mode. */
-    FuriHalNfcChipConfig init; /**< Pointer to the init() function. */
-    FuriHalNfcChipConfig deinit; /**< Pointer to the deinit() function. */
-    FuriHalNfcWaitEvent wait_event; /**< Pointer to the wait_event() function. */
-    FuriHalNfcTx tx; /**< Pointer to the tx() function. */
-    FuriHalNfcRx rx; /**< Pointer to the rx() function. */
+    FuriHalNfcChipConfig init;                 /**< Pointer to the init() function. */
+    FuriHalNfcChipConfig deinit;               /**< Pointer to the deinit() function. */
+    FuriHalNfcWaitEvent wait_event;            /**< Pointer to the wait_event() function. */
+    FuriHalNfcTx tx;                           /**< Pointer to the tx() function. */
+    FuriHalNfcRx rx;                           /**< Pointer to the rx() function. */
 } FuriHalNfcTechPollerBase;
 
 /**
@@ -124,13 +121,13 @@ typedef struct {
  */
 typedef struct {
     FuriHalNfcListenerCompensation compensation; /**< Compensation values in listener mode. */
-    FuriHalNfcChipConfig init; /**< Pointer to the init() function. */
-    FuriHalNfcChipConfig deinit; /**< Pointer to the deinit() function. */
-    FuriHalNfcWaitEvent wait_event; /**< Pointer to the wait_event() function. */
-    FuriHalNfcTx tx; /**< Pointer to the tx() function. */
-    FuriHalNfcRx rx; /**< Pointer to the rx() function. */
-    FuriHalNfcSleep sleep; /**< Pointer to the sleep() function. */
-    FuriHalNfcIdle idle; /**< Pointer to the idle() function. */
+    FuriHalNfcChipConfig init;                   /**< Pointer to the init() function. */
+    FuriHalNfcChipConfig deinit;                 /**< Pointer to the deinit() function. */
+    FuriHalNfcWaitEvent wait_event;              /**< Pointer to the wait_event() function. */
+    FuriHalNfcTx tx;                             /**< Pointer to the tx() function. */
+    FuriHalNfcRx rx;                             /**< Pointer to the rx() function. */
+    FuriHalNfcSleep sleep;                       /**< Pointer to the sleep() function. */
+    FuriHalNfcIdle idle;                         /**< Pointer to the idle() function. */
 } FuriHalNfcTechListenerBase;
 
 /**
@@ -140,7 +137,7 @@ typedef struct {
  * with its proper functions and constants.
  */
 typedef struct {
-    FuriHalNfcTechPollerBase poller; /**< Structure containing the poller definition. */
+    FuriHalNfcTechPollerBase poller;     /**< Structure containing the poller definition. */
     FuriHalNfcTechListenerBase listener; /**< Structure containing the listener definition. */
 } FuriHalNfcTechBase;
 
@@ -160,7 +157,7 @@ extern const FuriHalNfcTechBase furi_hal_nfc_felica;
  * This variable is defined in furi_hal_nfc.c. It will need to be modified
  * in case when a new technology is to be added.
  */
-extern const FuriHalNfcTechBase* const furi_hal_nfc_tech[];
+extern const FuriHalNfcTechBase *const furi_hal_nfc_tech[];
 
 #ifdef __cplusplus
 }

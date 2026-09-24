@@ -19,14 +19,14 @@ bool subghz_device_registry_is_valid(void);
  * @param name SubGhzDevice name
  * @return SubGhzDevice* pointer to a SubGhzDevice instance
  */
-const SubGhzDevice* subghz_device_registry_get_by_name(const char* name);
+const SubGhzDevice *subghz_device_registry_get_by_name(const char *name);
 
 /**
  * Registration subghzdevice by index in array SubGhzDevice.
  * @param index SubGhzDevice by index in array
  * @return SubGhzDevice* pointer to a SubGhzDevice instance
  */
-const SubGhzDevice* subghz_device_registry_get_by_index(size_t index);
+const SubGhzDevice *subghz_device_registry_get_by_index(size_t index);
 
 /**
  * Getting the number of registered subghzdevices.

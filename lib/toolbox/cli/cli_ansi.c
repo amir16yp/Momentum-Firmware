@@ -14,12 +14,14 @@ struct CliAnsiParser {
     CliModKey modifiers;
 };
 
-CliAnsiParser* cli_ansi_parser_alloc(void) {
-    CliAnsiParser* parser = malloc(sizeof(CliAnsiParser));
+CliAnsiParser *cli_ansi_parser_alloc(void)
+{
+    CliAnsiParser *parser = malloc(sizeof(CliAnsiParser));
     return parser;
 }
 
-void cli_ansi_parser_free(CliAnsiParser* parser) {
+void cli_ansi_parser_free(CliAnsiParser *parser)
+{
     free(parser);
 }
 
@@ -27,8 +29,9 @@ void cli_ansi_parser_free(CliAnsiParser* parser) {
  * @brief Converts a single character representing a special key into the enum
  * representation
  */
-static CliKey cli_ansi_key_from_mnemonic(char c) {
-    switch(c) {
+static CliKey cli_ansi_key_from_mnemonic(char c)
+{
+    switch (c) {
     case 'A':
         return CliKeyUp;
     case 'B':
@@ -46,22 +49,23 @@ static CliKey cli_ansi_key_from_mnemonic(char c) {
     }
 }
 
-#define PARSER_RESET_AND_RETURN(parser, modifiers_val, key_val) \
-    do {                                                        \
-        parser->state = CliAnsiParserStateInitial;              \
-        return (CliAnsiParserResult){                           \
-            .is_done = true,                                    \
-            .result = (CliKeyCombo){                            \
-                .modifiers = modifiers_val,                     \
-                .key = key_val,                                 \
-            }};                                                 \
-    } while(0);
+#define PARSER_RESET_AND_RETURN(parser, modifiers_val, key_val)                                    \
+    do {                                                                                           \
+        parser->state = CliAnsiParserStateInitial;                                                 \
+        return (CliAnsiParserResult){.is_done = true,                                              \
+                                     .result = (CliKeyCombo){                                      \
+                                         .modifiers = modifiers_val,                               \
+                                         .key = key_val,                                           \
+                                     }};                                                           \
+    } while (0);
 
-CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c) {
-    switch(parser->state) {
+CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser *parser, char c)
+{
+    switch (parser->state) {
     case CliAnsiParserStateInitial:
         // <key> -> <key>
-        if(c != CliKeyEsc) PARSER_RESET_AND_RETURN(parser, CliModKeyNo, c); // -V1048
+        if (c != CliKeyEsc)
+            PARSER_RESET_AND_RETURN(parser, CliModKeyNo, c); // -V1048
 
         // <ESC> ...
         parser->state = CliAnsiParserStateEscape;
@@ -69,10 +73,12 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c) {
 
     case CliAnsiParserStateEscape:
         // <ESC> <ESC> -> <ESC>
-        if(c == CliKeyEsc) PARSER_RESET_AND_RETURN(parser, CliModKeyNo, c);
+        if (c == CliKeyEsc)
+            PARSER_RESET_AND_RETURN(parser, CliModKeyNo, c);
 
         // <ESC> <key> -> Alt + <key>
-        if(c != '[') PARSER_RESET_AND_RETURN(parser, CliModKeyAlt, c);
+        if (c != '[')
+            PARSER_RESET_AND_RETURN(parser, CliModKeyAlt, c);
 
         // <ESC> [ ...
         parser->state = CliAnsiParserStateEscapeBrace;
@@ -80,7 +86,8 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c) {
 
     case CliAnsiParserStateEscapeBrace:
         // <ESC> [ <key mnemonic> -> <key>
-        if(c != '1') PARSER_RESET_AND_RETURN(parser, CliModKeyNo, cli_ansi_key_from_mnemonic(c));
+        if (c != '1')
+            PARSER_RESET_AND_RETURN(parser, CliModKeyNo, cli_ansi_key_from_mnemonic(c));
 
         // <ESC> [ 1 ...
         parser->state = CliAnsiParserStateEscapeBraceOne;
@@ -88,7 +95,8 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c) {
 
     case CliAnsiParserStateEscapeBraceOne:
         // <ESC> [ 1 <non-;> -> error
-        if(c != ';') PARSER_RESET_AND_RETURN(parser, CliModKeyNo, CliKeyUnrecognized);
+        if (c != ';')
+            PARSER_RESET_AND_RETURN(parser, CliModKeyNo, CliKeyUnrecognized);
 
         // <ESC> [ 1 ; ...
         parser->state = CliAnsiParserStateEscapeBraceOneSemicolon;
@@ -109,10 +117,11 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c) {
     return (CliAnsiParserResult){.is_done = false};
 }
 
-CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser) {
+CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser *parser)
+{
     CliAnsiParserResult result = {.is_done = false};
 
-    if(parser->state == CliAnsiParserStateEscape) {
+    if (parser->state == CliAnsiParserStateEscape) {
         result.is_done = true;
         result.result.key = CliKeyEsc;
         result.result.modifiers = CliModKeyNo;

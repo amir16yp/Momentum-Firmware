@@ -3,12 +3,13 @@
 
 struct iButtonKey {
     iButtonProtocolId protocol_id;
-    iButtonProtocolData* protocol_data;
+    iButtonProtocolData *protocol_data;
     size_t protocol_data_size;
 };
 
-iButtonKey* ibutton_key_alloc(size_t data_size) {
-    iButtonKey* key = malloc(sizeof(iButtonKey));
+iButtonKey *ibutton_key_alloc(size_t data_size)
+{
+    iButtonKey *key = malloc(sizeof(iButtonKey));
 
     key->protocol_id = iButtonProtocolIdInvalid;
     key->protocol_data = malloc(data_size);
@@ -17,14 +18,16 @@ iButtonKey* ibutton_key_alloc(size_t data_size) {
     return key;
 }
 
-void ibutton_key_free(iButtonKey* key) {
+void ibutton_key_free(iButtonKey *key)
+{
     furi_check(key);
 
     free(key->protocol_data);
     free(key);
 }
 
-void ibutton_key_reset(iButtonKey* key) {
+void ibutton_key_reset(iButtonKey *key)
+{
     furi_check(key);
 
     key->protocol_id = iButtonProtocolIdInvalid;
@@ -32,21 +35,25 @@ void ibutton_key_reset(iButtonKey* key) {
     memset(key->protocol_data, 0, key->protocol_data_size);
 }
 
-iButtonProtocolId ibutton_key_get_protocol_id(const iButtonKey* key) {
+iButtonProtocolId ibutton_key_get_protocol_id(const iButtonKey *key)
+{
     furi_check(key);
 
     return key->protocol_id;
 }
 
-void ibutton_key_set_protocol_id(iButtonKey* key, iButtonProtocolId protocol_id) {
+void ibutton_key_set_protocol_id(iButtonKey *key, iButtonProtocolId protocol_id)
+{
     furi_check(key);
     key->protocol_id = protocol_id;
 }
 
-iButtonProtocolData* ibutton_key_get_protocol_data(const iButtonKey* key) {
+iButtonProtocolData *ibutton_key_get_protocol_data(const iButtonKey *key)
+{
     return key->protocol_data;
 }
 
-size_t ibutton_key_get_protocol_data_size(const iButtonKey* key) {
+size_t ibutton_key_get_protocol_data_size(const iButtonKey *key)
+{
     return key->protocol_data_size;
 }

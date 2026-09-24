@@ -40,7 +40,7 @@ Data layout:
 - C: 8 bit Checksum (CRC8, Poly 0x7, Init 0x0)
 */
 
-#define PREAMBLE          0b000
+#define PREAMBLE 0b000
 #define PREAMBLE_BITS_LEN 3
 
 static const SubGhzBlockConst tpms_protocol_schrader_gg4_const = {
@@ -111,34 +111,34 @@ const SubGhzProtocol tpms_protocol_schrader_gg4 = {
     .filter = SubGhzProtocolFilter_TPMS,
 };
 
-void* tpms_protocol_decoder_schrader_gg4_alloc(SubGhzEnvironment* environment) {
+void *tpms_protocol_decoder_schrader_gg4_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    TPMSProtocolDecoderSchraderGG4* instance = malloc(sizeof(TPMSProtocolDecoderSchraderGG4));
+    TPMSProtocolDecoderSchraderGG4 *instance = malloc(sizeof(TPMSProtocolDecoderSchraderGG4));
     instance->base.protocol = &tpms_protocol_schrader_gg4;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void tpms_protocol_decoder_schrader_gg4_free(void* context) {
+void tpms_protocol_decoder_schrader_gg4_free(void *context)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
     free(instance);
 }
 
-void tpms_protocol_decoder_schrader_gg4_reset(void* context) {
+void tpms_protocol_decoder_schrader_gg4_reset(void *context)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
     instance->decoder.parser_step = SchraderGG4DecoderStepReset;
 }
 
-static bool tpms_protocol_schrader_gg4_check_crc(TPMSProtocolDecoderSchraderGG4* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 48,
-        instance->decoder.decode_data >> 40,
-        instance->decoder.decode_data >> 32,
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8};
+static bool tpms_protocol_schrader_gg4_check_crc(TPMSProtocolDecoderSchraderGG4 *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 48, instance->decoder.decode_data >> 40,
+                     instance->decoder.decode_data >> 32, instance->decoder.decode_data >> 24,
+                     instance->decoder.decode_data >> 16, instance->decoder.decode_data >> 8};
 
     uint8_t crc = subghz_protocol_blocks_crc8(msg, 6, 0x7, 0);
     return (crc == (instance->decoder.decode_data & 0xFF));
@@ -148,7 +148,8 @@ static bool tpms_protocol_schrader_gg4_check_crc(TPMSProtocolDecoderSchraderGG4*
  * Analysis of received data
  * @param instance Pointer to a TPMSBlockGeneric* instance
  */
-static void tpms_protocol_schrader_gg4_analyze(TPMSBlockGeneric* instance) {
+static void tpms_protocol_schrader_gg4_analyze(TPMSBlockGeneric *instance)
+{
     instance->id = instance->data >> 24;
 
     // TODO locate and fix
@@ -158,63 +159,62 @@ static void tpms_protocol_schrader_gg4_analyze(TPMSBlockGeneric* instance) {
     instance->pressure = ((instance->data >> 16) & 0xFF) * 2.5 * 0.069;
 }
 
-static ManchesterEvent level_and_duration_to_event(bool level, uint32_t duration) {
+static ManchesterEvent level_and_duration_to_event(bool level, uint32_t duration)
+{
     bool is_long = false;
 
-    if(DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_long) <
-       tpms_protocol_schrader_gg4_const.te_delta) {
-        is_long = true;
-    } else if(
-        DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_short) <
+    if (DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_long) <
         tpms_protocol_schrader_gg4_const.te_delta) {
+        is_long = true;
+    } else if (DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_short) <
+               tpms_protocol_schrader_gg4_const.te_delta) {
         is_long = false;
     } else {
         return ManchesterEventReset;
     }
 
-    if(level)
+    if (level)
         return is_long ? ManchesterEventLongHigh : ManchesterEventShortHigh;
     else
         return is_long ? ManchesterEventLongLow : ManchesterEventShortLow;
 }
 
-void tpms_protocol_decoder_schrader_gg4_feed(void* context, bool level, uint32_t duration) {
+void tpms_protocol_decoder_schrader_gg4_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
     bool bit = false;
     bool have_bit = false;
-    TPMSProtocolDecoderSchraderGG4* instance = context;
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
 
     // low-level bit sequence decoding
-    if(instance->decoder.parser_step != SchraderGG4DecoderStepReset) {
+    if (instance->decoder.parser_step != SchraderGG4DecoderStepReset) {
         ManchesterEvent event = level_and_duration_to_event(level, duration);
 
-        if(event == ManchesterEventReset) {
-            if((instance->decoder.parser_step == SchraderGG4DecoderStepDecoderData) &&
-               instance->decoder.decode_count_bit) {
+        if (event == ManchesterEventReset) {
+            if ((instance->decoder.parser_step == SchraderGG4DecoderStepDecoderData) &&
+                instance->decoder.decode_count_bit) {
                 // FURI_LOG_D(TAG, "%d-%ld", level, duration);
-                FURI_LOG_D(
-                    TAG,
-                    "reset accumulated %d bits: %llx",
-                    instance->decoder.decode_count_bit,
-                    instance->decoder.decode_data);
+                FURI_LOG_D(TAG, "reset accumulated %d bits: %llx",
+                           instance->decoder.decode_count_bit, instance->decoder.decode_data);
             }
 
             instance->decoder.parser_step = SchraderGG4DecoderStepReset;
         } else {
-            have_bit = manchester_advance(
-                instance->manchester_saved_state, event, &instance->manchester_saved_state, &bit);
-            if(!have_bit) return;
+            have_bit = manchester_advance(instance->manchester_saved_state, event,
+                                          &instance->manchester_saved_state, &bit);
+            if (!have_bit)
+                return;
 
             // Invert value, due to signal is Manchester II and decoder is Manchester I
             bit = !bit;
         }
     }
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case SchraderGG4DecoderStepReset:
         // wait for start ~480us pulse
-        if((level) && (DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_long * 2) <
-                       tpms_protocol_schrader_gg4_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, tpms_protocol_schrader_gg4_const.te_long * 2) <
+                        tpms_protocol_schrader_gg4_const.te_delta)) {
             instance->decoder.parser_step = SchraderGG4DecoderStepCheckPreamble;
             instance->header_count = 0;
             instance->decoder.decode_data = 0;
@@ -226,28 +226,28 @@ void tpms_protocol_decoder_schrader_gg4_feed(void* context, bool level, uint32_t
         }
         break;
     case SchraderGG4DecoderStepCheckPreamble:
-        if(bit != 0) {
+        if (bit != 0) {
             instance->decoder.parser_step = SchraderGG4DecoderStepReset;
             break;
         }
 
         instance->header_count++;
-        if(instance->header_count == PREAMBLE_BITS_LEN)
+        if (instance->header_count == PREAMBLE_BITS_LEN)
             instance->decoder.parser_step = SchraderGG4DecoderStepDecoderData;
         break;
 
     case SchraderGG4DecoderStepDecoderData:
         subghz_protocol_blocks_add_bit(&instance->decoder, bit);
-        if(instance->decoder.decode_count_bit ==
-           tpms_protocol_schrader_gg4_const.min_count_bit_for_found) {
+        if (instance->decoder.decode_count_bit ==
+            tpms_protocol_schrader_gg4_const.min_count_bit_for_found) {
             FURI_LOG_D(TAG, "%016llx", instance->decoder.decode_data);
-            if(!tpms_protocol_schrader_gg4_check_crc(instance)) {
+            if (!tpms_protocol_schrader_gg4_check_crc(instance)) {
                 FURI_LOG_D(TAG, "CRC mismatch drop");
             } else {
                 instance->generic.data = instance->decoder.decode_data;
                 instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                 tpms_protocol_schrader_gg4_analyze(&instance->generic);
-                if(instance->base.callback)
+                if (instance->base.callback)
                     instance->base.callback(&instance->base, instance->base.context);
             }
             instance->decoder.parser_step = SchraderGG4DecoderStepReset;
@@ -256,44 +256,43 @@ void tpms_protocol_decoder_schrader_gg4_feed(void* context, bool level, uint32_t
     }
 }
 
-uint32_t tpms_protocol_decoder_schrader_gg4_get_hash_data(void* context) {
+uint32_t tpms_protocol_decoder_schrader_gg4_get_hash_data(void *context)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus tpms_protocol_decoder_schrader_gg4_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus tpms_protocol_decoder_schrader_gg4_serialize(void *context,
+                                                                  FlipperFormat *flipper_format,
+                                                                  SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
     return tpms_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    tpms_protocol_decoder_schrader_gg4_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus tpms_protocol_decoder_schrader_gg4_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
     return tpms_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         tpms_protocol_schrader_gg4_const.min_count_bit_for_found);
 }
 
-void tpms_protocol_decoder_schrader_gg4_get_string(void* context, FuriString* output) {
+void tpms_protocol_decoder_schrader_gg4_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    TPMSProtocolDecoderSchraderGG4* instance = context;
-    furi_string_cat_printf(
-        output,
-        "%s\r\n"
-        "Id:0x%08lX\r\n"
-        "Bat:%d\r\n"
-        "Temp:%2.0f C Bar:%2.1f",
-        instance->generic.protocol_name,
-        instance->generic.id,
-        instance->generic.battery_low,
-        (double)instance->generic.temperature,
-        (double)instance->generic.pressure);
+    TPMSProtocolDecoderSchraderGG4 *instance = context;
+    furi_string_cat_printf(output,
+                           "%s\r\n"
+                           "Id:0x%08lX\r\n"
+                           "Bat:%d\r\n"
+                           "Temp:%2.0f C Bar:%2.1f",
+                           instance->generic.protocol_name, instance->generic.id,
+                           instance->generic.battery_low, (double)instance->generic.temperature,
+                           (double)instance->generic.pressure);
 }

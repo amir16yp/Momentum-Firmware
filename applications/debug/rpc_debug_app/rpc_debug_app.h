@@ -21,17 +21,17 @@
 #define TEXT_STORE_SIZE 64U
 
 typedef struct {
-    Gui* gui;
-    RpcAppSystem* rpc;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
-    NotificationApp* notifications;
+    Gui *gui;
+    RpcAppSystem *rpc;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
+    NotificationApp *notifications;
 
-    Widget* widget;
-    Submenu* submenu;
-    TextBox* text_box;
-    TextInput* text_input;
-    ByteInput* byte_input;
+    Widget *widget;
+    Submenu *submenu;
+    TextBox *text_box;
+    TextInput *text_input;
+    ByteInput *byte_input;
 
     char text_store[TEXT_STORE_SIZE];
     uint8_t data_store[DATA_STORE_SIZE];

@@ -13,17 +13,17 @@ struct Version {
     const uint8_t major;
     const uint8_t minor;
     // Payload
-    const char* git_hash;
-    const char* git_branch;
-    const char* build_date;
-    const char* version;
+    const char *git_hash;
+    const char *git_branch;
+    const char *build_date;
+    const char *version;
     // Payload bits and pieces
     const uint8_t target;
     const bool build_is_dirty;
     // v 1.1
-    const char* firmware_origin;
-    const char* git_origin;
-    const char* custom_flipper_name;
+    const char *firmware_origin;
+    const char *git_origin;
+    const char *custom_flipper_name;
 };
 
 /* version of current running firmware (bootloader/flipper) */
@@ -46,53 +46,65 @@ static Version version = {
     .custom_flipper_name = NULL,
 };
 
-const Version* version_get(void) {
+const Version *version_get(void)
+{
     return &version;
 }
 
-const char* version_get_githash(const Version* v) {
+const char *version_get_githash(const Version *v)
+{
     return v ? v->git_hash : version.git_hash;
 }
 
-const char* version_get_gitbranch(const Version* v) {
+const char *version_get_gitbranch(const Version *v)
+{
     return v ? v->git_branch : version.git_branch;
 }
 
-const char* version_get_gitbranchnum(const Version* v) {
+const char *version_get_gitbranchnum(const Version *v)
+{
     UNUSED(v);
     return "0";
 }
 
-const char* version_get_builddate(const Version* v) {
+const char *version_get_builddate(const Version *v)
+{
     return v ? v->build_date : version.build_date;
 }
 
-const char* version_get_version(const Version* v) {
+const char *version_get_version(const Version *v)
+{
     return v ? v->version : version.version;
 }
 
-const char* version_get_custom_name(const Version* v) {
+const char *version_get_custom_name(const Version *v)
+{
     return v ? v->custom_flipper_name : version.custom_flipper_name;
 }
 
-void version_set_custom_name(Version* v, const char* name) {
-    Version* ver = v ? v : &version;
+void version_set_custom_name(Version *v, const char *name)
+{
+    Version *ver = v ? v : &version;
     ver->custom_flipper_name = name;
     return;
 }
 
-uint8_t version_get_target(const Version* v) {
+uint8_t version_get_target(const Version *v)
+{
     return v ? v->target : version.target;
 }
 
-bool version_get_dirty_flag(const Version* v) {
+bool version_get_dirty_flag(const Version *v)
+{
     return v ? v->build_is_dirty : version.build_is_dirty;
 }
 
-const char* version_get_firmware_origin(const Version* v) {
+const char *version_get_firmware_origin(const Version *v)
+{
     return v ? v->firmware_origin : version.firmware_origin;
 }
 
-const char* version_get_git_origin(const Version* v) {
+const char *version_get_git_origin(const Version *v)
+{
     return v ? v->git_origin : version.git_origin;
 }

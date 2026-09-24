@@ -10,35 +10,33 @@ LIST_DEF(FuriLogHandlersList, FuriLogHandler, M_POD_OPLIST)
 
 typedef struct {
     FuriLogLevel log_level;
-    FuriMutex* mutex;
+    FuriMutex *mutex;
     FuriLogHandlersList_t tx_handlers;
 } FuriLogParams;
 
 static FuriLogParams furi_log = {0};
 
 typedef struct {
-    const char* str;
+    const char *str;
     FuriLogLevel level;
 } FuriLogLevelDescription;
 
 static const FuriLogLevelDescription FURI_LOG_LEVEL_DESCRIPTIONS[] = {
-    {"default", FuriLogLevelDefault},
-    {"none", FuriLogLevelNone},
-    {"error", FuriLogLevelError},
-    {"warn", FuriLogLevelWarn},
-    {"info", FuriLogLevelInfo},
-    {"debug", FuriLogLevelDebug},
+    {"default", FuriLogLevelDefault}, {"none", FuriLogLevelNone}, {"error", FuriLogLevelError},
+    {"warn", FuriLogLevelWarn},       {"info", FuriLogLevelInfo}, {"debug", FuriLogLevelDebug},
     {"trace", FuriLogLevelTrace},
 };
 
-void furi_log_init(void) {
+void furi_log_init(void)
+{
     // Set default logging parameters
     furi_log.log_level = FURI_LOG_LEVEL_DEFAULT;
     furi_log.mutex = furi_mutex_alloc(FuriMutexTypeRecursive);
     FuriLogHandlersList_init(furi_log.tx_handlers);
 }
 
-bool furi_log_add_handler(FuriLogHandler handler) {
+bool furi_log_add_handler(FuriLogHandler handler)
+{
     furi_check(handler.callback);
 
     bool ret = true;
@@ -47,9 +45,9 @@ bool furi_log_add_handler(FuriLogHandler handler) {
 
     FuriLogHandlersList_it_t it;
     FuriLogHandlersList_it(it, furi_log.tx_handlers);
-    while(!FuriLogHandlersList_end_p(it)) {
-        const FuriLogHandler* current = FuriLogHandlersList_cref(it);
-        if(current->callback == handler.callback && current->context == handler.context) {
+    while (!FuriLogHandlersList_end_p(it)) {
+        const FuriLogHandler *current = FuriLogHandlersList_cref(it);
+        if (current->callback == handler.callback && current->context == handler.context) {
             ret = false;
             break;
         } else {
@@ -57,7 +55,7 @@ bool furi_log_add_handler(FuriLogHandler handler) {
         }
     }
 
-    if(ret) {
+    if (ret) {
         FuriLogHandlersList_push_back(furi_log.tx_handlers, handler);
     }
 
@@ -66,16 +64,17 @@ bool furi_log_add_handler(FuriLogHandler handler) {
     return ret;
 }
 
-bool furi_log_remove_handler(FuriLogHandler handler) {
+bool furi_log_remove_handler(FuriLogHandler handler)
+{
     bool ret = false;
 
     furi_check(furi_mutex_acquire(furi_log.mutex, FuriWaitForever) == FuriStatusOk);
 
     FuriLogHandlersList_it_t it;
     FuriLogHandlersList_it(it, furi_log.tx_handlers);
-    while(!FuriLogHandlersList_end_p(it)) {
-        const FuriLogHandler* current = FuriLogHandlersList_cref(it);
-        if(current->callback == handler.callback && current->context == handler.context) {
+    while (!FuriLogHandlersList_end_p(it)) {
+        const FuriLogHandler *current = FuriLogHandlersList_cref(it);
+        if (current->callback == handler.callback && current->context == handler.context) {
             FuriLogHandlersList_remove(furi_log.tx_handlers, it);
             ret = true;
         } else {
@@ -89,48 +88,54 @@ bool furi_log_remove_handler(FuriLogHandler handler) {
 }
 
 // Caller holds the log mutex, or has checked the ISR path.
-static void furi_log_tx_locked(const uint8_t* data, size_t size) {
+static void furi_log_tx_locked(const uint8_t *data, size_t size)
+{
     FuriLogHandlersList_it_t it;
     FuriLogHandlersList_it(it, furi_log.tx_handlers);
-    while(!FuriLogHandlersList_end_p(it)) {
+    while (!FuriLogHandlersList_end_p(it)) {
         FuriLogHandlersList_ref(it)->callback(data, size, FuriLogHandlersList_ref(it)->context);
         FuriLogHandlersList_next(it);
     }
 }
 
-void furi_log_tx(const uint8_t* data, size_t size) {
-    if(!FURI_IS_ISR()) {
+void furi_log_tx(const uint8_t *data, size_t size)
+{
+    if (!FURI_IS_ISR()) {
         furi_check(furi_mutex_acquire(furi_log.mutex, FuriWaitForever) == FuriStatusOk);
     } else {
-        if(furi_mutex_get_owner(furi_log.mutex)) return;
+        if (furi_mutex_get_owner(furi_log.mutex))
+            return;
     }
 
     furi_log_tx_locked(data, size);
 
-    if(!FURI_IS_ISR()) furi_mutex_release(furi_log.mutex);
+    if (!FURI_IS_ISR())
+        furi_mutex_release(furi_log.mutex);
 }
 
-void furi_log_puts(const char* data) {
+void furi_log_puts(const char *data)
+{
     furi_check(data);
-    furi_log_tx((const uint8_t*)data, strlen(data));
+    furi_log_tx((const uint8_t *)data, strlen(data));
 }
 
-void furi_log_print_format(FuriLogLevel level, const char* tag, const char* format, ...) {
+void furi_log_print_format(FuriLogLevel level, const char *tag, const char *format, ...)
+{
     do {
-        if(level > furi_log.log_level) {
+        if (level > furi_log.log_level) {
             break;
         }
 
-        if(furi_mutex_acquire(furi_log.mutex, furi_kernel_is_running() ? FuriWaitForever : 0) !=
-           FuriStatusOk) {
+        if (furi_mutex_acquire(furi_log.mutex, furi_kernel_is_running() ? FuriWaitForever : 0) !=
+            FuriStatusOk) {
             break;
         }
 
-        FuriString* string = furi_string_alloc();
+        FuriString *string = furi_string_alloc();
 
-        const char* color = _FURI_LOG_CLR_RESET;
-        const char* log_letter = " ";
-        switch(level) {
+        const char *color = _FURI_LOG_CLR_RESET;
+        const char *log_letter = " ";
+        switch (level) {
         case FuriLogLevelError:
             color = _FURI_LOG_CLR_E;
             log_letter = "E";
@@ -156,10 +161,10 @@ void furi_log_print_format(FuriLogLevel level, const char* tag, const char* form
         }
 
         // Timestamp
-        furi_string_printf(
-            string, "%lu %s[%s][%s] " _FURI_LOG_CLR_RESET, furi_get_tick(), color, log_letter, tag);
-        const char* data = furi_string_get_cstr(string);
-        furi_log_tx_locked((const uint8_t*)data, strlen(data));
+        furi_string_printf(string, "%lu %s[%s][%s] " _FURI_LOG_CLR_RESET, furi_get_tick(), color,
+                           log_letter, tag);
+        const char *data = furi_string_get_cstr(string);
+        furi_log_tx_locked((const uint8_t *)data, strlen(data));
         // Keep the prefix buffer available for formatting the message.
         furi_string_left(string, 0);
 
@@ -169,49 +174,53 @@ void furi_log_print_format(FuriLogLevel level, const char* tag, const char* form
         va_end(args);
 
         data = furi_string_get_cstr(string);
-        furi_log_tx_locked((const uint8_t*)data, strlen(data));
+        furi_log_tx_locked((const uint8_t *)data, strlen(data));
         furi_string_free(string);
 
-        furi_log_tx_locked((const uint8_t*)"\r\n", 2);
+        furi_log_tx_locked((const uint8_t *)"\r\n", 2);
 
         furi_mutex_release(furi_log.mutex);
-    } while(0);
+    } while (0);
 }
 
-void furi_log_print_raw_format(FuriLogLevel level, const char* format, ...) {
-    if(level <= furi_log.log_level &&
-       furi_mutex_acquire(furi_log.mutex, FuriWaitForever) == FuriStatusOk) {
-        FuriString* string;
+void furi_log_print_raw_format(FuriLogLevel level, const char *format, ...)
+{
+    if (level <= furi_log.log_level &&
+        furi_mutex_acquire(furi_log.mutex, FuriWaitForever) == FuriStatusOk) {
+        FuriString *string;
         string = furi_string_alloc();
         va_list args;
         va_start(args, format);
         furi_string_vprintf(string, format, args);
         va_end(args);
 
-        const char* data = furi_string_get_cstr(string);
-        furi_log_tx_locked((const uint8_t*)data, strlen(data));
+        const char *data = furi_string_get_cstr(string);
+        furi_log_tx_locked((const uint8_t *)data, strlen(data));
         furi_string_free(string);
 
         furi_mutex_release(furi_log.mutex);
     }
 }
 
-void furi_log_set_level(FuriLogLevel level) {
+void furi_log_set_level(FuriLogLevel level)
+{
     furi_check(level <= FuriLogLevelTrace);
 
-    if(level == FuriLogLevelDefault) {
+    if (level == FuriLogLevelDefault) {
         level = FURI_LOG_LEVEL_DEFAULT;
     }
     furi_log.log_level = level;
 }
 
-FuriLogLevel furi_log_get_level(void) {
+FuriLogLevel furi_log_get_level(void)
+{
     return furi_log.log_level;
 }
 
-bool furi_log_level_to_string(FuriLogLevel level, const char** str) {
-    for(size_t i = 0; i < COUNT_OF(FURI_LOG_LEVEL_DESCRIPTIONS); i++) {
-        if(level == FURI_LOG_LEVEL_DESCRIPTIONS[i].level) {
+bool furi_log_level_to_string(FuriLogLevel level, const char **str)
+{
+    for (size_t i = 0; i < COUNT_OF(FURI_LOG_LEVEL_DESCRIPTIONS); i++) {
+        if (level == FURI_LOG_LEVEL_DESCRIPTIONS[i].level) {
             *str = FURI_LOG_LEVEL_DESCRIPTIONS[i].str;
             return true;
         }
@@ -219,9 +228,10 @@ bool furi_log_level_to_string(FuriLogLevel level, const char** str) {
     return false;
 }
 
-bool furi_log_level_from_string(const char* str, FuriLogLevel* level) {
-    for(size_t i = 0; i < COUNT_OF(FURI_LOG_LEVEL_DESCRIPTIONS); i++) {
-        if(strcmp(str, FURI_LOG_LEVEL_DESCRIPTIONS[i].str) == 0) {
+bool furi_log_level_from_string(const char *str, FuriLogLevel *level)
+{
+    for (size_t i = 0; i < COUNT_OF(FURI_LOG_LEVEL_DESCRIPTIONS); i++) {
+        if (strcmp(str, FURI_LOG_LEVEL_DESCRIPTIONS[i].str) == 0) {
             *level = FURI_LOG_LEVEL_DESCRIPTIONS[i].level;
             return true;
         }

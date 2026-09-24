@@ -6,4 +6,4 @@
 
 #define CLI_APPID "cli"
 
-void cli_main_commands_init(CliRegistry* registry);
+void cli_main_commands_init(CliRegistry *registry);

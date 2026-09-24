@@ -19,7 +19,7 @@ typedef struct ButtonMenu ButtonMenu;
 typedef struct ButtonMenuItem ButtonMenuItem;
 
 /** Callback for any button menu actions */
-typedef void (*ButtonMenuItemCallback)(void* context, int32_t index, InputType type);
+typedef void (*ButtonMenuItemCallback)(void *context, int32_t index, InputType type);
 
 /** Type of button. Difference in drawing buttons. */
 typedef enum {
@@ -33,13 +33,13 @@ typedef enum {
  *
  * @return     View instance that can be used for embedding
  */
-View* button_menu_get_view(ButtonMenu* button_menu);
+View *button_menu_get_view(ButtonMenu *button_menu);
 
 /** Clean button menu
  *
  * @param      button_menu  ButtonMenu instance
  */
-void button_menu_reset(ButtonMenu* button_menu);
+void button_menu_reset(ButtonMenu *button_menu);
 
 /** Add item to button menu instance
  *
@@ -55,39 +55,35 @@ void button_menu_reset(ButtonMenu* button_menu);
  *
  * @return     pointer to just-created item
  */
-ButtonMenuItem* button_menu_add_item(
-    ButtonMenu* button_menu,
-    const char* label,
-    int32_t index,
-    ButtonMenuItemCallback callback,
-    ButtonMenuItemType type,
-    void* callback_context);
+ButtonMenuItem *button_menu_add_item(ButtonMenu *button_menu, const char *label, int32_t index,
+                                     ButtonMenuItemCallback callback, ButtonMenuItemType type,
+                                     void *callback_context);
 
 /** Allocate and initialize new instance of ButtonMenu model
  *
  * @return     just-created ButtonMenu model
  */
-ButtonMenu* button_menu_alloc(void);
+ButtonMenu *button_menu_alloc(void);
 
 /** Free ButtonMenu element
  *
  * @param      button_menu  ButtonMenu instance
  */
-void button_menu_free(ButtonMenu* button_menu);
+void button_menu_free(ButtonMenu *button_menu);
 
 /** Set ButtonMenu header on top of canvas
  *
  * @param      button_menu  ButtonMenu instance
  * @param      header       header on the top of button menu
  */
-void button_menu_set_header(ButtonMenu* button_menu, const char* header);
+void button_menu_set_header(ButtonMenu *button_menu, const char *header);
 
 /** Set selected item
  *
  * @param      button_menu  ButtonMenu instance
  * @param      index        index of ButtonMenu to be selected
  */
-void button_menu_set_selected_item(ButtonMenu* button_menu, uint32_t index);
+void button_menu_set_selected_item(ButtonMenu *button_menu, uint32_t index);
 
 #ifdef __cplusplus
 }

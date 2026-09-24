@@ -14,13 +14,13 @@
 #include <furi/core/string.h>
 #include <furi/core/log.h>
 
-#define furi_check(x)   assert(x)
+#define furi_check(x) assert(x)
 #define FuriWaitForever UINT32_MAX
-#define FuriStatusOk    0
+#define FuriStatusOk 0
 #define FuriFlagWaitAny 0
 #define FuriFlagNoClear 2
-#define COUNT_OF(x)     (sizeof(x) / sizeof((x)[0]))
-#define FURI_IS_ISR()   false
+#define COUNT_OF(x) (sizeof(x) / sizeof((x)[0]))
+#define FURI_IS_ISR() false
 
 static unsigned mutex_acquisitions;
 
@@ -28,35 +28,38 @@ typedef struct {
     unsigned depth;
     bool recursive;
 } FuriMutex;
-enum {
-    FuriMutexTypeNormal,
-    FuriMutexTypeRecursive
-};
-static FuriMutex* furi_mutex_alloc(int type) {
-    FuriMutex* mutex = calloc(1, sizeof(*mutex));
+enum { FuriMutexTypeNormal, FuriMutexTypeRecursive };
+static FuriMutex *furi_mutex_alloc(int type)
+{
+    FuriMutex *mutex = calloc(1, sizeof(*mutex));
     assert(mutex);
     mutex->recursive = type == FuriMutexTypeRecursive;
     return mutex;
 }
-static int furi_mutex_acquire(FuriMutex* mutex, uint32_t timeout) {
+static int furi_mutex_acquire(FuriMutex *mutex, uint32_t timeout)
+{
     (void)timeout;
     ++mutex_acquisitions;
     assert(!mutex->depth || mutex->recursive);
     ++mutex->depth;
     return 0;
 }
-static int furi_mutex_release(FuriMutex* mutex) {
+static int furi_mutex_release(FuriMutex *mutex)
+{
     assert(mutex->depth);
     --mutex->depth;
     return 0;
 }
-static void* furi_mutex_get_owner(FuriMutex* mutex) {
+static void *furi_mutex_get_owner(FuriMutex *mutex)
+{
     return mutex->depth ? mutex : NULL;
 }
-static bool furi_kernel_is_running(void) {
+static bool furi_kernel_is_running(void)
+{
     return true;
 }
-static unsigned long furi_get_tick(void) {
+static unsigned long furi_get_tick(void)
+{
     return 42;
 }
 
@@ -65,24 +68,28 @@ typedef struct {
 } FuriEventFlag;
 static unsigned event_allocations, event_frees, event_waits, event_sets;
 static void (*wait_hook)(void);
-static FuriEventFlag* furi_event_flag_alloc(void) {
+static FuriEventFlag *furi_event_flag_alloc(void)
+{
     ++event_allocations;
     return calloc(1, sizeof(FuriEventFlag));
 }
-static void furi_event_flag_free(FuriEventFlag* event) {
+static void furi_event_flag_free(FuriEventFlag *event)
+{
     assert(event);
     ++event_frees;
     free(event);
 }
-static uint32_t furi_event_flag_set(FuriEventFlag* event, uint32_t bits) {
+static uint32_t furi_event_flag_set(FuriEventFlag *event, uint32_t bits)
+{
     ++event_sets;
     return event->bits |= bits;
 }
-static uint32_t
-    furi_event_flag_wait(FuriEventFlag* event, uint32_t bits, uint32_t options, uint32_t timeout) {
+static uint32_t furi_event_flag_wait(FuriEventFlag *event, uint32_t bits, uint32_t options,
+                                     uint32_t timeout)
+{
     assert(options == FuriFlagNoClear && timeout == FuriWaitForever);
     ++event_waits;
-    if(!(event->bits & bits)) {
+    if (!(event->bits & bits)) {
         assert(wait_hook);
         wait_hook();
     }
@@ -90,9 +97,10 @@ static uint32_t
     return event->bits;
 }
 static unsigned object_allocations;
-static void* object_alloc(size_t size) {
+static void *object_alloc(size_t size)
+{
     ++object_allocations;
-    void* ptr = calloc(1, size);
+    void *ptr = calloc(1, size);
     assert(ptr);
     return ptr;
 }
@@ -100,9 +108,10 @@ static void* object_alloc(size_t size) {
 /* PRODUCTION_CODE */
 
 static int payload;
-static void create_delayed(void) {
+static void create_delayed(void)
+{
     // Force dictionary growth while two opens are suspended.
-    for(unsigned i = 0; i < 128; ++i) {
+    for (unsigned i = 0; i < 128; ++i) {
         char name[32];
         snprintf(name, sizeof(name), "other-%u", i);
         furi_record_create(name, &payload);
@@ -110,14 +119,16 @@ static void create_delayed(void) {
     assert(!furi_record_destroy("delayed"));
     furi_record_create("delayed", &payload);
 }
-static void second_waiter(void) {
+static void second_waiter(void)
+{
     wait_hook = create_delayed;
     assert(furi_record_open("delayed") == &payload);
     furi_record_close("delayed");
 }
-static void test_records(void) {
+static void test_records(void)
+{
     furi_record_init();
-    for(unsigned i = 0; i < 100; ++i) {
+    for (unsigned i = 0; i < 100; ++i) {
         furi_record_create("ready", &payload);
         assert(furi_record_open("ready") == &payload);
         assert(furi_record_open("ready") == &payload);
@@ -136,7 +147,7 @@ static void test_records(void) {
     furi_record_close("delayed");
     assert(furi_record_destroy("delayed"));
     assert(event_frees == 1);
-    for(unsigned i = 0; i < 128; ++i) {
+    for (unsigned i = 0; i < 128; ++i) {
         char name[32];
         snprintf(name, sizeof(name), "other-%u", i);
         assert(furi_record_destroy(name));
@@ -145,8 +156,9 @@ static void test_records(void) {
     free(furi_record->mutex);
     free(furi_record);
 }
-static void test_strings(void) {
-    FuriString* value = furi_string_alloc_set_str("abc");
+static void test_strings(void)
+{
+    FuriString *value = furi_string_alloc_set_str("abc");
     unsigned before = object_allocations;
     assert(furi_string_cat_printf(value, "%s:%d", furi_string_get_cstr(value), 7) == 5);
     assert(strcmp(furi_string_get_cstr(value), "abcabc:7") == 0);
@@ -171,18 +183,20 @@ static void test_strings(void) {
 static char output[4096];
 static size_t output_size;
 static bool nested_log;
-static void capture(const uint8_t* data, size_t size, void* context) {
+static void capture(const uint8_t *data, size_t size, void *context)
+{
     assert(context == &payload);
     assert(output_size + size < sizeof(output));
     memcpy(output + output_size, data, size);
     output_size += size;
     output[output_size] = 0;
-    if(nested_log) {
+    if (nested_log) {
         nested_log = false;
         furi_log_print_raw_format(FuriLogLevelInfo, "%s", "nested");
     }
 }
-static void test_logging(void) {
+static void test_logging(void)
+{
     furi_log_init();
     FuriLogHandler handler = {.callback = capture, .context = &payload};
     assert(furi_log_add_handler(handler));
@@ -208,14 +222,15 @@ static void test_logging(void) {
     furi_log_print_raw_format(FuriLogLevelInfo, "%s", "outer");
     assert(strcmp(output, "outernested") == 0);
     output_size = 0;
-    furi_log_tx((const uint8_t*)"direct", 6);
+    furi_log_tx((const uint8_t *)"direct", 6);
     assert(strcmp(output, "direct") == 0);
     assert(furi_log_remove_handler(handler));
     assert(!furi_log_remove_handler(handler));
     FuriLogHandlersList_clear(furi_log.tx_handlers);
     free(furi_log.mutex);
 }
-int main(void) {
+int main(void)
+{
     test_records();
     test_strings();
     test_logging();

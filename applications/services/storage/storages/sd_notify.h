@@ -6,11 +6,11 @@
 extern "C" {
 #endif
 
-void sd_notify_wait(NotificationApp* notifications);
-void sd_notify_wait_off(NotificationApp* notifications);
-void sd_notify_success(NotificationApp* notifications);
-void sd_notify_eject(NotificationApp* notifications);
-void sd_notify_error(NotificationApp* notifications);
+void sd_notify_wait(NotificationApp *notifications);
+void sd_notify_wait_off(NotificationApp *notifications);
+void sd_notify_success(NotificationApp *notifications);
+void sd_notify_eject(NotificationApp *notifications);
+void sd_notify_error(NotificationApp *notifications);
 
 #ifdef __cplusplus
 }

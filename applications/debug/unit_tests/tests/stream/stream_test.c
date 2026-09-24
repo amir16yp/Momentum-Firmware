@@ -6,21 +6,22 @@
 #include <storage/storage.h>
 #include "../test.h" // IWYU pragma: keep
 
-static const char* stream_test_data = "I write differently from what I speak, "
+static const char *stream_test_data = "I write differently from what I speak, "
                                       "I speak differently from what I think, "
                                       "I think differently from the way I ought to think, "
                                       "and so it all proceeds into deepest darkness.";
 
-static const char* stream_test_left_data = "There are two cardinal human sins ";
-static const char* stream_test_right_data =
+static const char *stream_test_left_data = "There are two cardinal human sins ";
+static const char *stream_test_right_data =
     "from which all others derive: impatience and indolence.";
 
 #define FILESTREAM_PATH EXT_PATH(".tmp/unit_tests/filestream.str")
 
-MU_TEST_1(stream_composite_subtest, Stream* stream) {
+MU_TEST_1(stream_composite_subtest, Stream *stream)
+{
     const size_t data_size = 128;
     uint8_t data[data_size];
-    FuriString* string_lee;
+    FuriString *string_lee;
     string_lee = furi_string_alloc_set("lee");
 
     // test that stream is empty
@@ -63,7 +64,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_check(stream_read(stream, data, data_size) == 7);
-    mu_check(strcmp((char*)data, "1337_69") == 0);
+    mu_check(strcmp((char *)data, "1337_69") == 0);
 
     // test misc seeks
     mu_check(stream_seek(stream, 2, StreamOffsetFromStart));
@@ -107,7 +108,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
 
     // append char
     // "1337lee" -> "1337leet"
-    mu_check(stream_write(stream, (uint8_t*)"t", 1) == 1);
+    mu_check(stream_write(stream, (uint8_t *)"t", 1) == 1);
     mu_check(stream_size(stream) == 8);
     mu_check(stream_tell(stream) == 8);
     mu_check(stream_eof(stream));
@@ -116,7 +117,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_check(stream_read(stream, data, data_size) == 8);
-    mu_check(strcmp((char*)data, "1337leet") == 0);
+    mu_check(strcmp((char *)data, "1337leet") == 0);
     mu_check(stream_tell(stream) == 8);
     mu_check(stream_eof(stream));
 
@@ -154,7 +155,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_check(stream_read(stream, data, data_size) == 6);
-    mu_check(strcmp((char*)data, "dio666") == 0);
+    mu_check(strcmp((char *)data, "dio666") == 0);
 
     // clean and write cstring
     // "dio666" -> "" -> "1234567890"
@@ -171,7 +172,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_assert_int_eq(6, stream_read(stream, data, data_size));
-    mu_check(strcmp((char*)data, "167890") == 0);
+    mu_check(strcmp((char *)data, "167890") == 0);
 
     // write cstring
     // "167890" -> "167890It Was Me, Dio!"
@@ -188,7 +189,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_check(stream_read(stream, data, data_size) == 1);
-    mu_check(strcmp((char*)data, "1") == 0);
+    mu_check(strcmp((char *)data, "1") == 0);
 
     // write cstring from 0 pos, replacing 1 byte
     // "1" -> "Oh? You're roaching me?"
@@ -198,14 +199,14 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     // insert 11 bytes to 0 pos
     // "Oh? You're roaching me?" -> "Za Warudo! Oh? You're roaching me?"
     mu_check(stream_rewind(stream));
-    mu_check(stream_insert(stream, (uint8_t*)"Za Warudo! ", 11));
+    mu_check(stream_insert(stream, (uint8_t *)"Za Warudo! ", 11));
     mu_assert_int_eq(34, stream_size(stream));
 
     // read data
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_assert_int_eq(34, stream_read(stream, data, data_size));
-    mu_assert_string_eq("Za Warudo! Oh? You're roaching me?", (char*)data);
+    mu_assert_string_eq("Za Warudo! Oh? You're roaching me?", (char *)data);
 
     // insert cstring to 22 pos
     // "Za Warudo! Oh? You're roaching me?" -> "Za Warudo! Oh? You're approaching me?"
@@ -217,10 +218,11 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_assert_int_eq(37, stream_read(stream, data, data_size));
-    mu_assert_string_eq("Za Warudo! Oh? You're approaching me?", (char*)data);
+    mu_assert_string_eq("Za Warudo! Oh? You're approaching me?", (char *)data);
 
     // insert cstring to the end of the stream
-    // "Za Warudo! Oh? You're approaching me?" -> "Za Warudo! Oh? You're approaching me? It was me, Dio!"
+    // "Za Warudo! Oh? You're approaching me?" -> "Za Warudo! Oh? You're approaching me? It was me,
+    // Dio!"
     mu_check(stream_seek(stream, 0, StreamOffsetFromEnd));
     mu_check(stream_insert_cstring(stream, " It was me, Dio!"));
     mu_assert_int_eq(53, stream_size(stream));
@@ -229,7 +231,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_assert_int_eq(53, stream_read(stream, data, data_size));
-    mu_assert_string_eq("Za Warudo! Oh? You're approaching me? It was me, Dio!", (char*)data);
+    mu_assert_string_eq("Za Warudo! Oh? You're approaching me? It was me, Dio!", (char *)data);
 
     // delete 168430090 bytes from stream
     // and test that we can delete only 53
@@ -270,7 +272,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_assert_int_eq(18, stream_read(stream, data, data_size));
-    mu_assert_string_eq("dio666baba13zlo555", (char*)data);
+    mu_assert_string_eq("dio666baba13zlo555", (char *)data);
 
     // delete 6 chars from pos 6 and insert 1 chars
     // "dio666baba13zlo555" -> "dio666xzlo555"
@@ -283,7 +285,7 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     memset(data, 0, data_size);
     stream_rewind(stream);
     mu_check(stream_read(stream, data, data_size) == 13);
-    mu_assert_string_eq("dio666xzlo555", (char*)data);
+    mu_assert_string_eq("dio666xzlo555", (char *)data);
 
     // delete 9000 chars from pos 6 and insert 3 chars from string
     // "dio666xzlo555" -> "dio666777"
@@ -296,15 +298,16 @@ MU_TEST_1(stream_composite_subtest, Stream* stream) {
     furi_string_free(string_lee);
 }
 
-MU_TEST(stream_composite_test) {
+MU_TEST(stream_composite_test)
+{
     // test string stream
-    Stream* stream;
+    Stream *stream;
     stream = string_stream_alloc();
     MU_RUN_TEST_1(stream_composite_subtest, stream);
     stream_free(stream);
 
     // test file stream
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
     stream = file_stream_alloc(storage);
     mu_check(file_stream_open(stream, FILESTREAM_PATH, FSAM_READ_WRITE, FSOM_CREATE_ALWAYS));
     MU_RUN_TEST_1(stream_composite_subtest, stream);
@@ -319,21 +322,24 @@ MU_TEST(stream_composite_test) {
     furi_record_close(RECORD_STORAGE);
 }
 
-MU_TEST_1(stream_write_subtest, Stream* stream) {
+MU_TEST_1(stream_write_subtest, Stream *stream)
+{
     mu_assert_int_eq(strlen(stream_test_data), stream_write_cstring(stream, stream_test_data));
 }
 
-MU_TEST_1(stream_read_subtest, Stream* stream) {
+MU_TEST_1(stream_read_subtest, Stream *stream)
+{
     uint8_t data[256] = {0};
     mu_check(stream_rewind(stream));
     mu_assert_int_eq(strlen(stream_test_data), stream_read(stream, data, 256));
-    mu_assert_string_eq(stream_test_data, (const char*)data);
+    mu_assert_string_eq(stream_test_data, (const char *)data);
 }
 
-MU_TEST(stream_write_read_save_load_test) {
-    Stream* stream_orig = string_stream_alloc();
-    Stream* stream_copy = string_stream_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+MU_TEST(stream_write_read_save_load_test)
+{
+    Stream *stream_orig = string_stream_alloc();
+    Stream *stream_copy = string_stream_alloc();
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     // write, read
     MU_RUN_TEST_1(stream_write_subtest, stream_orig);
@@ -353,22 +359,23 @@ MU_TEST(stream_write_read_save_load_test) {
     stream_free(stream_orig);
 
     // load from file, read
-    Stream* stream_new = string_stream_alloc();
-    mu_assert_int_eq(
-        strlen(stream_test_data), stream_load_from_file(stream_new, storage, FILESTREAM_PATH));
+    Stream *stream_new = string_stream_alloc();
+    mu_assert_int_eq(strlen(stream_test_data),
+                     stream_load_from_file(stream_new, storage, FILESTREAM_PATH));
     MU_RUN_TEST_1(stream_read_subtest, stream_new);
     stream_free(stream_new);
 
     furi_record_close(RECORD_STORAGE);
 }
 
-MU_TEST_1(stream_split_subtest, Stream* stream) {
+MU_TEST_1(stream_split_subtest, Stream *stream)
+{
     stream_clean(stream);
     stream_write_cstring(stream, stream_test_left_data);
     stream_write_cstring(stream, stream_test_right_data);
 
-    Stream* stream_left = string_stream_alloc();
-    Stream* stream_right = string_stream_alloc();
+    Stream *stream_left = string_stream_alloc();
+    Stream *stream_right = string_stream_alloc();
 
     mu_check(stream_seek(stream, strlen(stream_test_left_data), StreamOffsetFromStart));
     mu_check(stream_split(stream, stream_left, stream_right));
@@ -376,25 +383,26 @@ MU_TEST_1(stream_split_subtest, Stream* stream) {
     uint8_t data[256] = {0};
     mu_check(stream_rewind(stream_left));
     mu_assert_int_eq(strlen(stream_test_left_data), stream_read(stream_left, data, 256));
-    mu_assert_string_eq(stream_test_left_data, (const char*)data);
+    mu_assert_string_eq(stream_test_left_data, (const char *)data);
 
     mu_check(stream_rewind(stream_right));
     mu_assert_int_eq(strlen(stream_test_right_data), stream_read(stream_right, data, 256));
-    mu_assert_string_eq(stream_test_right_data, (const char*)data);
+    mu_assert_string_eq(stream_test_right_data, (const char *)data);
 
     stream_free(stream_right);
     stream_free(stream_left);
 }
 
-MU_TEST(stream_split_test) {
+MU_TEST(stream_split_test)
+{
     // test string stream
-    Stream* stream;
+    Stream *stream;
     stream = string_stream_alloc();
     MU_RUN_TEST_1(stream_split_subtest, stream);
     stream_free(stream);
 
     // test file stream
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
     stream = file_stream_alloc(storage);
     mu_check(file_stream_open(stream, FILESTREAM_PATH, FSAM_READ_WRITE, FSOM_CREATE_ALWAYS));
     MU_RUN_TEST_1(stream_split_subtest, stream);
@@ -410,9 +418,10 @@ MU_TEST(stream_split_test) {
     furi_record_close(RECORD_STORAGE);
 }
 
-MU_TEST(stream_buffered_write_after_read_test) {
-    const char* prefix = "I write ";
-    const char* substr = "Hello there";
+MU_TEST(stream_buffered_write_after_read_test)
+{
+    const char *prefix = "I write ";
+    const char *substr = "Hello there";
 
     const size_t substr_len = strlen(substr);
     const size_t prefix_len = strlen(prefix);
@@ -421,42 +430,43 @@ MU_TEST(stream_buffered_write_after_read_test) {
     char buf[buf_size];
     memset(buf, 0, buf_size);
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    Stream* stream = buffered_file_stream_alloc(storage);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    Stream *stream = buffered_file_stream_alloc(storage);
     mu_check(
         buffered_file_stream_open(stream, FILESTREAM_PATH, FSAM_READ_WRITE, FSOM_CREATE_ALWAYS));
     mu_assert_int_eq(strlen(stream_test_data), stream_write_cstring(stream, stream_test_data));
     mu_check(stream_rewind(stream));
-    mu_assert_int_eq(prefix_len, stream_read(stream, (uint8_t*)buf, prefix_len));
+    mu_assert_int_eq(prefix_len, stream_read(stream, (uint8_t *)buf, prefix_len));
     mu_assert_string_eq(prefix, buf);
-    mu_assert_int_eq(substr_len, stream_write(stream, (uint8_t*)substr, substr_len));
+    mu_assert_int_eq(substr_len, stream_write(stream, (uint8_t *)substr, substr_len));
     mu_check(stream_seek(stream, prefix_len, StreamOffsetFromStart));
-    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t*)buf, substr_len));
+    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t *)buf, substr_len));
     mu_assert_string_eq(substr, buf);
 
     stream_free(stream);
     furi_record_close(RECORD_STORAGE);
 }
 
-MU_TEST(stream_buffered_large_file_test) {
-    FuriString* input_data;
-    FuriString* output_data;
+MU_TEST(stream_buffered_large_file_test)
+{
+    FuriString *input_data;
+    FuriString *output_data;
     input_data = furi_string_alloc();
     output_data = furi_string_alloc();
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     // generate test data consisting of several identical lines
     const size_t data_size = 4096;
     const size_t line_size = strlen(stream_test_data);
     const size_t rep_count = data_size / line_size + 1;
 
-    for(size_t i = 0; i < rep_count; ++i) {
+    for (size_t i = 0; i < rep_count; ++i) {
         furi_string_cat_printf(input_data, "%s\n", stream_test_data);
     }
 
     // write test data to file
-    Stream* stream = buffered_file_stream_alloc(storage);
+    Stream *stream = buffered_file_stream_alloc(storage);
     mu_check(
         buffered_file_stream_open(stream, FILESTREAM_PATH, FSAM_READ_WRITE, FSOM_CREATE_ALWAYS));
     mu_assert_int_eq(0, stream_size(stream));
@@ -478,29 +488,29 @@ MU_TEST(stream_buffered_large_file_test) {
     memset(buf, 0, substr_len + 1);
 
     // read substring
-    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t*)buf, substr_len));
+    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t *)buf, substr_len));
     mu_assert_string_eq(test_substr, buf);
     memset(buf, 0, substr_len + 1);
 
     // forward seek to cause a cache miss
-    mu_check(stream_seek(
-        stream, (line_size + 1) * (rep_count - 1) - substr_len, StreamOffsetFromCurrent));
+    mu_check(stream_seek(stream, (line_size + 1) * (rep_count - 1) - substr_len,
+                         StreamOffsetFromCurrent));
     // read same substring from a different line
-    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t*)buf, substr_len));
+    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t *)buf, substr_len));
     mu_assert_string_eq(test_substr, buf);
     memset(buf, 0, substr_len + 1);
 
     // backward seek to cause a cache miss
-    mu_check(stream_seek(
-        stream, -((line_size + 1) * (rep_count - 1) + substr_len), StreamOffsetFromCurrent));
-    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t*)buf, substr_len));
+    mu_check(stream_seek(stream, -((line_size + 1) * (rep_count - 1) + substr_len),
+                         StreamOffsetFromCurrent));
+    mu_assert_int_eq(substr_len, stream_read(stream, (uint8_t *)buf, substr_len));
     mu_assert_string_eq(test_substr, buf);
 
     // read the whole file
     mu_check(stream_rewind(stream));
-    FuriString* tmp;
+    FuriString *tmp;
     tmp = furi_string_alloc();
-    while(stream_read_line(stream, tmp)) {
+    while (stream_read_line(stream, tmp)) {
         furi_string_cat(output_data, tmp);
     }
     furi_string_free(tmp);
@@ -517,7 +527,8 @@ MU_TEST(stream_buffered_large_file_test) {
     furi_string_free(output_data);
 }
 
-MU_TEST_SUITE(stream_suite) {
+MU_TEST_SUITE(stream_suite)
+{
     MU_RUN_TEST(stream_write_read_save_load_test);
     MU_RUN_TEST(stream_composite_test);
     MU_RUN_TEST(stream_split_test);
@@ -525,7 +536,8 @@ MU_TEST_SUITE(stream_suite) {
     MU_RUN_TEST(stream_buffered_large_file_test);
 }
 
-int run_minunit_test_stream(void) {
+int run_minunit_test_stream(void)
+{
     MU_RUN_SUITE(stream_suite);
     return MU_EXIT_CODE;
 }

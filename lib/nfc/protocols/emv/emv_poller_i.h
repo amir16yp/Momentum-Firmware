@@ -28,24 +28,24 @@ typedef enum {
 } EmvPollerSessionState;
 
 struct EmvPoller {
-    Iso14443_4aPoller* iso14443_4a_poller;
+    Iso14443_4aPoller *iso14443_4a_poller;
     EmvPollerSessionState session_state;
     EmvPollerState state;
     EmvError error;
-    EmvData* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    EmvData *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
     EmvPollerEventData emv_event_data;
     EmvPollerEvent emv_event;
     NfcGenericEvent general_event;
     NfcGenericCallback callback;
     uint16_t records_mask;
-    void* context;
+    void *context;
 };
 
 EmvError emv_process_error(Iso14443_4aError error);
 
-const EmvData* emv_poller_get_data(EmvPoller* instance);
+const EmvData *emv_poller_get_data(EmvPoller *instance);
 
 #ifdef __cplusplus
 }

@@ -8,5 +8,5 @@ typedef struct {
     uint8_t charge_supress_percent;
 } PowerSettings;
 
-void power_settings_load(PowerSettings* settings);
-void power_settings_save(const PowerSettings* settings);
+void power_settings_load(PowerSettings *settings);
+void power_settings_save(const PowerSettings *settings);

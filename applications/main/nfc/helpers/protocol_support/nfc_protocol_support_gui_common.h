@@ -13,15 +13,15 @@
  * @brief Common submenu indices.
  */
 enum {
-    SubmenuIndexCommonSave, /**< Save menu option. */
+    SubmenuIndexCommonSave,    /**< Save menu option. */
     SubmenuIndexCommonEmulate, /**< Emulate menu option. */
-    SubmenuIndexCommonWrite, /**< Write menu option. */
-    SubmenuIndexCommonEdit, /**< Edit menu option. */
-    SubmenuIndexCommonInfo, /**< Info menu option. */
-    SubmenuIndexCommonRename, /**< Rename menu option. */
-    SubmenuIndexCommonDelete, /**< Delete menu option. */
+    SubmenuIndexCommonWrite,   /**< Write menu option. */
+    SubmenuIndexCommonEdit,    /**< Edit menu option. */
+    SubmenuIndexCommonInfo,    /**< Info menu option. */
+    SubmenuIndexCommonRename,  /**< Rename menu option. */
+    SubmenuIndexCommonDelete,  /**< Delete menu option. */
     SubmenuIndexCommonRestore, /**< Restore menu option. */
-    SubmenuIndexCommonMax, /**< Special value, internal use. */
+    SubmenuIndexCommonMax,     /**< Special value, internal use. */
 };
 
 #ifdef __cplusplus
@@ -36,7 +36,7 @@ extern "C" {
  * @param[in,out] context pointer to a user-defined context object.
  * @param[in] index index of the item that was activated.
  */
-void nfc_protocol_support_common_submenu_callback(void* context, uint32_t index);
+void nfc_protocol_support_common_submenu_callback(void *context, uint32_t index);
 
 /**
  * @brief Common widget callback.
@@ -47,10 +47,8 @@ void nfc_protocol_support_common_submenu_callback(void* context, uint32_t index)
  * @param[in] type type of press action.
  * @param[in,out] context pointer to a user-defined context object.
  */
-void nfc_protocol_support_common_widget_callback(
-    GuiButtonType result,
-    InputType type,
-    void* context);
+void nfc_protocol_support_common_widget_callback(GuiButtonType result, InputType type,
+                                                 void *context);
 
 /**
  * @brief Common byte input callback.
@@ -59,7 +57,7 @@ void nfc_protocol_support_common_widget_callback(
  *
  * @param[in,out] context pointer to a user-defined context object.
  */
-void nfc_protocol_support_common_byte_input_done_callback(void* context);
+void nfc_protocol_support_common_byte_input_done_callback(void *context);
 
 /**
  * @brief Common text input callback.
@@ -68,7 +66,7 @@ void nfc_protocol_support_common_byte_input_done_callback(void* context);
  *
  * @param[in,out] context pointer to a user-defined context object.
  */
-void nfc_protocol_support_common_text_input_done_callback(void* context);
+void nfc_protocol_support_common_text_input_done_callback(void *context);
 
 /**
  * @brief Empty on_enter() handler.
@@ -77,7 +75,7 @@ void nfc_protocol_support_common_text_input_done_callback(void* context);
  *
  * @param[in] instance pointer to the NFC application instance.
  */
-void nfc_protocol_support_common_on_enter_empty(NfcApp* instance);
+void nfc_protocol_support_common_on_enter_empty(NfcApp *instance);
 
 /**
  * @brief Empty on_event() handler.
@@ -88,7 +86,7 @@ void nfc_protocol_support_common_on_enter_empty(NfcApp* instance);
  * @param[in] event custom event type that has occurred.
  * @returns always true.
  */
-bool nfc_protocol_support_common_on_event_empty(NfcApp* instance, SceneManagerEvent event);
+bool nfc_protocol_support_common_on_event_empty(NfcApp *instance, SceneManagerEvent event);
 
 #ifdef __cplusplus
 }

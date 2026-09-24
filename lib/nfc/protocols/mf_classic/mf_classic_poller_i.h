@@ -14,21 +14,21 @@
 extern "C" {
 #endif
 
-#define MF_CLASSIC_FWT_FC                       (60000)
-#define NFC_FOLDER                              EXT_PATH("nfc")
-#define NFC_ASSETS_FOLDER                       EXT_PATH("nfc/assets")
-#define MF_CLASSIC_NESTED_ANALYZE_NT_COUNT      (5)
-#define MF_CLASSIC_NESTED_NT_HARD_MINIMUM       (3)
-#define MF_CLASSIC_NESTED_RETRY_MAXIMUM         (60)
-#define MF_CLASSIC_NESTED_HARD_RETRY_MAXIMUM    (3)
-#define MF_CLASSIC_NESTED_CALIBRATION_COUNT     (21)
-#define MF_CLASSIC_NESTED_LOGS_FILE_NAME        ".nested.log"
+#define MF_CLASSIC_FWT_FC (60000)
+#define NFC_FOLDER EXT_PATH("nfc")
+#define NFC_ASSETS_FOLDER EXT_PATH("nfc/assets")
+#define MF_CLASSIC_NESTED_ANALYZE_NT_COUNT (5)
+#define MF_CLASSIC_NESTED_NT_HARD_MINIMUM (3)
+#define MF_CLASSIC_NESTED_RETRY_MAXIMUM (60)
+#define MF_CLASSIC_NESTED_HARD_RETRY_MAXIMUM (3)
+#define MF_CLASSIC_NESTED_CALIBRATION_COUNT (21)
+#define MF_CLASSIC_NESTED_LOGS_FILE_NAME ".nested.log"
 #define MF_CLASSIC_NESTED_SYSTEM_DICT_FILE_NAME "mf_classic_dict_nested.nfc"
-#define MF_CLASSIC_NESTED_USER_DICT_FILE_NAME   "mf_classic_dict_user_nested.nfc"
-#define MF_CLASSIC_NESTED_LOGS_FILE_PATH        (NFC_FOLDER "/" MF_CLASSIC_NESTED_LOGS_FILE_NAME)
-#define MF_CLASSIC_NESTED_SYSTEM_DICT_PATH \
+#define MF_CLASSIC_NESTED_USER_DICT_FILE_NAME "mf_classic_dict_user_nested.nfc"
+#define MF_CLASSIC_NESTED_LOGS_FILE_PATH (NFC_FOLDER "/" MF_CLASSIC_NESTED_LOGS_FILE_NAME)
+#define MF_CLASSIC_NESTED_SYSTEM_DICT_PATH                                                         \
     (NFC_ASSETS_FOLDER "/" MF_CLASSIC_NESTED_SYSTEM_DICT_FILE_NAME)
-#define MF_CLASSIC_NESTED_USER_DICT_PATH \
+#define MF_CLASSIC_NESTED_USER_DICT_PATH                                                           \
     (NFC_ASSETS_FOLDER "/" MF_CLASSIC_NESTED_USER_DICT_FILE_NAME)
 #define SET_PACKED_BIT(arr, bit) ((arr)[(bit) / 8] |= (1 << ((bit) % 8)))
 #define GET_PACKED_BIT(arr, bit) ((arr)[(bit) / 8] & (1 << ((bit) % 8)))
@@ -57,16 +57,16 @@ extern const MfClassicBackdoorKeyPair mf_classic_backdoor_keys[];
 extern const size_t mf_classic_backdoor_keys_count;
 
 typedef struct {
-    uint32_t cuid; // Card UID
+    uint32_t cuid;   // Card UID
     uint8_t key_idx; // Key index
-    uint32_t nt; // Nonce
+    uint32_t nt;     // Nonce
     uint32_t nt_enc; // Encrypted nonce
-    uint8_t par; // Parity
-    uint16_t dist; // Distance
+    uint8_t par;     // Parity
+    uint16_t dist;   // Distance
 } MfClassicNestedNonce;
 
 typedef struct {
-    MfClassicNestedNonce* nonces;
+    MfClassicNestedNonce *nonces;
     size_t count;
 } MfClassicNestedNonceArray;
 
@@ -150,13 +150,13 @@ typedef struct {
     uint16_t d_min;
     uint16_t d_max;
     uint8_t attempt_count;
-    KeysDict* mf_classic_system_dict;
-    KeysDict* mf_classic_user_dict;
+    KeysDict *mf_classic_system_dict;
+    KeysDict *mf_classic_user_dict;
     // Hardnested
-    uint8_t nt_enc_msb
-        [32]; // Bit-packed array to track which unique most significant bytes have been seen (256 bits = 32 bytes)
-    uint16_t msb_par_sum; // Sum of parity bits for each unique most significant byte
-    uint16_t msb_count; // Number of unique most significant bytes seen
+    uint8_t nt_enc_msb[32]; // Bit-packed array to track which unique most significant bytes have
+                            // been seen (256 bits = 32 bytes)
+    uint16_t msb_par_sum;   // Sum of parity bits for each unique most significant byte
+    uint16_t msb_count;     // Number of unique most significant bytes seen
 } MfClassicPollerDictAttackContext;
 
 typedef struct {
@@ -175,7 +175,7 @@ typedef union {
 } MfClassicPollerModeContext;
 
 struct MfClassicPoller {
-    Iso14443_3aPoller* iso14443_3a_poller;
+    Iso14443_3aPoller *iso14443_3a_poller;
 
     MfClassicPollerState state;
     MfClassicAuthState auth_state;
@@ -186,18 +186,18 @@ struct MfClassicPoller {
     MfClassicPollerMode mode;
     MfClassicPollerModeContext mode_ctx;
 
-    Crypto1* crypto;
-    BitBuffer* tx_plain_buffer;
-    BitBuffer* tx_encrypted_buffer;
-    BitBuffer* rx_plain_buffer;
-    BitBuffer* rx_encrypted_buffer;
-    MfClassicData* data;
+    Crypto1 *crypto;
+    BitBuffer *tx_plain_buffer;
+    BitBuffer *tx_encrypted_buffer;
+    BitBuffer *rx_plain_buffer;
+    BitBuffer *rx_encrypted_buffer;
+    MfClassicData *data;
 
     NfcGenericEvent general_event;
     MfClassicPollerEvent mfc_event;
     MfClassicPollerEventData mfc_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 typedef struct {
@@ -253,9 +253,9 @@ typedef union {
 
 MfClassicError mf_classic_process_error(Iso14443_3aError error);
 
-MfClassicPoller* mf_classic_poller_alloc(Iso14443_3aPoller* iso14443_3a_poller);
+MfClassicPoller *mf_classic_poller_alloc(Iso14443_3aPoller *iso14443_3a_poller);
 
-void mf_classic_poller_free(MfClassicPoller* instance);
+void mf_classic_poller_free(MfClassicPoller *instance);
 
 #ifdef __cplusplus
 }

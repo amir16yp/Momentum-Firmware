@@ -35,26 +35,26 @@ typedef enum {
 
 typedef struct {
     // GUI
-    Gui* gui;
-    NotificationApp* notification;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
-    Storage* storage;
+    Gui *gui;
+    NotificationApp *notification;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
+    Storage *storage;
 
-    UpdaterMainView* main_view;
+    UpdaterMainView *main_view;
 
-    UpdateManifest* loaded_manifest;
+    UpdateManifest *loaded_manifest;
     UpdatePrepareResult preparation_result;
 
-    UpdateTask* update_task;
-    Widget* widget;
-    FuriString* startup_arg;
+    UpdateTask *update_task;
+    Widget *widget;
+    FuriString *startup_arg;
     int32_t idle_ticks;
 } Updater;
 
-Updater* updater_alloc(const char* arg);
+Updater *updater_alloc(const char *arg);
 
-void updater_free(Updater* updater);
+void updater_free(Updater *updater);
 
 #ifdef __cplusplus
 }

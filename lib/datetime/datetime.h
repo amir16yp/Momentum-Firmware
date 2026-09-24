@@ -9,13 +9,13 @@ extern "C" {
 
 typedef struct {
     // Time
-    uint8_t hour; /**< Hour in 24H format: 0-23 */
+    uint8_t hour;   /**< Hour in 24H format: 0-23 */
     uint8_t minute; /**< Minute: 0-59 */
     uint8_t second; /**< Second: 0-59 */
     // Date
-    uint8_t day; /**< Current day: 1-31 */
-    uint8_t month; /**< Current month: 1-12 */
-    uint16_t year; /**< Current year: 2000-2099 */
+    uint8_t day;     /**< Current day: 1-31 */
+    uint8_t month;   /**< Current month: 1-12 */
+    uint16_t year;   /**< Current year: 2000-2099 */
     uint8_t weekday; /**< Current weekday: 1-7 */
 } DateTime;
 
@@ -25,17 +25,17 @@ typedef struct {
  *
  * @return     { description_of_the_return_value }
  */
-bool datetime_validate_datetime(DateTime* datetime);
+bool datetime_validate_datetime(DateTime *datetime);
 
 /** Convert DateTime to UNIX timestamp
- * 
+ *
  * @warning    Mind timezone when perform conversion
  *
  * @param      datetime  The datetime (UTC)
  *
  * @return     UNIX Timestamp in seconds from UNIX epoch start
  */
-uint32_t datetime_datetime_to_timestamp(DateTime* datetime);
+uint32_t datetime_datetime_to_timestamp(DateTime *datetime);
 
 /** Convert UNIX timestamp to DateTime
  *
@@ -44,7 +44,7 @@ uint32_t datetime_datetime_to_timestamp(DateTime* datetime);
  * @param[in]  timestamp  UNIX Timestamp in seconds from UNIX epoch start
  * @param[out] datetime   The datetime (UTC)
  */
-void datetime_timestamp_to_datetime(uint32_t timestamp, DateTime* datetime);
+void datetime_timestamp_to_datetime(uint32_t timestamp, DateTime *datetime);
 
 /** Gets the number of days in the year according to the Gregorian calendar.
  *

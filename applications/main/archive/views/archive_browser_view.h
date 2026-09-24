@@ -15,11 +15,11 @@
 #include "../helpers/archive_favorites.h"
 #include "gui/modules/file_browser_worker.h"
 
-#define MAX_LEN_PX   110
+#define MAX_LEN_PX 110
 #define MAX_NAME_LEN 254
 #define FRAME_HEIGHT 12
-#define MENU_ITEMS   5u
-#define MOVE_OFFSET  5u
+#define MENU_ITEMS 5u
+#define MOVE_OFFSET 5u
 
 typedef enum {
     ArchiveTabFavorites,
@@ -74,7 +74,7 @@ typedef enum {
 
 typedef struct ArchiveBrowserView ArchiveBrowserView;
 
-typedef void (*ArchiveBrowserViewCallback)(ArchiveBrowserEvent event, void* context);
+typedef void (*ArchiveBrowserViewCallback)(ArchiveBrowserEvent event, void *context);
 
 typedef enum {
     BrowserActionBrowse,
@@ -83,23 +83,23 @@ typedef enum {
 } BrowserActionEnum;
 
 struct ArchiveBrowserView {
-    View* view;
-    BrowserWorker* worker;
+    View *view;
+    BrowserWorker *worker;
     bool worker_running;
     ArchiveBrowserViewCallback callback;
-    void* context;
-    FuriString* path;
-    FuriString* formatted_path;
+    void *context;
+    FuriString *path;
+    FuriString *formatted_path;
     bool path_changed;
     InputKey last_tab_switch_dir;
     bool is_root;
-    FuriTimer* scroll_timer;
-    File* disk_image;
-    const char* override_home_path;
+    FuriTimer *scroll_timer;
+    File *disk_image;
+    const char *override_home_path;
 };
 
 typedef struct {
-    ArchiveApp* archive;
+    ArchiveApp *archive;
     ArchiveTabEnum tab_idx;
     files_array_t files;
 
@@ -107,7 +107,7 @@ typedef struct {
     bool menu;
     bool menu_manage;
     bool menu_can_switch;
-    char* clipboard;
+    char *clipboard;
     bool clipboard_copy;
     menu_array_t context_menu;
 
@@ -125,12 +125,10 @@ typedef struct {
     int32_t button_held_for_ticks;
 } ArchiveBrowserViewModel;
 
-void archive_browser_set_callback(
-    ArchiveBrowserView* browser,
-    ArchiveBrowserViewCallback callback,
-    void* context);
+void archive_browser_set_callback(ArchiveBrowserView *browser, ArchiveBrowserViewCallback callback,
+                                  void *context);
 
-View* archive_browser_get_view(ArchiveBrowserView* browser);
+View *archive_browser_get_view(ArchiveBrowserView *browser);
 
-ArchiveBrowserView* browser_alloc(void);
-void browser_free(ArchiveBrowserView* browser);
+ArchiveBrowserView *browser_alloc(void);
+void browser_free(ArchiveBrowserView *browser);

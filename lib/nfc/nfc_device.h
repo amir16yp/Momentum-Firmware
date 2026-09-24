@@ -37,7 +37,7 @@ typedef struct NfcDevice NfcDevice;
  * @param[in] context user-defined context that was passed in nfc_device_set_loading_callback().
  * @param[in] state true if the data was loaded successfully, false otherwise.
  */
-typedef void (*NfcLoadingCallback)(void* context, bool state);
+typedef void (*NfcLoadingCallback)(void *context, bool state);
 
 /**
  * @brief Allocate an NfcDevice instance.
@@ -47,14 +47,14 @@ typedef void (*NfcLoadingCallback)(void* context, bool state);
  *
  * @returns pointer to the allocated instance.
  */
-NfcDevice* nfc_device_alloc(void);
+NfcDevice *nfc_device_alloc(void);
 
 /**
  * @brief Delete an NfcDevice instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-void nfc_device_free(NfcDevice* instance);
+void nfc_device_free(NfcDevice *instance);
 
 /**
  * @brief Clear an NfcDevice instance.
@@ -64,7 +64,7 @@ void nfc_device_free(NfcDevice* instance);
  *
  * @param[in,out] instance pointer to the instance to be cleared.
  */
-void nfc_device_clear(NfcDevice* instance);
+void nfc_device_clear(NfcDevice *instance);
 
 /**
  * @brief Reset an NfcDevice instance.
@@ -74,7 +74,7 @@ void nfc_device_clear(NfcDevice* instance);
  *
  * @param[in,out] instance pointer to the instance to be reset.
  */
-void nfc_device_reset(NfcDevice* instance);
+void nfc_device_reset(NfcDevice *instance);
 
 /**
  * @brief Get the protocol identifier from an NfcDevice instance.
@@ -84,7 +84,7 @@ void nfc_device_reset(NfcDevice* instance);
  * @param[in] instance pointer to the instance to be queried.
  * @returns protocol identifier contained in the instance.
  */
-NfcProtocol nfc_device_get_protocol(const NfcDevice* instance);
+NfcProtocol nfc_device_get_protocol(const NfcDevice *instance);
 
 /**
  * @brief Get the protocol-specific data from an NfcDevice instance.
@@ -113,7 +113,7 @@ NfcProtocol nfc_device_get_protocol(const NfcDevice* instance);
  * @param protocol protocol identifier of the data to be retrieved.
  * @returns pointer to the instance's data.
  */
-const NfcDeviceData* nfc_device_get_data(const NfcDevice* instance, NfcProtocol protocol);
+const NfcDeviceData *nfc_device_get_data(const NfcDevice *instance, NfcProtocol protocol);
 
 /**
  * @brief Get the protocol name by its identifier.
@@ -124,18 +124,19 @@ const NfcDeviceData* nfc_device_get_data(const NfcDevice* instance, NfcProtocol 
  * @param[in] protocol numeric identifier of the protocol in question.
  * @returns pointer to a statically allocated string containing the protocol name.
  */
-const char* nfc_device_get_protocol_name(NfcProtocol protocol);
+const char *nfc_device_get_protocol_name(NfcProtocol protocol);
 
 /**
  * @brief Get the name of an NfcDevice instance.
  *
- * The return value may change depending on the instance's internal state and the name_type parameter.
+ * The return value may change depending on the instance's internal state and the name_type
+ * parameter.
  *
  * @param[in] instance pointer to the instance to be queried.
  * @param[in] name_type type of the name to be displayed.
  * @returns pointer to a statically allocated string containing the device name.
  */
-const char* nfc_device_get_name(const NfcDevice* instance, NfcDeviceNameType name_type);
+const char *nfc_device_get_name(const NfcDevice *instance, NfcDeviceNameType name_type);
 
 /**
  * @brief Get the unique identifier (UID) of an NfcDevice instance.
@@ -147,7 +148,7 @@ const char* nfc_device_get_name(const NfcDevice* instance, NfcDeviceNameType nam
  * @param[out] uid_len pointer to the variable to contain the UID length.
  * @returns pointer to the byte array containing the instance's UID.
  */
-const uint8_t* nfc_device_get_uid(const NfcDevice* instance, size_t* uid_len);
+const uint8_t *nfc_device_get_uid(const NfcDevice *instance, size_t *uid_len);
 
 /**
  * @brief Set the unique identifier (UID) of an NfcDevice instance.
@@ -159,7 +160,7 @@ const uint8_t* nfc_device_get_uid(const NfcDevice* instance, size_t* uid_len);
  * @param[in] uid_len length of the UID.
  * @return true if the UID was valid and set, false otherwise.
  */
-bool nfc_device_set_uid(NfcDevice* instance, const uint8_t* uid, size_t uid_len);
+bool nfc_device_set_uid(NfcDevice *instance, const uint8_t *uid, size_t uid_len);
 
 /**
  * @brief Set the data and protocol of an NfcDevice instance.
@@ -170,13 +171,12 @@ bool nfc_device_set_uid(NfcDevice* instance, const uint8_t* uid, size_t uid_len)
  * @param[in] protocol numeric identifier of the data's protocol.
  * @param[in] protocol_data pointer to the protocol-specific data.
  */
-void nfc_device_set_data(
-    NfcDevice* instance,
-    NfcProtocol protocol,
-    const NfcDeviceData* protocol_data);
+void nfc_device_set_data(NfcDevice *instance, NfcProtocol protocol,
+                         const NfcDeviceData *protocol_data);
 
 /**
- * @brief Copy (export) the data contained in an NfcDevice instance to an outside NfcDeviceData instance.
+ * @brief Copy (export) the data contained in an NfcDevice instance to an outside NfcDeviceData
+ instance.
  *
  * This function does the inverse of nfc_device_set_data().
 
@@ -188,10 +188,8 @@ void nfc_device_set_data(
  * @param[in] protocol numeric identifier of the instance's protocol.
  * @param[out] protocol_data pointer to the destination data.
  */
-void nfc_device_copy_data(
-    const NfcDevice* instance,
-    NfcProtocol protocol,
-    NfcDeviceData* protocol_data);
+void nfc_device_copy_data(const NfcDevice *instance, NfcProtocol protocol,
+                          NfcDeviceData *protocol_data);
 
 /**
  * @brief Check whether an NfcDevice instance holds certain data.
@@ -217,10 +215,8 @@ void nfc_device_copy_data(
  * @param[in] protocol_data pointer to the NFC device data to be compared.
  * @returns true if the instance is of the right type and the data matches, false otherwise.
  */
-bool nfc_device_is_equal_data(
-    const NfcDevice* instance,
-    NfcProtocol protocol,
-    const NfcDeviceData* protocol_data);
+bool nfc_device_is_equal_data(const NfcDevice *instance, NfcProtocol protocol,
+                              const NfcDeviceData *protocol_data);
 
 /**
  * @brief Compare two NfcDevice instances to determine whether they are equal.
@@ -229,7 +225,7 @@ bool nfc_device_is_equal_data(
  * @param[in] other pointer to the second instance to be compared.
  * @returns true if both instances are considered equal, false otherwise.
  */
-bool nfc_device_is_equal(const NfcDevice* instance, const NfcDevice* other);
+bool nfc_device_is_equal(const NfcDevice *instance, const NfcDevice *other);
 
 /**
  * @brief Set the loading callback function.
@@ -238,10 +234,8 @@ bool nfc_device_is_equal(const NfcDevice* instance, const NfcDevice* other);
  * @param[in] callback pointer to a function to be called when the load operation completes.
  * @param[in] context pointer to a user-specific context (will be passed to the callback).
  */
-void nfc_device_set_loading_callback(
-    NfcDevice* instance,
-    NfcLoadingCallback callback,
-    void* context);
+void nfc_device_set_loading_callback(NfcDevice *instance, NfcLoadingCallback callback,
+                                     void *context);
 
 /**
  * @brief Save NFC device data form an NfcDevice instance to a file.
@@ -250,7 +244,7 @@ void nfc_device_set_loading_callback(
  * @param[in] path pointer to a character string with a full file path.
  * @returns true if the data was successfully saved, false otherwise.
  */
-bool nfc_device_save(NfcDevice* instance, const char* path);
+bool nfc_device_save(NfcDevice *instance, const char *path);
 
 /**
  * @brief Load NFC device data to an NfcDevice instance from a file.
@@ -259,7 +253,7 @@ bool nfc_device_save(NfcDevice* instance, const char* path);
  * @param[in] path pointer to a character string with a full file path.
  * @returns true if the data was successfully loaded, false otherwise.
  */
-bool nfc_device_load(NfcDevice* instance, const char* path);
+bool nfc_device_load(NfcDevice *instance, const char *path);
 
 #ifdef __cplusplus
 }

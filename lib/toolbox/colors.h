@@ -28,11 +28,11 @@ typedef union __attribute__((packed)) {
 _Static_assert(sizeof(RgbColor) == 3, "RGB color must be 24-bit");
 _Static_assert(sizeof(HsvColor) == 3, "HSV color must be 24-bit");
 
-int rgbcmp(const RgbColor* a, const RgbColor* b);
-int hsvcmp(const HsvColor* a, const HsvColor* b);
+int rgbcmp(const RgbColor *a, const RgbColor *b);
+int hsvcmp(const HsvColor *a, const HsvColor *b);
 
-void hsv2rgb(const HsvColor* hsv, RgbColor* rgb);
-void rgb2hsv(const RgbColor* rgb, HsvColor* hsv);
+void hsv2rgb(const HsvColor *hsv, RgbColor *rgb);
+void rgb2hsv(const RgbColor *rgb, HsvColor *hsv);
 
 #ifdef __cplusplus
 }

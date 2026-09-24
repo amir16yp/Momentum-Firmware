@@ -18,7 +18,7 @@ typedef enum {
 
     GuiLayerWindow, /**< Window layer, status bar is shown */
 
-    GuiLayerStatusBarLeft, /**< Status bar left-side layer, auto-layout */
+    GuiLayerStatusBarLeft,  /**< Status bar left-side layer, auto-layout */
     GuiLayerStatusBarRight, /**< Status bar right-side layer, auto-layout */
 
     GuiLayerFullscreen, /**< Fullscreen layer, no status bar */
@@ -27,11 +27,8 @@ typedef enum {
 } GuiLayer;
 
 /** Gui Canvas Commit Callback */
-typedef void (*GuiCanvasCommitCallback)(
-    uint8_t* data,
-    size_t size,
-    CanvasOrientation orientation,
-    void* context);
+typedef void (*GuiCanvasCommitCallback)(uint8_t *data, size_t size, CanvasOrientation orientation,
+                                        void *context);
 
 #define RECORD_GUI "gui"
 
@@ -45,7 +42,7 @@ typedef struct Gui Gui;
  * @param      view_port  ViewPort instance
  * @param[in]  layer      GuiLayer where to place view_port
  */
-void gui_add_view_port(Gui* gui, ViewPort* view_port, GuiLayer layer);
+void gui_add_view_port(Gui *gui, ViewPort *view_port, GuiLayer layer);
 
 /** Remove view_port from rendering tree
  *
@@ -54,7 +51,7 @@ void gui_add_view_port(Gui* gui, ViewPort* view_port, GuiLayer layer);
  * @param      gui        Gui instance
  * @param      view_port  ViewPort instance
  */
-void gui_remove_view_port(Gui* gui, ViewPort* view_port);
+void gui_remove_view_port(Gui *gui, ViewPort *view_port);
 
 /** Send ViewPort to the front
  *
@@ -63,7 +60,7 @@ void gui_remove_view_port(Gui* gui, ViewPort* view_port);
  * @param      gui        Gui instance
  * @param      view_port  ViewPort instance
  */
-void gui_view_port_send_to_front(Gui* gui, ViewPort* view_port);
+void gui_view_port_send_to_front(Gui *gui, ViewPort *view_port);
 
 /** Send ViewPort to the back
  *
@@ -72,7 +69,7 @@ void gui_view_port_send_to_front(Gui* gui, ViewPort* view_port);
  * @param      gui        Gui instance
  * @param      view_port  ViewPort instance
  */
-void gui_view_port_send_to_back(Gui* gui, ViewPort* view_port);
+void gui_view_port_send_to_back(Gui *gui, ViewPort *view_port);
 
 /** Add gui canvas commit callback
  *
@@ -83,7 +80,7 @@ void gui_view_port_send_to_back(Gui* gui, ViewPort* view_port);
  * @param      callback  GuiCanvasCommitCallback
  * @param      context   GuiCanvasCommitCallback context
  */
-void gui_add_framebuffer_callback(Gui* gui, GuiCanvasCommitCallback callback, void* context);
+void gui_add_framebuffer_callback(Gui *gui, GuiCanvasCommitCallback callback, void *context);
 
 /** Remove gui canvas commit callback
  *
@@ -91,14 +88,14 @@ void gui_add_framebuffer_callback(Gui* gui, GuiCanvasCommitCallback callback, vo
  * @param      callback  GuiCanvasCommitCallback
  * @param      context   GuiCanvasCommitCallback context
  */
-void gui_remove_framebuffer_callback(Gui* gui, GuiCanvasCommitCallback callback, void* context);
+void gui_remove_framebuffer_callback(Gui *gui, GuiCanvasCommitCallback callback, void *context);
 
 /** Get gui canvas frame buffer size
  * *
  * @param      gui       Gui instance
  * @return     size_t    size of frame buffer in bytes
  */
-size_t gui_get_framebuffer_size(const Gui* gui);
+size_t gui_get_framebuffer_size(const Gui *gui);
 
 /** Set hidden statusbar
  *
@@ -107,7 +104,7 @@ size_t gui_get_framebuffer_size(const Gui* gui);
  * @param      gui       Gui instance
  * @param      hinned    bool, true if hidden
  */
-void gui_set_hide_statusbar(Gui* gui, bool hidden);
+void gui_set_hide_statusbar(Gui *gui, bool hidden);
 
 /** Set lockdown mode
  *
@@ -117,24 +114,24 @@ void gui_set_hide_statusbar(Gui* gui, bool hidden);
  * @param      gui       Gui instance
  * @param      lockdown  bool, true if enabled
  */
-void gui_set_lockdown(Gui* gui, bool lockdown);
+void gui_set_lockdown(Gui *gui, bool lockdown);
 
 /** Inhibit lockdown mode
- * 
+ *
  * Lockdown mode can be inhibited by calling this function with inhibit set to true.
  * This is used to show information even when flipper is locked.
- * 
+ *
  * @param      gui       Gui instance
  * @param      inhibit   true to inhibit lockdown mode
  */
-void gui_set_lockdown_inhibit(Gui* gui, bool inhibit);
+void gui_set_lockdown_inhibit(Gui *gui, bool inhibit);
 
 /** Check if Gui is in lockdown mode
- * 
+ *
  * @param      gui       Gui instance
  * @return     bool      true if Gui is in lockdown mode
  */
-bool gui_is_lockdown(const Gui* gui);
+bool gui_is_lockdown(const Gui *gui);
 
 /** Acquire Direct Draw lock and get Canvas instance
  *
@@ -147,7 +144,7 @@ bool gui_is_lockdown(const Gui* gui);
  *
  * @return     Canvas instance
  */
-Canvas* gui_direct_draw_acquire(Gui* gui);
+Canvas *gui_direct_draw_acquire(Gui *gui);
 
 /** Release Direct Draw Lock
  *
@@ -156,7 +153,7 @@ Canvas* gui_direct_draw_acquire(Gui* gui);
  *
  * @param      gui   Gui instance
  */
-void gui_direct_draw_release(Gui* gui);
+void gui_direct_draw_release(Gui *gui);
 
 #ifdef __cplusplus
 }

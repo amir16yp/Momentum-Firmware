@@ -34,8 +34,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Iso14443_4aPollerEventType type; /**< Type of emmitted event. */
-    Iso14443_4aPollerEventData* data; /**< Pointer to event specific data. */
+    Iso14443_4aPollerEventType type;  /**< Type of emmitted event. */
+    Iso14443_4aPollerEventData *data; /**< Pointer to event specific data. */
 } Iso14443_4aPollerEvent;
 
 /**
@@ -51,19 +51,16 @@ typedef struct {
  * @param[out] rx_buffer pointer to the buffer to be filled with received data.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError iso14443_4a_poller_send_block(
-    Iso14443_4aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4aError iso14443_4a_poller_send_block(Iso14443_4aPoller *instance,
+                                               const BitBuffer *tx_buffer, BitBuffer *rx_buffer);
 
-Iso14443_4aError iso14443_4a_poller_send_block_pwt_ext(
-    Iso14443_4aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4aError iso14443_4a_poller_send_block_pwt_ext(Iso14443_4aPoller *instance,
+                                                       const BitBuffer *tx_buffer,
+                                                       BitBuffer *rx_buffer);
 
 /**
  * @brief Transmit and receive Iso14443_4a chained block in poller mode. Also it
- * automatically modifies PCB packet byte with appropriate bits then resets them back 
+ * automatically modifies PCB packet byte with appropriate bits then resets them back
  *
  * Must ONLY be used inside the callback function.
  *
@@ -75,10 +72,9 @@ Iso14443_4aError iso14443_4a_poller_send_block_pwt_ext(
  * @param[out] rx_buffer pointer to the buffer to be filled with received data.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError iso14443_4a_poller_send_chain_block(
-    Iso14443_4aPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4aError iso14443_4a_poller_send_chain_block(Iso14443_4aPoller *instance,
+                                                     const BitBuffer *tx_buffer,
+                                                     BitBuffer *rx_buffer);
 
 /**
  * @brief Transmit Iso14443_4a R-block in poller mode. This block never contains
@@ -95,11 +91,10 @@ Iso14443_4aError iso14443_4a_poller_send_chain_block(
  * @param[out] rx_buffer pointer to the buffer to be filled with received data.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError iso14443_4a_poller_send_receive_ready_block(
-    Iso14443_4aPoller* instance,
-    bool acknowledged,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4aError iso14443_4a_poller_send_receive_ready_block(Iso14443_4aPoller *instance,
+                                                             bool acknowledged,
+                                                             const BitBuffer *tx_buffer,
+                                                             BitBuffer *rx_buffer);
 
 /**
  * @brief Transmit Iso14443_4a S-block in poller mode. S-block used to exchange control
@@ -118,11 +113,10 @@ Iso14443_4aError iso14443_4a_poller_send_receive_ready_block(
  * @param[out] rx_buffer pointer to the buffer to be filled with received data.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError iso14443_4a_poller_send_supervisory_block(
-    Iso14443_4aPoller* instance,
-    bool deselect,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4aError iso14443_4a_poller_send_supervisory_block(Iso14443_4aPoller *instance,
+                                                           bool deselect,
+                                                           const BitBuffer *tx_buffer,
+                                                           BitBuffer *rx_buffer);
 
 /**
  * @brief Send HALT command to the card.
@@ -134,7 +128,7 @@ Iso14443_4aError iso14443_4a_poller_send_supervisory_block(
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError iso14443_4a_poller_halt(Iso14443_4aPoller* instance);
+Iso14443_4aError iso14443_4a_poller_halt(Iso14443_4aPoller *instance);
 
 /**
  * @brief Read Answer To Select (ATS) from the card.
@@ -147,8 +141,7 @@ Iso14443_4aError iso14443_4a_poller_halt(Iso14443_4aPoller* instance);
  * @param[out] data pointer to the buffer to be filled with ATS data.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError
-    iso14443_4a_poller_read_ats(Iso14443_4aPoller* instance, Iso14443_4aAtsData* data);
+Iso14443_4aError iso14443_4a_poller_read_ats(Iso14443_4aPoller *instance, Iso14443_4aAtsData *data);
 
 #ifdef __cplusplus
 }

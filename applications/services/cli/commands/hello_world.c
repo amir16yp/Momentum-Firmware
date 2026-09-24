@@ -1,6 +1,7 @@
 #include "../cli_main_commands.h"
 
-static void execute(PipeSide* pipe, FuriString* args, void* context) {
+static void execute(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);

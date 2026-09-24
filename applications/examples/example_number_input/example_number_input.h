@@ -22,12 +22,12 @@ typedef enum {
 } ExampleNumberInputViewId;
 
 typedef struct {
-    Gui* gui;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    Gui *gui;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    NumberInput* number_input;
-    DialogEx* dialog_ex;
+    NumberInput *number_input;
+    DialogEx *dialog_ex;
 
     int32_t current_number;
     int32_t min_value;

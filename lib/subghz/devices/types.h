@@ -12,35 +12,35 @@
 
 #include <flipper_application/flipper_application.h>
 
-#define SUBGHZ_RADIO_DEVICE_PLUGIN_APP_ID      "subghz_radio_device"
+#define SUBGHZ_RADIO_DEVICE_PLUGIN_APP_ID "subghz_radio_device"
 #define SUBGHZ_RADIO_DEVICE_PLUGIN_API_VERSION 1
 
 typedef struct SubGhzDeviceRegistry SubGhzDeviceRegistry;
 typedef struct SubGhzDevice SubGhzDevice;
 typedef struct SubGhzDeviceConf SubGhzDeviceConf;
 
-typedef bool (*SubGhzBegin)(SubGhzDeviceConf* conf);
+typedef bool (*SubGhzBegin)(SubGhzDeviceConf *conf);
 typedef void (*SubGhzEnd)(void);
 typedef bool (*SubGhzIsConnect)(void);
 typedef void (*SubGhzReset)(void);
 typedef void (*SubGhzSleep)(void);
 typedef void (*SubGhzIdle)(void);
-typedef void (*SubGhzLoadPreset)(FuriHalSubGhzPreset preset, uint8_t* preset_data);
+typedef void (*SubGhzLoadPreset)(FuriHalSubGhzPreset preset, uint8_t *preset_data);
 typedef uint32_t (*SubGhzSetFrequency)(uint32_t frequency);
 typedef bool (*SubGhzIsFrequencyValid)(uint32_t frequency);
 
-typedef void (*SubGhzSetAsyncMirrorPin)(const GpioPin* gpio);
-typedef const GpioPin* (*SubGhzGetDataGpio)(void);
+typedef void (*SubGhzSetAsyncMirrorPin)(const GpioPin *gpio);
+typedef const GpioPin *(*SubGhzGetDataGpio)(void);
 
 typedef bool (*SubGhzSetTx)(void);
 typedef void (*SubGhzFlushTx)(void);
-typedef bool (*SubGhzStartAsyncTx)(void* callback, void* context);
+typedef bool (*SubGhzStartAsyncTx)(void *callback, void *context);
 typedef bool (*SubGhzIsAsyncCompleteTx)(void);
 typedef void (*SubGhzStopAsyncTx)(void);
 
 typedef void (*SubGhzSetRx)(void);
 typedef void (*SubGhzFlushRx)(void);
-typedef void (*SubGhzStartAsyncRx)(void* callback, void* context);
+typedef void (*SubGhzStartAsyncRx)(void *callback, void *context);
 typedef void (*SubGhzStopAsyncRx)(void);
 
 typedef float (*SubGhzGetRSSI)(void);
@@ -48,8 +48,8 @@ typedef uint8_t (*SubGhzGetLQI)(void);
 
 typedef bool (*SubGhzRxPipeNotEmpty)(void);
 typedef bool (*SubGhzRxIsDataCrcValid)(void);
-typedef void (*SubGhzReadPacket)(uint8_t* data, uint8_t* size);
-typedef void (*SubGhzWritePacket)(const uint8_t* data, uint8_t size);
+typedef void (*SubGhzReadPacket)(uint8_t *data, uint8_t *size);
+typedef void (*SubGhzWritePacket)(const uint8_t *data, uint8_t size);
 
 typedef SubGhzTx (*SubGhzCheckTx)(uint32_t frequency);
 
@@ -91,8 +91,8 @@ typedef struct {
 } SubGhzDeviceInterconnect;
 
 struct SubGhzDevice {
-    const char* name;
-    const SubGhzDeviceInterconnect* interconnect;
+    const char *name;
+    const SubGhzDeviceInterconnect *interconnect;
 };
 
 struct SubGhzDeviceConf {

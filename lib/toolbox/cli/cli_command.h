@@ -16,13 +16,12 @@ extern "C" {
 #define CLI_PLUGIN_API_VERSION 1
 
 typedef enum {
-    CliCommandFlagDefault = 0, /**< Default */
-    CliCommandFlagParallelSafe = (1 << 0), /**< Safe to run in parallel with other apps */
-    CliCommandFlagInsomniaSafe = (1 << 1), /**< Safe to run with insomnia mode on */
+    CliCommandFlagDefault = 0,                /**< Default */
+    CliCommandFlagParallelSafe = (1 << 0),    /**< Safe to run in parallel with other apps */
+    CliCommandFlagInsomniaSafe = (1 << 1),    /**< Safe to run with insomnia mode on */
     CliCommandFlagDontAttachStdio = (1 << 2), /**< Do no attach I/O pipe to thread stdio */
-    CliCommandFlagUseShellThread =
-        (1
-         << 3), /**< Don't start a separate thread to run the command in. Incompatible with DontAttachStdio */
+    CliCommandFlagUseShellThread = (1 << 3),  /**< Don't start a separate thread to run the command
+                                                 in. Incompatible with DontAttachStdio */
 
     // internal flags (do not set them yourselves!)
 
@@ -44,10 +43,10 @@ typedef enum {
  * @param [in] args     String with what was passed after the command
  * @param [in] context  Whatever you provided to `cli_add_command`
  */
-typedef void (*CliCommandExecuteCallback)(PipeSide* pipe, FuriString* args, void* context);
+typedef void (*CliCommandExecuteCallback)(PipeSide *pipe, FuriString *args, void *context);
 
 typedef struct {
-    char* name;
+    char *name;
     CliCommandExecuteCallback execute_callback;
     CliCommandFlag flags;
     size_t stack_depth;
@@ -57,9 +56,9 @@ typedef struct {
  * @brief Configuration for locating external commands
  */
 typedef struct {
-    const char* search_directory; //<! The directory to look in
-    const char* fal_prefix; //<! File name prefix that commands should have
-    const char* appid; //<! Expected plugin-reported appid
+    const char *search_directory; //<! The directory to look in
+    const char *fal_prefix;       //<! File name prefix that commands should have
+    const char *appid;            //<! Expected plugin-reported appid
 } CliCommandExternalConfig;
 
 /**
@@ -70,7 +69,7 @@ typedef struct {
  *          thread's stdio
  * @warning This function will consume 0 or 1 bytes from the pipe
  */
-bool cli_is_pipe_broken_or_is_etx_next_char(PipeSide* side);
+bool cli_is_pipe_broken_or_is_etx_next_char(PipeSide *side);
 
 /** Print unified cmd usage tip
  *
@@ -78,7 +77,7 @@ bool cli_is_pipe_broken_or_is_etx_next_char(PipeSide* side);
  * @param      usage  usage tip
  * @param      arg    arg passed by user
  */
-void cli_print_usage(const char* cmd, const char* usage, const char* arg);
+void cli_print_usage(const char *cmd, const char *usage, const char *arg);
 
 /**
  * @brief Pause for a specified duration or until Ctrl+C is pressed or the
@@ -93,24 +92,25 @@ void cli_print_usage(const char* cmd, const char* usage, const char* arg);
  *          thread's stdio.
  * @warning This function will consume 0 or 1 bytes from the pipe.
  */
-bool cli_sleep(PipeSide* side, uint32_t duration_in_ms);
+bool cli_sleep(PipeSide *side, uint32_t duration_in_ms);
 
-#define CLI_COMMAND_INTERFACE(name, execute_callback, flags, stack_depth, app_id) \
-    static const CliCommandDescriptor cli_##name##_desc = {                       \
-        #name,                                                                    \
-        &execute_callback,                                                        \
-        flags,                                                                    \
-        stack_depth,                                                              \
-    };                                                                            \
-                                                                                  \
-    static const FlipperAppPluginDescriptor plugin_descriptor_##name = {          \
-        .appid = app_id,                                                          \
-        .ep_api_version = CLI_PLUGIN_API_VERSION,                                 \
-        .entry_point = &cli_##name##_desc,                                        \
-    };                                                                            \
-                                                                                  \
-    const FlipperAppPluginDescriptor* cli_##name##_ep(void) {                     \
-        return &plugin_descriptor_##name;                                         \
+#define CLI_COMMAND_INTERFACE(name, execute_callback, flags, stack_depth, app_id)                  \
+    static const CliCommandDescriptor cli_##name##_desc = {                                        \
+        #name,                                                                                     \
+        &execute_callback,                                                                         \
+        flags,                                                                                     \
+        stack_depth,                                                                               \
+    };                                                                                             \
+                                                                                                   \
+    static const FlipperAppPluginDescriptor plugin_descriptor_##name = {                           \
+        .appid = app_id,                                                                           \
+        .ep_api_version = CLI_PLUGIN_API_VERSION,                                                  \
+        .entry_point = &cli_##name##_desc,                                                         \
+    };                                                                                             \
+                                                                                                   \
+    const FlipperAppPluginDescriptor *cli_##name##_ep(void)                                        \
+    {                                                                                              \
+        return &plugin_descriptor_##name;                                                          \
     }
 
 #ifdef __cplusplus

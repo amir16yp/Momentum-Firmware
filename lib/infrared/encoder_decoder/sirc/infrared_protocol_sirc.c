@@ -51,12 +51,13 @@ static const InfraredProtocolVariant infrared_protocol_variant_sirc20 = {
     .repeat_count = INFRARED_SIRC_REPEAT_COUNT_MIN,
 };
 
-const InfraredProtocolVariant* infrared_protocol_sirc_get_variant(InfraredProtocol protocol) {
-    if(protocol == InfraredProtocolSIRC)
+const InfraredProtocolVariant *infrared_protocol_sirc_get_variant(InfraredProtocol protocol)
+{
+    if (protocol == InfraredProtocolSIRC)
         return &infrared_protocol_variant_sirc;
-    else if(protocol == InfraredProtocolSIRC15)
+    else if (protocol == InfraredProtocolSIRC15)
         return &infrared_protocol_variant_sirc15;
-    else if(protocol == InfraredProtocolSIRC20)
+    else if (protocol == InfraredProtocolSIRC20)
         return &infrared_protocol_variant_sirc20;
     else
         return NULL;

@@ -28,14 +28,14 @@ enum BtSettingsCustomEvent {
 
 typedef struct {
     BtSettings settings;
-    Bt* bt;
-    Gui* gui;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    Bt *bt;
+    Gui *gui;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    VariableItemList* var_item_list;
-    DialogEx* dialog;
-    Popup* popup;
+    VariableItemList *var_item_list;
+    DialogEx *dialog;
+    Popup *popup;
 } BtSettingsApp;
 
 typedef enum {

@@ -55,14 +55,14 @@ void furi_hal_i2c_init(void);
  *
  * @param      handle  Pointer to FuriHalI2cBusHandle instance
  */
-void furi_hal_i2c_acquire(const FuriHalI2cBusHandle* handle);
+void furi_hal_i2c_acquire(const FuriHalI2cBusHandle *handle);
 
 /** Release I2C bus handle
- * 
+ *
  * @param      handle  Pointer to FuriHalI2cBusHandle instance acquired in
  *                     `furi_hal_i2c_acquire`
  */
-void furi_hal_i2c_release(const FuriHalI2cBusHandle* handle);
+void furi_hal_i2c_release(const FuriHalI2cBusHandle *handle);
 
 /** Perform I2C TX transfer
  *
@@ -74,12 +74,8 @@ void furi_hal_i2c_release(const FuriHalI2cBusHandle* handle);
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_tx(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t address,
-    const uint8_t* data,
-    size_t size,
-    uint32_t timeout);
+bool furi_hal_i2c_tx(const FuriHalI2cBusHandle *handle, uint8_t address, const uint8_t *data,
+                     size_t size, uint32_t timeout);
 
 /**
  * Perform I2C TX transfer, with additional settings.
@@ -95,15 +91,9 @@ bool furi_hal_i2c_tx(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_tx_ext(
-    const FuriHalI2cBusHandle* handle,
-    uint16_t address,
-    bool ten_bit,
-    const uint8_t* data,
-    size_t size,
-    FuriHalI2cBegin begin,
-    FuriHalI2cEnd end,
-    uint32_t timeout);
+bool furi_hal_i2c_tx_ext(const FuriHalI2cBusHandle *handle, uint16_t address, bool ten_bit,
+                         const uint8_t *data, size_t size, FuriHalI2cBegin begin, FuriHalI2cEnd end,
+                         uint32_t timeout);
 
 /** Perform I2C RX transfer
  *
@@ -115,12 +105,8 @@ bool furi_hal_i2c_tx_ext(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_rx(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t address,
-    uint8_t* data,
-    size_t size,
-    uint32_t timeout);
+bool furi_hal_i2c_rx(const FuriHalI2cBusHandle *handle, uint8_t address, uint8_t *data, size_t size,
+                     uint32_t timeout);
 
 /** Perform I2C RX transfer, with additional settings.
  *
@@ -135,15 +121,9 @@ bool furi_hal_i2c_rx(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_rx_ext(
-    const FuriHalI2cBusHandle* handle,
-    uint16_t address,
-    bool ten_bit,
-    uint8_t* data,
-    size_t size,
-    FuriHalI2cBegin begin,
-    FuriHalI2cEnd end,
-    uint32_t timeout);
+bool furi_hal_i2c_rx_ext(const FuriHalI2cBusHandle *handle, uint16_t address, bool ten_bit,
+                         uint8_t *data, size_t size, FuriHalI2cBegin begin, FuriHalI2cEnd end,
+                         uint32_t timeout);
 
 /** Perform I2C TX and RX transfers
  *
@@ -157,14 +137,8 @@ bool furi_hal_i2c_rx_ext(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_trx(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t address,
-    const uint8_t* tx_data,
-    size_t tx_size,
-    uint8_t* rx_data,
-    size_t rx_size,
-    uint32_t timeout);
+bool furi_hal_i2c_trx(const FuriHalI2cBusHandle *handle, uint8_t address, const uint8_t *tx_data,
+                      size_t tx_size, uint8_t *rx_data, size_t rx_size, uint32_t timeout);
 
 /** Check if I2C device presents on bus
  *
@@ -174,10 +148,8 @@ bool furi_hal_i2c_trx(
  *
  * @return     true if device present and is ready, false otherwise
  */
-bool furi_hal_i2c_is_device_ready(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint32_t timeout);
+bool furi_hal_i2c_is_device_ready(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr,
+                                  uint32_t timeout);
 
 /** Perform I2C device register read (8-bit)
  *
@@ -189,12 +161,8 @@ bool furi_hal_i2c_is_device_ready(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_read_reg_8(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t reg_addr,
-    uint8_t* data,
-    uint32_t timeout);
+bool furi_hal_i2c_read_reg_8(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr, uint8_t reg_addr,
+                             uint8_t *data, uint32_t timeout);
 
 /** Perform I2C device register read (16-bit)
  *
@@ -206,12 +174,8 @@ bool furi_hal_i2c_read_reg_8(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_read_reg_16(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t reg_addr,
-    uint16_t* data,
-    uint32_t timeout);
+bool furi_hal_i2c_read_reg_16(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr, uint8_t reg_addr,
+                              uint16_t *data, uint32_t timeout);
 
 /** Perform I2C device memory read
  *
@@ -224,13 +188,8 @@ bool furi_hal_i2c_read_reg_16(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_read_mem(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t mem_addr,
-    uint8_t* data,
-    size_t len,
-    uint32_t timeout);
+bool furi_hal_i2c_read_mem(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr, uint8_t mem_addr,
+                           uint8_t *data, size_t len, uint32_t timeout);
 
 /** Perform I2C device register write (8-bit)
  *
@@ -242,12 +201,8 @@ bool furi_hal_i2c_read_mem(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_write_reg_8(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t reg_addr,
-    uint8_t data,
-    uint32_t timeout);
+bool furi_hal_i2c_write_reg_8(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr, uint8_t reg_addr,
+                              uint8_t data, uint32_t timeout);
 
 /** Perform I2C device register write (16-bit)
  *
@@ -259,12 +214,8 @@ bool furi_hal_i2c_write_reg_8(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_write_reg_16(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t reg_addr,
-    uint16_t data,
-    uint32_t timeout);
+bool furi_hal_i2c_write_reg_16(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr,
+                               uint8_t reg_addr, uint16_t data, uint32_t timeout);
 
 /** Perform I2C device memory
  *
@@ -277,13 +228,8 @@ bool furi_hal_i2c_write_reg_16(
  *
  * @return     true on successful transfer, false otherwise
  */
-bool furi_hal_i2c_write_mem(
-    const FuriHalI2cBusHandle* handle,
-    uint8_t i2c_addr,
-    uint8_t mem_addr,
-    const uint8_t* data,
-    size_t len,
-    uint32_t timeout);
+bool furi_hal_i2c_write_mem(const FuriHalI2cBusHandle *handle, uint8_t i2c_addr, uint8_t mem_addr,
+                            const uint8_t *data, size_t len, uint32_t timeout);
 
 #ifdef __cplusplus
 }

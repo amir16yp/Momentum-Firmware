@@ -12,22 +12,22 @@ typedef enum FURI_PACKED {
 
 typedef struct {
     const FuriThreadCallback app;
-    const char* name;
-    const char* appid;
+    const char *name;
+    const char *appid;
     const size_t stack_size;
-    const Icon* icon;
+    const Icon *icon;
     const FlipperApplicationFlag flags;
 } FlipperInternalApplication;
 
 typedef struct {
-    const char* name;
-    const Icon* icon;
-    const char* path;
+    const char *name;
+    const Icon *icon;
+    const char *path;
 } FlipperExternalApplication;
 
 typedef void (*FlipperInternalOnStartHook)(void);
 
-extern const char* const FLIPPER_AUTORUN_APP_NAME;
+extern const char *const FLIPPER_AUTORUN_APP_NAME;
 
 /* Services list
  * Spawned on startup
@@ -53,7 +53,7 @@ extern const size_t FLIPPER_ON_SYSTEM_START_COUNT;
 extern const FlipperInternalApplication FLIPPER_SYSTEM_APPS[];
 extern const size_t FLIPPER_SYSTEM_APPS_COUNT;
 
-/* Debug apps 
+/* Debug apps
  * Can only be spawned by loader by name
  */
 extern const FlipperInternalApplication FLIPPER_DEBUG_APPS[];

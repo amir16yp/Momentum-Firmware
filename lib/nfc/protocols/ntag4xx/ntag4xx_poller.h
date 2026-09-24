@@ -18,7 +18,7 @@ typedef struct Ntag4xxPoller Ntag4xxPoller;
  */
 typedef enum {
     Ntag4xxPollerEventTypeReadSuccess, /**< Card was read successfully. */
-    Ntag4xxPollerEventTypeReadFailed, /**< Poller failed to read card. */
+    Ntag4xxPollerEventTypeReadFailed,  /**< Poller failed to read card. */
 } Ntag4xxPollerEventType;
 
 /**
@@ -34,8 +34,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Ntag4xxPollerEventType type; /**< Type of emmitted event. */
-    Ntag4xxPollerEventData* data; /**< Pointer to event specific data. */
+    Ntag4xxPollerEventType type;  /**< Type of emmitted event. */
+    Ntag4xxPollerEventData *data; /**< Pointer to event specific data. */
 } Ntag4xxPollerEvent;
 
 #ifdef __cplusplus

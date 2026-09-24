@@ -11,22 +11,22 @@ DICT_DEF2(AddressCache, int, M_DEFAULT_OPLIST, Elf32_Addr, M_DEFAULT_OPLIST) //-
 /**
  * Callable elf entry type
  */
-typedef int32_t(entry_t)(void*);
+typedef int32_t(entry_t)(void *);
 
 typedef struct ELFSection ELFSection;
 
 struct ELFSection {
-    void* data;
+    void *data;
     Elf32_Word size;
 
     size_t rel_count;
     Elf32_Off rel_offset;
-    ELFSection* fast_rel;
+    ELFSection *fast_rel;
 
     uint16_t sec_idx;
 };
 
-DICT_DEF2(ELFSectionDict, const char*, M_CSTR_OPLIST, ELFSection, M_POD_OPLIST)
+DICT_DEF2(ELFSectionDict, const char *, M_CSTR_OPLIST, ELFSection, M_POD_OPLIST)
 
 struct ELFFile {
     size_t sections_count;
@@ -42,13 +42,13 @@ struct ELFFile {
     AddressCache_t relocation_cache;
     AddressCache_t trampoline_cache;
 
-    File* fd;
-    const ElfApiInterface* api_interface;
+    File *fd;
+    const ElfApiInterface *api_interface;
     ELFDebugLinkInfo debug_link_info;
 
-    ELFSection* preinit_array;
-    ELFSection* init_array;
-    ELFSection* fini_array;
+    ELFSection *preinit_array;
+    ELFSection *init_array;
+    ELFSection *fini_array;
 
     bool init_array_called;
 };

@@ -15,14 +15,14 @@ void sector_cache_init(void);
  * @param n_sector Sector number
  * @return Pointer to sector data or NULL if not found
  */
-uint8_t* sector_cache_get(uint32_t n_sector);
+uint8_t *sector_cache_get(uint32_t n_sector);
 
 /**
  * @brief Put sector data to cache
  * @param n_sector Sector number
  * @param data Pointer to sector data
  */
-void sector_cache_put(uint32_t n_sector, uint8_t* data);
+void sector_cache_put(uint32_t n_sector, uint8_t *data);
 
 /**
  * @brief Invalidate sector cache for given range

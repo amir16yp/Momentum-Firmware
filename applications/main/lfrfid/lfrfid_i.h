@@ -36,10 +36,10 @@
 
 #define LFRFID_TEXT_STORE_SIZE 40
 
-#define LFRFID_APP_FOLDER                    EXT_PATH("lfrfid")
-#define LFRFID_SD_FOLDER                     EXT_PATH("lfrfid")
-#define LFRFID_APP_FILENAME_PREFIX           "RFID"
-#define LFRFID_APP_FILENAME_EXTENSION        ".rfid"
+#define LFRFID_APP_FOLDER EXT_PATH("lfrfid")
+#define LFRFID_SD_FOLDER EXT_PATH("lfrfid")
+#define LFRFID_APP_FILENAME_PREFIX "RFID"
+#define LFRFID_APP_FILENAME_EXTENSION ".rfid"
 #define LFRFID_APP_SHADOW_FILENAME_EXTENSION ".shd"
 
 #define LFRFID_APP_RAW_ASK_EXTENSION ".ask.raw"
@@ -75,42 +75,42 @@ typedef enum {
 typedef struct LfRfid LfRfid;
 
 struct LfRfid {
-    LFRFIDWorker* lfworker;
-    ViewDispatcher* view_dispatcher;
-    Gui* gui;
-    NotificationApp* notifications;
-    SceneManager* scene_manager;
-    Storage* storage;
-    DialogsApp* dialogs;
-    Widget* widget;
+    LFRFIDWorker *lfworker;
+    ViewDispatcher *view_dispatcher;
+    Gui *gui;
+    NotificationApp *notifications;
+    SceneManager *scene_manager;
+    Storage *storage;
+    DialogsApp *dialogs;
+    Widget *widget;
 
     char text_store[LFRFID_TEXT_STORE_SIZE + 1];
-    FuriString* file_path;
-    FuriString* file_name;
-    FuriString* raw_file_name;
+    FuriString *file_path;
+    FuriString *file_name;
+    FuriString *raw_file_name;
 
-    ProtocolDict* dict;
+    ProtocolDict *dict;
     ProtocolId protocol_id;
     ProtocolId protocol_id_next;
     LFRFIDWorkerReadType read_type;
 
-    uint8_t* old_key_data;
-    uint8_t* new_key_data;
+    uint8_t *old_key_data;
+    uint8_t *new_key_data;
 
     uint8_t password[4];
 
-    RpcAppSystem* rpc_ctx;
+    RpcAppSystem *rpc_ctx;
     LfRfidRpcState rpc_state;
 
     // Common Views
-    Submenu* submenu;
-    DialogEx* dialog_ex;
-    Popup* popup;
-    TextInput* text_input;
-    ByteInput* byte_input;
+    Submenu *submenu;
+    DialogEx *dialog_ex;
+    Popup *popup;
+    TextInput *text_input;
+    ByteInput *byte_input;
 
     // Custom views
-    LfRfidReadView* read_view;
+    LfRfidReadView *read_view;
 
     bool fav_timeout;
 };
@@ -132,28 +132,28 @@ typedef enum {
     LfRfidMenuIndexExtraActions,
 } LfRfidMenuIndex;
 
-bool lfrfid_save_key(LfRfid* app);
+bool lfrfid_save_key(LfRfid *app);
 
-bool lfrfid_load_key_from_file_select(LfRfid* app);
+bool lfrfid_load_key_from_file_select(LfRfid *app);
 
-bool lfrfid_load_raw_key_from_file_select(LfRfid* app);
+bool lfrfid_load_raw_key_from_file_select(LfRfid *app);
 
-bool lfrfid_delete_key(LfRfid* app);
+bool lfrfid_delete_key(LfRfid *app);
 
-bool lfrfid_load_key_data(LfRfid* app, FuriString* path, bool show_dialog);
+bool lfrfid_load_key_data(LfRfid *app, FuriString *path, bool show_dialog);
 
-bool lfrfid_save_key_data(LfRfid* app, FuriString* path);
+bool lfrfid_save_key_data(LfRfid *app, FuriString *path);
 
-void lfrfid_make_app_folder(LfRfid* app);
+void lfrfid_make_app_folder(LfRfid *app);
 
-void lfrfid_text_store_set(LfRfid* app, const char* text, ...);
+void lfrfid_text_store_set(LfRfid *app, const char *text, ...);
 
-void lfrfid_text_store_clear(LfRfid* app);
+void lfrfid_text_store_clear(LfRfid *app);
 
-void lfrfid_popup_timeout_callback(void* context);
+void lfrfid_popup_timeout_callback(void *context);
 
-void lfrfid_widget_callback(GuiButtonType result, InputType type, void* context);
+void lfrfid_widget_callback(GuiButtonType result, InputType type, void *context);
 
-void lfrfid_text_input_callback(void* context);
+void lfrfid_text_input_callback(void *context);
 
-const uint32_t* lfrfid_get_t5577_default_passwords(uint8_t* len);
+const uint32_t *lfrfid_get_t5577_default_passwords(uint8_t *len);

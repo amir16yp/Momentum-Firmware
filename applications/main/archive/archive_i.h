@@ -27,26 +27,26 @@ typedef enum {
 } ArchiveViewEnum;
 
 struct ArchiveApp {
-    Gui* gui;
-    Loader* loader;
-    ViewDispatcher* view_dispatcher;
-    ViewStack* view_stack;
-    SceneManager* scene_manager;
-    ArchiveBrowserView* browser;
-    TextInput* text_input;
-    Widget* widget;
-    DialogsApp* dialogs;
-    Loading* loading;
-    FuriPubSubSubscription* loader_stop_subscription;
+    Gui *gui;
+    Loader *loader;
+    ViewDispatcher *view_dispatcher;
+    ViewStack *view_stack;
+    SceneManager *scene_manager;
+    ArchiveBrowserView *browser;
+    TextInput *text_input;
+    Widget *widget;
+    DialogsApp *dialogs;
+    Loading *loading;
+    FuriPubSubSubscription *loader_stop_subscription;
 
-    FuriString* fav_move_str;
+    FuriString *fav_move_str;
     char text_store[MAX_NAME_LEN];
-    FuriString* file_extension;
+    FuriString *file_extension;
 
-    WidgetElement* size_element;
-    WidgetElement* count_element;
-    FuriThread* info_thread;
-    FuriThread* search_thread;
+    WidgetElement *size_element;
+    WidgetElement *count_element;
+    FuriThread *info_thread;
+    FuriThread *search_thread;
 };
 
-void archive_show_loading_popup(ArchiveApp* context, bool show);
+void archive_show_loading_popup(ArchiveApp *context, bool show);

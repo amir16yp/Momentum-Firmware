@@ -1,11 +1,13 @@
 #include "infrared_protocol_kaseikyo_i.h"
 #include <core/check.h>
 
-InfraredMessage* infrared_decoder_kaseikyo_check_ready(void* ctx) {
+InfraredMessage *infrared_decoder_kaseikyo_check_ready(void *ctx)
+{
     return infrared_common_decoder_check_ready(ctx);
 }
 
-bool infrared_decoder_kaseikyo_interpret(InfraredCommonDecoder* decoder) {
+bool infrared_decoder_kaseikyo_interpret(InfraredCommonDecoder *decoder)
+{
     furi_assert(decoder);
 
     bool result = false;
@@ -21,7 +23,7 @@ bool infrared_decoder_kaseikyo_interpret(InfraredCommonDecoder* decoder) {
     vendor_parity_check = (vendor_parity_check & 0xf) ^ (vendor_parity_check >> 4);
     uint8_t parity_check = decoder->data[2] ^ decoder->data[3] ^ decoder->data[4];
 
-    if(vendor_parity == vendor_parity_check && parity == parity_check) {
+    if (vendor_parity == vendor_parity_check && parity == parity_check) {
         decoder->message.command = (uint32_t)data;
         decoder->message.address = ((uint32_t)id << 24) | ((uint32_t)vendor_id << 8) |
                                    ((uint32_t)genre1 << 4) | (uint32_t)genre2;
@@ -33,18 +35,22 @@ bool infrared_decoder_kaseikyo_interpret(InfraredCommonDecoder* decoder) {
     return result;
 }
 
-void* infrared_decoder_kaseikyo_alloc(void) {
+void *infrared_decoder_kaseikyo_alloc(void)
+{
     return infrared_common_decoder_alloc(&infrared_protocol_kaseikyo);
 }
 
-InfraredMessage* infrared_decoder_kaseikyo_decode(void* decoder, bool level, uint32_t duration) {
+InfraredMessage *infrared_decoder_kaseikyo_decode(void *decoder, bool level, uint32_t duration)
+{
     return infrared_common_decode(decoder, level, duration);
 }
 
-void infrared_decoder_kaseikyo_free(void* decoder) {
+void infrared_decoder_kaseikyo_free(void *decoder)
+{
     infrared_common_decoder_free(decoder);
 }
 
-void infrared_decoder_kaseikyo_reset(void* decoder) {
+void infrared_decoder_kaseikyo_reset(void *decoder)
+{
     infrared_common_decoder_reset(decoder);
 }

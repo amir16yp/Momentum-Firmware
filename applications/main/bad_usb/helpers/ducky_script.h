@@ -35,25 +35,22 @@ typedef struct {
 
 typedef struct BadUsbScript BadUsbScript;
 
-BadUsbScript* bad_usb_script_open(
-    FuriString* file_path,
-    BadUsbHidInterface* interface,
-    BadUsbHidConfig* hid_cfg,
-    bool load_id_cfg);
+BadUsbScript *bad_usb_script_open(FuriString *file_path, BadUsbHidInterface *interface,
+                                  BadUsbHidConfig *hid_cfg, bool load_id_cfg);
 
-void bad_usb_script_close(BadUsbScript* bad_usb);
+void bad_usb_script_close(BadUsbScript *bad_usb);
 
-void bad_usb_script_set_keyboard_layout(BadUsbScript* bad_usb, FuriString* layout_path);
+void bad_usb_script_set_keyboard_layout(BadUsbScript *bad_usb, FuriString *layout_path);
 
-void bad_usb_script_start(BadUsbScript* bad_usb);
+void bad_usb_script_start(BadUsbScript *bad_usb);
 
-void bad_usb_script_stop(BadUsbScript* bad_usb);
+void bad_usb_script_stop(BadUsbScript *bad_usb);
 
-void bad_usb_script_start_stop(BadUsbScript* bad_usb);
+void bad_usb_script_start_stop(BadUsbScript *bad_usb);
 
-void bad_usb_script_pause_resume(BadUsbScript* bad_usb);
+void bad_usb_script_pause_resume(BadUsbScript *bad_usb);
 
-BadUsbState* bad_usb_script_get_state(BadUsbScript* bad_usb);
+BadUsbState *bad_usb_script_get_state(BadUsbScript *bad_usb);
 
 #ifdef __cplusplus
 }

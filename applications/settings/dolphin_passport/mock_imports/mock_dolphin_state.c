@@ -3,5 +3,6 @@
 // Instead of copying the file, can (ab)use the preprocessor to insert the source code here
 // Then, we still use the Header from original code as if nothing happened
 
-// DOLPHIN_LEVELS, DOLPHIN_LEVEL_COUNT, dolphin_state_xp_to_levelup(), dolphin_state_xp_above_last_levelup()
+// DOLPHIN_LEVELS, DOLPHIN_LEVEL_COUNT, dolphin_state_xp_to_levelup(),
+// dolphin_state_xp_above_last_levelup()
 #include <applications/services/dolphin/helpers/dolphin_state.c>

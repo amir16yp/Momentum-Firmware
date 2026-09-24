@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 typedef enum {
-    FuriHalMpuRegionNULL = 0x00, // region 0 used to protect null pointer dereference
+    FuriHalMpuRegionNULL = 0x00,      // region 0 used to protect null pointer dereference
     FuriHalMpuRegionMainStack = 0x01, // region 1 used to protect Main Stack
     FuriHalMpuRegionThreadStack =
         0x02, // region 2 used to protect currently executed RTOS Thread Stack
@@ -61,24 +61,20 @@ typedef enum {
 void furi_hal_mpu_init(void);
 
 /**
-* @brief Enable memory protection unit
-*/
+ * @brief Enable memory protection unit
+ */
 void furi_hal_mpu_enable(void);
 
 /**
-* @brief Disable memory protection unit
-*/
+ * @brief Disable memory protection unit
+ */
 void furi_hal_mpu_disable(void);
 
-void furi_hal_mpu_protect_no_access(
-    FuriHalMpuRegion region,
-    uint32_t address,
-    FuriHalMPURegionSize size);
+void furi_hal_mpu_protect_no_access(FuriHalMpuRegion region, uint32_t address,
+                                    FuriHalMPURegionSize size);
 
-void furi_hal_mpu_protect_read_only(
-    FuriHalMpuRegion region,
-    uint32_t address,
-    FuriHalMPURegionSize size);
+void furi_hal_mpu_protect_read_only(FuriHalMpuRegion region, uint32_t address,
+                                    FuriHalMPURegionSize size);
 
 void furi_hal_mpu_protect_disable(FuriHalMpuRegion region);
 

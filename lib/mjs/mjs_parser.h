@@ -12,7 +12,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-MJS_PRIVATE mjs_err_t mjs_parse(const char* path, const char* buf, struct mjs*);
+MJS_PRIVATE mjs_err_t mjs_parse(const char *path, const char *buf, struct mjs *);
 
 #if defined(__cplusplus)
 }

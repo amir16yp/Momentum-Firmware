@@ -6,9 +6,9 @@
 extern "C" {
 #endif
 
-#define NTAG4XX_UID_SIZE            (7)
-#define NTAG4XX_BATCH_SIZE          (4)
-#define NTAG4XX_BATCH_EXTRA_BITS    4
+#define NTAG4XX_UID_SIZE (7)
+#define NTAG4XX_BATCH_SIZE (4)
+#define NTAG4XX_BATCH_EXTRA_BITS 4
 #define NTAG4XX_FAB_KEY_SIZE_BITS_4 4
 #define NTAG4XX_FAB_KEY_SIZE_BITS_1 1
 #define NTAG4XX_PROD_WEEK_SIZE_BITS 7
@@ -72,42 +72,42 @@ typedef struct {
 #pragma pack(pop)
 
 typedef struct {
-    Iso14443_4aData* iso14443_4a_data;
+    Iso14443_4aData *iso14443_4a_data;
     Ntag4xxVersion version;
-    FuriString* device_name;
+    FuriString *device_name;
 } Ntag4xxData;
 
 extern const NfcDeviceBase nfc_device_ntag4xx;
 
 // Virtual methods
 
-Ntag4xxData* ntag4xx_alloc(void);
+Ntag4xxData *ntag4xx_alloc(void);
 
-void ntag4xx_free(Ntag4xxData* data);
+void ntag4xx_free(Ntag4xxData *data);
 
-void ntag4xx_reset(Ntag4xxData* data);
+void ntag4xx_reset(Ntag4xxData *data);
 
-void ntag4xx_copy(Ntag4xxData* data, const Ntag4xxData* other);
+void ntag4xx_copy(Ntag4xxData *data, const Ntag4xxData *other);
 
-bool ntag4xx_verify(Ntag4xxData* data, const FuriString* device_type);
+bool ntag4xx_verify(Ntag4xxData *data, const FuriString *device_type);
 
-bool ntag4xx_load(Ntag4xxData* data, FlipperFormat* ff, uint32_t version);
+bool ntag4xx_load(Ntag4xxData *data, FlipperFormat *ff, uint32_t version);
 
-bool ntag4xx_save(const Ntag4xxData* data, FlipperFormat* ff);
+bool ntag4xx_save(const Ntag4xxData *data, FlipperFormat *ff);
 
-bool ntag4xx_is_equal(const Ntag4xxData* data, const Ntag4xxData* other);
+bool ntag4xx_is_equal(const Ntag4xxData *data, const Ntag4xxData *other);
 
-const char* ntag4xx_get_device_name(const Ntag4xxData* data, NfcDeviceNameType name_type);
+const char *ntag4xx_get_device_name(const Ntag4xxData *data, NfcDeviceNameType name_type);
 
-const uint8_t* ntag4xx_get_uid(const Ntag4xxData* data, size_t* uid_len);
+const uint8_t *ntag4xx_get_uid(const Ntag4xxData *data, size_t *uid_len);
 
-bool ntag4xx_set_uid(Ntag4xxData* data, const uint8_t* uid, size_t uid_len);
+bool ntag4xx_set_uid(Ntag4xxData *data, const uint8_t *uid, size_t uid_len);
 
-Iso14443_4aData* ntag4xx_get_base_data(const Ntag4xxData* data);
+Iso14443_4aData *ntag4xx_get_base_data(const Ntag4xxData *data);
 
 // Helpers
 
-Ntag4xxType ntag4xx_get_type_from_version(const Ntag4xxVersion* const version);
+Ntag4xxType ntag4xx_get_type_from_version(const Ntag4xxVersion *const version);
 
 #ifdef __cplusplus
 }

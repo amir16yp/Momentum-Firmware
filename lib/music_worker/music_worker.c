@@ -12,12 +12,12 @@
 #define TAG "MusicWorker"
 
 #define MUSIC_PLAYER_FILETYPE "Flipper Music Format"
-#define MUSIC_PLAYER_VERSION  0
+#define MUSIC_PLAYER_VERSION 0
 
 #define SEMITONE_PAUSE 0xFF
 
-#define NOTE_C4             261.63f
-#define NOTE_C4_SEMITONE    (4.0f * 12.0f)
+#define NOTE_C4 261.63f
+#define NOTE_C4_SEMITONE (4.0f * 12.0f)
 #define TWO_POW_TWELTH_ROOT 1.059463094359f
 
 typedef struct {
@@ -29,11 +29,11 @@ typedef struct {
 ARRAY_DEF(NoteBlockArray, NoteBlock, M_POD_OPLIST); //-V658
 
 struct MusicWorker {
-    FuriThread* thread;
+    FuriThread *thread;
     bool should_work;
 
     MusicWorkerCallback callback;
-    void* callback_context;
+    void *callback_context;
 
     float volume;
     uint32_t bpm;
@@ -42,44 +42,41 @@ struct MusicWorker {
     NoteBlockArray_t notes;
 };
 
-static int32_t music_worker_thread_callback(void* context) {
+static int32_t music_worker_thread_callback(void *context)
+{
     furi_assert(context);
-    MusicWorker* instance = context;
+    MusicWorker *instance = context;
 
     NoteBlockArray_it_t it;
     NoteBlockArray_it(it, instance->notes);
-    if(furi_hal_speaker_acquire(1000)) {
-        while(instance->should_work) {
-            if(NoteBlockArray_end_p(it)) {
+    if (furi_hal_speaker_acquire(1000)) {
+        while (instance->should_work) {
+            if (NoteBlockArray_end_p(it)) {
                 NoteBlockArray_it(it, instance->notes);
                 furi_delay_ms(10);
             } else {
-                NoteBlock* note_block = NoteBlockArray_ref(it);
+                NoteBlock *note_block = NoteBlockArray_ref(it);
 
                 float note_from_a4 = (float)note_block->semitone - NOTE_C4_SEMITONE;
                 float frequency = NOTE_C4 * powf(TWO_POW_TWELTH_ROOT, note_from_a4);
                 float duration = 60.0 * furi_kernel_get_tick_frequency() * 4 / instance->bpm /
                                  note_block->duration;
                 uint32_t dots = note_block->dots;
-                while(dots > 0) {
+                while (dots > 0) {
                     duration += duration / 2;
                     dots--;
                 }
                 uint32_t next_tick = furi_get_tick() + duration;
                 float volume = instance->volume;
 
-                if(instance->callback) {
-                    instance->callback(
-                        note_block->semitone,
-                        note_block->dots,
-                        note_block->duration,
-                        0.0,
-                        instance->callback_context);
+                if (instance->callback) {
+                    instance->callback(note_block->semitone, note_block->dots, note_block->duration,
+                                       0.0, instance->callback_context);
                 }
 
                 furi_hal_speaker_stop();
                 furi_hal_speaker_start(frequency, volume);
-                while(instance->should_work && furi_get_tick() < next_tick) {
+                while (instance->should_work && furi_get_tick() < next_tick) {
                     volume *= 0.9945679;
                     furi_hal_speaker_set_volume(volume);
                     furi_delay_ms(2);
@@ -97,8 +94,9 @@ static int32_t music_worker_thread_callback(void* context) {
     return 0;
 }
 
-MusicWorker* music_worker_alloc(void) {
-    MusicWorker* instance = malloc(sizeof(MusicWorker));
+MusicWorker *music_worker_alloc(void)
+{
+    MusicWorker *instance = malloc(sizeof(MusicWorker));
 
     NoteBlockArray_init(instance->notes);
 
@@ -110,33 +108,39 @@ MusicWorker* music_worker_alloc(void) {
     return instance;
 }
 
-void music_worker_clear(MusicWorker* instance) {
+void music_worker_clear(MusicWorker *instance)
+{
     NoteBlockArray_reset(instance->notes);
 }
 
-void music_worker_free(MusicWorker* instance) {
+void music_worker_free(MusicWorker *instance)
+{
     furi_assert(instance);
     furi_thread_free(instance->thread);
     NoteBlockArray_clear(instance->notes);
     free(instance);
 }
 
-static bool is_digit(const char c) {
+static bool is_digit(const char c)
+{
     return isdigit(c) != 0;
 }
 
-static bool is_letter(const char c) {
+static bool is_letter(const char c)
+{
     return islower(c) != 0 || isupper(c) != 0;
 }
 
-static bool is_space(const char c) {
+static bool is_space(const char c)
+{
     return c == ' ' || c == '\t';
 }
 
-static size_t extract_number(const char* string, uint32_t* number) {
+static size_t extract_number(const char *string, uint32_t *number)
+{
     size_t ret = 0;
     *number = 0;
-    while(is_digit(*string)) {
+    while (is_digit(*string)) {
         *number *= 10;
         *number += (*string - '0');
         string++;
@@ -145,10 +149,11 @@ static size_t extract_number(const char* string, uint32_t* number) {
     return ret;
 }
 
-static size_t extract_dots(const char* string, uint32_t* number) {
+static size_t extract_dots(const char *string, uint32_t *number)
+{
     size_t ret = 0;
     *number = 0;
-    while(*string == '.') {
+    while (*string == '.') {
         *number += 1;
         string++;
         ret++;
@@ -156,8 +161,9 @@ static size_t extract_dots(const char* string, uint32_t* number) {
     return ret;
 }
 
-static size_t extract_char(const char* string, char* symbol) {
-    if(is_letter(*string)) {
+static size_t extract_char(const char *string, char *symbol)
+{
+    if (is_letter(*string)) {
         *symbol = *string;
         return 1;
     } else {
@@ -165,8 +171,9 @@ static size_t extract_char(const char* string, char* symbol) {
     }
 }
 
-static size_t extract_sharp(const char* string, char* symbol) {
-    if(*string == '#' || *string == '_') {
+static size_t extract_sharp(const char *string, char *symbol)
+{
+    if (*string == '#' || *string == '_') {
         *symbol = '#';
         return 1;
     } else {
@@ -174,20 +181,22 @@ static size_t extract_sharp(const char* string, char* symbol) {
     }
 }
 
-static size_t skip_till(const char* string, const char symbol) {
+static size_t skip_till(const char *string, const char symbol)
+{
     size_t ret = 0;
-    while(*string != '\0' && *string != symbol) {
+    while (*string != '\0' && *string != symbol) {
         string++;
         ret++;
     }
-    if(*string != symbol) {
+    if (*string != symbol) {
         ret = 0;
     }
     return ret;
 }
 
-static bool
-    music_worker_add_note(MusicWorker* instance, uint8_t semitone, uint8_t duration, uint8_t dots) {
+static bool music_worker_add_note(MusicWorker *instance, uint8_t semitone, uint8_t duration,
+                                  uint8_t dots)
+{
     NoteBlock note_block;
 
     note_block.semitone = semitone;
@@ -199,8 +208,9 @@ static bool
     return true;
 }
 
-static int8_t note_to_semitone(const char note) {
-    switch(note) {
+static int8_t note_to_semitone(const char note)
+{
+    switch (note) {
     case 'C':
         return 0;
     // C#
@@ -225,12 +235,13 @@ static int8_t note_to_semitone(const char note) {
     }
 }
 
-static bool music_worker_parse_notes(MusicWorker* instance, const char* string) {
-    const char* cursor = string;
+static bool music_worker_parse_notes(MusicWorker *instance, const char *string)
+{
+    const char *cursor = string;
     bool result = true;
 
-    while(*cursor != '\0') {
-        if(!is_space(*cursor)) {
+    while (*cursor != '\0') {
+        if (!is_space(*cursor)) {
             uint32_t duration = 0;
             char note_char = '\0';
             char sharp_char = '\0';
@@ -246,10 +257,10 @@ static bool music_worker_parse_notes(MusicWorker* instance, const char* string) 
 
             // Post processing
             note_char = toupper(note_char);
-            if(!duration) {
+            if (!duration) {
                 duration = instance->duration;
             }
-            if(!octave) {
+            if (!octave) {
                 octave = instance->octave;
             }
 
@@ -260,22 +271,17 @@ static bool music_worker_parse_notes(MusicWorker* instance, const char* string) 
             is_valid &= (sharp_char == '#' || sharp_char == '\0');
             is_valid &= (octave <= 16);
             is_valid &= (dots <= 16);
-            if(!is_valid) {
-                FURI_LOG_E(
-                    TAG,
-                    "Invalid note: %lu%c%c%lu.%lu",
-                    duration,
-                    note_char == '\0' ? '_' : note_char,
-                    sharp_char == '\0' ? '_' : sharp_char,
-                    octave,
-                    dots);
+            if (!is_valid) {
+                FURI_LOG_E(TAG, "Invalid note: %lu%c%c%lu.%lu", duration,
+                           note_char == '\0' ? '_' : note_char,
+                           sharp_char == '\0' ? '_' : sharp_char, octave, dots);
                 result = false;
                 break;
             }
 
             // Note to semitones
             uint8_t semitone = 0;
-            if(note_char == 'P') {
+            if (note_char == 'P') {
                 semitone = SEMITONE_PAUSE;
             } else {
                 semitone += octave * 12;
@@ -283,42 +289,32 @@ static bool music_worker_parse_notes(MusicWorker* instance, const char* string) 
                 semitone += sharp_char == '#' ? 1 : 0;
             }
 
-            if(music_worker_add_note(instance, semitone, duration, dots)) {
-                FURI_LOG_D(
-                    TAG,
-                    "Added note: %c%c%lu.%lu = %u %lu",
-                    note_char == '\0' ? '_' : note_char,
-                    sharp_char == '\0' ? '_' : sharp_char,
-                    octave,
-                    dots,
-                    semitone,
-                    duration);
+            if (music_worker_add_note(instance, semitone, duration, dots)) {
+                FURI_LOG_D(TAG, "Added note: %c%c%lu.%lu = %u %lu",
+                           note_char == '\0' ? '_' : note_char,
+                           sharp_char == '\0' ? '_' : sharp_char, octave, dots, semitone, duration);
             } else {
-                FURI_LOG_E(
-                    TAG,
-                    "Invalid note: %c%c%lu.%lu = %u %lu",
-                    note_char == '\0' ? '_' : note_char,
-                    sharp_char == '\0' ? '_' : sharp_char,
-                    octave,
-                    dots,
-                    semitone,
-                    duration);
+                FURI_LOG_E(TAG, "Invalid note: %c%c%lu.%lu = %u %lu",
+                           note_char == '\0' ? '_' : note_char,
+                           sharp_char == '\0' ? '_' : sharp_char, octave, dots, semitone, duration);
             }
             cursor += skip_till(cursor, ',');
         }
 
-        if(*cursor != '\0') cursor++;
+        if (*cursor != '\0')
+            cursor++;
     }
 
     return result;
 }
 
-bool music_worker_load(MusicWorker* instance, const char* file_path) {
+bool music_worker_load(MusicWorker *instance, const char *file_path)
+{
     furi_assert(instance);
     furi_assert(file_path);
 
     bool ret = false;
-    if(strcasestr(file_path, ".fmf")) {
+    if (strcasestr(file_path, ".fmf")) {
         ret = music_worker_load_fmf_from_file(instance, file_path);
     } else {
         ret = music_worker_load_rtttl_from_file(instance, file_path);
@@ -326,52 +322,55 @@ bool music_worker_load(MusicWorker* instance, const char* file_path) {
     return ret;
 }
 
-bool music_worker_load_fmf_from_file(MusicWorker* instance, const char* file_path) {
+bool music_worker_load_fmf_from_file(MusicWorker *instance, const char *file_path)
+{
     furi_assert(instance);
     furi_assert(file_path);
 
     bool result = false;
-    FuriString* temp_str;
+    FuriString *temp_str;
     temp_str = furi_string_alloc();
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FlipperFormat* file = flipper_format_file_alloc(storage);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FlipperFormat *file = flipper_format_file_alloc(storage);
 
     do {
-        if(!flipper_format_file_open_existing(file, file_path)) break;
+        if (!flipper_format_file_open_existing(file, file_path))
+            break;
 
         uint32_t version = 0;
-        if(!flipper_format_read_header(file, temp_str, &version)) break;
-        if(furi_string_cmp_str(temp_str, MUSIC_PLAYER_FILETYPE) ||
-           (version != MUSIC_PLAYER_VERSION)) {
+        if (!flipper_format_read_header(file, temp_str, &version))
+            break;
+        if (furi_string_cmp_str(temp_str, MUSIC_PLAYER_FILETYPE) ||
+            (version != MUSIC_PLAYER_VERSION)) {
             FURI_LOG_E(TAG, "Incorrect file format or version");
             break;
         }
 
-        if(!flipper_format_read_uint32(file, "BPM", &instance->bpm, 1)) {
+        if (!flipper_format_read_uint32(file, "BPM", &instance->bpm, 1)) {
             FURI_LOG_E(TAG, "BPM is missing");
             break;
         }
-        if(!flipper_format_read_uint32(file, "Duration", &instance->duration, 1)) {
+        if (!flipper_format_read_uint32(file, "Duration", &instance->duration, 1)) {
             FURI_LOG_E(TAG, "Duration is missing");
             break;
         }
-        if(!flipper_format_read_uint32(file, "Octave", &instance->octave, 1)) {
+        if (!flipper_format_read_uint32(file, "Octave", &instance->octave, 1)) {
             FURI_LOG_E(TAG, "Octave is missing");
             break;
         }
 
-        if(!flipper_format_read_string(file, "Notes", temp_str)) {
+        if (!flipper_format_read_string(file, "Notes", temp_str)) {
             FURI_LOG_E(TAG, "Notes is missing");
             break;
         }
 
-        if(!music_worker_parse_notes(instance, furi_string_get_cstr(temp_str))) {
+        if (!music_worker_parse_notes(instance, furi_string_get_cstr(temp_str))) {
             break;
         }
 
         result = true;
-    } while(false);
+    } while (false);
 
     furi_record_close(RECORD_STORAGE);
     flipper_format_free(file);
@@ -380,18 +379,19 @@ bool music_worker_load_fmf_from_file(MusicWorker* instance, const char* file_pat
     return result;
 }
 
-bool music_worker_load_rtttl_from_file(MusicWorker* instance, const char* file_path) {
+bool music_worker_load_rtttl_from_file(MusicWorker *instance, const char *file_path)
+{
     furi_assert(instance);
     furi_assert(file_path);
 
     bool result = false;
-    FuriString* content;
+    FuriString *content;
     content = furi_string_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* file = storage_file_alloc(storage);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    File *file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        if (!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             FURI_LOG_E(TAG, "Unable to open file");
             break;
         }
@@ -400,24 +400,24 @@ bool music_worker_load_rtttl_from_file(MusicWorker* instance, const char* file_p
         do {
             uint8_t buffer[65] = {0};
             ret = storage_file_read(file, buffer, sizeof(buffer) - 1);
-            for(size_t i = 0; i < ret; i++) {
+            for (size_t i = 0; i < ret; i++) {
                 furi_string_push_back(content, buffer[i]);
             }
-        } while(ret > 0);
+        } while (ret > 0);
 
         furi_string_trim(content);
-        if(!furi_string_size(content)) {
+        if (!furi_string_size(content)) {
             FURI_LOG_E(TAG, "Empty file");
             break;
         }
 
-        if(!music_worker_load_rtttl_from_string(instance, furi_string_get_cstr(content))) {
+        if (!music_worker_load_rtttl_from_string(instance, furi_string_get_cstr(content))) {
             FURI_LOG_E(TAG, "Invalid file content");
             break;
         }
 
         result = true;
-    } while(0);
+    } while (0);
 
     storage_file_free(file);
     furi_record_close(RECORD_STORAGE);
@@ -426,20 +426,21 @@ bool music_worker_load_rtttl_from_file(MusicWorker* instance, const char* file_p
     return result;
 }
 
-bool music_worker_load_rtttl_from_string(MusicWorker* instance, const char* string) {
+bool music_worker_load_rtttl_from_string(MusicWorker *instance, const char *string)
+{
     furi_assert(instance);
 
-    const char* cursor = string;
+    const char *cursor = string;
 
     // Skip name
     cursor += skip_till(cursor, ':');
-    if(*cursor != ':') {
+    if (*cursor != ':') {
         return false;
     }
 
     // Duration
     cursor += skip_till(cursor, '=');
-    if(*cursor != '=') {
+    if (*cursor != '=') {
         return false;
     }
     cursor++;
@@ -447,7 +448,7 @@ bool music_worker_load_rtttl_from_string(MusicWorker* instance, const char* stri
 
     // Octave
     cursor += skip_till(cursor, '=');
-    if(*cursor != '=') {
+    if (*cursor != '=') {
         return false;
     }
     cursor++;
@@ -455,7 +456,7 @@ bool music_worker_load_rtttl_from_string(MusicWorker* instance, const char* stri
 
     // BPM
     cursor += skip_till(cursor, '=');
-    if(*cursor != '=') {
+    if (*cursor != '=') {
         return false;
     }
     cursor++;
@@ -463,29 +464,32 @@ bool music_worker_load_rtttl_from_string(MusicWorker* instance, const char* stri
 
     // Notes
     cursor += skip_till(cursor, ':');
-    if(*cursor != ':') {
+    if (*cursor != ':') {
         return false;
     }
     cursor++;
-    if(!music_worker_parse_notes(instance, cursor)) {
+    if (!music_worker_parse_notes(instance, cursor)) {
         return false;
     }
 
     return true;
 }
 
-void music_worker_set_callback(MusicWorker* instance, MusicWorkerCallback callback, void* context) {
+void music_worker_set_callback(MusicWorker *instance, MusicWorkerCallback callback, void *context)
+{
     furi_assert(instance);
     instance->callback = callback;
     instance->callback_context = context;
 }
 
-void music_worker_set_volume(MusicWorker* instance, float volume) {
+void music_worker_set_volume(MusicWorker *instance, float volume)
+{
     furi_assert(instance);
     instance->volume = volume;
 }
 
-void music_worker_start(MusicWorker* instance) {
+void music_worker_start(MusicWorker *instance)
+{
     furi_assert(instance);
     furi_assert(instance->should_work == false);
 
@@ -493,7 +497,8 @@ void music_worker_start(MusicWorker* instance) {
     furi_thread_start(instance->thread);
 }
 
-void music_worker_stop(MusicWorker* instance) {
+void music_worker_stop(MusicWorker *instance)
+{
     furi_assert(instance);
     furi_assert(instance->should_work == true);
 
@@ -501,7 +506,8 @@ void music_worker_stop(MusicWorker* instance) {
     furi_thread_join(instance->thread);
 }
 
-bool music_worker_is_playing(MusicWorker* instance) {
+bool music_worker_is_playing(MusicWorker *instance)
+{
     furi_assert(instance);
     return instance->should_work;
 }

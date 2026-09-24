@@ -181,22 +181,22 @@ struct minmea_sentence_zda {
 /**
  * Calculate raw sentence checksum. Does not check sentence integrity.
  */
-uint8_t minmea_checksum(const char* sentence);
+uint8_t minmea_checksum(const char *sentence);
 
 /**
  * Check sentence validity and checksum. Returns true for valid sentences.
  */
-bool minmea_check(const char* sentence, bool strict);
+bool minmea_check(const char *sentence, bool strict);
 
 /**
  * Determine talker identifier.
  */
-bool minmea_talker_id(char talker[3], const char* sentence);
+bool minmea_talker_id(char talker[3], const char *sentence);
 
 /**
  * Determine sentence identifier.
  */
-enum minmea_sentence_id minmea_sentence_id(const char* sentence, bool strict);
+enum minmea_sentence_id minmea_sentence_id(const char *sentence, bool strict);
 
 /**
  * Scanf-like processor for NMEA sentences. Supports the following formats:
@@ -212,44 +212,43 @@ enum minmea_sentence_id minmea_sentence_id(const char* sentence, bool strict);
  * ; - following fields are optional
  * Returns true on success. See library source code for details.
  */
-bool minmea_scan(const char* sentence, const char* format, ...);
+bool minmea_scan(const char *sentence, const char *format, ...);
 
 /*
  * Parse a specific type of sentence. Return true on success.
  */
-bool minmea_parse_gbs(struct minmea_sentence_gbs* frame, const char* sentence);
-bool minmea_parse_rmc(struct minmea_sentence_rmc* frame, const char* sentence);
-bool minmea_parse_gga(struct minmea_sentence_gga* frame, const char* sentence);
-bool minmea_parse_gsa(struct minmea_sentence_gsa* frame, const char* sentence);
-bool minmea_parse_gll(struct minmea_sentence_gll* frame, const char* sentence);
-bool minmea_parse_gst(struct minmea_sentence_gst* frame, const char* sentence);
-bool minmea_parse_gsv(struct minmea_sentence_gsv* frame, const char* sentence);
-bool minmea_parse_vtg(struct minmea_sentence_vtg* frame, const char* sentence);
-bool minmea_parse_zda(struct minmea_sentence_zda* frame, const char* sentence);
+bool minmea_parse_gbs(struct minmea_sentence_gbs *frame, const char *sentence);
+bool minmea_parse_rmc(struct minmea_sentence_rmc *frame, const char *sentence);
+bool minmea_parse_gga(struct minmea_sentence_gga *frame, const char *sentence);
+bool minmea_parse_gsa(struct minmea_sentence_gsa *frame, const char *sentence);
+bool minmea_parse_gll(struct minmea_sentence_gll *frame, const char *sentence);
+bool minmea_parse_gst(struct minmea_sentence_gst *frame, const char *sentence);
+bool minmea_parse_gsv(struct minmea_sentence_gsv *frame, const char *sentence);
+bool minmea_parse_vtg(struct minmea_sentence_vtg *frame, const char *sentence);
+bool minmea_parse_zda(struct minmea_sentence_zda *frame, const char *sentence);
 
 /**
  * Convert GPS UTC date/time representation to a UNIX calendar time.
  */
-int minmea_getdatetime(
-    struct tm* tm,
-    const struct minmea_date* date,
-    const struct minmea_time* time_);
+int minmea_getdatetime(struct tm *tm, const struct minmea_date *date,
+                       const struct minmea_time *time_);
 
 /**
  * Convert GPS UTC date/time representation to a UNIX timestamp.
  */
-int minmea_gettime(
-    struct timespec* ts,
-    const struct minmea_date* date,
-    const struct minmea_time* time_);
+int minmea_gettime(struct timespec *ts, const struct minmea_date *date,
+                   const struct minmea_time *time_);
 
 /**
  * Rescale a fixed-point value to a different scale. Rounds towards zero.
  */
-static inline int_least32_t minmea_rescale(const struct minmea_float* f, int_least32_t new_scale) {
-    if(f->scale == 0) return 0;
-    if(f->scale == new_scale) return f->value;
-    if(f->scale > new_scale)
+static inline int_least32_t minmea_rescale(const struct minmea_float *f, int_least32_t new_scale)
+{
+    if (f->scale == 0)
+        return 0;
+    if (f->scale == new_scale)
+        return f->value;
+    if (f->scale > new_scale)
         return (f->value + ((f->value > 0) - (f->value < 0)) * f->scale / new_scale / 2) /
                (f->scale / new_scale);
     else
@@ -260,8 +259,10 @@ static inline int_least32_t minmea_rescale(const struct minmea_float* f, int_lea
  * Convert a fixed-point value to a floating-point value.
  * Returns NaN for "unknown" values.
  */
-static inline float minmea_tofloat(const struct minmea_float* f) {
-    if(f->scale == 0) return NAN;
+static inline float minmea_tofloat(const struct minmea_float *f)
+{
+    if (f->scale == 0)
+        return NAN;
     return (float)f->value / (float)f->scale;
 }
 
@@ -269,10 +270,14 @@ static inline float minmea_tofloat(const struct minmea_float* f) {
  * Convert a raw coordinate to a floating point DD.DDD... value.
  * Returns NaN for "unknown" values.
  */
-static inline float minmea_tocoord(const struct minmea_float* f) {
-    if(f->scale == 0) return NAN;
-    if(f->scale > (INT_LEAST32_MAX / 100)) return NAN;
-    if(f->scale < (INT_LEAST32_MIN / 100)) return NAN;
+static inline float minmea_tocoord(const struct minmea_float *f)
+{
+    if (f->scale == 0)
+        return NAN;
+    if (f->scale > (INT_LEAST32_MAX / 100))
+        return NAN;
+    if (f->scale < (INT_LEAST32_MIN / 100))
+        return NAN;
     int_least32_t degrees = f->value / (f->scale * 100);
     int_least32_t minutes = f->value % (f->scale * 100);
     return (float)degrees + (float)minutes / (60 * f->scale);
@@ -282,7 +287,8 @@ static inline float minmea_tocoord(const struct minmea_float* f) {
  * Check whether a character belongs to the set of characters allowed in a
  * sentence data field.
  */
-static inline bool minmea_isfield(char c) {
+static inline bool minmea_isfield(char c)
+{
     return isprint((unsigned char)c) && c != ',' && c != '*';
 }
 

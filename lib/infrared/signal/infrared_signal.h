@@ -31,9 +31,9 @@ typedef struct InfraredSignal InfraredSignal;
  */
 typedef struct {
     size_t timings_size; /**< Number of elements in the timings array. */
-    uint32_t* timings; /**< Pointer to an array of timings describing the signal. */
-    uint32_t frequency; /**< Carrier frequency of the signal. */
-    float duty_cycle; /**< Duty cycle of the signal. */
+    uint32_t *timings;   /**< Pointer to an array of timings describing the signal. */
+    uint32_t frequency;  /**< Carrier frequency of the signal. */
+    float duty_cycle;    /**< Duty cycle of the signal. */
 } InfraredRawSignal;
 
 /**
@@ -41,14 +41,14 @@ typedef struct {
  *
  * @returns pointer to the instance created.
  */
-InfraredSignal* infrared_signal_alloc(void);
+InfraredSignal *infrared_signal_alloc(void);
 
 /**
  * @brief Delete an InfraredSignal instance.
  *
  * @param[in,out] signal pointer to the instance to be deleted.
  */
-void infrared_signal_free(InfraredSignal* signal);
+void infrared_signal_free(InfraredSignal *signal);
 
 /**
  * @brief Test whether an InfraredSignal instance holds a raw signal.
@@ -56,7 +56,7 @@ void infrared_signal_free(InfraredSignal* signal);
  * @param[in] signal pointer to the instance to be tested.
  * @returns true if the instance holds a raw signal, false otherwise.
  */
-bool infrared_signal_is_raw(const InfraredSignal* signal);
+bool infrared_signal_is_raw(const InfraredSignal *signal);
 
 /**
  * @brief Test whether an InfraredSignal instance holds any signal.
@@ -64,7 +64,7 @@ bool infrared_signal_is_raw(const InfraredSignal* signal);
  * @param[in] signal pointer to the instance to be tested.
  * @returns true if the instance holds raw signal, false otherwise.
  */
-bool infrared_signal_is_valid(const InfraredSignal* signal);
+bool infrared_signal_is_valid(const InfraredSignal *signal);
 
 /**
  * @brief Set an InfraredInstance to hold the signal from another one.
@@ -75,7 +75,7 @@ bool infrared_signal_is_valid(const InfraredSignal* signal);
  * @param[in,out] signal pointer to the destination instance.
  * @param[in] other pointer to the source instance.
  */
-void infrared_signal_set_signal(InfraredSignal* signal, const InfraredSignal* other);
+void infrared_signal_set_signal(InfraredSignal *signal, const InfraredSignal *other);
 
 /**
  * @brief Set an InfraredInstance to hold a raw signal.
@@ -91,12 +91,8 @@ void infrared_signal_set_signal(InfraredSignal* signal, const InfraredSignal* ot
  * @param[in] frequency signal carrier frequency, in Hertz.
  * @param[in] duty_cycle signal duty cycle, fraction between 0 and 1.
  */
-void infrared_signal_set_raw_signal(
-    InfraredSignal* signal,
-    const uint32_t* timings,
-    size_t timings_size,
-    uint32_t frequency,
-    float duty_cycle);
+void infrared_signal_set_raw_signal(InfraredSignal *signal, const uint32_t *timings,
+                                    size_t timings_size, uint32_t frequency, float duty_cycle);
 
 /**
  * @brief Get the raw signal held by an InfraredSignal instance.
@@ -106,7 +102,7 @@ void infrared_signal_set_raw_signal(
  * @param[in] signal pointer to the instance to be queried.
  * @returns pointer to the raw signal structure held by the instance.
  */
-const InfraredRawSignal* infrared_signal_get_raw_signal(const InfraredSignal* signal);
+const InfraredRawSignal *infrared_signal_get_raw_signal(const InfraredSignal *signal);
 
 /**
  * @brief Set an InfraredInstance to hold a parsed signal.
@@ -119,7 +115,7 @@ const InfraredRawSignal* infrared_signal_get_raw_signal(const InfraredSignal* si
  * @param[in,out] signal pointer to the destination instance.
  * @param[in] message pointer to the message containing the parsed signal.
  */
-void infrared_signal_set_message(InfraredSignal* signal, const InfraredMessage* message);
+void infrared_signal_set_message(InfraredSignal *signal, const InfraredMessage *message);
 
 /**
  * @brief Get the parsed signal held by an InfraredSignal instance.
@@ -129,7 +125,7 @@ void infrared_signal_set_message(InfraredSignal* signal, const InfraredMessage* 
  * @param[in] signal pointer to the instance to be queried.
  * @returns pointer to the parsed signal structure held by the instance.
  */
-const InfraredMessage* infrared_signal_get_message(const InfraredSignal* signal);
+const InfraredMessage *infrared_signal_get_message(const InfraredSignal *signal);
 
 /**
  * @brief Read a signal and its name from a FlipperFormat file into an InfraredSignal instance.
@@ -143,8 +139,7 @@ const InfraredMessage* infrared_signal_get_message(const InfraredSignal* signal)
  * @param[out] name pointer to the string to hold the signal name. Must be properly allocated.
  * @returns InfraredErrorCodeNone if a signal was successfully read, otherwise error code
  */
-InfraredErrorCode
-    infrared_signal_read(InfraredSignal* signal, FlipperFormat* ff, FuriString* name);
+InfraredErrorCode infrared_signal_read(InfraredSignal *signal, FlipperFormat *ff, FuriString *name);
 
 /**
  * @brief Read a signal name from a FlipperFormat file.
@@ -155,7 +150,7 @@ InfraredErrorCode
  * @param[out] name pointer to the string to hold the signal name. Must be properly allocated.
  * @returns InfraredErrorCodeNone if a signal name was successfully read, otherwise error code
  */
-InfraredErrorCode infrared_signal_read_name(FlipperFormat* ff, FuriString* name);
+InfraredErrorCode infrared_signal_read_name(FlipperFormat *ff, FuriString *name);
 
 /**
  * @brief Read a signal from a FlipperFormat file.
@@ -163,13 +158,15 @@ InfraredErrorCode infrared_signal_read_name(FlipperFormat* ff, FuriString* name)
  * Same behaviour as infrared_signal_read(), but only the body is read.
  *
  * @param[in,out] ff pointer to the FlipperFormat file instance to read from.
- * @param[out] signal pointer to the InfraredSignal instance to hold the signal body. Must be properly allocated.
+ * @param[out] signal pointer to the InfraredSignal instance to hold the signal body. Must be
+ * properly allocated.
  * @returns InfraredErrorCodeNone if a signal body was successfully read, otherwise error code.
  */
-InfraredErrorCode infrared_signal_read_body(InfraredSignal* signal, FlipperFormat* ff);
+InfraredErrorCode infrared_signal_read_body(InfraredSignal *signal, FlipperFormat *ff);
 
 /**
- * @brief Read a signal with a particular name from a FlipperFormat file into an InfraredSignal instance.
+ * @brief Read a signal with a particular name from a FlipperFormat file into an InfraredSignal
+ * instance.
  *
  * This function will look for a signal with the given name and if found, attempt to read it.
  * Same considerations apply as to infrared_signal_read().
@@ -179,13 +176,12 @@ InfraredErrorCode infrared_signal_read_body(InfraredSignal* signal, FlipperForma
  * @param[in] name pointer to a zero-terminated string containing the requested signal name.
  * @returns InfraredErrorCodeNone if a signal was found and successfully read, otherwise error code.
  */
-InfraredErrorCode infrared_signal_search_by_name_and_read(
-    InfraredSignal* signal,
-    FlipperFormat* ff,
-    const char* name);
+InfraredErrorCode infrared_signal_search_by_name_and_read(InfraredSignal *signal, FlipperFormat *ff,
+                                                          const char *name);
 
 /**
- * @brief Read a signal with a particular index from a FlipperFormat file into an InfraredSignal instance.
+ * @brief Read a signal with a particular index from a FlipperFormat file into an InfraredSignal
+ * instance.
  *
  * This function will look for a signal with the given index and if found, attempt to read it.
  * Same considerations apply as to infrared_signal_read().
@@ -195,10 +191,8 @@ InfraredErrorCode infrared_signal_search_by_name_and_read(
  * @param[in] index the requested signal index.
  * @returns InfraredErrorCodeNone if a signal was found and successfully read, otherwise error code.
  */
-InfraredErrorCode infrared_signal_search_by_index_and_read(
-    InfraredSignal* signal,
-    FlipperFormat* ff,
-    size_t index);
+InfraredErrorCode infrared_signal_search_by_index_and_read(InfraredSignal *signal,
+                                                           FlipperFormat *ff, size_t index);
 
 /**
  * @brief Save a signal contained in an InfraredSignal instance to a FlipperFormat file.
@@ -211,8 +205,8 @@ InfraredErrorCode infrared_signal_search_by_index_and_read(
  * @param[in] name pointer to a zero-terminated string contating the name of the signal.
  * @returns InfraredErrorCodeNone if a signal was successfully saved, otherwise error code
  */
-InfraredErrorCode
-    infrared_signal_save(const InfraredSignal* signal, FlipperFormat* ff, const char* name);
+InfraredErrorCode infrared_signal_save(const InfraredSignal *signal, FlipperFormat *ff,
+                                       const char *name);
 
 /**
  * @brief Transmit a signal contained in an InfraredSignal instance.
@@ -221,7 +215,7 @@ InfraredErrorCode
  *
  * @param[in] signal pointer to the instance holding the signal to be transmitted.
  */
-void infrared_signal_transmit(const InfraredSignal* signal);
+void infrared_signal_transmit(const InfraredSignal *signal);
 
 #ifdef __cplusplus
 }

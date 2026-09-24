@@ -23,14 +23,14 @@ typedef struct InfraredRemote InfraredRemote;
  *
  * @returns pointer to the created instance.
  */
-InfraredRemote* infrared_remote_alloc(void);
+InfraredRemote *infrared_remote_alloc(void);
 
 /**
  * @brief Delete an InfraredRemote instance.
  *
  * @param[in,out] remote pointer to the instance to be deleted.
  */
-void infrared_remote_free(InfraredRemote* remote);
+void infrared_remote_free(InfraredRemote *remote);
 
 /**
  * @brief Reset an InfraredRemote instance.
@@ -40,7 +40,7 @@ void infrared_remote_free(InfraredRemote* remote);
  *
  * @param[in,out] remote pointer to the instance to be deleted.
  */
-void infrared_remote_reset(InfraredRemote* remote);
+void infrared_remote_reset(InfraredRemote *remote);
 
 /**
  * @brief Get an InfraredRemote instance's name.
@@ -55,7 +55,7 @@ void infrared_remote_reset(InfraredRemote* remote);
  * @param[in] remote pointer to the instance to be queried.
  * @returns pointer to a zero-terminated string containing the name.
  */
-const char* infrared_remote_get_name(const InfraredRemote* remote);
+const char *infrared_remote_get_name(const InfraredRemote *remote);
 
 /**
  * @brief Get an InfraredRemote instance's file path.
@@ -65,7 +65,7 @@ const char* infrared_remote_get_name(const InfraredRemote* remote);
  * @param[in] remote pointer to the instance to be queried.
  * @returns pointer to a zero-terminated string containing the path.
  */
-const char* infrared_remote_get_path(const InfraredRemote* remote);
+const char *infrared_remote_get_path(const InfraredRemote *remote);
 
 /**
  * @brief Get the number of signals listed in an InfraredRemote instance.
@@ -73,7 +73,7 @@ const char* infrared_remote_get_path(const InfraredRemote* remote);
  * @param[in] remote pointer to the instance to be queried.
  * @returns number of signals, zero or more
  */
-size_t infrared_remote_get_signal_count(const InfraredRemote* remote);
+size_t infrared_remote_get_signal_count(const InfraredRemote *remote);
 
 /**
  * @brief Get the name of a signal listed in an InfraredRemote instance.
@@ -81,7 +81,7 @@ size_t infrared_remote_get_signal_count(const InfraredRemote* remote);
  * @param[in] remote pointer to the instance to be queried.
  * @param[in] index index of the signal in question. Must be less than the total signal count.
  */
-const char* infrared_remote_get_signal_name(const InfraredRemote* remote, size_t index);
+const char *infrared_remote_get_signal_name(const InfraredRemote *remote, size_t index);
 
 /**
  * @brief Get the index of a signal listed in an InfraredRemote instance by its name.
@@ -91,10 +91,8 @@ const char* infrared_remote_get_signal_name(const InfraredRemote* remote, size_t
  * @param[out] index pointer to the variable to hold the signal index.
  * @returns true if a signal with the given name was found, false otherwise.
  */
-bool infrared_remote_get_signal_index(
-    const InfraredRemote* remote,
-    const char* name,
-    size_t* index);
+bool infrared_remote_get_signal_index(const InfraredRemote *remote, const char *name,
+                                      size_t *index);
 
 /**
  * @brief Load a signal listed in an InfraredRemote instance.
@@ -107,8 +105,8 @@ bool infrared_remote_get_signal_index(
  * @param[in] index index of the signal to be loaded. Must be less than the total signal count.
  * @return InfraredErrorCodeNone if the signal was successfully loaded, otherwise error code.
  */
-InfraredErrorCode
-    infrared_remote_load_signal(const InfraredRemote* remote, InfraredSignal* signal, size_t index);
+InfraredErrorCode infrared_remote_load_signal(const InfraredRemote *remote, InfraredSignal *signal,
+                                              size_t index);
 
 /**
  * @brief Append a signal to the file associated with an InfraredRemote instance.
@@ -121,10 +119,8 @@ InfraredErrorCode
  * @param[in] name pointer to a zero-terminated string containing the name of the signal.
  * @returns InfraredErrorCodeNone if the signal was successfully appended, otherwise error code.
  */
-InfraredErrorCode infrared_remote_append_signal(
-    InfraredRemote* remote,
-    const InfraredSignal* signal,
-    const char* name);
+InfraredErrorCode infrared_remote_append_signal(InfraredRemote *remote,
+                                                const InfraredSignal *signal, const char *name);
 
 /**
  * @brief Insert a signal to the file associated with an InfraredRemote instance.
@@ -142,11 +138,9 @@ InfraredErrorCode infrared_remote_append_signal(
  * @returns InfraredErrorCodeNone if the signal was successfully inserted, otherwise error
  * code describing what error happened ORed with index pointing which signal caused an error.
  */
-InfraredErrorCode infrared_remote_insert_signal(
-    InfraredRemote* remote,
-    const InfraredSignal* signal,
-    const char* name,
-    size_t index);
+InfraredErrorCode infrared_remote_insert_signal(InfraredRemote *remote,
+                                                const InfraredSignal *signal, const char *name,
+                                                size_t index);
 
 /**
  * @brief Rename a signal in the file associated with an InfraredRemote instance.
@@ -158,8 +152,8 @@ InfraredErrorCode infrared_remote_insert_signal(
  * @param[in] new_name pointer to a zero-terminated string containig the signal's new name.
  * @returns InfraredErrorCodeNone if the signal was successfully renamed, otherwise error code.
  */
-InfraredErrorCode
-    infrared_remote_rename_signal(InfraredRemote* remote, size_t index, const char* new_name);
+InfraredErrorCode infrared_remote_rename_signal(InfraredRemote *remote, size_t index,
+                                                const char *new_name);
 
 /**
  * @brief Change a signal's position in the file associated with an InfraredRemote instance.
@@ -172,8 +166,8 @@ InfraredErrorCode
  * @returns InfraredErrorCodeNone if the signal was moved successfully, otherwise error
  * code describing what error happened ORed with index pointing which signal caused an error.
  */
-InfraredErrorCode
-    infrared_remote_move_signal(InfraredRemote* remote, size_t index, size_t new_index);
+InfraredErrorCode infrared_remote_move_signal(InfraredRemote *remote, size_t index,
+                                              size_t new_index);
 
 /**
  * @brief Delete a signal in the file associated with an InfraredRemote instance.
@@ -183,7 +177,7 @@ InfraredErrorCode
  * @returns InfraredErrorCodeNone if the signal was successfully deleted, otherwise error
  * code describing what error happened ORed with index pointing which signal caused an error.
  */
-InfraredErrorCode infrared_remote_delete_signal(InfraredRemote* remote, size_t index);
+InfraredErrorCode infrared_remote_delete_signal(InfraredRemote *remote, size_t index);
 
 /**
  * @brief Create a new file and associate it with an InfraredRemote instance.
@@ -194,7 +188,7 @@ InfraredErrorCode infrared_remote_delete_signal(InfraredRemote* remote, size_t i
  * @param[in] path pointer to a zero-terminated string containing the full file path.
  * @returns InfraredErrorCodeNone if the file was successfully created, otherwise error code.
  */
-InfraredErrorCode infrared_remote_create(InfraredRemote* remote, const char* path);
+InfraredErrorCode infrared_remote_create(InfraredRemote *remote, const char *path);
 
 /**
  * @brief Associate an InfraredRemote instance with a file and load the signal names from it.
@@ -206,7 +200,7 @@ InfraredErrorCode infrared_remote_create(InfraredRemote* remote, const char* pat
  * @param[in] path pointer to a zero-terminated string containing the full file path.
  * @returns InfraredErrorCodeNone if the file was successfully loaded, otherwise error code.
  */
-InfraredErrorCode infrared_remote_load(InfraredRemote* remote, const char* path);
+InfraredErrorCode infrared_remote_load(InfraredRemote *remote, const char *path);
 
 /**
  * @brief Rename the file associated with an InfraredRemote instance.
@@ -217,7 +211,7 @@ InfraredErrorCode infrared_remote_load(InfraredRemote* remote, const char* path)
  * @param[in] new_path pointer to a zero-terminated string containing the new full file path.
  * @returns InfraredErrorCodeNone if the file was successfully renamed, otherwise error code.
  */
-InfraredErrorCode infrared_remote_rename(InfraredRemote* remote, const char* new_path);
+InfraredErrorCode infrared_remote_rename(InfraredRemote *remote, const char *new_path);
 
 /**
  * @brief Remove the file associated with an InfraredRemote instance.
@@ -230,4 +224,4 @@ InfraredErrorCode infrared_remote_rename(InfraredRemote* remote, const char* new
  * @param[in,out] remote pointer to the instance to be modified.
  * @returns InfraredErrorCodeNone if the file was successfully removed, otherwise error code.
  */
-InfraredErrorCode infrared_remote_remove(InfraredRemote* remote);
+InfraredErrorCode infrared_remote_remove(InfraredRemote *remote);

@@ -4,39 +4,40 @@
 #define MAX_VIEWS 3
 
 typedef struct {
-    View* views[MAX_VIEWS];
+    View *views[MAX_VIEWS];
 } ViewStackModel;
 
 struct ViewStack {
     View view;
 };
 
-static void view_stack_draw(Canvas* canvas, void* model);
-static bool view_stack_input(InputEvent* event, void* context);
-static bool view_stack_ascii(AsciiEvent* event, void* context);
+static void view_stack_draw(Canvas *canvas, void *model);
+static bool view_stack_input(InputEvent *event, void *context);
+static bool view_stack_ascii(AsciiEvent *event, void *context);
 
-static void view_stack_update_callback(View* view_top_or_bottom, void* context) {
+static void view_stack_update_callback(View *view_top_or_bottom, void *context)
+{
     furi_assert(view_top_or_bottom);
     furi_assert(context);
 
-    View* view_stack_view = context;
-    if(view_stack_view->update_callback) {
-        view_stack_view->update_callback(
-            view_stack_view, view_stack_view->update_callback_context);
+    View *view_stack_view = context;
+    if (view_stack_view->update_callback) {
+        view_stack_view->update_callback(view_stack_view, view_stack_view->update_callback_context);
     }
 }
 
-static void view_stack_enter(void* context) {
+static void view_stack_enter(void *context)
+{
     furi_assert(context);
 
-    ViewStack* view_stack = context;
-    ViewStackModel* model = view_get_model(&view_stack->view);
+    ViewStack *view_stack = context;
+    ViewStackModel *model = view_get_model(&view_stack->view);
 
     /* if more than 1 Stack View hold same view they have to reassign update_callback_context */
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(model->views[i]) {
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (model->views[i]) {
             view_set_update_callback_context(model->views[i], &view_stack->view);
-            if(model->views[i]->enter_callback) {
+            if (model->views[i]->enter_callback) {
                 model->views[i]->enter_callback(model->views[i]->context);
             }
         }
@@ -45,14 +46,15 @@ static void view_stack_enter(void* context) {
     view_commit_model(&view_stack->view, false);
 }
 
-static void view_stack_exit(void* context) {
+static void view_stack_exit(void *context)
+{
     furi_assert(context);
 
-    ViewStack* view_stack = context;
-    ViewStackModel* model = view_get_model(&view_stack->view);
+    ViewStack *view_stack = context;
+    ViewStackModel *model = view_get_model(&view_stack->view);
 
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(model->views[i] && model->views[i]->exit_callback) {
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (model->views[i] && model->views[i]->exit_callback) {
             model->views[i]->exit_callback(model->views[i]->context);
         }
     }
@@ -60,8 +62,9 @@ static void view_stack_exit(void* context) {
     view_commit_model(&view_stack->view, false);
 }
 
-ViewStack* view_stack_alloc(void) {
-    ViewStack* view_stack = malloc(sizeof(ViewStack));
+ViewStack *view_stack_alloc(void)
+{
+    ViewStack *view_stack = malloc(sizeof(ViewStack));
     view_init(&view_stack->view);
 
     view_allocate_model(&view_stack->view, ViewModelTypeLocking, sizeof(ViewStackModel));
@@ -74,12 +77,13 @@ ViewStack* view_stack_alloc(void) {
     return view_stack;
 }
 
-void view_stack_free(ViewStack* view_stack) {
+void view_stack_free(ViewStack *view_stack)
+{
     furi_assert(view_stack);
 
-    ViewStackModel* model = view_get_model(&view_stack->view);
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(model->views[i]) {
+    ViewStackModel *model = view_get_model(&view_stack->view);
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (model->views[i]) {
             view_set_update_callback(model->views[i], NULL);
             view_set_update_callback_context(model->views[i], NULL);
         }
@@ -90,27 +94,29 @@ void view_stack_free(ViewStack* view_stack) {
     free(view_stack);
 }
 
-static void view_stack_draw(Canvas* canvas, void* _model) {
+static void view_stack_draw(Canvas *canvas, void *_model)
+{
     furi_assert(_model);
 
-    ViewStackModel* model = _model;
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(model->views[i]) {
+    ViewStackModel *model = _model;
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (model->views[i]) {
             view_draw(model->views[i], canvas);
         }
     }
 }
 
-static bool view_stack_input(InputEvent* event, void* context) {
+static bool view_stack_input(InputEvent *event, void *context)
+{
     furi_assert(event);
     furi_assert(context);
 
-    ViewStack* view_stack = context;
+    ViewStack *view_stack = context;
 
     bool consumed = false;
-    ViewStackModel* model = view_get_model(&view_stack->view);
-    for(int i = MAX_VIEWS - 1; i >= 0; i--) {
-        if(model->views[i] && view_input(model->views[i], event)) {
+    ViewStackModel *model = view_get_model(&view_stack->view);
+    for (int i = MAX_VIEWS - 1; i >= 0; i--) {
+        if (model->views[i] && view_input(model->views[i], event)) {
             consumed = true;
             break;
         }
@@ -120,16 +126,17 @@ static bool view_stack_input(InputEvent* event, void* context) {
     return consumed;
 }
 
-static bool view_stack_ascii(AsciiEvent* event, void* context) {
+static bool view_stack_ascii(AsciiEvent *event, void *context)
+{
     furi_assert(event);
     furi_assert(context);
 
-    ViewStack* view_stack = context;
+    ViewStack *view_stack = context;
 
     bool consumed = false;
-    ViewStackModel* model = view_get_model(&view_stack->view);
-    for(int i = MAX_VIEWS - 1; i >= 0; i--) {
-        if(model->views[i] && view_ascii(model->views[i], event)) {
+    ViewStackModel *model = view_get_model(&view_stack->view);
+    for (int i = MAX_VIEWS - 1; i >= 0; i--) {
+        if (model->views[i] && view_ascii(model->views[i], event)) {
             consumed = true;
             break;
         }
@@ -139,18 +146,19 @@ static bool view_stack_ascii(AsciiEvent* event, void* context) {
     return consumed;
 }
 
-void view_stack_add_view(ViewStack* view_stack, View* view) {
+void view_stack_add_view(ViewStack *view_stack, View *view)
+{
     furi_assert(view_stack);
     furi_assert(view);
 
     bool result = false;
-    ViewStackModel* model = view_get_model(&view_stack->view);
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(!model->views[i]) {
+    ViewStackModel *model = view_get_model(&view_stack->view);
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (!model->views[i]) {
             model->views[i] = view;
             view_set_update_callback(model->views[i], view_stack_update_callback);
             view_set_update_callback_context(model->views[i], &view_stack->view);
-            if(view->enter_callback) {
+            if (view->enter_callback) {
                 view->enter_callback(view->context);
             }
             result = true;
@@ -161,17 +169,18 @@ void view_stack_add_view(ViewStack* view_stack, View* view) {
     furi_assert(result);
 }
 
-void view_stack_remove_view(ViewStack* view_stack, View* view) {
+void view_stack_remove_view(ViewStack *view_stack, View *view)
+{
     furi_assert(view_stack);
     furi_assert(view);
 
     /* Removing view on-the-go is dangerous, but it is protected with
      * Locking model, so system is consistent at any time. */
     bool result = false;
-    ViewStackModel* model = view_get_model(&view_stack->view);
-    for(int i = 0; i < MAX_VIEWS; ++i) {
-        if(model->views[i] == view) {
-            if(view->exit_callback) {
+    ViewStackModel *model = view_get_model(&view_stack->view);
+    for (int i = 0; i < MAX_VIEWS; ++i) {
+        if (model->views[i] == view) {
+            if (view->exit_callback) {
                 view->exit_callback(view->context);
             }
             view_set_update_callback(model->views[i], NULL);
@@ -185,7 +194,8 @@ void view_stack_remove_view(ViewStack* view_stack, View* view) {
     furi_assert(result);
 }
 
-View* view_stack_get_view(ViewStack* view_stack) {
+View *view_stack_get_view(ViewStack *view_stack)
+{
     furi_assert(view_stack);
     return &view_stack->view;
 }

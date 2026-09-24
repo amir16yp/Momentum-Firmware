@@ -7,7 +7,7 @@
 typedef struct BubbleAnimationView BubbleAnimationView;
 
 /** Callback type to be called when interact button pressed */
-typedef void (*BubbleAnimationInteractCallback)(void*);
+typedef void (*BubbleAnimationInteractCallback)(void *);
 
 /**
  * Allocate bubble animation view.
@@ -16,14 +16,14 @@ typedef void (*BubbleAnimationInteractCallback)(void*);
  *
  * @return instance of new bubble animation
  */
-BubbleAnimationView* bubble_animation_view_alloc(void);
+BubbleAnimationView *bubble_animation_view_alloc(void);
 
 /**
  * Free bubble animation view.
  *
  * @view        bubble animation view instance
  */
-void bubble_animation_view_free(BubbleAnimationView* view);
+void bubble_animation_view_free(BubbleAnimationView *view);
 
 /**
  * Set callback for interact action for animation.
@@ -33,10 +33,9 @@ void bubble_animation_view_free(BubbleAnimationView* view);
  * @callback    callback to call when button pressed
  * @context     context
  */
-void bubble_animation_view_set_interact_callback(
-    BubbleAnimationView* view,
-    BubbleAnimationInteractCallback callback,
-    void* context);
+void bubble_animation_view_set_interact_callback(BubbleAnimationView *view,
+                                                 BubbleAnimationInteractCallback callback,
+                                                 void *context);
 
 /**
  * Set new animation.
@@ -46,9 +45,8 @@ void bubble_animation_view_set_interact_callback(
  * @view                    bubble animation view instance
  * @new_bubble_animation    new animation to set
  */
-void bubble_animation_view_set_animation(
-    BubbleAnimationView* view,
-    const BubbleAnimation* new_bubble_animation);
+void bubble_animation_view_set_animation(BubbleAnimationView *view,
+                                         const BubbleAnimation *new_bubble_animation);
 
 /**
  * Get view of bubble animation.
@@ -56,7 +54,7 @@ void bubble_animation_view_set_animation(
  * @view        bubble animation view instance
  * @return      view
  */
-View* bubble_animation_get_view(BubbleAnimationView* view);
+View *bubble_animation_get_view(BubbleAnimationView *view);
 
 /**
  * Freeze current playing animation. Saves a frame to be shown
@@ -79,11 +77,11 @@ View* bubble_animation_get_view(BubbleAnimationView* view);
  *
  * @view        bubble animation view instance
  */
-void bubble_animation_freeze(BubbleAnimationView* view);
+void bubble_animation_freeze(BubbleAnimationView *view);
 
 /**
  * Starts bubble animation after freezing.
  *
  * @view        bubble animation view instance
  */
-void bubble_animation_unfreeze(BubbleAnimationView* view);
+void bubble_animation_unfreeze(BubbleAnimationView *view);

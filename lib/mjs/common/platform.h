@@ -60,7 +60,7 @@
 #endif
 
 #if !defined(WEAK)
-#if(defined(__GNUC__) || defined(__clang__) || defined(__TI_COMPILER_VERSION__)) && \
+#if (defined(__GNUC__) || defined(__clang__) || defined(__TI_COMPILER_VERSION__)) &&               \
     !defined(_WIN32)
 #define WEAK __attribute__((weak))
 #else

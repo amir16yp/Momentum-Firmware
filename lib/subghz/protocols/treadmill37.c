@@ -68,9 +68,10 @@ const SubGhzProtocol subghz_protocol_treadmill37 = {
     .encoder = &subghz_protocol_treadmill37_encoder,
 };
 
-void* subghz_protocol_encoder_treadmill37_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_treadmill37_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderTreadmill37* instance = malloc(sizeof(SubGhzProtocolEncoderTreadmill37));
+    SubGhzProtocolEncoderTreadmill37 *instance = malloc(sizeof(SubGhzProtocolEncoderTreadmill37));
 
     instance->base.protocol = &subghz_protocol_treadmill37;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -82,9 +83,10 @@ void* subghz_protocol_encoder_treadmill37_alloc(SubGhzEnvironment* environment) 
     return instance;
 }
 
-void subghz_protocol_encoder_treadmill37_free(void* context) {
+void subghz_protocol_encoder_treadmill37_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderTreadmill37* instance = context;
+    SubGhzProtocolEncoderTreadmill37 *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
@@ -94,18 +96,19 @@ void subghz_protocol_encoder_treadmill37_free(void* context) {
  * @param instance Pointer to a SubGhzProtocolEncoderTreadmill37 instance
  */
 static void
-    subghz_protocol_encoder_treadmill37_get_upload(SubGhzProtocolEncoderTreadmill37* instance) {
+subghz_protocol_encoder_treadmill37_get_upload(SubGhzProtocolEncoderTreadmill37 *instance)
+{
     furi_assert(instance);
     size_t index = 0;
 
     // Send key and GAP
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(bit_read(instance->generic.data, i - 1)) {
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (bit_read(instance->generic.data, i - 1)) {
             // Send bit 1
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_treadmill37_const.te_long);
-            if(i == 1) {
-                //Send gap if bit was last
+            if (i == 1) {
+                // Send gap if bit was last
                 instance->encoder.upload[index++] = level_duration_make(
                     false, (uint32_t)subghz_protocol_treadmill37_const.te_short * 20);
             } else {
@@ -116,13 +119,13 @@ static void
             // Send bit 0
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_treadmill37_const.te_short);
-            if(i == 1) {
-                //Send gap if bit was last
+            if (i == 1) {
+                // Send gap if bit was last
                 instance->encoder.upload[index++] = level_duration_make(
                     false, (uint32_t)subghz_protocol_treadmill37_const.te_short * 20);
             } else {
-                instance->encoder.upload[index++] = level_duration_make(
-                    false, (uint32_t)subghz_protocol_treadmill37_const.te_long);
+                instance->encoder.upload[index++] =
+                    level_duration_make(false, (uint32_t)subghz_protocol_treadmill37_const.te_long);
             }
         }
     }
@@ -131,89 +134,94 @@ static void
     return;
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzBlockGeneric* instance
  */
-static void subghz_protocol_treadmill37_check_remote_controller(SubGhzBlockGeneric* instance) {
+static void subghz_protocol_treadmill37_check_remote_controller(SubGhzBlockGeneric *instance)
+{
     instance->serial = instance->data >> 17;
     instance->cnt = (instance->data >> 1) & 0xFFFF;
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_encoder_treadmill37_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_encoder_treadmill37_deserialize(void *context,
+                                                                     FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderTreadmill37* instance = context;
+    SubGhzProtocolEncoderTreadmill37 *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
+            &instance->generic, flipper_format,
             subghz_protocol_treadmill37_const.min_count_bit_for_found);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
         // Optional value
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 1);
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   1);
 
         subghz_protocol_treadmill37_check_remote_controller(&instance->generic);
         subghz_protocol_encoder_treadmill37_get_upload(instance);
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-void subghz_protocol_encoder_treadmill37_stop(void* context) {
-    SubGhzProtocolEncoderTreadmill37* instance = context;
+void subghz_protocol_encoder_treadmill37_stop(void *context)
+{
+    SubGhzProtocolEncoderTreadmill37 *instance = context;
     instance->encoder.is_running = false;
 }
 
-LevelDuration subghz_protocol_encoder_treadmill37_yield(void* context) {
-    SubGhzProtocolEncoderTreadmill37* instance = context;
+LevelDuration subghz_protocol_encoder_treadmill37_yield(void *context)
+{
+    SubGhzProtocolEncoderTreadmill37 *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
-        if(!subghz_block_generic_global.endless_tx) instance->encoder.repeat--;
+    if (++instance->encoder.front == instance->encoder.size_upload) {
+        if (!subghz_block_generic_global.endless_tx)
+            instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
 
     return ret;
 }
 
-void* subghz_protocol_decoder_treadmill37_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_treadmill37_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderTreadmill37* instance = malloc(sizeof(SubGhzProtocolDecoderTreadmill37));
+    SubGhzProtocolDecoderTreadmill37 *instance = malloc(sizeof(SubGhzProtocolDecoderTreadmill37));
     instance->base.protocol = &subghz_protocol_treadmill37;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void subghz_protocol_decoder_treadmill37_free(void* context) {
+void subghz_protocol_decoder_treadmill37_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_treadmill37_reset(void* context) {
+void subghz_protocol_decoder_treadmill37_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
     instance->decoder.parser_step = Treadmill37DecoderStepReset;
 }
 
-void subghz_protocol_decoder_treadmill37_feed(
-    void* context,
-    bool level,
-    volatile uint32_t duration) {
+void subghz_protocol_decoder_treadmill37_feed(void *context, bool level, volatile uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
 
     // Treadmill37 (QH-433) Decoder
     // 2026 - @xMasterX (MMX)
@@ -227,18 +235,18 @@ void subghz_protocol_decoder_treadmill37_feed(
     // 180001556C = 00011000000000000000000 1010101010110110 0
     // 180001334A = 00011000000000000000000 1001100110100101 0
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Treadmill37DecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_short * 20) <
-                        subghz_protocol_treadmill37_const.te_delta * 4)) {
-            //Found GAP
+        if ((!level) && (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_short * 20) <
+                         subghz_protocol_treadmill37_const.te_delta * 4)) {
+            // Found GAP
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
             instance->decoder.parser_step = Treadmill37DecoderStepSaveDuration;
         }
         break;
     case Treadmill37DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Treadmill37DecoderStepCheckDuration;
         } else {
@@ -246,45 +254,44 @@ void subghz_protocol_decoder_treadmill37_feed(
         }
         break;
     case Treadmill37DecoderStepCheckDuration:
-        if(!level) {
+        if (!level) {
             // Bit 0 is short and long timing = 300us HIGH (te_last) and 900us LOW
-            if((DURATION_DIFF(
-                    instance->decoder.te_last, subghz_protocol_treadmill37_const.te_short) <
-                subghz_protocol_treadmill37_const.te_delta) &&
-               (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_long) <
-                subghz_protocol_treadmill37_const.te_delta)) {
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               subghz_protocol_treadmill37_const.te_short) <
+                 subghz_protocol_treadmill37_const.te_delta) &&
+                (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_long) <
+                 subghz_protocol_treadmill37_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Treadmill37DecoderStepSaveDuration;
                 // Bit 1 is long and short timing = 900us HIGH (te_last) and 300us LOW
-            } else if(
-                (DURATION_DIFF(
-                     instance->decoder.te_last, subghz_protocol_treadmill37_const.te_long) <
-                 subghz_protocol_treadmill37_const.te_delta) &&
-                (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_short) <
-                 subghz_protocol_treadmill37_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      subghz_protocol_treadmill37_const.te_long) <
+                        subghz_protocol_treadmill37_const.te_delta) &&
+                       (DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_short) <
+                        subghz_protocol_treadmill37_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Treadmill37DecoderStepSaveDuration;
-            } else if(
+            } else if (
                 // End of the key
                 DURATION_DIFF(duration, subghz_protocol_treadmill37_const.te_short * 20) <
                 subghz_protocol_treadmill37_const.te_delta * 4) {
-                //Found next GAP and add bit 0 or 1 (only bit 0 was found on the remotes)
-                if((DURATION_DIFF(
-                        instance->decoder.te_last, subghz_protocol_treadmill37_const.te_short) <
-                    subghz_protocol_treadmill37_const.te_delta)) {
+                // Found next GAP and add bit 0 or 1 (only bit 0 was found on the remotes)
+                if ((DURATION_DIFF(instance->decoder.te_last,
+                                   subghz_protocol_treadmill37_const.te_short) <
+                     subghz_protocol_treadmill37_const.te_delta)) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 }
-                if((DURATION_DIFF(
-                        instance->decoder.te_last, subghz_protocol_treadmill37_const.te_long) <
-                    subghz_protocol_treadmill37_const.te_delta)) {
+                if ((DURATION_DIFF(instance->decoder.te_last,
+                                   subghz_protocol_treadmill37_const.te_long) <
+                     subghz_protocol_treadmill37_const.te_delta)) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 }
                 // If got 37 bits key reading is finished
-                if(instance->decoder.decode_count_bit ==
-                   subghz_protocol_treadmill37_const.min_count_bit_for_found) {
+                if (instance->decoder.decode_count_bit ==
+                    subghz_protocol_treadmill37_const.min_count_bit_for_found) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
@@ -300,35 +307,37 @@ void subghz_protocol_decoder_treadmill37_feed(
     }
 }
 
-uint32_t subghz_protocol_decoder_treadmill37_get_hash_data(void* context) {
+uint32_t subghz_protocol_decoder_treadmill37_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_treadmill37_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_treadmill37_serialize(void *context,
+                                                                   FlipperFormat *flipper_format,
+                                                                   SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_treadmill37_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_treadmill37_deserialize(void *context,
+                                                                     FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         subghz_protocol_treadmill37_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_treadmill37_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_treadmill37_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderTreadmill37* instance = context;
+    SubGhzProtocolDecoderTreadmill37 *instance = context;
 
     subghz_protocol_treadmill37_check_remote_controller(&instance->generic);
 
@@ -342,17 +351,14 @@ void subghz_protocol_decoder_treadmill37_get_string(void* context, FuriString* o
     // subghz_block_generic_global.btn_length_bit = 4;
     // //
 
-    furi_string_cat_printf(
-        output,
-        "%s %db\r\n"
-        "Key: 0x%08llX\r\n"
-        "Yek: 0x%08llX\r\n"
-        "Serial: 0x%06lX\r\n"
-        "Btn: %04lX",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint64_t)(instance->generic.data & 0xFFFFFFFFFF),
-        (code_found_reverse & 0xFFFFFFFFFF),
-        instance->generic.serial,
-        instance->generic.cnt);
+    furi_string_cat_printf(output,
+                           "%s %db\r\n"
+                           "Key: 0x%08llX\r\n"
+                           "Yek: 0x%08llX\r\n"
+                           "Serial: 0x%06lX\r\n"
+                           "Btn: %04lX",
+                           instance->generic.protocol_name, instance->generic.data_count_bit,
+                           (uint64_t)(instance->generic.data & 0xFFFFFFFFFF),
+                           (code_found_reverse & 0xFFFFFFFFFF), instance->generic.serial,
+                           instance->generic.cnt);
 }

@@ -35,7 +35,7 @@ typedef enum {
 
 typedef enum {
     SpiDefault, // CS on pa4
-    SpiExtra, // CS on pc3
+    SpiExtra,   // CS on pc3
     SpiCount,
 } SpiHandle;
 

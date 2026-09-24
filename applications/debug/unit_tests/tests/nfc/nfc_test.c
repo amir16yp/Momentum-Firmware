@@ -30,7 +30,7 @@
 
 #define TAG "NfcTest"
 
-#define NFC_TEST_NFC_DEV_PATH                  EXT_PATH("unit_tests/nfc/nfc_device_test.nfc")
+#define NFC_TEST_NFC_DEV_PATH EXT_PATH("unit_tests/nfc/nfc_device_test.nfc")
 #define NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH EXT_PATH("unit_tests/mf_dict.nfc")
 
 #define NFC_TEST_FLAG_WORKER_DONE (1)
@@ -45,8 +45,8 @@ typedef enum {
 
 typedef struct {
     NfcTestMfClassicSendFrameTestState state;
-    BitBuffer* tx_buf;
-    BitBuffer* rx_buf;
+    BitBuffer *tx_buf;
+    BitBuffer *rx_buf;
     FuriThreadId thread_id;
 } NfcTestMfClassicSendFrameTest;
 
@@ -64,17 +64,19 @@ typedef struct {
 } NfcTestSlixPollerSetPasswordContext;
 
 typedef struct {
-    Storage* storage;
+    Storage *storage;
 } NfcTest;
 
-static NfcTest* nfc_test = NULL;
+static NfcTest *nfc_test = NULL;
 
-static void nfc_test_alloc(void) {
+static void nfc_test_alloc(void)
+{
     nfc_test = malloc(sizeof(NfcTest));
     nfc_test->storage = furi_record_open(RECORD_STORAGE);
 }
 
-static void nfc_test_free(void) {
+static void nfc_test_free(void)
+{
     furi_check(nfc_test);
 
     furi_record_close(RECORD_STORAGE);
@@ -82,30 +84,30 @@ static void nfc_test_free(void) {
     nfc_test = NULL;
 }
 
-static void nfc_test_save_and_load(NfcDevice* nfc_device_ref) {
-    NfcDevice* nfc_device_dut = nfc_device_alloc();
+static void nfc_test_save_and_load(NfcDevice *nfc_device_ref)
+{
+    NfcDevice *nfc_device_dut = nfc_device_alloc();
 
-    mu_assert(
-        nfc_device_save(nfc_device_ref, NFC_TEST_NFC_DEV_PATH), "nfc_device_save() failed\r\n");
+    mu_assert(nfc_device_save(nfc_device_ref, NFC_TEST_NFC_DEV_PATH),
+              "nfc_device_save() failed\r\n");
 
-    mu_assert(
-        nfc_device_load(nfc_device_dut, NFC_TEST_NFC_DEV_PATH), "nfc_device_load() failed\r\n");
+    mu_assert(nfc_device_load(nfc_device_dut, NFC_TEST_NFC_DEV_PATH),
+              "nfc_device_load() failed\r\n");
 
-    mu_assert(
-        nfc_device_is_equal(nfc_device_ref, nfc_device_dut),
-        "nfc_device_data_dut != nfc_device_data_ref\r\n");
+    mu_assert(nfc_device_is_equal(nfc_device_ref, nfc_device_dut),
+              "nfc_device_data_dut != nfc_device_data_ref\r\n");
 
-    mu_assert(
-        storage_simply_remove(nfc_test->storage, NFC_TEST_NFC_DEV_PATH),
-        "storage_simply_remove() failed\r\n");
+    mu_assert(storage_simply_remove(nfc_test->storage, NFC_TEST_NFC_DEV_PATH),
+              "storage_simply_remove() failed\r\n");
 
     nfc_device_free(nfc_device_dut);
 }
 
-static void iso14443_3a_file_test(uint8_t uid_len) {
-    NfcDevice* nfc_device = nfc_device_alloc();
+static void iso14443_3a_file_test(uint8_t uid_len)
+{
+    NfcDevice *nfc_device = nfc_device_alloc();
 
-    Iso14443_3aData* data = iso14443_3a_alloc();
+    Iso14443_3aData *data = iso14443_3a_alloc();
     data->uid_len = uid_len;
     furi_hal_random_fill_buf(data->uid, uid_len);
     furi_hal_random_fill_buf(data->atqa, sizeof(data->atqa));
@@ -118,8 +120,9 @@ static void iso14443_3a_file_test(uint8_t uid_len) {
     nfc_device_free(nfc_device);
 }
 
-static void nfc_file_test_with_generator(NfcDataGeneratorType type) {
-    NfcDevice* nfc_device_ref = nfc_device_alloc();
+static void nfc_file_test_with_generator(NfcDataGeneratorType type)
+{
+    NfcDevice *nfc_device_ref = nfc_device_alloc();
 
     nfc_data_generator_fill_data(type, nfc_device_ref);
     nfc_test_save_and_load(nfc_device_ref);
@@ -127,89 +130,110 @@ static void nfc_file_test_with_generator(NfcDataGeneratorType type) {
     nfc_device_free(nfc_device_ref);
 }
 
-MU_TEST(iso14443_3a_4b_file_test) {
+MU_TEST(iso14443_3a_4b_file_test)
+{
     iso14443_3a_file_test(4);
 }
 
-MU_TEST(iso14443_3a_7b_file_test) {
+MU_TEST(iso14443_3a_7b_file_test)
+{
     iso14443_3a_file_test(7);
 }
 
-MU_TEST(mf_ultralight_file_test) {
+MU_TEST(mf_ultralight_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfUltralight);
 }
 
-MU_TEST(mf_ultralight_ev1_11_file_test) {
+MU_TEST(mf_ultralight_ev1_11_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfUltralightEV1_11);
 }
 
-MU_TEST(mf_ultralight_ev1_h11_file_test) {
+MU_TEST(mf_ultralight_ev1_h11_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfUltralightEV1_H11);
 }
 
-MU_TEST(mf_ultralight_ev1_21_file_test) {
+MU_TEST(mf_ultralight_ev1_21_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfUltralightEV1_21);
 }
 
-MU_TEST(mf_ultralight_ev1_h21_file_test) {
+MU_TEST(mf_ultralight_ev1_h21_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfUltralightEV1_H21);
 }
 
-MU_TEST(mf_ultralight_ntag_203_file_test) {
+MU_TEST(mf_ultralight_ntag_203_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAG203);
 }
 
-MU_TEST(mf_ultralight_ntag_213_file_test) {
+MU_TEST(mf_ultralight_ntag_213_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAG213);
 }
 
-MU_TEST(mf_ultralight_ntag_215_file_test) {
+MU_TEST(mf_ultralight_ntag_215_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAG215);
 }
 
-MU_TEST(mf_ultralight_ntag_216_file_test) {
+MU_TEST(mf_ultralight_ntag_216_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAG216);
 }
 
-MU_TEST(mf_ultralight_ntag_i2c_1k_file_test) {
+MU_TEST(mf_ultralight_ntag_i2c_1k_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAGI2C1k);
 }
 
-MU_TEST(mf_ultralight_ntag_i2c_2k_file_test) {
+MU_TEST(mf_ultralight_ntag_i2c_2k_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAGI2C2k);
 }
 
-MU_TEST(mf_ultralight_ntag_i2c_plus_1k_file_test) {
+MU_TEST(mf_ultralight_ntag_i2c_plus_1k_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAGI2CPlus1k);
 }
 
-MU_TEST(mf_ultralight_ntag_i2c_plus_2k_file_test) {
+MU_TEST(mf_ultralight_ntag_i2c_plus_2k_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeNTAGI2CPlus2k);
 }
 
-MU_TEST(mf_classic_mini_file_test) {
+MU_TEST(mf_classic_mini_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfClassicMini);
 }
 
-MU_TEST(mf_classic_1k_4b_file_test) {
+MU_TEST(mf_classic_1k_4b_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfClassic1k_4b);
 }
 
-MU_TEST(mf_classic_1k_7b_file_test) {
+MU_TEST(mf_classic_1k_7b_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfClassic1k_7b);
 }
 
-MU_TEST(mf_classic_4k_4b_file_test) {
+MU_TEST(mf_classic_4k_4b_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfClassic4k_4b);
 }
 
-MU_TEST(mf_classic_4k_7b_file_test) {
+MU_TEST(mf_classic_4k_7b_file_test)
+{
     nfc_file_test_with_generator(NfcDataGeneratorTypeMfClassic4k_7b);
 }
 
-MU_TEST(iso14443_3a_reader) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+MU_TEST(iso14443_3a_reader)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
     Iso14443_3aData iso14443_3a_listener_data = {
         .uid_len = 7,
@@ -217,35 +241,35 @@ MU_TEST(iso14443_3a_reader) {
         .atqa = {0x44, 0x00},
         .sak = 0x00,
     };
-    NfcListener* iso3_listener =
+    NfcListener *iso3_listener =
         nfc_listener_alloc(listener, NfcProtocolIso14443_3a, &iso14443_3a_listener_data);
     nfc_listener_start(iso3_listener, NULL, NULL);
 
     Iso14443_3aData iso14443_3a_poller_data = {};
-    mu_assert(
-        iso14443_3a_poller_sync_read(poller, &iso14443_3a_poller_data) == Iso14443_3aErrorNone,
-        "iso14443_3a_poller_sync_read() failed");
+    mu_assert(iso14443_3a_poller_sync_read(poller, &iso14443_3a_poller_data) ==
+                  Iso14443_3aErrorNone,
+              "iso14443_3a_poller_sync_read() failed");
 
     nfc_listener_stop(iso3_listener);
-    mu_assert(
-        iso14443_3a_is_equal(&iso14443_3a_poller_data, &iso14443_3a_listener_data),
-        "Data not matches");
+    mu_assert(iso14443_3a_is_equal(&iso14443_3a_poller_data, &iso14443_3a_listener_data),
+              "Data not matches");
 
     nfc_listener_free(iso3_listener);
     nfc_free(listener);
     nfc_free(poller);
 }
 
-static void mf_ultralight_reader_test(const char* path) {
+static void mf_ultralight_reader_test(const char *path)
+{
     FURI_LOG_I(TAG, "Testing file: %s", path);
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     mu_assert(nfc_device_load(nfc_device, path), "nfc_device_load() failed\r\n");
 
-    MfUltralightData* data =
-        (MfUltralightData*)nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
+    MfUltralightData *data =
+        (MfUltralightData *)nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
 
     uint32_t features = mf_ultralight_get_feature_support_set(data->type);
     bool pwd_supported =
@@ -253,23 +277,23 @@ static void mf_ultralight_reader_test(const char* path) {
     uint8_t pwd_num = mf_ultralight_get_pwd_page_num(data->type);
     const uint8_t zero_pwd[4] = {0, 0, 0, 0};
 
-    if(pwd_supported && !memcmp(data->page[pwd_num].data, zero_pwd, sizeof(zero_pwd))) {
+    if (pwd_supported && !memcmp(data->page[pwd_num].data, zero_pwd, sizeof(zero_pwd))) {
         data->pages_read -= 2;
     }
 
-    NfcListener* mfu_listener = nfc_listener_alloc(listener, NfcProtocolMfUltralight, data);
+    NfcListener *mfu_listener = nfc_listener_alloc(listener, NfcProtocolMfUltralight, data);
 
     nfc_listener_start(mfu_listener, NULL, NULL);
 
-    MfUltralightData* mfu_data = mf_ultralight_alloc();
+    MfUltralightData *mfu_data = mf_ultralight_alloc();
     MfUltralightError error = mf_ultralight_poller_sync_read_card(poller, mfu_data, NULL);
     mu_assert(error == MfUltralightErrorNone, "mf_ultralight_poller_sync_read_card() failed");
 
     nfc_listener_stop(mfu_listener);
     nfc_listener_free(mfu_listener);
 
-    MfUltralightData* mfu_other_data =
-        (MfUltralightData*)nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
+    MfUltralightData *mfu_other_data =
+        (MfUltralightData *)nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
     mu_assert(mf_ultralight_is_equal(mfu_data, mfu_other_data), "Data mismatch");
 
     mf_ultralight_free(mfu_data);
@@ -278,55 +302,57 @@ static void mf_ultralight_reader_test(const char* path) {
     nfc_free(poller);
 }
 
-MU_TEST(mf_ultralight_11_reader) {
+MU_TEST(mf_ultralight_11_reader)
+{
     mf_ultralight_reader_test(EXT_PATH("unit_tests/nfc/Ultralight_11.nfc"));
 }
 
-MU_TEST(mf_ultralight_21_reader) {
+MU_TEST(mf_ultralight_21_reader)
+{
     mf_ultralight_reader_test(EXT_PATH("unit_tests/nfc/Ultralight_21.nfc"));
 }
 
-MU_TEST(mf_ultralight_c_reader) {
+MU_TEST(mf_ultralight_c_reader)
+{
     mf_ultralight_reader_test(EXT_PATH("unit_tests/nfc/Ultralight_C.nfc"));
 }
 
-MU_TEST(ntag_215_reader) {
+MU_TEST(ntag_215_reader)
+{
     mf_ultralight_reader_test(EXT_PATH("unit_tests/nfc/Ntag215.nfc"));
 }
 
-MU_TEST(ntag_216_reader) {
+MU_TEST(ntag_216_reader)
+{
     mf_ultralight_reader_test(EXT_PATH("unit_tests/nfc/Ntag216.nfc"));
 }
 
-MU_TEST(ntag_213_locked_reader) {
+MU_TEST(ntag_213_locked_reader)
+{
     FURI_LOG_I(TAG, "Testing Ntag215 locked file");
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDeviceData* nfc_device = nfc_device_alloc();
-    mu_assert(
-        nfc_device_load(nfc_device, EXT_PATH("unit_tests/nfc/Ntag213_locked.nfc")),
-        "nfc_device_load() failed\r\n");
+    NfcDeviceData *nfc_device = nfc_device_alloc();
+    mu_assert(nfc_device_load(nfc_device, EXT_PATH("unit_tests/nfc/Ntag213_locked.nfc")),
+              "nfc_device_load() failed\r\n");
 
-    NfcListener* mfu_listener = nfc_listener_alloc(
-        listener,
-        NfcProtocolMfUltralight,
-        nfc_device_get_data(nfc_device, NfcProtocolMfUltralight));
+    NfcListener *mfu_listener =
+        nfc_listener_alloc(listener, NfcProtocolMfUltralight,
+                           nfc_device_get_data(nfc_device, NfcProtocolMfUltralight));
     nfc_listener_start(mfu_listener, NULL, NULL);
 
-    MfUltralightData* mfu_data = mf_ultralight_alloc();
+    MfUltralightData *mfu_data = mf_ultralight_alloc();
     MfUltralightError error = mf_ultralight_poller_sync_read_card(poller, mfu_data, NULL);
     mu_assert(error == MfUltralightErrorNone, "mf_ultralight_poller_sync_read_card() failed");
 
     nfc_listener_stop(mfu_listener);
     nfc_listener_free(mfu_listener);
 
-    MfUltralightConfigPages* config = NULL;
-    const MfUltralightData* mfu_ref_data =
-        nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
-    mu_assert(
-        mf_ultralight_get_config_page(mfu_ref_data, &config),
-        "mf_ultralight_get_config_page() failed");
+    MfUltralightConfigPages *config = NULL;
+    const MfUltralightData *mfu_ref_data = nfc_device_get_data(nfc_device, NfcProtocolMfUltralight);
+    mu_assert(mf_ultralight_get_config_page(mfu_ref_data, &config),
+              "mf_ultralight_get_config_page() failed");
     uint16_t pages_locked = config->auth0;
 
     mu_assert(mfu_data->pages_read == pages_locked, "Unexpected pages read");
@@ -337,20 +363,20 @@ MU_TEST(ntag_213_locked_reader) {
     nfc_free(poller);
 }
 
-static void mf_ultralight_write(void) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+static void mf_ultralight_write(void)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     nfc_data_generator_fill_data(NfcDataGeneratorTypeMfUltralightEV1_21, nfc_device);
 
-    NfcListener* mfu_listener = nfc_listener_alloc(
-        listener,
-        NfcProtocolMfUltralight,
-        nfc_device_get_data(nfc_device, NfcProtocolMfUltralight));
+    NfcListener *mfu_listener =
+        nfc_listener_alloc(listener, NfcProtocolMfUltralight,
+                           nfc_device_get_data(nfc_device, NfcProtocolMfUltralight));
     nfc_listener_start(mfu_listener, NULL, NULL);
 
-    MfUltralightData* mfu_data = mf_ultralight_alloc();
+    MfUltralightData *mfu_data = mf_ultralight_alloc();
 
     // Initial read
     MfUltralightError error = mf_ultralight_poller_sync_read_card(poller, mfu_data, NULL);
@@ -361,7 +387,7 @@ static void mf_ultralight_write(void) {
         "Data not matches");
 
     // Write random data
-    for(size_t i = 5; i < 15; i++) {
+    for (size_t i = 5; i < 15; i++) {
         MfUltralightPage page = {};
         FURI_LOG_D(TAG, "Writing page %d", i);
         furi_hal_random_fill_buf(page.data, sizeof(MfUltralightPage));
@@ -375,7 +401,7 @@ static void mf_ultralight_write(void) {
     mu_assert(error == MfUltralightErrorNone, "mf_ultralight_poller_sync_read_card() failed");
 
     nfc_listener_stop(mfu_listener);
-    const MfUltralightData* mfu_listener_data =
+    const MfUltralightData *mfu_listener_data =
         nfc_listener_get_data(mfu_listener, NfcProtocolMfUltralight);
 
     mu_assert(mf_ultralight_is_equal(mfu_data, mfu_listener_data), "Data not matches");
@@ -387,13 +413,14 @@ static void mf_ultralight_write(void) {
     nfc_free(poller);
 }
 
-static void mf_classic_reader(void) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+static void mf_classic_reader(void)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     nfc_data_generator_fill_data(NfcDataGeneratorTypeMfClassic4k_7b, nfc_device);
-    NfcListener* mfc_listener = nfc_listener_alloc(
+    NfcListener *mfc_listener = nfc_listener_alloc(
         listener, NfcProtocolMfClassic, nfc_device_get_data(nfc_device, NfcProtocolMfClassic));
     nfc_listener_start(mfc_listener, NULL, NULL);
 
@@ -405,7 +432,7 @@ static void mf_classic_reader(void) {
     nfc_listener_stop(mfc_listener);
     nfc_listener_free(mfc_listener);
 
-    const MfClassicData* mfc_data = nfc_device_get_data(nfc_device, NfcProtocolMfClassic);
+    const MfClassicData *mfc_data = nfc_device_get_data(nfc_device, NfcProtocolMfClassic);
     mu_assert(memcmp(&mfc_data->block[0], &block, sizeof(MfClassicBlock)) == 0, "Data mismatch");
 
     nfc_device_free(nfc_device);
@@ -413,13 +440,14 @@ static void mf_classic_reader(void) {
     nfc_free(poller);
 }
 
-static void mf_classic_write(void) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+static void mf_classic_write(void)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     nfc_data_generator_fill_data(NfcDataGeneratorTypeMfClassic4k_7b, nfc_device);
-    NfcListener* mfc_listener = nfc_listener_alloc(
+    NfcListener *mfc_listener = nfc_listener_alloc(
         listener, NfcProtocolMfClassic, nfc_device_get_data(nfc_device, NfcProtocolMfClassic));
     nfc_listener_start(mfc_listener, NULL, NULL);
 
@@ -441,13 +469,14 @@ static void mf_classic_write(void) {
     nfc_free(poller);
 }
 
-static void mf_classic_value_block(void) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+static void mf_classic_value_block(void)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     nfc_data_generator_fill_data(NfcDataGeneratorTypeMfClassic4k_7b, nfc_device);
-    NfcListener* mfc_listener = nfc_listener_alloc(
+    NfcListener *mfc_listener = nfc_listener_alloc(
         listener, NfcProtocolMfClassic, nfc_device_get_data(nfc_device, NfcProtocolMfClassic));
     nfc_listener_start(mfc_listener, NULL, NULL);
 
@@ -480,27 +509,28 @@ static void mf_classic_value_block(void) {
     nfc_free(poller);
 }
 
-NfcCommand mf_classic_poller_send_frame_callback(NfcGenericEventEx event, void* context) {
+NfcCommand mf_classic_poller_send_frame_callback(NfcGenericEventEx event, void *context)
+{
     furi_check(event.poller);
     furi_check(event.parent_event_data);
     furi_check(context);
 
     NfcCommand command = NfcCommandContinue;
-    MfClassicPoller* instance = event.poller;
-    NfcTestMfClassicSendFrameTest* frame_test = context;
-    Iso14443_3aPollerEvent* iso3_event = event.parent_event_data;
+    MfClassicPoller *instance = event.poller;
+    NfcTestMfClassicSendFrameTest *frame_test = context;
+    Iso14443_3aPollerEvent *iso3_event = event.parent_event_data;
 
     MfClassicError error = MfClassicErrorNone;
-    if(iso3_event->type == Iso14443_3aPollerEventTypeReady) {
-        if(frame_test->state == NfcTestMfClassicSendFrameTestStateAuth) {
+    if (iso3_event->type == Iso14443_3aPollerEventTypeReady) {
+        if (frame_test->state == NfcTestMfClassicSendFrameTestStateAuth) {
             MfClassicKey key = {
                 .data = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff},
             };
             error = mf_classic_poller_auth(instance, 0, &key, MfClassicKeyTypeA, NULL, false);
-            frame_test->state = (error == MfClassicErrorNone) ?
-                                    NfcTestMfClassicSendFrameTestStateReadBlock :
-                                    NfcTestMfClassicSendFrameTestStateFail;
-        } else if(frame_test->state == NfcTestMfClassicSendFrameTestStateReadBlock) {
+            frame_test->state = (error == MfClassicErrorNone)
+                                    ? NfcTestMfClassicSendFrameTestStateReadBlock
+                                    : NfcTestMfClassicSendFrameTestStateFail;
+        } else if (frame_test->state == NfcTestMfClassicSendFrameTestStateReadBlock) {
             do {
                 const uint8_t read_block_cmd[] = {
                     0x30,
@@ -510,28 +540,29 @@ NfcCommand mf_classic_poller_send_frame_callback(NfcGenericEventEx event, void* 
                 };
                 bit_buffer_copy_bytes(frame_test->tx_buf, read_block_cmd, sizeof(read_block_cmd));
 
-                error = mf_classic_poller_send_encrypted_frame(
-                    instance, frame_test->tx_buf, frame_test->rx_buf, 200000);
-                if(error != MfClassicErrorNone) break;
-                if(bit_buffer_get_size_bytes(frame_test->rx_buf) != 18) {
+                error = mf_classic_poller_send_encrypted_frame(instance, frame_test->tx_buf,
+                                                               frame_test->rx_buf, 200000);
+                if (error != MfClassicErrorNone)
+                    break;
+                if (bit_buffer_get_size_bytes(frame_test->rx_buf) != 18) {
                     error = MfClassicErrorProtocol;
                     break;
                 }
 
-                const uint8_t* rx_data = bit_buffer_get_data(frame_test->rx_buf);
+                const uint8_t *rx_data = bit_buffer_get_data(frame_test->rx_buf);
                 const uint8_t rx_data_ref[16] = {0};
-                if(memcmp(rx_data, rx_data_ref, sizeof(rx_data_ref)) != 0) {
+                if (memcmp(rx_data, rx_data_ref, sizeof(rx_data_ref)) != 0) {
                     error = MfClassicErrorProtocol;
                     break;
                 }
-            } while(false);
+            } while (false);
 
-            frame_test->state = (error == MfClassicErrorNone) ?
-                                    NfcTestMfClassicSendFrameTestStateSuccess :
-                                    NfcTestMfClassicSendFrameTestStateFail;
-        } else if(frame_test->state == NfcTestMfClassicSendFrameTestStateSuccess) {
+            frame_test->state = (error == MfClassicErrorNone)
+                                    ? NfcTestMfClassicSendFrameTestStateSuccess
+                                    : NfcTestMfClassicSendFrameTestStateFail;
+        } else if (frame_test->state == NfcTestMfClassicSendFrameTestStateSuccess) {
             command = NfcCommandStop;
-        } else if(frame_test->state == NfcTestMfClassicSendFrameTestStateFail) {
+        } else if (frame_test->state == NfcTestMfClassicSendFrameTestStateFail) {
             command = NfcCommandStop;
         }
     } else {
@@ -539,24 +570,25 @@ NfcCommand mf_classic_poller_send_frame_callback(NfcGenericEventEx event, void* 
         command = NfcCommandStop;
     }
 
-    if(command == NfcCommandStop) {
+    if (command == NfcCommandStop) {
         furi_thread_flags_set(frame_test->thread_id, NFC_TEST_FLAG_WORKER_DONE);
     }
 
     return command;
 }
 
-MU_TEST(mf_classic_send_frame_test) {
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+MU_TEST(mf_classic_send_frame_test)
+{
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     nfc_data_generator_fill_data(NfcDataGeneratorTypeMfClassic4k_7b, nfc_device);
-    NfcListener* mfc_listener = nfc_listener_alloc(
+    NfcListener *mfc_listener = nfc_listener_alloc(
         listener, NfcProtocolMfClassic, nfc_device_get_data(nfc_device, NfcProtocolMfClassic));
     nfc_listener_start(mfc_listener, NULL, NULL);
 
-    NfcPoller* mfc_poller = nfc_poller_alloc(poller, NfcProtocolMfClassic);
+    NfcPoller *mfc_poller = nfc_poller_alloc(poller, NfcProtocolMfClassic);
     NfcTestMfClassicSendFrameTest context = {
         .state = NfcTestMfClassicSendFrameTestStateAuth,
         .thread_id = furi_thread_get_current_id(),
@@ -571,8 +603,8 @@ MU_TEST(mf_classic_send_frame_test) {
     nfc_poller_stop(mfc_poller);
     nfc_poller_free(mfc_poller);
 
-    mu_assert(
-        context.state == NfcTestMfClassicSendFrameTestStateSuccess, "Wrong test state at the end");
+    mu_assert(context.state == NfcTestMfClassicSendFrameTestStateSuccess,
+              "Wrong test state at the end");
 
     bit_buffer_free(context.tx_buf);
     bit_buffer_free(context.rx_buf);
@@ -583,27 +615,27 @@ MU_TEST(mf_classic_send_frame_test) {
     nfc_free(poller);
 }
 
-MU_TEST(mf_classic_dict_test) {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    if(storage_common_stat(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, NULL) == FSE_OK) {
-        mu_assert(
-            storage_simply_remove(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH),
-            "Remove test dict failed");
+MU_TEST(mf_classic_dict_test)
+{
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    if (storage_common_stat(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, NULL) == FSE_OK) {
+        mu_assert(storage_simply_remove(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH),
+                  "Remove test dict failed");
     }
 
-    KeysDict* dict = keys_dict_alloc(
-        NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, KeysDictModeOpenAlways, sizeof(MfClassicKey));
+    KeysDict *dict = keys_dict_alloc(NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, KeysDictModeOpenAlways,
+                                     sizeof(MfClassicKey));
     mu_assert(dict != NULL, "keys_dict_alloc() failed");
 
     size_t dict_keys_total = keys_dict_get_total_keys(dict);
     mu_assert(dict_keys_total == 0, "keys_dict_keys_total() failed");
 
     const uint32_t test_key_num = 30;
-    MfClassicKey* key_arr_ref = malloc(test_key_num * sizeof(MfClassicKey));
-    for(size_t i = 0; i < test_key_num; i++) {
+    MfClassicKey *key_arr_ref = malloc(test_key_num * sizeof(MfClassicKey));
+    for (size_t i = 0; i < test_key_num; i++) {
         furi_hal_random_fill_buf(key_arr_ref[i].data, sizeof(MfClassicKey));
-        mu_assert(
-            keys_dict_add_key(dict, key_arr_ref[i].data, sizeof(MfClassicKey)), "add key failed");
+        mu_assert(keys_dict_add_key(dict, key_arr_ref[i].data, sizeof(MfClassicKey)),
+                  "add key failed");
 
         size_t dict_keys_total = keys_dict_get_total_keys(dict);
         mu_assert(dict_keys_total == (i + 1), "keys_dict_keys_total() failed");
@@ -611,8 +643,8 @@ MU_TEST(mf_classic_dict_test) {
 
     keys_dict_free(dict);
 
-    dict = keys_dict_alloc(
-        NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, KeysDictModeOpenAlways, sizeof(MfClassicKey));
+    dict = keys_dict_alloc(NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH, KeysDictModeOpenAlways,
+                           sizeof(MfClassicKey));
     mu_assert(dict != NULL, "keys_dict_alloc() failed");
 
     dict_keys_total = keys_dict_get_total_keys(dict);
@@ -620,49 +652,45 @@ MU_TEST(mf_classic_dict_test) {
 
     MfClassicKey key_dut = {};
     size_t key_idx = 0;
-    while(keys_dict_get_next_key(dict, key_dut.data, sizeof(MfClassicKey))) {
-        mu_assert(
-            memcmp(key_arr_ref[key_idx].data, key_dut.data, sizeof(MfClassicKey)) == 0,
-            "Loaded key data mismatch");
+    while (keys_dict_get_next_key(dict, key_dut.data, sizeof(MfClassicKey))) {
+        mu_assert(memcmp(key_arr_ref[key_idx].data, key_dut.data, sizeof(MfClassicKey)) == 0,
+                  "Loaded key data mismatch");
         key_idx++;
     }
 
     uint32_t delete_keys_idx[] = {1, 3, 9, 11, 19, 27};
 
-    for(size_t i = 0; i < COUNT_OF(delete_keys_idx); i++) {
-        MfClassicKey* key = &key_arr_ref[delete_keys_idx[i]];
-        mu_assert(
-            keys_dict_is_key_present(dict, key->data, sizeof(MfClassicKey)),
-            "keys_dict_is_key_present() failed");
-        mu_assert(
-            keys_dict_delete_key(dict, key->data, sizeof(MfClassicKey)),
-            "keys_dict_delete_key() failed");
+    for (size_t i = 0; i < COUNT_OF(delete_keys_idx); i++) {
+        MfClassicKey *key = &key_arr_ref[delete_keys_idx[i]];
+        mu_assert(keys_dict_is_key_present(dict, key->data, sizeof(MfClassicKey)),
+                  "keys_dict_is_key_present() failed");
+        mu_assert(keys_dict_delete_key(dict, key->data, sizeof(MfClassicKey)),
+                  "keys_dict_delete_key() failed");
     }
 
     dict_keys_total = keys_dict_get_total_keys(dict);
-    mu_assert(
-        dict_keys_total == test_key_num - COUNT_OF(delete_keys_idx),
-        "keys_dict_keys_total() failed");
+    mu_assert(dict_keys_total == test_key_num - COUNT_OF(delete_keys_idx),
+              "keys_dict_keys_total() failed");
 
     keys_dict_free(dict);
     free(key_arr_ref);
 
-    mu_assert(
-        storage_simply_remove(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH),
-        "Remove test dict failed");
+    mu_assert(storage_simply_remove(storage, NFC_APP_MF_CLASSIC_DICT_UNIT_TEST_PATH),
+              "Remove test dict failed");
 }
 
-static FelicaError
-    felica_do_request_response(FelicaData* felica_data, const FelicaCardKey* card_key) {
-    NfcDeviceData* nfc_device = nfc_device_alloc();
+static FelicaError felica_do_request_response(FelicaData *felica_data,
+                                              const FelicaCardKey *card_key)
+{
+    NfcDeviceData *nfc_device = nfc_device_alloc();
 
     FelicaError error = FelicaErrorNone;
-    if(!nfc_device_load(nfc_device, EXT_PATH("unit_tests/nfc/Felica.nfc"))) {
+    if (!nfc_device_load(nfc_device, EXT_PATH("unit_tests/nfc/Felica.nfc"))) {
         error = FelicaErrorNotPresent;
     } else {
-        Nfc* poller = nfc_alloc();
-        Nfc* listener = nfc_alloc();
-        NfcListener* felica_listener = nfc_listener_alloc(
+        Nfc *poller = nfc_alloc();
+        Nfc *listener = nfc_alloc();
+        NfcListener *felica_listener = nfc_listener_alloc(
             listener, NfcProtocolFelica, nfc_device_get_data(nfc_device, NfcProtocolFelica));
         nfc_listener_start(felica_listener, NULL, NULL);
 
@@ -679,8 +707,9 @@ static FelicaError
     return error;
 }
 
-MU_TEST(felica_read) {
-    FelicaData* felica_data = felica_alloc();
+MU_TEST(felica_read)
+{
+    FelicaData *felica_data = felica_alloc();
     FelicaError error = felica_do_request_response(felica_data, NULL);
     mu_assert(error == FelicaErrorNone, "felica_poller() failed");
     mu_assert(felica_data->data.fs.spad[4].SF1 == 0x01, "block[4].SF1 != 0x01");
@@ -689,8 +718,9 @@ MU_TEST(felica_read) {
     felica_free(felica_data);
 }
 
-MU_TEST(felica_read_auth) {
-    FelicaData* felica_data = felica_alloc();
+MU_TEST(felica_read_auth)
+{
+    FelicaData *felica_data = felica_alloc();
     FelicaCardKey card_key;
     memset(card_key.data, 0xFF, FELICA_DATA_BLOCK_SIZE);
 
@@ -702,50 +732,51 @@ MU_TEST(felica_read_auth) {
     felica_free(felica_data);
 }
 
-MU_TEST(slix_file_with_capabilities_test) {
-    NfcDevice* nfc_device_missed_cap = nfc_device_alloc();
+MU_TEST(slix_file_with_capabilities_test)
+{
+    NfcDevice *nfc_device_missed_cap = nfc_device_alloc();
     mu_assert(
         nfc_device_load(nfc_device_missed_cap, EXT_PATH("unit_tests/nfc/Slix_cap_missed.nfc")),
         "nfc_device_load() failed\r\n");
 
-    NfcDevice* nfc_device_default_cap = nfc_device_alloc();
+    NfcDevice *nfc_device_default_cap = nfc_device_alloc();
     mu_assert(
         nfc_device_load(nfc_device_default_cap, EXT_PATH("unit_tests/nfc/Slix_cap_default.nfc")),
         "nfc_device_load() failed\r\n");
 
-    mu_assert(
-        nfc_device_is_equal(nfc_device_missed_cap, nfc_device_default_cap),
-        "nfc_device_is_equal() failed\r\n");
+    mu_assert(nfc_device_is_equal(nfc_device_missed_cap, nfc_device_default_cap),
+              "nfc_device_is_equal() failed\r\n");
 
     nfc_device_free(nfc_device_default_cap);
     nfc_device_free(nfc_device_missed_cap);
 }
 
-NfcCommand slix_poller_set_password_callback(NfcGenericEventEx event, void* context) {
+NfcCommand slix_poller_set_password_callback(NfcGenericEventEx event, void *context)
+{
     furi_check(event.poller);
     furi_check(event.parent_event_data);
     furi_check(context);
 
     NfcCommand command = NfcCommandContinue;
-    Iso15693_3PollerEvent* iso15_event = event.parent_event_data;
-    SlixPoller* poller = event.poller;
-    NfcTestSlixPollerSetPasswordContext* slix_ctx = context;
+    Iso15693_3PollerEvent *iso15_event = event.parent_event_data;
+    SlixPoller *poller = event.poller;
+    NfcTestSlixPollerSetPasswordContext *slix_ctx = context;
 
-    if(iso15_event->type == Iso15693_3PollerEventTypeReady) {
-        iso15693_3_copy(
-            poller->data->iso15693_3_data, iso15693_3_poller_get_data(poller->iso15693_3_poller));
+    if (iso15_event->type == Iso15693_3PollerEventTypeReady) {
+        iso15693_3_copy(poller->data->iso15693_3_data,
+                        iso15693_3_poller_get_data(poller->iso15693_3_poller));
 
-        if(slix_ctx->state == NfcTestSlixPollerSetPasswordStateGetRandomNumber) {
+        if (slix_ctx->state == NfcTestSlixPollerSetPasswordStateGetRandomNumber) {
             slix_ctx->error = slix_poller_get_random_number(poller, &slix_ctx->random_number);
-            if(slix_ctx->error != SlixErrorNone) {
+            if (slix_ctx->error != SlixErrorNone) {
                 furi_thread_flags_set(slix_ctx->thread_id, NFC_TEST_FLAG_WORKER_DONE);
                 command = NfcCommandStop;
             } else {
                 slix_ctx->state = NfcTestSlixPollerSetPasswordStateSetPassword;
             }
-        } else if(slix_ctx->state == NfcTestSlixPollerSetPasswordStateSetPassword) {
-            slix_ctx->error = slix_poller_set_password(
-                poller, SlixPasswordTypeRead, slix_ctx->password, slix_ctx->random_number);
+        } else if (slix_ctx->state == NfcTestSlixPollerSetPasswordStateSetPassword) {
+            slix_ctx->error = slix_poller_set_password(poller, SlixPasswordTypeRead,
+                                                       slix_ctx->password, slix_ctx->random_number);
             furi_thread_flags_set(slix_ctx->thread_id, NFC_TEST_FLAG_WORKER_DONE);
             command = NfcCommandStop;
         }
@@ -758,22 +789,23 @@ NfcCommand slix_poller_set_password_callback(NfcGenericEventEx event, void* cont
     return command;
 }
 
-static void slix_set_password_test(const char* file_path, SlixPassword pass, bool correct_pass) {
+static void slix_set_password_test(const char *file_path, SlixPassword pass, bool correct_pass)
+{
     FURI_LOG_I(TAG, "Testing file: %s", file_path);
 
-    Nfc* poller = nfc_alloc();
-    Nfc* listener = nfc_alloc();
+    Nfc *poller = nfc_alloc();
+    Nfc *listener = nfc_alloc();
 
-    NfcDevice* nfc_device = nfc_device_alloc();
+    NfcDevice *nfc_device = nfc_device_alloc();
     mu_assert(nfc_device_load(nfc_device, file_path), "nfc_device_load() failed\r\n");
 
-    const SlixData* slix_data = nfc_device_get_data(nfc_device, NfcProtocolSlix);
-    NfcListener* slix_listener = nfc_listener_alloc(listener, NfcProtocolSlix, slix_data);
+    const SlixData *slix_data = nfc_device_get_data(nfc_device, NfcProtocolSlix);
+    NfcListener *slix_listener = nfc_listener_alloc(listener, NfcProtocolSlix, slix_data);
     nfc_listener_start(slix_listener, NULL, NULL);
 
     SlixCapabilities slix_capabilities = slix_data->capabilities;
 
-    NfcPoller* slix_poller = nfc_poller_alloc(poller, NfcProtocolSlix);
+    NfcPoller *slix_poller = nfc_poller_alloc(poller, NfcProtocolSlix);
 
     NfcTestSlixPollerSetPasswordContext slix_poller_context = {
         .thread_id = furi_thread_get_current_id(),
@@ -793,16 +825,14 @@ static void slix_set_password_test(const char* file_path, SlixPassword pass, boo
     nfc_listener_stop(slix_listener);
     nfc_listener_free(slix_listener);
 
-    mu_assert(
-        slix_poller_context.state == NfcTestSlixPollerSetPasswordStateSetPassword,
-        "Poller failed before setting password\r\n");
+    mu_assert(slix_poller_context.state == NfcTestSlixPollerSetPasswordStateSetPassword,
+              "Poller failed before setting password\r\n");
 
-    if((slix_capabilities == SlixCapabilitiesAcceptAllPasswords) || (correct_pass)) {
+    if ((slix_capabilities == SlixCapabilitiesAcceptAllPasswords) || (correct_pass)) {
         mu_assert(slix_poller_context.error == SlixErrorNone, "Failed to set password\r\n");
     } else {
-        mu_assert(
-            slix_poller_context.error == SlixErrorTimeout,
-            "Must have received SlixErrorTimeout\r\n");
+        mu_assert(slix_poller_context.error == SlixErrorTimeout,
+                  "Must have received SlixErrorTimeout\r\n");
     }
 
     nfc_device_free(nfc_device);
@@ -810,20 +840,24 @@ static void slix_set_password_test(const char* file_path, SlixPassword pass, boo
     nfc_free(poller);
 }
 
-MU_TEST(slix_set_password_default_cap_correct_pass) {
+MU_TEST(slix_set_password_default_cap_correct_pass)
+{
     slix_set_password_test(EXT_PATH("unit_tests/nfc/Slix_cap_default.nfc"), 0x00000000, true);
 }
 
-MU_TEST(slix_set_password_default_cap_incorrect_pass) {
+MU_TEST(slix_set_password_default_cap_incorrect_pass)
+{
     slix_set_password_test(EXT_PATH("unit_tests/nfc/Slix_cap_default.nfc"), 0x12341234, false);
 }
 
-MU_TEST(slix_set_password_access_all_passwords_cap) {
-    slix_set_password_test(
-        EXT_PATH("unit_tests/nfc/Slix_cap_accept_all_pass.nfc"), 0x12341234, false);
+MU_TEST(slix_set_password_access_all_passwords_cap)
+{
+    slix_set_password_test(EXT_PATH("unit_tests/nfc/Slix_cap_accept_all_pass.nfc"), 0x12341234,
+                           false);
 }
 
-MU_TEST_SUITE(nfc) {
+MU_TEST_SUITE(nfc)
+{
     nfc_test_alloc();
 
     MU_RUN_TEST(iso14443_3a_reader);
@@ -875,7 +909,8 @@ MU_TEST_SUITE(nfc) {
     nfc_test_free();
 }
 
-int run_minunit_test_nfc(void) {
+int run_minunit_test_nfc(void)
+{
     MU_RUN_SUITE(nfc);
     return MU_EXIT_CODE;
 }

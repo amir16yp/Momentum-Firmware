@@ -9,9 +9,9 @@ extern "C" {
 typedef struct PCSGBlockGeneric PCSGBlockGeneric;
 
 struct PCSGBlockGeneric {
-    const char* protocol_name;
-    FuriString* result_ric;
-    FuriString* result_msg;
+    const char *protocol_name;
+    FuriString *result_ric;
+    FuriString *result_msg;
 };
 
 /**
@@ -21,10 +21,9 @@ struct PCSGBlockGeneric {
  * @param preset The modulation on which the signal was received, SubGhzRadioPreset
  * @return true On success
  */
-SubGhzProtocolStatus pcsg_block_generic_serialize(
-    PCSGBlockGeneric* instance,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset);
+SubGhzProtocolStatus pcsg_block_generic_serialize(PCSGBlockGeneric *instance,
+                                                  FlipperFormat *flipper_format,
+                                                  SubGhzRadioPreset *preset);
 
 /**
  * Deserialize data PCSGBlockGeneric.
@@ -32,8 +31,8 @@ SubGhzProtocolStatus pcsg_block_generic_serialize(
  * @param flipper_format Pointer to a FlipperFormat instance
  * @return true On success
  */
-SubGhzProtocolStatus
-    pcsg_block_generic_deserialize(PCSGBlockGeneric* instance, FlipperFormat* flipper_format);
+SubGhzProtocolStatus pcsg_block_generic_deserialize(PCSGBlockGeneric *instance,
+                                                    FlipperFormat *flipper_format);
 
 #ifdef __cplusplus
 }

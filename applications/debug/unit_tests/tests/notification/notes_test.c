@@ -2,37 +2,37 @@
 #include <float_tools.h>
 #include <notification/notification_messages_notes.h>
 
-void frequency_assert(const char* note_name, const NotificationMessage* message) {
+void frequency_assert(const char *note_name, const NotificationMessage *message)
+{
     double a = notification_messages_notes_frequency_from_name(note_name);
     double b = message->data.sound.frequency;
     const double epsilon = message->data.sound.frequency > 5000 ? 0.02f : 0.01f;
     mu_assert_double_between(b - epsilon, b + epsilon, a);
 }
 
-MU_TEST(notification_messages_notes_frequency_from_name_test) {
+MU_TEST(notification_messages_notes_frequency_from_name_test)
+{
     // Upper case
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("C0"),
-        notification_messages_notes_frequency_from_name("c0")));
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("C0"),
+                            notification_messages_notes_frequency_from_name("c0")));
 
     // Mixed case
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("Cs0"),
-        notification_messages_notes_frequency_from_name("cs0")));
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("Cs0"),
+                            notification_messages_notes_frequency_from_name("cs0")));
 
     // Check errors
     mu_check(
         float_is_equal(notification_messages_notes_frequency_from_name("0"), 0.0)); // Without note
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("C"), 0.0)); // Without octave
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("C9"), 0.0)); // Unsupported octave
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("C10"), 0.0)); // Unsupported octave
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("X0"), 0.0)); // Unknown note
-    mu_check(float_is_equal(
-        notification_messages_notes_frequency_from_name("CCC0"), 0.0)); // Note name overflow
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("C"),
+                            0.0)); // Without octave
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("C9"),
+                            0.0)); // Unsupported octave
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("C10"),
+                            0.0)); // Unsupported octave
+    mu_check(
+        float_is_equal(notification_messages_notes_frequency_from_name("X0"), 0.0)); // Unknown note
+    mu_check(float_is_equal(notification_messages_notes_frequency_from_name("CCC0"),
+                            0.0)); // Note name overflow
 
     // Notes and structures
     frequency_assert("c0", &message_note_c0);
@@ -153,11 +153,13 @@ MU_TEST(notification_messages_notes_frequency_from_name_test) {
     frequency_assert("b8", &message_note_b8);
 }
 
-MU_TEST_SUITE(notes_suite) {
+MU_TEST_SUITE(notes_suite)
+{
     MU_RUN_TEST(notification_messages_notes_frequency_from_name_test);
 }
 
-int run_minunit_test_notes(void) {
+int run_minunit_test_notes(void)
+{
     MU_RUN_SUITE(notes_suite);
     return MU_EXIT_CODE;
 }

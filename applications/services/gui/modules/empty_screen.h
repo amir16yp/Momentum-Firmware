@@ -20,13 +20,13 @@ typedef struct EmptyScreen EmptyScreen;
  *
  * @return     EmptyScreen instance
  */
-EmptyScreen* empty_screen_alloc(void);
+EmptyScreen *empty_screen_alloc(void);
 
 /** Deinitialize and free empty screen
  *
  * @param      empty_screen  Empty screen instance
  */
-void empty_screen_free(EmptyScreen* empty_screen);
+void empty_screen_free(EmptyScreen *empty_screen);
 
 /** Get empty screen view
  *
@@ -34,7 +34,7 @@ void empty_screen_free(EmptyScreen* empty_screen);
  *
  * @return     View instance that can be used for embedding
  */
-View* empty_screen_get_view(EmptyScreen* empty_screen);
+View *empty_screen_get_view(EmptyScreen *empty_screen);
 
 #ifdef __cplusplus
 }

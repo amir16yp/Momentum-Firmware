@@ -20,11 +20,8 @@ typedef enum {
     ManchesterStateStart0 = 3
 } ManchesterState;
 
-bool manchester_advance(
-    ManchesterState state,
-    ManchesterEvent event,
-    ManchesterState* next_state,
-    bool* data);
+bool manchester_advance(ManchesterState state, ManchesterEvent event, ManchesterState *next_state,
+                        bool *data);
 
 #ifdef __cplusplus
 }

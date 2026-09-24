@@ -14,7 +14,7 @@ extern "C" {
  * \param[in]   message     - message to send.
  * \param[in]   times       - number of times message should be sent.
  */
-void infrared_send(const InfraredMessage* message, int times);
+void infrared_send(const InfraredMessage *message, int times);
 
 /**
  * Send raw data through infrared port.
@@ -36,12 +36,8 @@ void infrared_send_raw(const uint32_t timings[], uint32_t timings_cnt, bool star
  * \param[in]   duty_cycle - duty cycle to generate on PWM
  * \param[in]   frequency - frequency to generate on PWM
  */
-void infrared_send_raw_ext(
-    const uint32_t timings[],
-    uint32_t timings_cnt,
-    bool start_from_mark,
-    uint32_t frequency,
-    float duty_cycle);
+void infrared_send_raw_ext(const uint32_t timings[], uint32_t timings_cnt, bool start_from_mark,
+                           uint32_t frequency, float duty_cycle);
 
 #ifdef __cplusplus
 }

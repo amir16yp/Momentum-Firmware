@@ -3,38 +3,26 @@
 #include <stm32wbxx.h>
 
 /** System Core Clock speed
- * 
+ *
  * CPU1: M4 on MSI clock after startup (4MHz).
  * Modified by RCC LL HAL.
  */
 uint32_t SystemCoreClock = 4000000UL;
 
 /** AHB Prescaler Table. Used by RCC LL HAL */
-const uint32_t AHBPrescTable[16UL] =
-    {1UL, 3UL, 5UL, 1UL, 1UL, 6UL, 10UL, 32UL, 2UL, 4UL, 8UL, 16UL, 64UL, 128UL, 256UL, 512UL};
+const uint32_t AHBPrescTable[16UL] = {1UL, 3UL, 5UL, 1UL,  1UL,  6UL,   10UL,  32UL,
+                                      2UL, 4UL, 8UL, 16UL, 64UL, 128UL, 256UL, 512UL};
 /** APB Prescaler Table. Used by RCC LL HAL */
 const uint32_t APBPrescTable[8UL] = {0UL, 0UL, 0UL, 0UL, 1UL, 2UL, 3UL, 4UL};
 /** MSI Range Table. Used by RCC LL HAL */
-const uint32_t MSIRangeTable[16UL] = {
-    100000UL,
-    200000UL,
-    400000UL,
-    800000UL,
-    1000000UL,
-    2000000UL,
-    4000000UL,
-    8000000UL,
-    16000000UL,
-    24000000UL,
-    32000000UL,
-    48000000UL,
-    0UL,
-    0UL,
-    0UL,
-    0UL}; /* 0UL values are incorrect cases */
+const uint32_t MSIRangeTable[16UL] = {100000UL,   200000UL,   400000UL,  800000UL,   1000000UL,
+                                      2000000UL,  4000000UL,  8000000UL, 16000000UL, 24000000UL,
+                                      32000000UL, 48000000UL, 0UL,       0UL,        0UL,
+                                      0UL}; /* 0UL values are incorrect cases */
 
 /** MCU Initialization Routine. Part of ST HAL convention, so we keep it.*/
-void SystemInit(void) {
+void SystemInit(void)
+{
     // Set ISR Vector location
 #if defined(VECT_TAB_SRAM)
     // Point ISR Vector to SRAM
@@ -44,7 +32,7 @@ void SystemInit(void) {
     SCB->VTOR = 0x0;
 #endif
 
-#if(__FPU_PRESENT == 1) && (__FPU_USED == 1)
+#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     // Enable access to FPU
     SCB->CPACR |=
         ((3UL << (10UL * 2UL)) | (3UL << (11UL * 2UL))); /* set CP10 and CP11 Full Access */
@@ -73,12 +61,14 @@ void SystemInit(void) {
     RCC->CIER = 0x00000000;
 }
 
-void Default_Handler(void) {
+void Default_Handler(void)
+{
     furi_crash("NotImplemented");
 }
 
 /** Start your journey here */
-FURI_NAKED void Reset_Handler(void) {
+FURI_NAKED void Reset_Handler(void)
+{
     // Funny thing: SP and MSP are set to _stack_end if we came here after MCU reset
     // Now, what if we came from boot loader? Lets set SP to _stack_end again.
     // By the way Furi stage loader doing it too, but we don't know who called us.
@@ -89,13 +79,13 @@ FURI_NAKED void Reset_Handler(void) {
     SystemInit();
 
     // Copy data section from flash
-    memcpy((void*)&_sdata, &_sidata, &_edata - &_sdata);
+    memcpy((void *)&_sdata, &_sidata, &_edata - &_sdata);
 
     // Wipe BSS
-    memset((void*)&_sbss, 0x00, &_ebss - &_sbss);
+    memset((void *)&_sbss, 0x00, &_ebss - &_sbss);
 
     // Core2 related quirks: wipe MB_MEM2 section
-    memset((void*)&_sMB_MEM2, 0x00, &_eMB_MEM2 - &_sMB_MEM2);
+    memset((void *)&_sMB_MEM2, 0x00, &_eMB_MEM2 - &_sMB_MEM2);
 
     // libc init array
     __libc_init_array();

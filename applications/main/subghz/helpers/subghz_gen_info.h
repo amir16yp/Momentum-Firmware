@@ -23,11 +23,11 @@ typedef enum {
 
 typedef struct {
     GenType type;
-    const char* mod;
+    const char *mod;
     uint32_t freq;
     union {
         struct {
-            const char* name;
+            const char *name;
             uint64_t key;
             uint8_t bits;
             uint32_t te;
@@ -37,13 +37,13 @@ typedef struct {
             uint8_t btn;
             uint32_t cnt;
             uint32_t seed;
-            const char* manuf;
+            const char *manuf;
         } faac_slh;
         struct {
             uint32_t serial;
             uint8_t btn;
             uint16_t cnt;
-            const char* manuf;
+            const char *manuf;
         } keeloq;
         struct {
             uint32_t serial;
@@ -54,7 +54,7 @@ typedef struct {
             uint8_t btn;
             uint16_t cnt;
             uint32_t seed;
-            const char* manuf;
+            const char *manuf;
         } keeloq_seed;
         struct {
             uint32_t serial;
@@ -109,6 +109,6 @@ typedef struct {
     };
 } GenInfo;
 
-void subghz_gen_info_reset(GenInfo* gen_info);
+void subghz_gen_info_reset(GenInfo *gen_info);
 
-void subghz_scene_set_type_fill_generation_infos(GenInfo* infos_dest, SetType type);
+void subghz_scene_set_type_fill_generation_infos(GenInfo *infos_dest, SetType type);

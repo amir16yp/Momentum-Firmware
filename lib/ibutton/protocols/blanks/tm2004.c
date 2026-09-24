@@ -2,13 +2,14 @@
 
 #include <core/kernel.h>
 
-#define TM2004_CMD_READ_STATUS    0xAA
-#define TM2004_CMD_READ_MEMORY    0xF0
-#define TM2004_CMD_WRITE_ROM      0x3C
-#define TM2004_CMD_FINALIZATION   0x35
+#define TM2004_CMD_READ_STATUS 0xAA
+#define TM2004_CMD_READ_MEMORY 0xF0
+#define TM2004_CMD_WRITE_ROM 0x3C
+#define TM2004_CMD_FINALIZATION 0x35
 #define TM2004_ANSWER_READ_MEMORY 0xF5
 
-bool tm2004_write(OneWireHost* host, const uint8_t* data, size_t data_size) {
+bool tm2004_write(OneWireHost *host, const uint8_t *data, size_t data_size)
+{
     onewire_host_set_timings_default(host);
 
     onewire_host_reset(host);
@@ -18,7 +19,7 @@ bool tm2004_write(OneWireHost* host, const uint8_t* data, size_t data_size) {
     onewire_host_write(host, 0x00);
 
     size_t i;
-    for(i = 0; i < data_size; ++i) {
+    for (i = 0; i < data_size; ++i) {
         uint8_t answer;
 
         onewire_host_write(host, data[i]);
@@ -34,7 +35,7 @@ bool tm2004_write(OneWireHost* host, const uint8_t* data, size_t data_size) {
         answer = onewire_host_read(host); //-V519
 
         // check that written and read are same
-        if(data[i] != answer) {
+        if (data[i] != answer) {
             break;
         }
     }

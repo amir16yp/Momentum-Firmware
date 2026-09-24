@@ -16,22 +16,22 @@
  * KeeLoq learning types
  * https://phreakerclub.com/forum/showthread.php?t=67
  */
-#define KEELOQ_LEARNING_UNKNOWN             0u
-#define KEELOQ_LEARNING_SIMPLE              1u
-#define KEELOQ_LEARNING_NORMAL              2u
-#define KEELOQ_LEARNING_SECURE              3u
-#define KEELOQ_LEARNING_MAGIC_XOR_TYPE_1    4u
-#define KEELOQ_LEARNING_FAAC                5u
+#define KEELOQ_LEARNING_UNKNOWN 0u
+#define KEELOQ_LEARNING_SIMPLE 1u
+#define KEELOQ_LEARNING_NORMAL 2u
+#define KEELOQ_LEARNING_SECURE 3u
+#define KEELOQ_LEARNING_MAGIC_XOR_TYPE_1 4u
+#define KEELOQ_LEARNING_FAAC 5u
 #define KEELOQ_LEARNING_MAGIC_SERIAL_TYPE_1 6u
 #define KEELOQ_LEARNING_MAGIC_SERIAL_TYPE_2 7u
 #define KEELOQ_LEARNING_MAGIC_SERIAL_TYPE_3 8u
 // #define BENINCA_ARC_KEY_TYPE 9u -- RESERVED
-#define KEELOQ_LEARNING_SIMPLE_KINGGATES    10u
-#define KEELOQ_LEARNING_NORMAL_JAROLIFT     11u
-#define KEELOQ_LEARNING_ERREKA              12u
-#define KEELOQ_LEARNING_PUJOL               13u
-#define KEELOQ_LEARNING_AERF                14u
-#define KEELOQ_LEARNING_SIMPLE_JCM          15u
+#define KEELOQ_LEARNING_SIMPLE_KINGGATES 10u
+#define KEELOQ_LEARNING_NORMAL_JAROLIFT 11u
+#define KEELOQ_LEARNING_ERREKA 12u
+#define KEELOQ_LEARNING_PUJOL 13u
+#define KEELOQ_LEARNING_AERF 14u
+#define KEELOQ_LEARNING_SIMPLE_JCM 15u
 
 /**
  * Simple Learning Encrypt
@@ -41,7 +41,7 @@
  */
 uint32_t subghz_protocol_keeloq_common_encrypt(const uint32_t data, const uint64_t key);
 
-/** 
+/**
  * Simple Learning Decrypt
  * @param data - keeloq encrypt data
  * @param key - manufacture (64bit)
@@ -49,7 +49,7 @@ uint32_t subghz_protocol_keeloq_common_encrypt(const uint32_t data, const uint64
  */
 uint32_t subghz_protocol_keeloq_common_decrypt(const uint32_t data, const uint64_t key);
 
-/** 
+/**
  * Normal Learning
  * @param data - serial number (28bit)
  * @param key - manufacture (64bit)
@@ -57,17 +57,17 @@ uint32_t subghz_protocol_keeloq_common_decrypt(const uint32_t data, const uint64
  */
 uint64_t subghz_protocol_keeloq_common_normal_learning(uint32_t data, const uint64_t key);
 
-/** 
+/**
  * Secure Learning
  * @param data - serial number (28bit)
  * @param seed - seed number (32bit)
  * @param key - manufacture (64bit)
  * @return manufacture for this serial number (64bit)
  */
-uint64_t
-    subghz_protocol_keeloq_common_secure_learning(uint32_t data, uint32_t seed, const uint64_t key);
+uint64_t subghz_protocol_keeloq_common_secure_learning(uint32_t data, uint32_t seed,
+                                                       const uint64_t key);
 
-/** 
+/**
  * Magic_xor_type1 Learning
  * @param data - serial number (28bit)
  * @param xor - magic xor (64bit)
@@ -111,13 +111,12 @@ uint64_t subghz_protocol_keeloq_common_magic_serial_type3_learning(uint32_t data
 
 uint64_t subghz_protocol_keeloq_common_learning_aerf(uint32_t data, const uint64_t key);
 
-uint64_t
-    subghz_protocol_keeloq_common_learning_erreka(uint32_t data, uint32_t mix, const uint64_t key);
+uint64_t subghz_protocol_keeloq_common_learning_erreka(uint32_t data, uint32_t mix,
+                                                       const uint64_t key);
 
 uint64_t subghz_protocol_keeloq_common_learning_pujol(uint32_t data, const uint64_t key);
 
 // Utils
-uint32_t subghz_protocol_keeloq_common_decrypt_derived(
-    uint32_t hop_encrypted,
-    uint64_t derived_manufacturing_key,
-    uint32_t outer_limit);
+uint32_t subghz_protocol_keeloq_common_decrypt_derived(uint32_t hop_encrypted,
+                                                       uint64_t derived_manufacturing_key,
+                                                       uint32_t outer_limit);

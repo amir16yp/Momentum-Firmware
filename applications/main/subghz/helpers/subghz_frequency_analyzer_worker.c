@@ -21,24 +21,25 @@ static const uint8_t subghz_preset_ook_650khz[][2] = {
 };
 
 struct SubGhzFrequencyAnalyzerWorker {
-    FuriThread* thread;
+    FuriThread *thread;
 
     volatile bool worker_running;
     uint8_t sample_hold_counter;
     FrequencyRSSI frequency_rssi_buf;
-    SubGhzSetting* setting;
+    SubGhzSetting *setting;
 
     float filVal;
     float trigger_level;
 
     SubGhzFrequencyAnalyzerWorkerPairCallback pair_callback;
-    void* context;
+    void *context;
 };
 
-static void subghz_frequency_analyzer_worker_load_registers(const uint8_t data[][2]) {
+static void subghz_frequency_analyzer_worker_load_registers(const uint8_t data[][2])
+{
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_subghz);
     size_t i = 0;
-    while(data[i][0]) {
+    while (data[i][0]) {
         cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, data[i][0], data[i][1]);
         i++;
     }
@@ -46,13 +47,14 @@ static void subghz_frequency_analyzer_worker_load_registers(const uint8_t data[]
 }
 
 // running average with adaptive coefficient
-static uint32_t subghz_frequency_analyzer_worker_expRunningAverageAdaptive(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    uint32_t newVal) {
+static uint32_t
+subghz_frequency_analyzer_worker_expRunningAverageAdaptive(SubGhzFrequencyAnalyzerWorker *instance,
+                                                           uint32_t newVal)
+{
     float k;
     float newValFloat = newVal;
     // the sharpness of the filter depends on the absolute value of the difference
-    if(fabsf(newValFloat - instance->filVal) > 500000.f)
+    if (fabsf(newValFloat - instance->filVal) > 500000.f)
         k = 0.9;
     else
         k = 0.03;
@@ -62,12 +64,13 @@ static uint32_t subghz_frequency_analyzer_worker_expRunningAverageAdaptive(
 }
 
 /** Worker thread
- * 
- * @param context 
- * @return exit code 
+ *
+ * @param context
+ * @return exit code
  */
-static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
-    SubGhzFrequencyAnalyzerWorker* instance = context;
+static int32_t subghz_frequency_analyzer_worker_thread(void *context)
+{
+    SubGhzFrequencyAnalyzerWorker *instance = context;
 
     FrequencyRSSI frequency_rssi = {
         .frequency_coarse = 0, .rssi_coarse = 0, .frequency_fine = 0, .rssi_fine = 0};
@@ -76,7 +79,7 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
     float rssi_temp = 0;
     uint32_t frequency_temp = 0;
 
-    //Start CC1101
+    // Start CC1101
     furi_hal_subghz_reset();
 
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_subghz);
@@ -85,24 +88,21 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
     cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, CC1101_IOCFG0, CC1101IocfgHW);
     cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, CC1101_MDMCFG3,
                      0b01111111); // symbol rate
-    cc1101_write_reg(
-        &furi_hal_spi_bus_handle_subghz,
-        CC1101_AGCCTRL2,
-        0b00000111); // 00 - DVGA all; 000 - MAX LNA+LNA2; 111 - MAGN_TARGET 42 dB
-    cc1101_write_reg(
-        &furi_hal_spi_bus_handle_subghz,
-        CC1101_AGCCTRL1,
-        0b00001000); // 0; 0 - LNA 2 gain is decreased to minimum before decreasing LNA gain; 00 - Relative carrier sense threshold disabled; 1000 - Absolute carrier sense threshold disabled
-    cc1101_write_reg(
-        &furi_hal_spi_bus_handle_subghz,
-        CC1101_AGCCTRL0,
-        0b00110000); // 00 - No hysteresis, medium asymmetric dead zone, medium gain ; 11 - 64 samples agc; 00 - Normal AGC, 00 - 4dB boundary
+    cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, CC1101_AGCCTRL2,
+                     0b00000111); // 00 - DVGA all; 000 - MAX LNA+LNA2; 111 - MAGN_TARGET 42 dB
+    cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, CC1101_AGCCTRL1,
+                     0b00001000); // 0; 0 - LNA 2 gain is decreased to minimum before decreasing LNA
+                                  // gain; 00 - Relative carrier sense threshold disabled; 1000 -
+                                  // Absolute carrier sense threshold disabled
+    cc1101_write_reg(&furi_hal_spi_bus_handle_subghz, CC1101_AGCCTRL0,
+                     0b00110000); // 00 - No hysteresis, medium asymmetric dead zone, medium gain ;
+                                  // 11 - 64 samples agc; 00 - Normal AGC, 00 - 4dB boundary
 
     furi_hal_spi_release(&furi_hal_spi_bus_handle_subghz);
 
     furi_hal_subghz_set_path(FuriHalSubGhzPathIsolate);
 
-    while(instance->worker_running) {
+    while (instance->worker_running) {
         furi_delay_ms(10);
 
         float rssi_min = 26.0f;
@@ -115,22 +115,22 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
         subghz_frequency_analyzer_worker_load_registers(subghz_preset_ook_650khz);
 
         // First stage: coarse scan
-        for(size_t i = 0; i < subghz_setting_get_frequency_count(instance->setting); i++) {
+        for (size_t i = 0; i < subghz_setting_get_frequency_count(instance->setting); i++) {
             uint32_t current_frequency = subghz_setting_get_frequency(instance->setting, i);
-            if(furi_hal_subghz_is_frequency_valid(current_frequency) &&
-               (((current_frequency != 462750000) && (current_frequency != 467750000) &&
-                 (current_frequency != 464000000)) &&
-                (current_frequency <= 920000000))) {
+            if (furi_hal_subghz_is_frequency_valid(current_frequency) &&
+                (((current_frequency != 462750000) && (current_frequency != 467750000) &&
+                  (current_frequency != 464000000)) &&
+                 (current_frequency <= 920000000))) {
                 furi_hal_spi_acquire(&furi_hal_spi_bus_handle_subghz);
                 cc1101_switch_to_idle(&furi_hal_spi_bus_handle_subghz);
-                frequency = cc1101_set_frequency(
-                    &furi_hal_spi_bus_handle_subghz,
-                    subghz_setting_get_frequency(instance->setting, i));
+                frequency =
+                    cc1101_set_frequency(&furi_hal_spi_bus_handle_subghz,
+                                         subghz_setting_get_frequency(instance->setting, i));
 
                 cc1101_calibrate(&furi_hal_spi_bus_handle_subghz);
 
-                furi_check(cc1101_wait_status_state(
-                    &furi_hal_spi_bus_handle_subghz, CC1101StateIDLE, 10000));
+                furi_check(cc1101_wait_status_state(&furi_hal_spi_bus_handle_subghz,
+                                                    CC1101StateIDLE, 10000));
 
                 cc1101_switch_to_rx(&furi_hal_spi_bus_handle_subghz);
                 furi_hal_spi_release(&furi_hal_spi_bus_handle_subghz);
@@ -142,40 +142,36 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
                 rssi_avg += rssi;
                 rssi_avg_samples++;
 
-                if(rssi < rssi_min) rssi_min = rssi;
+                if (rssi < rssi_min)
+                    rssi_min = rssi;
 
-                if(frequency_rssi.rssi_coarse < rssi) {
+                if (frequency_rssi.rssi_coarse < rssi) {
                     frequency_rssi.rssi_coarse = rssi;
                     frequency_rssi.frequency_coarse = frequency;
                 }
             }
         }
 
-        FURI_LOG_T(
-            TAG,
-            "RSSI: avg %f, max %f at %lu, min %f",
-            (double)(rssi_avg / rssi_avg_samples),
-            (double)frequency_rssi.rssi_coarse,
-            frequency_rssi.frequency_coarse,
-            (double)rssi_min);
+        FURI_LOG_T(TAG, "RSSI: avg %f, max %f at %lu, min %f",
+                   (double)(rssi_avg / rssi_avg_samples), (double)frequency_rssi.rssi_coarse,
+                   frequency_rssi.frequency_coarse, (double)rssi_min);
 
         // Second stage: fine scan
-        if(frequency_rssi.rssi_coarse > instance->trigger_level) {
+        if (frequency_rssi.rssi_coarse > instance->trigger_level) {
             furi_hal_subghz_idle();
             subghz_frequency_analyzer_worker_load_registers(subghz_preset_ook_58khz);
-            //for example -0.3 ... 433.92 ... +0.3 step 20KHz
-            for(uint32_t i = frequency_rssi.frequency_coarse - 300000;
-                i < frequency_rssi.frequency_coarse + 300000;
-                i += 20000) {
-                if(furi_hal_subghz_is_frequency_valid(i)) {
+            // for example -0.3 ... 433.92 ... +0.3 step 20KHz
+            for (uint32_t i = frequency_rssi.frequency_coarse - 300000;
+                 i < frequency_rssi.frequency_coarse + 300000; i += 20000) {
+                if (furi_hal_subghz_is_frequency_valid(i)) {
                     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_subghz);
                     cc1101_switch_to_idle(&furi_hal_spi_bus_handle_subghz);
                     frequency = cc1101_set_frequency(&furi_hal_spi_bus_handle_subghz, i);
 
                     cc1101_calibrate(&furi_hal_spi_bus_handle_subghz);
 
-                    furi_check(cc1101_wait_status_state(
-                        &furi_hal_spi_bus_handle_subghz, CC1101StateIDLE, 10000));
+                    furi_check(cc1101_wait_status_state(&furi_hal_spi_bus_handle_subghz,
+                                                        CC1101StateIDLE, 10000));
 
                     cc1101_switch_to_rx(&furi_hal_spi_bus_handle_subghz);
                     furi_hal_spi_release(&furi_hal_spi_bus_handle_subghz);
@@ -186,7 +182,7 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
 
                     FURI_LOG_T(TAG, "#:%lu:%f", frequency, (double)rssi);
 
-                    if(frequency_rssi.rssi_fine < rssi) {
+                    if (frequency_rssi.rssi_fine < rssi) {
                         frequency_rssi.rssi_fine = rssi;
                         frequency_rssi.frequency_fine = frequency;
                     }
@@ -195,90 +191,83 @@ static int32_t subghz_frequency_analyzer_worker_thread(void* context) {
         }
 
         // Deliver results fine
-        if(frequency_rssi.rssi_fine > instance->trigger_level) {
-            FURI_LOG_D(
-                TAG, "=:%lu:%f", frequency_rssi.frequency_fine, (double)frequency_rssi.rssi_fine);
+        if (frequency_rssi.rssi_fine > instance->trigger_level) {
+            FURI_LOG_D(TAG, "=:%lu:%f", frequency_rssi.frequency_fine,
+                       (double)frequency_rssi.rssi_fine);
 
             instance->sample_hold_counter = 20;
             rssi_temp = frequency_rssi.rssi_fine;
             frequency_temp = frequency_rssi.frequency_fine;
 
-            if(!float_is_equal(instance->filVal, 0.f)) {
+            if (!float_is_equal(instance->filVal, 0.f)) {
                 frequency_rssi.frequency_fine =
                     subghz_frequency_analyzer_worker_expRunningAverageAdaptive(
                         instance, frequency_rssi.frequency_fine);
             }
             // Deliver callback
-            if(instance->pair_callback) {
-                instance->pair_callback(
-                    instance->context,
-                    frequency_rssi.frequency_fine,
-                    frequency_rssi.rssi_fine,
-                    true);
+            if (instance->pair_callback) {
+                instance->pair_callback(instance->context, frequency_rssi.frequency_fine,
+                                        frequency_rssi.rssi_fine, true);
             }
-        } else if( // Deliver results coarse
+        } else if ( // Deliver results coarse
             (frequency_rssi.rssi_coarse > instance->trigger_level) &&
             (instance->sample_hold_counter < 10)) {
-            FURI_LOG_D(
-                TAG,
-                "~:%lu:%f",
-                frequency_rssi.frequency_coarse,
-                (double)frequency_rssi.rssi_coarse);
+            FURI_LOG_D(TAG, "~:%lu:%f", frequency_rssi.frequency_coarse,
+                       (double)frequency_rssi.rssi_coarse);
 
             instance->sample_hold_counter = 20;
             rssi_temp = frequency_rssi.rssi_coarse;
             frequency_temp = frequency_rssi.frequency_coarse;
-            if(!float_is_equal(instance->filVal, 0.f)) {
+            if (!float_is_equal(instance->filVal, 0.f)) {
                 frequency_rssi.frequency_coarse =
                     subghz_frequency_analyzer_worker_expRunningAverageAdaptive(
                         instance, frequency_rssi.frequency_coarse);
             }
             // Deliver callback
-            if(instance->pair_callback) {
-                instance->pair_callback(
-                    instance->context,
-                    frequency_rssi.frequency_coarse,
-                    frequency_rssi.rssi_coarse,
-                    true);
+            if (instance->pair_callback) {
+                instance->pair_callback(instance->context, frequency_rssi.frequency_coarse,
+                                        frequency_rssi.rssi_coarse, true);
             }
         } else {
-            if(instance->sample_hold_counter > 0) {
+            if (instance->sample_hold_counter > 0) {
                 instance->sample_hold_counter--;
-                if(instance->sample_hold_counter == 18) {
-                    if(instance->pair_callback) {
-                        instance->pair_callback(
-                            instance->context, frequency_temp, rssi_temp, false);
+                if (instance->sample_hold_counter == 18) {
+                    if (instance->pair_callback) {
+                        instance->pair_callback(instance->context, frequency_temp, rssi_temp,
+                                                false);
                     }
                 }
             } else {
                 instance->filVal = 0;
-                if(instance->pair_callback)
+                if (instance->pair_callback)
                     instance->pair_callback(instance->context, 0, 0, false);
             }
         }
     }
 
-    //Stop CC1101
+    // Stop CC1101
     furi_hal_subghz_idle();
     furi_hal_subghz_sleep();
 
     return 0;
 }
 
-SubGhzFrequencyAnalyzerWorker* subghz_frequency_analyzer_worker_alloc(void* context) {
+SubGhzFrequencyAnalyzerWorker *subghz_frequency_analyzer_worker_alloc(void *context)
+{
     furi_assert(context);
-    SubGhzFrequencyAnalyzerWorker* instance = malloc(sizeof(SubGhzFrequencyAnalyzerWorker));
+    SubGhzFrequencyAnalyzerWorker *instance = malloc(sizeof(SubGhzFrequencyAnalyzerWorker));
 
-    instance->thread = furi_thread_alloc_ex(
-        "SubGhzFAWorker", 2048, subghz_frequency_analyzer_worker_thread, instance);
-    SubGhz* subghz = context;
+    instance->thread = furi_thread_alloc_ex("SubGhzFAWorker", 2048,
+                                            subghz_frequency_analyzer_worker_thread, instance);
+    SubGhz *subghz = context;
     instance->setting = subghz_txrx_get_setting(subghz->txrx);
     instance->trigger_level = subghz->last_settings->frequency_analyzer_trigger;
-    //instance->trigger_level = SUBGHZ_FREQUENCY_ANALYZER_THRESHOLD;
+    // instance->trigger_level = SUBGHZ_FREQUENCY_ANALYZER_THRESHOLD;
     return instance;
 }
 
-void subghz_frequency_analyzer_worker_free(SubGhzFrequencyAnalyzerWorker* instance) {
+void subghz_frequency_analyzer_worker_free(SubGhzFrequencyAnalyzerWorker *instance)
+{
     furi_assert(instance);
 
     furi_thread_free(instance->thread);
@@ -286,16 +275,17 @@ void subghz_frequency_analyzer_worker_free(SubGhzFrequencyAnalyzerWorker* instan
 }
 
 void subghz_frequency_analyzer_worker_set_pair_callback(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    SubGhzFrequencyAnalyzerWorkerPairCallback callback,
-    void* context) {
+    SubGhzFrequencyAnalyzerWorker *instance, SubGhzFrequencyAnalyzerWorkerPairCallback callback,
+    void *context)
+{
     furi_assert(instance);
     furi_assert(context);
     instance->pair_callback = callback;
     instance->context = context;
 }
 
-void subghz_frequency_analyzer_worker_start(SubGhzFrequencyAnalyzerWorker* instance) {
+void subghz_frequency_analyzer_worker_start(SubGhzFrequencyAnalyzerWorker *instance)
+{
     furi_assert(instance);
     furi_assert(!instance->worker_running);
 
@@ -304,7 +294,8 @@ void subghz_frequency_analyzer_worker_start(SubGhzFrequencyAnalyzerWorker* insta
     furi_thread_start(instance->thread);
 }
 
-void subghz_frequency_analyzer_worker_stop(SubGhzFrequencyAnalyzerWorker* instance) {
+void subghz_frequency_analyzer_worker_stop(SubGhzFrequencyAnalyzerWorker *instance)
+{
     furi_assert(instance);
     furi_assert(instance->worker_running);
 
@@ -313,39 +304,41 @@ void subghz_frequency_analyzer_worker_stop(SubGhzFrequencyAnalyzerWorker* instan
     furi_thread_join(instance->thread);
 }
 
-bool subghz_frequency_analyzer_worker_is_running(SubGhzFrequencyAnalyzerWorker* instance) {
+bool subghz_frequency_analyzer_worker_is_running(SubGhzFrequencyAnalyzerWorker *instance)
+{
     furi_assert(instance);
     return instance->worker_running;
 }
 
-void subghz_frequency_analyzer_worker_set_trigger_level(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    float value) {
+void subghz_frequency_analyzer_worker_set_trigger_level(SubGhzFrequencyAnalyzerWorker *instance,
+                                                        float value)
+{
     instance->trigger_level = value;
 }
 
-float subghz_frequency_analyzer_worker_get_trigger_level(SubGhzFrequencyAnalyzerWorker* instance) {
+float subghz_frequency_analyzer_worker_get_trigger_level(SubGhzFrequencyAnalyzerWorker *instance)
+{
     return instance->trigger_level;
 }
 
-uint32_t subghz_frequency_analyzer_get_nearest_frequency(
-    SubGhzFrequencyAnalyzerWorker* instance,
-    uint32_t input) {
+uint32_t subghz_frequency_analyzer_get_nearest_frequency(SubGhzFrequencyAnalyzerWorker *instance,
+                                                         uint32_t input)
+{
     uint32_t prev_freq = 0;
     uint32_t result = 0;
     uint32_t current;
 
-    for(size_t i = 0; i < subghz_setting_get_frequency_count(instance->setting); i++) {
+    for (size_t i = 0; i < subghz_setting_get_frequency_count(instance->setting); i++) {
         current = subghz_setting_get_frequency(instance->setting, i);
-        if(current == 0) {
+        if (current == 0) {
             continue;
         }
-        if(current == input) {
+        if (current == input) {
             result = current;
             break;
         }
-        if(current > input && prev_freq < input) {
-            if(current - input < input - prev_freq) {
+        if (current > input && prev_freq < input) {
+            if (current - input < input - prev_freq) {
                 result = current;
             } else {
                 result = prev_freq;

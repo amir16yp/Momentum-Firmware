@@ -34,8 +34,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Iso14443_4bPollerEventType type; /**< Type of emmitted event. */
-    Iso14443_4bPollerEventData* data; /**< Pointer to event specific data. */
+    Iso14443_4bPollerEventType type;  /**< Type of emmitted event. */
+    Iso14443_4bPollerEventData *data; /**< Pointer to event specific data. */
 } Iso14443_4bPollerEvent;
 
 /**
@@ -51,10 +51,8 @@ typedef struct {
  * @param[out] rx_buffer pointer to the buffer to be filled with received data.
  * @return Iso14443_4bErrorNone on success, an error code on failure.
  */
-Iso14443_4bError iso14443_4b_poller_send_block(
-    Iso14443_4bPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_4bError iso14443_4b_poller_send_block(Iso14443_4bPoller *instance,
+                                               const BitBuffer *tx_buffer, BitBuffer *rx_buffer);
 
 /**
  * @brief Send HALT command to the card.
@@ -66,7 +64,7 @@ Iso14443_4bError iso14443_4b_poller_send_block(
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return Iso14443_4bErrorNone on success, an error code on failure.
  */
-Iso14443_4bError iso14443_4b_poller_halt(Iso14443_4bPoller* instance);
+Iso14443_4bError iso14443_4b_poller_halt(Iso14443_4bPoller *instance);
 
 #ifdef __cplusplus
 }

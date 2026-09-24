@@ -3,8 +3,9 @@
  *
  * Copyright 2023 Leptoptilos <leptoptilos@icloud.com>
  *
- * More info about Zolotaya Korona cards: https://github.com/metrodroid/metrodroid/wiki/Zolotaya-Korona
- * 
+ * More info about Zolotaya Korona cards:
+ * https://github.com/metrodroid/metrodroid/wiki/Zolotaya-Korona
+ *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,20 +30,21 @@
 
 #define TAG "Zolotaya Korona"
 
-#define TRIP_SECTOR_NUM  (4)
+#define TRIP_SECTOR_NUM (4)
 #define PURSE_SECTOR_NUM (6)
-#define INFO_SECTOR_NUM  (15)
+#define INFO_SECTOR_NUM (15)
 
-// Sector 15 data. Byte [11] contains the mistake. If byte [11] was 0xEF, bytes [1-18] means "ЗАО Золотая Корона"
-static const uint8_t info_sector_signature[] = {0xE2, 0x87, 0x80, 0x8E, 0x20, 0x87, 0xAE,
-                                                0xAB, 0xAE, 0xF2, 0xA0, 0xEF, 0x20, 0x8A,
-                                                0xAE, 0xE0, 0xAE, 0xAD, 0xA0, 0x00, 0x00,
-                                                0x00, 0x00, 0x00, 0x00};
+// Sector 15 data. Byte [11] contains the mistake. If byte [11] was 0xEF, bytes [1-18] means "ЗАО
+// Золотая Корона"
+static const uint8_t info_sector_signature[] = {
+    0xE2, 0x87, 0x80, 0x8E, 0x20, 0x87, 0xAE, 0xAB, 0xAE, 0xF2, 0xA0, 0xEF, 0x20,
+    0x8A, 0xAE, 0xE0, 0xAE, 0xAD, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-static bool zolotaya_korona_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool zolotaya_korona_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
     bool parsed = false;
 
@@ -50,20 +52,21 @@ static bool zolotaya_korona_parse(const NfcDevice* device, FuriString* parsed_da
         // Verify info sector data
         const uint8_t start_info_block_number =
             mf_classic_get_first_block_num_of_sector(INFO_SECTOR_NUM);
-        const uint8_t* block_start_ptr = &data->block[start_info_block_number].data[0];
+        const uint8_t *block_start_ptr = &data->block[start_info_block_number].data[0];
 
         bool verified = true;
-        for(uint8_t i = 0; i < sizeof(info_sector_signature); i++) {
-            if(i == 16) {
+        for (uint8_t i = 0; i < sizeof(info_sector_signature); i++) {
+            if (i == 16) {
                 block_start_ptr = &data->block[start_info_block_number + 1].data[0];
             }
-            if(block_start_ptr[i % 16] != info_sector_signature[i]) {
+            if (block_start_ptr[i % 16] != info_sector_signature[i]) {
                 verified = false;
                 break;
             }
         }
 
-        if(!verified) break;
+        if (!verified)
+            break;
 
         // Parse data
 
@@ -73,8 +76,7 @@ static bool zolotaya_korona_parse(const NfcDevice* device, FuriString* parsed_da
 
         // block 2
         block_start_ptr = &data->block[start_info_block_number + 2].data[4];
-        const uint16_t card_number_prefix =
-            bit_lib_bytes_to_num_bcd(block_start_ptr, 2, &verified);
+        const uint16_t card_number_prefix = bit_lib_bytes_to_num_bcd(block_start_ptr, 2, &verified);
         const uint64_t card_number_postfix =
             bit_lib_bytes_to_num_bcd(block_start_ptr + 2, 8, &verified) / 10;
 
@@ -126,59 +128,43 @@ static bool zolotaya_korona_parse(const NfcDevice* device, FuriString* parsed_da
         uint8_t balance_kop = balance % 100;
 
         LocaleDateFormat date_format = locale_get_date_format();
-        const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
+        const char *separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
 
-        FuriString* last_refill_date_str = furi_string_alloc();
+        FuriString *last_refill_date_str = furi_string_alloc();
         locale_format_date(last_refill_date_str, &last_refill_datetime, date_format, separator);
 
-        FuriString* last_refill_time_str = furi_string_alloc();
-        locale_format_time(
-            last_refill_time_str, &last_refill_datetime, locale_get_time_format(), false);
+        FuriString *last_refill_time_str = furi_string_alloc();
+        locale_format_time(last_refill_time_str, &last_refill_datetime, locale_get_time_format(),
+                           false);
 
-        FuriString* last_trip_date_str = furi_string_alloc();
+        FuriString *last_trip_date_str = furi_string_alloc();
         locale_format_date(last_trip_date_str, &last_trip_datetime, date_format, separator);
 
-        FuriString* last_trip_time_str = furi_string_alloc();
-        locale_format_time(
-            last_trip_time_str, &last_trip_datetime, locale_get_time_format(), false);
+        FuriString *last_trip_time_str = furi_string_alloc();
+        locale_format_time(last_trip_time_str, &last_trip_datetime, locale_get_time_format(),
+                           false);
+
+        furi_string_cat_printf(parsed_data,
+                               "\e#Zolotaya korona\nCard number: %u%015llu\nRegion: %u\nBalance: "
+                               "%lu.%02u RUR\nPrev. balance: %lu.%02u RUR",
+                               card_number_prefix, card_number_postfix, region_number, balance_rub,
+                               balance_kop, prev_balance_rub, prev_balance_kop);
+
+        furi_string_cat_printf(parsed_data,
+                               "\nLast refill amount: %lu.%02u RUR\nRefill counter: %u\nLast "
+                               "refill: %s at %s\nRefill machine id: %u",
+                               last_refill_amount_rub, last_refill_amount_kop, refill_counter,
+                               furi_string_get_cstr(last_refill_date_str),
+                               furi_string_get_cstr(last_refill_time_str), refill_machine_id);
 
         furi_string_cat_printf(
-            parsed_data,
-            "\e#Zolotaya korona\nCard number: %u%015llu\nRegion: %u\nBalance: %lu.%02u RUR\nPrev. balance: %lu.%02u RUR",
-            card_number_prefix,
-            card_number_postfix,
-            region_number,
-            balance_rub,
-            balance_kop,
-            prev_balance_rub,
-            prev_balance_kop);
+            parsed_data, "\nLast trip: %s at %s\nTrack number: %u\nValidator: %c%06lu",
+            furi_string_get_cstr(last_trip_date_str), furi_string_get_cstr(last_trip_time_str),
+            track_number, validator_first_letter, validator_id);
 
-        furi_string_cat_printf(
-            parsed_data,
-            "\nLast refill amount: %lu.%02u RUR\nRefill counter: %u\nLast refill: %s at %s\nRefill machine id: %u",
-            last_refill_amount_rub,
-            last_refill_amount_kop,
-            refill_counter,
-            furi_string_get_cstr(last_refill_date_str),
-            furi_string_get_cstr(last_refill_time_str),
-            refill_machine_id);
-
-        furi_string_cat_printf(
-            parsed_data,
-            "\nLast trip: %s at %s\nTrack number: %u\nValidator: %c%06lu",
-            furi_string_get_cstr(last_trip_date_str),
-            furi_string_get_cstr(last_trip_time_str),
-            track_number,
-            validator_first_letter,
-            validator_id);
-
-        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug)) {
-            furi_string_cat_printf(
-                parsed_data,
-                "\nStatus: %u\nSequence num: %u\nDiscount code: %u",
-                status,
-                sequence_number,
-                discount_code);
+        if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug)) {
+            furi_string_cat_printf(parsed_data, "\nStatus: %u\nSequence num: %u\nDiscount code: %u",
+                                   status, sequence_number, discount_code);
         }
 
         furi_string_free(last_refill_date_str);
@@ -188,7 +174,7 @@ static bool zolotaya_korona_parse(const NfcDevice* device, FuriString* parsed_da
         furi_string_free(last_trip_time_str);
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -209,6 +195,7 @@ static const FlipperAppPluginDescriptor zolotaya_korona_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* zolotaya_korona_plugin_ep(void) {
+const FlipperAppPluginDescriptor *zolotaya_korona_plugin_ep(void)
+{
     return &zolotaya_korona_plugin_descriptor;
 }

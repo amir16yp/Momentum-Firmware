@@ -7,16 +7,16 @@
 extern "C" {
 #endif
 
-#define ISO14443_3A_UID_4_BYTES  (4U)
-#define ISO14443_3A_UID_7_BYTES  (7U)
+#define ISO14443_3A_UID_4_BYTES (4U)
+#define ISO14443_3A_UID_7_BYTES (7U)
 #define ISO14443_3A_UID_10_BYTES (10U)
 #define ISO14443_3A_MAX_UID_SIZE ISO14443_3A_UID_10_BYTES
 
-#define ISO14443_3A_GUARD_TIME_US     (5000)
-#define ISO14443_3A_FDT_POLL_FC       (1620)
-#define ISO14443_3A_FDT_LISTEN_FC     (1172)
+#define ISO14443_3A_GUARD_TIME_US (5000)
+#define ISO14443_3A_FDT_POLL_FC (1620)
+#define ISO14443_3A_FDT_LISTEN_FC (1172)
 #define ISO14443_3A_POLLER_MASK_RX_FS ((ISO14443_3A_FDT_LISTEN_FC) / 2)
-#define ISO14443_3A_POLL_POLL_MIN_US  (1100)
+#define ISO14443_3A_POLL_POLL_MIN_US (1100)
 
 typedef enum {
     Iso14443_3aErrorNone,
@@ -62,45 +62,45 @@ typedef struct {
     uint8_t sak;
 } Iso14443_3aData;
 
-Iso14443_3aData* iso14443_3a_alloc(void);
+Iso14443_3aData *iso14443_3a_alloc(void);
 
-void iso14443_3a_free(Iso14443_3aData* data);
+void iso14443_3a_free(Iso14443_3aData *data);
 
-void iso14443_3a_reset(Iso14443_3aData* data);
+void iso14443_3a_reset(Iso14443_3aData *data);
 
-void iso14443_3a_copy(Iso14443_3aData* data, const Iso14443_3aData* other);
+void iso14443_3a_copy(Iso14443_3aData *data, const Iso14443_3aData *other);
 
-bool iso14443_3a_verify(Iso14443_3aData* data, const FuriString* device_type);
+bool iso14443_3a_verify(Iso14443_3aData *data, const FuriString *device_type);
 
-bool iso14443_3a_load(Iso14443_3aData* data, FlipperFormat* ff, uint32_t version);
+bool iso14443_3a_load(Iso14443_3aData *data, FlipperFormat *ff, uint32_t version);
 
-bool iso14443_3a_save(const Iso14443_3aData* data, FlipperFormat* ff);
+bool iso14443_3a_save(const Iso14443_3aData *data, FlipperFormat *ff);
 
-bool iso14443_3a_is_equal(const Iso14443_3aData* data, const Iso14443_3aData* other);
+bool iso14443_3a_is_equal(const Iso14443_3aData *data, const Iso14443_3aData *other);
 
-const char* iso14443_3a_get_device_name(const Iso14443_3aData* data, NfcDeviceNameType name_type);
+const char *iso14443_3a_get_device_name(const Iso14443_3aData *data, NfcDeviceNameType name_type);
 
-const uint8_t* iso14443_3a_get_uid(const Iso14443_3aData* data, size_t* uid_len);
+const uint8_t *iso14443_3a_get_uid(const Iso14443_3aData *data, size_t *uid_len);
 
-bool iso14443_3a_set_uid(Iso14443_3aData* data, const uint8_t* uid, size_t uid_len);
+bool iso14443_3a_set_uid(Iso14443_3aData *data, const uint8_t *uid, size_t uid_len);
 
-Iso14443_3aData* iso14443_3a_get_base_data(const Iso14443_3aData* data);
+Iso14443_3aData *iso14443_3a_get_base_data(const Iso14443_3aData *data);
 
-uint32_t iso14443_3a_get_cuid(const Iso14443_3aData* data);
+uint32_t iso14443_3a_get_cuid(const Iso14443_3aData *data);
 
 // Getters and tests
 
-bool iso14443_3a_supports_iso14443_4(const Iso14443_3aData* data);
+bool iso14443_3a_supports_iso14443_4(const Iso14443_3aData *data);
 
-uint8_t iso14443_3a_get_sak(const Iso14443_3aData* data);
+uint8_t iso14443_3a_get_sak(const Iso14443_3aData *data);
 
-void iso14443_3a_get_atqa(const Iso14443_3aData* data, uint8_t atqa[2]);
+void iso14443_3a_get_atqa(const Iso14443_3aData *data, uint8_t atqa[2]);
 
 // Setters
 
-void iso14443_3a_set_sak(Iso14443_3aData* data, uint8_t sak);
+void iso14443_3a_set_sak(Iso14443_3aData *data, uint8_t sak);
 
-void iso14443_3a_set_atqa(Iso14443_3aData* data, const uint8_t atqa[2]);
+void iso14443_3a_set_atqa(Iso14443_3aData *data, const uint8_t atqa[2]);
 
 #ifdef __cplusplus
 }

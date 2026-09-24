@@ -31,8 +31,9 @@ static const InfraredProtocolVariant infrared_protocol_variant_kaseikyo = {
     .repeat_count = INFRARED_KASEIKYO_REPEAT_COUNT_MIN,
 };
 
-const InfraredProtocolVariant* infrared_protocol_kaseikyo_get_variant(InfraredProtocol protocol) {
-    if(protocol == InfraredProtocolKaseikyo)
+const InfraredProtocolVariant *infrared_protocol_kaseikyo_get_variant(InfraredProtocol protocol)
+{
+    if (protocol == InfraredProtocolKaseikyo)
         return &infrared_protocol_variant_kaseikyo;
     else
         return NULL;

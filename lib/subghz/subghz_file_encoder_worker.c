@@ -11,65 +11,68 @@
 #define SUBGHZ_FILE_ENCODER_LOAD 512
 
 struct SubGhzFileEncoderWorker {
-    FuriThread* thread;
-    FuriStreamBuffer* stream;
+    FuriThread *thread;
+    FuriStreamBuffer *stream;
 
-    Storage* storage;
-    FlipperFormat* flipper_format;
+    Storage *storage;
+    FlipperFormat *flipper_format;
 
     volatile bool worker_running;
     volatile bool worker_stopping;
     bool is_storage_slow;
-    FuriString* str_data;
-    FuriString* file_path;
-    const SubGhzDevice* device;
+    FuriString *str_data;
+    FuriString *file_path;
+    const SubGhzDevice *device;
 
     SubGhzFileEncoderWorkerCallbackEnd callback_end;
-    void* context_end;
+    void *context_end;
 };
 
-void subghz_file_encoder_worker_callback_end(
-    SubGhzFileEncoderWorker* instance,
-    SubGhzFileEncoderWorkerCallbackEnd callback_end,
-    void* context_end) {
+void subghz_file_encoder_worker_callback_end(SubGhzFileEncoderWorker *instance,
+                                             SubGhzFileEncoderWorkerCallbackEnd callback_end,
+                                             void *context_end)
+{
     furi_assert(instance);
     furi_assert(callback_end);
     instance->callback_end = callback_end;
     instance->context_end = context_end;
 }
 
-void subghz_file_encoder_worker_add_level_duration(
-    SubGhzFileEncoderWorker* instance,
-    int32_t duration) {
+void subghz_file_encoder_worker_add_level_duration(SubGhzFileEncoderWorker *instance,
+                                                   int32_t duration)
+{
     size_t ret = furi_stream_buffer_send(instance->stream, &duration, sizeof(int32_t), 100);
-    if(sizeof(int32_t) != ret) FURI_LOG_E(TAG, "Invalid add duration in the stream");
+    if (sizeof(int32_t) != ret)
+        FURI_LOG_E(TAG, "Invalid add duration in the stream");
 }
 
-bool subghz_file_encoder_worker_data_parse(SubGhzFileEncoderWorker* instance, const char* strStart) {
+bool subghz_file_encoder_worker_data_parse(SubGhzFileEncoderWorker *instance, const char *strStart)
+{
     // Line sample: "RAW_Data: -1, 2, -2..."
 
     // Look for the key in the line
-    char* str = strstr(strStart, "RAW_Data: ");
+    char *str = strstr(strStart, "RAW_Data: ");
     bool res = false;
 
-    if(str) {
+    if (str) {
         // Skip key
         str = strchr(str, ' ');
 
         // Parse next element
         int32_t duration;
-        while(strint_to_int32(str, &str, &duration, 10) == StrintParseNoError) {
-            if((duration < -1000000) || (duration > 1000000)) {
-                if(duration > 0) {
+        while (strint_to_int32(str, &str, &duration, 10) == StrintParseNoError) {
+            if ((duration < -1000000) || (duration > 1000000)) {
+                if (duration > 0) {
                     subghz_file_encoder_worker_add_level_duration(instance, (int32_t)100);
                 } else {
                     subghz_file_encoder_worker_add_level_duration(instance, (int32_t)-100);
                 }
-                //FURI_LOG_I("PARSE", "Number overflow - %d", duration);
+                // FURI_LOG_I("PARSE", "Number overflow - %d", duration);
             } else {
                 subghz_file_encoder_worker_add_level_duration(instance, duration);
             }
-            if(*str == ',') str++; // could also be `\0`
+            if (*str == ',')
+                str++; // could also be `\0`
         }
 
         res = true;
@@ -78,11 +81,11 @@ bool subghz_file_encoder_worker_data_parse(SubGhzFileEncoderWorker* instance, co
     return res;
 }
 
-void subghz_file_encoder_worker_get_text_progress(
-    SubGhzFileEncoderWorker* instance,
-    FuriString* output) {
+void subghz_file_encoder_worker_get_text_progress(SubGhzFileEncoderWorker *instance,
+                                                  FuriString *output)
+{
     UNUSED(output);
-    Stream* stream = flipper_format_get_raw_stream(instance->flipper_format);
+    Stream *stream = flipper_format_get_raw_stream(instance->flipper_format);
     size_t total_size = stream_size(stream);
     size_t current_offset = stream_tell(stream);
     size_t buffer_avail = furi_stream_buffer_bytes_available(instance->stream);
@@ -90,18 +93,19 @@ void subghz_file_encoder_worker_get_text_progress(
     furi_string_printf(output, "%03u%%", 100 * (current_offset - buffer_avail) / total_size);
 }
 
-LevelDuration subghz_file_encoder_worker_get_level_duration(void* context) {
+LevelDuration subghz_file_encoder_worker_get_level_duration(void *context)
+{
     furi_assert(context);
-    SubGhzFileEncoderWorker* instance = context;
+    SubGhzFileEncoderWorker *instance = context;
     int32_t duration;
     int ret = furi_stream_buffer_receive(instance->stream, &duration, sizeof(int32_t), 0);
-    if(ret == sizeof(int32_t)) {
+    if (ret == sizeof(int32_t)) {
         LevelDuration level_duration = {.level = LEVEL_DURATION_RESET};
-        if(duration < 0) {
+        if (duration < 0) {
             level_duration = level_duration_make(false, -duration);
-        } else if(duration > 0) {
+        } else if (duration > 0) {
             level_duration = level_duration_make(true, duration);
-        } else if(duration == 0) { //-V547
+        } else if (duration == 0) { //-V547
             level_duration = level_duration_reset();
             FURI_LOG_I(TAG, "Stop transmission");
             instance->worker_stopping = true;
@@ -114,44 +118,43 @@ LevelDuration subghz_file_encoder_worker_get_level_duration(void* context) {
 }
 
 /** Worker thread
- * 
- * @param context 
- * @return exit code 
+ *
+ * @param context
+ * @return exit code
  */
-static int32_t subghz_file_encoder_worker_thread(void* context) {
-    SubGhzFileEncoderWorker* instance = context;
+static int32_t subghz_file_encoder_worker_thread(void *context)
+{
+    SubGhzFileEncoderWorker *instance = context;
     FURI_LOG_I(TAG, "Worker start");
     bool res = false;
     instance->is_storage_slow = false;
-    Stream* stream = flipper_format_get_raw_stream(instance->flipper_format);
+    Stream *stream = flipper_format_get_raw_stream(instance->flipper_format);
     do {
-        if(!flipper_format_file_open_existing(
-               instance->flipper_format, furi_string_get_cstr(instance->file_path))) {
-            FURI_LOG_E(
-                TAG,
-                "Unable to open file for read: %s",
-                furi_string_get_cstr(instance->file_path));
+        if (!flipper_format_file_open_existing(instance->flipper_format,
+                                               furi_string_get_cstr(instance->file_path))) {
+            FURI_LOG_E(TAG, "Unable to open file for read: %s",
+                       furi_string_get_cstr(instance->file_path));
             break;
         }
-        if(!flipper_format_read_string(instance->flipper_format, "Protocol", instance->str_data)) {
+        if (!flipper_format_read_string(instance->flipper_format, "Protocol", instance->str_data)) {
             FURI_LOG_E(TAG, "Missing Protocol");
             break;
         }
 
-        //skip the end of the previous line "\n"
+        // skip the end of the previous line "\n"
         stream_seek(stream, 1, StreamOffsetFromCurrent);
         res = true;
         instance->worker_stopping = false;
         FURI_LOG_I(TAG, "Start transmission");
-    } while(0);
+    } while (0);
 
-    while(res && instance->worker_running) {
+    while (res && instance->worker_running) {
         size_t stream_free_byte = furi_stream_buffer_spaces_available(instance->stream);
-        if((stream_free_byte / sizeof(int32_t)) >= SUBGHZ_FILE_ENCODER_LOAD) {
-            if(stream_read_line(stream, instance->str_data)) {
+        if ((stream_free_byte / sizeof(int32_t)) >= SUBGHZ_FILE_ENCODER_LOAD) {
+            if (stream_read_line(stream, instance->str_data)) {
                 furi_string_trim(instance->str_data);
-                if(!subghz_file_encoder_worker_data_parse(
-                       instance, furi_string_get_cstr(instance->str_data))) {
+                if (!subghz_file_encoder_worker_data_parse(
+                        instance, furi_string_get_cstr(instance->str_data))) {
                     subghz_file_encoder_worker_add_level_duration(instance, LEVEL_DURATION_RESET);
                     break;
                 }
@@ -163,21 +166,22 @@ static int32_t subghz_file_encoder_worker_thread(void* context) {
             furi_delay_ms(1);
         }
     }
-    //waiting for the end of the transfer
-    if(instance->is_storage_slow) {
+    // waiting for the end of the transfer
+    if (instance->is_storage_slow) {
         FURI_LOG_E(TAG, "Storage is slow");
     }
 
     FURI_LOG_I(TAG, "End read file");
-    while(instance->device && !subghz_devices_is_async_complete_tx(instance->device) &&
-          instance->worker_running) {
+    while (instance->device && !subghz_devices_is_async_complete_tx(instance->device) &&
+           instance->worker_running) {
         furi_delay_ms(5);
     }
 
     FURI_LOG_I(TAG, "End transmission");
-    while(instance->worker_running) {
-        if(instance->worker_stopping) {
-            if(instance->callback_end) instance->callback_end(instance->context_end);
+    while (instance->worker_running) {
+        if (instance->worker_stopping) {
+            if (instance->callback_end)
+                instance->callback_end(instance->context_end);
         }
         furi_delay_ms(50);
     }
@@ -187,8 +191,9 @@ static int32_t subghz_file_encoder_worker_thread(void* context) {
     return 0;
 }
 
-SubGhzFileEncoderWorker* subghz_file_encoder_worker_alloc(void) {
-    SubGhzFileEncoderWorker* instance = malloc(sizeof(SubGhzFileEncoderWorker));
+SubGhzFileEncoderWorker *subghz_file_encoder_worker_alloc(void)
+{
+    SubGhzFileEncoderWorker *instance = malloc(sizeof(SubGhzFileEncoderWorker));
 
     instance->thread =
         furi_thread_alloc_ex("SubGhzFEWorker", 2048, subghz_file_encoder_worker_thread, instance);
@@ -204,7 +209,8 @@ SubGhzFileEncoderWorker* subghz_file_encoder_worker_alloc(void) {
     return instance;
 }
 
-void subghz_file_encoder_worker_free(SubGhzFileEncoderWorker* instance) {
+void subghz_file_encoder_worker_free(SubGhzFileEncoderWorker *instance)
+{
     furi_assert(instance);
 
     furi_stream_buffer_free(instance->stream);
@@ -219,16 +225,15 @@ void subghz_file_encoder_worker_free(SubGhzFileEncoderWorker* instance) {
     free(instance);
 }
 
-bool subghz_file_encoder_worker_start(
-    SubGhzFileEncoderWorker* instance,
-    const char* file_path,
-    const char* radio_device_name) {
+bool subghz_file_encoder_worker_start(SubGhzFileEncoderWorker *instance, const char *file_path,
+                                      const char *radio_device_name)
+{
     furi_assert(instance);
     furi_assert(!instance->worker_running);
 
     furi_stream_buffer_reset(instance->stream);
     furi_string_set(instance->file_path, file_path);
-    if(radio_device_name) {
+    if (radio_device_name) {
         instance->device = subghz_devices_get_by_name(radio_device_name);
     }
     instance->worker_running = true;
@@ -237,7 +242,8 @@ bool subghz_file_encoder_worker_start(
     return true;
 }
 
-void subghz_file_encoder_worker_stop(SubGhzFileEncoderWorker* instance) {
+void subghz_file_encoder_worker_stop(SubGhzFileEncoderWorker *instance)
+{
     furi_assert(instance);
     furi_assert(instance->worker_running);
 
@@ -245,7 +251,8 @@ void subghz_file_encoder_worker_stop(SubGhzFileEncoderWorker* instance) {
     furi_thread_join(instance->thread);
 }
 
-bool subghz_file_encoder_worker_is_running(SubGhzFileEncoderWorker* instance) {
+bool subghz_file_encoder_worker_is_running(SubGhzFileEncoderWorker *instance)
+{
     furi_assert(instance);
     return instance->worker_running;
 }

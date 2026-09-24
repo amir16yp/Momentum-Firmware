@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor);
+void furi_hal_info_get_api_version(uint16_t *major, uint16_t *minor);
 
 /** Get device information
  *
@@ -22,7 +22,7 @@ void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor);
  * @param[in]  sep          category separator character
  * @param[in]  context      context to pass to callback
  */
-void furi_hal_info_get(PropertyValueCallback callback, char sep, void* context);
+void furi_hal_info_get(PropertyValueCallback callback, char sep, void *context);
 
 #ifdef __cplusplus
 }

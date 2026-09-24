@@ -15,49 +15,53 @@
 
 #define TAG "Desktop"
 
-static void desktop_auto_lock_arm(Desktop*);
-static void desktop_auto_lock_inhibit(Desktop*);
-static void desktop_start_auto_lock_timer(Desktop*);
-static void desktop_apply_settings(Desktop*);
+static void desktop_auto_lock_arm(Desktop *);
+static void desktop_auto_lock_inhibit(Desktop *);
+static void desktop_start_auto_lock_timer(Desktop *);
+static void desktop_apply_settings(Desktop *);
 
-static void desktop_loader_callback(const void* message, void* context) {
+static void desktop_loader_callback(const void *message, void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    const LoaderEvent* event = message;
+    Desktop *desktop = context;
+    const LoaderEvent *event = message;
 
-    if(event->type == LoaderEventTypeApplicationBeforeLoad) {
+    if (event->type == LoaderEventTypeApplicationBeforeLoad) {
         view_dispatcher_send_custom_event(desktop->view_dispatcher, DesktopGlobalBeforeAppStarted);
         furi_check(furi_semaphore_acquire(desktop->animation_semaphore, 3000) == FuriStatusOk);
-    } else if(event->type == LoaderEventTypeNoMoreAppsInQueue) {
+    } else if (event->type == LoaderEventTypeNoMoreAppsInQueue) {
         view_dispatcher_send_custom_event(desktop->view_dispatcher, DesktopGlobalAfterAppFinished);
     }
 }
 
-static void desktop_storage_callback(const void* message, void* context) {
+static void desktop_storage_callback(const void *message, void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    const StorageEvent* event = message;
+    Desktop *desktop = context;
+    const StorageEvent *event = message;
 
-    if(event->type == StorageEventTypeCardMount) {
+    if (event->type == StorageEventTypeCardMount) {
         view_dispatcher_send_custom_event(desktop->view_dispatcher, DesktopGlobalReloadSettings);
     }
 }
 
-static void desktop_lock_icon_draw_callback(Canvas* canvas, void* context) {
+static void desktop_lock_icon_draw_callback(Canvas *canvas, void *context)
+{
     UNUSED(context);
     furi_assert(canvas);
     canvas_draw_icon(canvas, 0, 0, &I_Lock_7x8);
 }
 
-static void desktop_clock_update(Desktop* desktop) {
+static void desktop_clock_update(Desktop *desktop)
+{
     furi_assert(desktop);
 
     DateTime curr_dt;
     furi_hal_rtc_get_datetime(&curr_dt);
     bool time_format_12 = locale_get_time_format() == LocaleTimeFormat12h;
 
-    if(desktop->clock.hour != curr_dt.hour || desktop->clock.minute != curr_dt.minute ||
-       desktop->clock.format_12 != time_format_12) {
+    if (desktop->clock.hour != curr_dt.hour || desktop->clock.minute != curr_dt.minute ||
+        desktop->clock.format_12 != time_format_12) {
         desktop->clock.format_12 = time_format_12;
         desktop->clock.hour = curr_dt.hour;
         desktop->clock.minute = curr_dt.minute;
@@ -65,12 +69,13 @@ static void desktop_clock_update(Desktop* desktop) {
     }
 }
 
-static void desktop_clock_reconfigure(Desktop* desktop) {
+static void desktop_clock_reconfigure(Desktop *desktop)
+{
     furi_assert(desktop);
 
     desktop_clock_update(desktop);
 
-    if(desktop->settings.display_clock) {
+    if (desktop->settings.display_clock) {
         furi_timer_start(desktop->update_clock_timer, furi_ms_to_ticks(1000));
     } else {
         furi_timer_stop(desktop->update_clock_timer);
@@ -79,20 +84,21 @@ static void desktop_clock_reconfigure(Desktop* desktop) {
     view_port_enabled_set(desktop->clock_viewport, desktop->settings.display_clock);
 }
 
-static void desktop_clock_draw_callback(Canvas* canvas, void* context) {
+static void desktop_clock_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
     furi_assert(canvas);
 
-    Desktop* desktop = context;
+    Desktop *desktop = context;
 
     canvas_set_font(canvas, FontPrimary);
 
     uint8_t hour = desktop->clock.hour;
-    if(desktop->clock.format_12) {
-        if(hour > 12) {
+    if (desktop->clock.format_12) {
+        if (hour > 12) {
             hour -= 12;
         }
-        if(hour == 0) {
+        if (hour == 0) {
             hour = momentum_settings.midnight_format_00 ? 0 : 12;
         }
     }
@@ -100,25 +106,26 @@ static void desktop_clock_draw_callback(Canvas* canvas, void* context) {
     char buffer[20];
     snprintf(buffer, sizeof(buffer), "%02u:%02u", hour, desktop->clock.minute);
 
-    view_port_set_width(
-        desktop->clock_viewport,
-        canvas_string_width(canvas, buffer) - 1 + (desktop->clock.minute % 10 == 1));
+    view_port_set_width(desktop->clock_viewport, canvas_string_width(canvas, buffer) - 1 +
+                                                     (desktop->clock.minute % 10 == 1));
 
     canvas_draw_str_aligned(canvas, 0, 8, AlignLeft, AlignBottom, buffer);
 }
 
-static void desktop_stealth_mode_icon_draw_callback(Canvas* canvas, void* context) {
+static void desktop_stealth_mode_icon_draw_callback(Canvas *canvas, void *context)
+{
     UNUSED(context);
     furi_assert(canvas);
     canvas_draw_icon(canvas, 0, 0, &I_Muted_8x8);
 }
 
-static bool desktop_custom_event_callback(void* context, uint32_t event) {
+static bool desktop_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    Desktop* desktop = (Desktop*)context;
+    Desktop *desktop = (Desktop *)context;
 
-    if(event == DesktopGlobalBeforeAppStarted) {
-        if(animation_manager_is_animation_loaded(desktop->animation_manager)) {
+    if (event == DesktopGlobalBeforeAppStarted) {
+        if (animation_manager_is_animation_loaded(desktop->animation_manager)) {
             animation_manager_unload_and_stall_animation(desktop->animation_manager);
         }
 
@@ -127,30 +134,31 @@ static bool desktop_custom_event_callback(void* context, uint32_t event) {
 
         furi_semaphore_release(desktop->animation_semaphore);
 
-    } else if(event == DesktopGlobalAfterAppFinished) {
+    } else if (event == DesktopGlobalAfterAppFinished) {
         animation_manager_load_and_continue_animation(desktop->animation_manager);
         desktop_auto_lock_arm(desktop);
         desktop->app_running = false;
 
-    } else if(event == DesktopGlobalAutoLock) {
-        if(!desktop->app_running && !desktop->locked) {
-            // Disable AutoLock if usb_inhibit_autolock option enabled and device have active USB session.
-            if(desktop->settings.usb_inhibit_auto_lock) {
-                Rpc* rpc = furi_record_open(RECORD_RPC);
+    } else if (event == DesktopGlobalAutoLock) {
+        if (!desktop->app_running && !desktop->locked) {
+            // Disable AutoLock if usb_inhibit_autolock option enabled and device have active USB
+            // session.
+            if (desktop->settings.usb_inhibit_auto_lock) {
+                Rpc *rpc = furi_record_open(RECORD_RPC);
                 bool inhibit_auto_lock = furi_hal_usb_is_locked() || rpc_get_sessions_count(rpc);
                 furi_record_close(RECORD_RPC);
-                if(inhibit_auto_lock) {
+                if (inhibit_auto_lock) {
                     return true;
                 }
             }
             desktop_lock(desktop, desktop->settings.auto_lock_with_pin);
         }
 
-    } else if(event == DesktopGlobalSaveSettings) {
+    } else if (event == DesktopGlobalSaveSettings) {
         desktop_settings_save(&desktop->settings);
         desktop_apply_settings(desktop);
 
-    } else if(event == DesktopGlobalReloadSettings) {
+    } else if (event == DesktopGlobalReloadSettings) {
         desktop_keybinds_migrate(desktop);
         desktop_settings_load(&desktop->settings);
         desktop_apply_settings(desktop);
@@ -162,48 +170,55 @@ static bool desktop_custom_event_callback(void* context, uint32_t event) {
     return true;
 }
 
-static bool desktop_back_event_callback(void* context) {
+static bool desktop_back_event_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = (Desktop*)context;
+    Desktop *desktop = (Desktop *)context;
     return scene_manager_handle_back_event(desktop->scene_manager);
 }
 
-static void desktop_tick_event_callback(void* context) {
+static void desktop_tick_event_callback(void *context)
+{
     furi_assert(context);
-    Desktop* app = context;
+    Desktop *app = context;
     scene_manager_handle_tick_event(app->scene_manager);
 }
 
-static void desktop_auto_lock_callback(const void* value, void* context) {
+static void desktop_auto_lock_callback(const void *value, void *context)
+{
     furi_assert(value);
     furi_assert(context);
     UNUSED(value);
-    Desktop* desktop = context;
+    Desktop *desktop = context;
     desktop_start_auto_lock_timer(desktop);
 }
 
-static void desktop_auto_lock_timer_callback(void* context) {
+static void desktop_auto_lock_timer_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
+    Desktop *desktop = context;
     view_dispatcher_send_custom_event(desktop->view_dispatcher, DesktopGlobalAutoLock);
 }
 
-static void desktop_start_auto_lock_timer(Desktop* desktop) {
-    furi_timer_start(
-        desktop->auto_lock_timer, furi_ms_to_ticks(desktop->settings.auto_lock_delay_ms));
+static void desktop_start_auto_lock_timer(Desktop *desktop)
+{
+    furi_timer_start(desktop->auto_lock_timer,
+                     furi_ms_to_ticks(desktop->settings.auto_lock_delay_ms));
 }
 
-static void desktop_stop_auto_lock_timer(Desktop* desktop) {
+static void desktop_stop_auto_lock_timer(Desktop *desktop)
+{
     furi_timer_stop(desktop->auto_lock_timer);
 }
 
-static void desktop_auto_lock_arm(Desktop* desktop) {
-    if(desktop->settings.auto_lock_delay_ms) {
-        if(!desktop->input_events_subscription) {
+static void desktop_auto_lock_arm(Desktop *desktop)
+{
+    if (desktop->settings.auto_lock_delay_ms) {
+        if (!desktop->input_events_subscription) {
             desktop->input_events_subscription = furi_pubsub_subscribe(
                 desktop->input_events_pubsub, desktop_auto_lock_callback, desktop);
         }
-        if(!desktop->ascii_events_subscription) {
+        if (!desktop->ascii_events_subscription) {
             desktop->ascii_events_subscription = furi_pubsub_subscribe(
                 desktop->ascii_events_pubsub, desktop_auto_lock_callback, desktop);
         }
@@ -211,47 +226,51 @@ static void desktop_auto_lock_arm(Desktop* desktop) {
     }
 }
 
-static void desktop_auto_lock_inhibit(Desktop* desktop) {
+static void desktop_auto_lock_inhibit(Desktop *desktop)
+{
     desktop_stop_auto_lock_timer(desktop);
-    if(desktop->input_events_subscription) {
+    if (desktop->input_events_subscription) {
         furi_pubsub_unsubscribe(desktop->input_events_pubsub, desktop->input_events_subscription);
         desktop->input_events_subscription = NULL;
     }
-    if(desktop->ascii_events_subscription) {
+    if (desktop->ascii_events_subscription) {
         furi_pubsub_unsubscribe(desktop->ascii_events_pubsub, desktop->ascii_events_subscription);
         desktop->ascii_events_subscription = NULL;
     }
 }
 
-static void desktop_clock_timer_callback(void* context) {
+static void desktop_clock_timer_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
+    Desktop *desktop = context;
 
     const bool clock_enabled = gui_active_view_port_count(desktop->gui, GuiLayerStatusBarLeft) < 6;
 
-    if(clock_enabled) {
+    if (clock_enabled) {
         desktop_clock_update(desktop);
     }
 
     view_port_enabled_set(desktop->clock_viewport, clock_enabled);
 }
 
-static void desktop_apply_settings(Desktop* desktop) {
+static void desktop_apply_settings(Desktop *desktop)
+{
     desktop->in_transition = true;
 
     desktop_clock_reconfigure(desktop);
 
-    if(!desktop->app_running && !desktop->locked) {
+    if (!desktop->app_running && !desktop->locked) {
         desktop_auto_lock_arm(desktop);
     }
 
     desktop->in_transition = false;
 }
 
-static void desktop_init_settings(Desktop* desktop) {
+static void desktop_init_settings(Desktop *desktop)
+{
     furi_pubsub_subscribe(storage_get_pubsub(desktop->storage), desktop_storage_callback, desktop);
 
-    if(storage_sd_status(desktop->storage) != FSE_OK) {
+    if (storage_sd_status(desktop->storage) != FSE_OK) {
         FURI_LOG_D(TAG, "SD Card not ready, skipping settings");
         return;
     }
@@ -261,8 +280,9 @@ static void desktop_init_settings(Desktop* desktop) {
     desktop_apply_settings(desktop);
 }
 
-static Desktop* desktop_alloc(void) {
-    Desktop* desktop = malloc(sizeof(Desktop));
+static Desktop *desktop_alloc(void)
+{
+    Desktop *desktop = malloc(sizeof(Desktop));
 
     desktop->animation_semaphore = furi_semaphore_alloc(1, 0);
     desktop->animation_manager = animation_manager_alloc();
@@ -271,16 +291,16 @@ static Desktop* desktop_alloc(void) {
     desktop->view_dispatcher = view_dispatcher_alloc();
     desktop->scene_manager = scene_manager_alloc(&desktop_scene_handlers, desktop);
 
-    view_dispatcher_attach_to_gui(
-        desktop->view_dispatcher, desktop->gui, ViewDispatcherTypeDesktop);
-    view_dispatcher_set_tick_event_callback(
-        desktop->view_dispatcher, desktop_tick_event_callback, 500);
+    view_dispatcher_attach_to_gui(desktop->view_dispatcher, desktop->gui,
+                                  ViewDispatcherTypeDesktop);
+    view_dispatcher_set_tick_event_callback(desktop->view_dispatcher, desktop_tick_event_callback,
+                                            500);
 
     view_dispatcher_set_event_callback_context(desktop->view_dispatcher, desktop);
-    view_dispatcher_set_custom_event_callback(
-        desktop->view_dispatcher, desktop_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        desktop->view_dispatcher, desktop_back_event_callback);
+    view_dispatcher_set_custom_event_callback(desktop->view_dispatcher,
+                                              desktop_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(desktop->view_dispatcher,
+                                                  desktop_back_event_callback);
 
     desktop->lock_menu = desktop_lock_menu_alloc();
     desktop->popup = popup_alloc();
@@ -291,51 +311,39 @@ static Desktop* desktop_alloc(void) {
 
     desktop->main_view_stack = view_stack_alloc();
     desktop->main_view = desktop_main_alloc();
-    View* dolphin_view = animation_manager_get_animation_view(desktop->animation_manager);
+    View *dolphin_view = animation_manager_get_animation_view(desktop->animation_manager);
     view_stack_add_view(desktop->main_view_stack, desktop_main_get_view(desktop->main_view));
     view_stack_add_view(desktop->main_view_stack, dolphin_view);
-    view_stack_add_view(
-        desktop->main_view_stack, desktop_view_locked_get_view(desktop->locked_view));
+    view_stack_add_view(desktop->main_view_stack,
+                        desktop_view_locked_get_view(desktop->locked_view));
 
     /* locked view (as animation view) attends in 2 scenes: main & locked,
      * because it has to draw "Unlocked" label on main scene */
     desktop->locked_view_stack = view_stack_alloc();
     view_stack_add_view(desktop->locked_view_stack, dolphin_view);
-    view_stack_add_view(
-        desktop->locked_view_stack, desktop_view_locked_get_view(desktop->locked_view));
+    view_stack_add_view(desktop->locked_view_stack,
+                        desktop_view_locked_get_view(desktop->locked_view));
 
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdMain,
-        view_stack_get_view(desktop->main_view_stack));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdLocked,
-        view_stack_get_view(desktop->locked_view_stack));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdLockMenu,
-        desktop_lock_menu_get_view(desktop->lock_menu));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher, DesktopViewIdPopup, popup_get_view(desktop->popup));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdPinTimeout,
-        desktop_view_pin_timeout_get_view(desktop->pin_timeout_view));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdPinInput,
-        desktop_view_pin_input_get_view(desktop->pin_input_view));
-    view_dispatcher_add_view(
-        desktop->view_dispatcher,
-        DesktopViewIdSlideshow,
-        desktop_view_slideshow_get_view(desktop->slideshow_view));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdMain,
+                             view_stack_get_view(desktop->main_view_stack));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdLocked,
+                             view_stack_get_view(desktop->locked_view_stack));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdLockMenu,
+                             desktop_lock_menu_get_view(desktop->lock_menu));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdPopup,
+                             popup_get_view(desktop->popup));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdPinTimeout,
+                             desktop_view_pin_timeout_get_view(desktop->pin_timeout_view));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdPinInput,
+                             desktop_view_pin_input_get_view(desktop->pin_input_view));
+    view_dispatcher_add_view(desktop->view_dispatcher, DesktopViewIdSlideshow,
+                             desktop_view_slideshow_get_view(desktop->slideshow_view));
 
     // Lock icon
     desktop->lock_icon_viewport = view_port_alloc();
     view_port_set_width(desktop->lock_icon_viewport, icon_get_width(&I_Lock_7x8));
-    view_port_draw_callback_set(
-        desktop->lock_icon_viewport, desktop_lock_icon_draw_callback, desktop);
+    view_port_draw_callback_set(desktop->lock_icon_viewport, desktop_lock_icon_draw_callback,
+                                desktop);
     view_port_enabled_set(desktop->lock_icon_viewport, false);
     gui_add_view_port(desktop->gui, desktop->lock_icon_viewport, GuiLayerStatusBarLeft);
 
@@ -349,9 +357,9 @@ static Desktop* desktop_alloc(void) {
     // Stealth mode icon
     desktop->stealth_mode_icon_viewport = view_port_alloc();
     view_port_set_width(desktop->stealth_mode_icon_viewport, icon_get_width(&I_Muted_8x8));
-    view_port_draw_callback_set(
-        desktop->stealth_mode_icon_viewport, desktop_stealth_mode_icon_draw_callback, desktop);
-    if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagStealthMode)) {
+    view_port_draw_callback_set(desktop->stealth_mode_icon_viewport,
+                                desktop_stealth_mode_icon_draw_callback, desktop);
+    if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagStealthMode)) {
         view_port_enabled_set(desktop->stealth_mode_icon_viewport, true);
     } else {
         view_port_enabled_set(desktop->stealth_mode_icon_viewport, false);
@@ -388,33 +396,34 @@ static Desktop* desktop_alloc(void) {
  * Private API
  */
 
-void desktop_lock(Desktop* desktop, bool with_pin) {
+void desktop_lock(Desktop *desktop, bool with_pin)
+{
     furi_assert(!desktop->locked);
 
     with_pin = with_pin && desktop_pin_code_is_set();
-    if(with_pin) {
+    if (with_pin) {
         furi_hal_rtc_set_flag(FuriHalRtcFlagLock);
     } else {
         furi_hal_rtc_reset_flag(FuriHalRtcFlagLock);
         furi_hal_rtc_set_pin_fails(0);
     }
 
-    if(with_pin) {
-        if(!momentum_settings.allow_locked_rpc_usb) {
-            CliVcp* cli_vcp = furi_record_open(RECORD_CLI_VCP);
+    if (with_pin) {
+        if (!momentum_settings.allow_locked_rpc_usb) {
+            CliVcp *cli_vcp = furi_record_open(RECORD_CLI_VCP);
             cli_vcp_disable(cli_vcp);
             furi_record_close(RECORD_CLI_VCP);
         }
-        if(!momentum_settings.allow_locked_rpc_ble) {
-            Bt* bt = furi_record_open(RECORD_BT);
+        if (!momentum_settings.allow_locked_rpc_ble) {
+            Bt *bt = furi_record_open(RECORD_BT);
             bt_close_rpc_connection(bt);
             furi_record_close(RECORD_BT);
         }
     }
 
     desktop_auto_lock_inhibit(desktop);
-    scene_manager_set_scene_state(
-        desktop->scene_manager, DesktopSceneLocked, DesktopSceneLockedStateFirstEnter);
+    scene_manager_set_scene_state(desktop->scene_manager, DesktopSceneLocked,
+                                  DesktopSceneLockedStateFirstEnter);
     scene_manager_next_scene(desktop->scene_manager, DesktopSceneLocked);
 
     DesktopStatus status = {.locked = true};
@@ -423,11 +432,12 @@ void desktop_lock(Desktop* desktop, bool with_pin) {
     desktop->locked = true;
 }
 
-void desktop_unlock(Desktop* desktop) {
+void desktop_unlock(Desktop *desktop)
+{
     furi_assert(desktop->locked);
 
     view_port_enabled_set(desktop->lock_icon_viewport, false);
-    Gui* gui = furi_record_open(RECORD_GUI);
+    Gui *gui = furi_record_open(RECORD_GUI);
     gui_set_lockdown(gui, false);
     furi_record_close(RECORD_GUI);
     desktop_view_locked_unlock(desktop->locked_view);
@@ -437,14 +447,14 @@ void desktop_unlock(Desktop* desktop) {
     furi_hal_rtc_reset_flag(FuriHalRtcFlagLock);
     furi_hal_rtc_set_pin_fails(0);
 
-    if(with_pin) {
-        if(!momentum_settings.allow_locked_rpc_usb) {
-            CliVcp* cli_vcp = furi_record_open(RECORD_CLI_VCP);
+    if (with_pin) {
+        if (!momentum_settings.allow_locked_rpc_usb) {
+            CliVcp *cli_vcp = furi_record_open(RECORD_CLI_VCP);
             cli_vcp_enable(cli_vcp);
             furi_record_close(RECORD_CLI_VCP);
         }
-        if(!momentum_settings.allow_locked_rpc_ble) {
-            Bt* bt = furi_record_open(RECORD_BT);
+        if (!momentum_settings.allow_locked_rpc_ble) {
+            Bt *bt = furi_record_open(RECORD_BT);
             bt_open_rpc_connection(bt);
             furi_record_close(RECORD_BT);
         }
@@ -456,23 +466,24 @@ void desktop_unlock(Desktop* desktop) {
     desktop->locked = false;
 }
 
-int32_t desktop_shutdown(void* context) {
+int32_t desktop_shutdown(void *context)
+{
     // Attempt to launch the app, and if failed offer to shutdown (simpler UI)
-    Desktop* desktop = context;
+    Desktop *desktop = context;
     LoaderStatus result = loader_start(desktop->loader, "Power", "off", NULL);
-    if(result != LoaderStatusOk) {
+    if (result != LoaderStatusOk) {
         // Mimic applications/settings/power_settings_app/scenes/power_settings_scene_power_off.c
-        DialogMessage* message = dialog_message_alloc();
+        DialogMessage *message = dialog_message_alloc();
         dialog_message_set_header(message, "Turn Off Device?", 64, 0, AlignCenter, AlignTop);
-        dialog_message_set_text(
-            message, "   I will be\nwaiting for\n you here...", 78, 14, AlignLeft, AlignTop);
+        dialog_message_set_text(message, "   I will be\nwaiting for\n you here...", 78, 14,
+                                AlignLeft, AlignTop);
         dialog_message_set_icon(message, &I_dolph_cry_49x54, 14, 10);
         dialog_message_set_buttons(message, "Cancel", NULL, "Power Off");
         DialogMessageButton res = dialog_message_show(furi_record_open(RECORD_DIALOGS), message);
         furi_record_close(RECORD_DIALOGS);
         dialog_message_free(message);
-        if(res == DialogMessageButtonRight) {
-            Power* power = furi_record_open(RECORD_POWER);
+        if (res == DialogMessageButtonRight) {
+            Power *power = furi_record_open(RECORD_POWER);
             power_off(power);
             furi_record_close(RECORD_POWER);
         }
@@ -480,10 +491,11 @@ int32_t desktop_shutdown(void* context) {
     return 0;
 }
 
-void desktop_set_stealth_mode_state(Desktop* desktop, bool enabled) {
+void desktop_set_stealth_mode_state(Desktop *desktop, bool enabled)
+{
     desktop->in_transition = true;
 
-    if(enabled) {
+    if (enabled) {
         furi_hal_rtc_set_flag(FuriHalRtcFlagStealthMode);
     } else {
         furi_hal_rtc_reset_flag(FuriHalRtcFlagStealthMode);
@@ -496,8 +508,9 @@ void desktop_set_stealth_mode_state(Desktop* desktop, bool enabled) {
     desktop->in_transition = false;
 }
 
-void desktop_launch_archive(Desktop* desktop, const char* open_dir) {
-    if(open_dir) {
+void desktop_launch_archive(Desktop *desktop, const char *open_dir)
+{
+    if (open_dir) {
         furi_string_set(desktop->archive_dir, open_dir);
     } else {
         furi_string_reset(desktop->archive_dir);
@@ -509,34 +522,40 @@ void desktop_launch_archive(Desktop* desktop, const char* open_dir) {
  *  Public API
  */
 
-bool desktop_api_is_locked(Desktop* instance) {
+bool desktop_api_is_locked(Desktop *instance)
+{
     furi_assert(instance);
     return furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock);
 }
 
-void desktop_api_unlock(Desktop* instance) {
+void desktop_api_unlock(Desktop *instance)
+{
     furi_assert(instance);
     view_dispatcher_send_custom_event(instance->view_dispatcher, DesktopGlobalApiUnlock);
 }
 
-FuriPubSub* desktop_api_get_status_pubsub(Desktop* instance) {
+FuriPubSub *desktop_api_get_status_pubsub(Desktop *instance)
+{
     furi_assert(instance);
     return instance->status_pubsub;
 }
 
-void desktop_api_reload_settings(Desktop* instance) {
+void desktop_api_reload_settings(Desktop *instance)
+{
     furi_assert(instance);
     view_dispatcher_send_custom_event(instance->view_dispatcher, DesktopGlobalReloadSettings);
 }
 
-void desktop_api_get_settings(Desktop* instance, DesktopSettings* settings) {
+void desktop_api_get_settings(Desktop *instance, DesktopSettings *settings)
+{
     furi_assert(instance);
     furi_assert(settings);
 
     *settings = instance->settings;
 }
 
-void desktop_api_set_settings(Desktop* instance, const DesktopSettings* settings) {
+void desktop_api_set_settings(Desktop *instance, const DesktopSettings *settings)
+{
     furi_assert(instance);
     furi_assert(settings);
 
@@ -548,59 +567,57 @@ void desktop_api_set_settings(Desktop* instance, const DesktopSettings* settings
  * Application thread
  */
 
-int32_t desktop_srv(void* p) {
+int32_t desktop_srv(void *p)
+{
     UNUSED(p);
 
-    if(!furi_hal_is_normal_boot()) {
+    if (!furi_hal_is_normal_boot()) {
         FURI_LOG_W(TAG, "Skipping start in special boot mode");
 
         furi_thread_suspend(furi_thread_get_current_id());
         return 0;
     }
 
-    Desktop* desktop = desktop_alloc();
+    Desktop *desktop = desktop_alloc();
 
     desktop_init_settings(desktop);
 
     scene_manager_next_scene(desktop->scene_manager, DesktopSceneMain);
 
     bool enable_cli_vcp = true;
-    if(desktop_pin_code_is_set() &&
-       (momentum_settings.lock_on_boot || furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock))) {
+    if (desktop_pin_code_is_set() &&
+        (momentum_settings.lock_on_boot || furi_hal_rtc_is_flag_set(FuriHalRtcFlagLock))) {
         enable_cli_vcp = momentum_settings.allow_locked_rpc_usb;
         desktop_lock(desktop, true);
     }
-    if(enable_cli_vcp) {
-        CliVcp* cli_vcp = furi_record_open(RECORD_CLI_VCP);
+    if (enable_cli_vcp) {
+        CliVcp *cli_vcp = furi_record_open(RECORD_CLI_VCP);
         cli_vcp_enable(cli_vcp);
         furi_record_close(RECORD_CLI_VCP);
     }
 
-    if(storage_file_exists(desktop->storage, SLIDESHOW_FS_PATH)) {
+    if (storage_file_exists(desktop->storage, SLIDESHOW_FS_PATH)) {
         scene_manager_next_scene(desktop->scene_manager, DesktopSceneSlideshow);
     }
 
-    if(!furi_hal_version_do_i_belong_here()) {
+    if (!furi_hal_version_do_i_belong_here()) {
         scene_manager_next_scene(desktop->scene_manager, DesktopSceneHwMismatch);
     }
 
-    if(furi_hal_rtc_get_fault_data()) {
+    if (furi_hal_rtc_get_fault_data()) {
         scene_manager_next_scene(desktop->scene_manager, DesktopSceneFault);
     }
 
     uint8_t keys_total, keys_valid;
-    if(!furi_hal_crypto_enclave_verify(&keys_total, &keys_valid)) {
-        FURI_LOG_E(
-            TAG,
-            "Secure Enclave verification failed: total %hhu, valid %hhu",
-            keys_total,
-            keys_valid);
+    if (!furi_hal_crypto_enclave_verify(&keys_total, &keys_valid)) {
+        FURI_LOG_E(TAG, "Secure Enclave verification failed: total %hhu, valid %hhu", keys_total,
+                   keys_valid);
 
         scene_manager_next_scene(desktop->scene_manager, DesktopSceneSecureEnclave);
     }
 
     // Special case: autostart application is already running
-    if(desktop->app_running && animation_manager_is_animation_loaded(desktop->animation_manager)) {
+    if (desktop->app_running && animation_manager_is_animation_loaded(desktop->animation_manager)) {
         animation_manager_unload_and_stall_animation(desktop->animation_manager);
     }
 

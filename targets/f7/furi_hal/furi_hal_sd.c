@@ -11,12 +11,12 @@
 #define sd_spi_debug(...)
 #endif
 
-#define SD_CMD_LENGTH         (6)
-#define SD_DUMMY_BYTE         (0xFF)
+#define SD_CMD_LENGTH (6)
+#define SD_DUMMY_BYTE (0xFF)
 #define SD_ANSWER_RETRY_COUNT (8)
-#define SD_IDLE_RETRY_COUNT   (100)
-#define SD_TIMEOUT_MS         (1000)
-#define SD_BLOCK_SIZE         (512)
+#define SD_IDLE_RETRY_COUNT (100)
+#define SD_TIMEOUT_MS (1000)
+#define SD_BLOCK_SIZE (512)
 
 #define FLAG_SET(x, y) (((x) & (y)) == (y))
 
@@ -125,53 +125,53 @@ typedef enum {
  */
 typedef struct {
     /* Header part */
-    uint8_t CSDStruct        : 2; /* CSD structure */
-    uint8_t Reserved1        : 6; /* Reserved */
-    uint8_t TAAC             : 8; /* Data read access-time 1 */
-    uint8_t NSAC             : 8; /* Data read access-time 2 in CLK cycles */
-    uint8_t MaxBusClkFreq    : 8; /* Max. bus clock frequency */
+    uint8_t CSDStruct : 2;         /* CSD structure */
+    uint8_t Reserved1 : 6;         /* Reserved */
+    uint8_t TAAC : 8;              /* Data read access-time 1 */
+    uint8_t NSAC : 8;              /* Data read access-time 2 in CLK cycles */
+    uint8_t MaxBusClkFreq : 8;     /* Max. bus clock frequency */
     uint16_t CardComdClasses : 12; /* Card command classes */
-    uint8_t RdBlockLen       : 4; /* Max. read data block length */
-    uint8_t PartBlockRead    : 1; /* Partial blocks for read allowed */
-    uint8_t WrBlockMisalign  : 1; /* Write block misalignment */
-    uint8_t RdBlockMisalign  : 1; /* Read block misalignment */
-    uint8_t DSRImpl          : 1; /* DSR implemented */
+    uint8_t RdBlockLen : 4;        /* Max. read data block length */
+    uint8_t PartBlockRead : 1;     /* Partial blocks for read allowed */
+    uint8_t WrBlockMisalign : 1;   /* Write block misalignment */
+    uint8_t RdBlockMisalign : 1;   /* Read block misalignment */
+    uint8_t DSRImpl : 1;           /* DSR implemented */
 
     /* v1 or v2 struct */
     union csd_version {
         struct {
-            uint8_t Reserved1          : 2; /* Reserved */
-            uint16_t DeviceSize        : 12; /* Device Size */
+            uint8_t Reserved1 : 2;          /* Reserved */
+            uint16_t DeviceSize : 12;       /* Device Size */
             uint8_t MaxRdCurrentVDDMin : 3; /* Max. read current @ VDD min */
             uint8_t MaxRdCurrentVDDMax : 3; /* Max. read current @ VDD max */
             uint8_t MaxWrCurrentVDDMin : 3; /* Max. write current @ VDD min */
             uint8_t MaxWrCurrentVDDMax : 3; /* Max. write current @ VDD max */
-            uint8_t DeviceSizeMul      : 3; /* Device size multiplier */
+            uint8_t DeviceSizeMul : 3;      /* Device size multiplier */
         } v1;
         struct {
-            uint8_t Reserved1   : 6; /* Reserved */
+            uint8_t Reserved1 : 6;    /* Reserved */
             uint32_t DeviceSize : 22; /* Device Size */
-            uint8_t Reserved2   : 1; /* Reserved */
+            uint8_t Reserved2 : 1;    /* Reserved */
         } v2;
     } version;
 
     uint8_t EraseSingleBlockEnable : 1; /* Erase single block enable */
-    uint8_t EraseSectorSize        : 7; /* Erase group size multiplier */
-    uint8_t WrProtectGrSize        : 7; /* Write protect group size */
-    uint8_t WrProtectGrEnable      : 1; /* Write protect group enable */
-    uint8_t Reserved2              : 2; /* Reserved */
-    uint8_t WrSpeedFact            : 3; /* Write speed factor */
-    uint8_t MaxWrBlockLen          : 4; /* Max. write data block length */
-    uint8_t WriteBlockPartial      : 1; /* Partial blocks for write allowed */
-    uint8_t Reserved3              : 5; /* Reserved */
-    uint8_t FileFormatGrouop       : 1; /* File format group */
-    uint8_t CopyFlag               : 1; /* Copy flag (OTP) */
-    uint8_t PermWrProtect          : 1; /* Permanent write protection */
-    uint8_t TempWrProtect          : 1; /* Temporary write protection */
-    uint8_t FileFormat             : 2; /* File Format */
-    uint8_t Reserved4              : 2; /* Reserved */
-    uint8_t crc                    : 7; /* Reserved */
-    uint8_t Reserved5              : 1; /* always 1*/
+    uint8_t EraseSectorSize : 7;        /* Erase group size multiplier */
+    uint8_t WrProtectGrSize : 7;        /* Write protect group size */
+    uint8_t WrProtectGrEnable : 1;      /* Write protect group enable */
+    uint8_t Reserved2 : 2;              /* Reserved */
+    uint8_t WrSpeedFact : 3;            /* Write speed factor */
+    uint8_t MaxWrBlockLen : 4;          /* Max. write data block length */
+    uint8_t WriteBlockPartial : 1;      /* Partial blocks for write allowed */
+    uint8_t Reserved3 : 5;              /* Reserved */
+    uint8_t FileFormatGrouop : 1;       /* File format group */
+    uint8_t CopyFlag : 1;               /* Copy flag (OTP) */
+    uint8_t PermWrProtect : 1;          /* Permanent write protection */
+    uint8_t TempWrProtect : 1;          /* Temporary write protection */
+    uint8_t FileFormat : 2;             /* File Format */
+    uint8_t Reserved4 : 2;              /* Reserved */
+    uint8_t crc : 7;                    /* Reserved */
+    uint8_t Reserved5 : 1;              /* always 1*/
 
 } SD_CSD;
 
@@ -180,15 +180,15 @@ typedef struct {
  */
 typedef struct {
     uint8_t ManufacturerID; /* ManufacturerID */
-    char OEM_AppliID[2]; /* OEM/Application ID */
-    char ProdName[5]; /* Product Name */
-    uint8_t ProdRev; /* Product Revision */
-    uint32_t ProdSN; /* Product Serial Number */
-    uint8_t Reserved1; /* Reserved1 */
-    uint8_t ManufactYear; /* Manufacturing Year */
-    uint8_t ManufactMonth; /* Manufacturing Month */
-    uint8_t CID_CRC; /* CID CRC */
-    uint8_t Reserved2; /* always 1 */
+    char OEM_AppliID[2];    /* OEM/Application ID */
+    char ProdName[5];       /* Product Name */
+    uint8_t ProdRev;        /* Product Revision */
+    uint32_t ProdSN;        /* Product Serial Number */
+    uint8_t Reserved1;      /* Reserved1 */
+    uint8_t ManufactYear;   /* Manufacturing Year */
+    uint8_t ManufactMonth;  /* Manufacturing Month */
+    uint8_t CID_CRC;        /* CID CRC */
+    uint8_t Reserved2;      /* always 1 */
 } SD_CID;
 
 /**
@@ -197,44 +197,35 @@ typedef struct {
 typedef struct {
     SD_CSD Csd;
     SD_CID Cid;
-    uint64_t CardCapacity; /*!< Card Capacity */
+    uint64_t CardCapacity;  /*!< Card Capacity */
     uint32_t CardBlockSize; /*!< Card Block Size */
-    uint32_t LogBlockNbr; /*!< Specifies the Card logical Capacity in blocks   */
-    uint32_t LogBlockSize; /*!< Specifies logical block size in bytes           */
+    uint32_t LogBlockNbr;   /*!< Specifies the Card logical Capacity in blocks   */
+    uint32_t LogBlockSize;  /*!< Specifies logical block size in bytes           */
 } SD_CardInfo;
 
 /** Pointer to currently used SPI Handle */
-const FuriHalSpiBusHandle* furi_hal_sd_spi_handle = NULL;
+const FuriHalSpiBusHandle *furi_hal_sd_spi_handle = NULL;
 
-static inline void sd_spi_select_card(void) {
+static inline void sd_spi_select_card(void)
+{
     furi_hal_gpio_write(furi_hal_sd_spi_handle->cs, false);
     furi_delay_us(10); // Entry guard time for some SD cards
 }
 
-static inline void sd_spi_deselect_card(void) {
+static inline void sd_spi_deselect_card(void)
+{
     furi_delay_us(10); // Exit guard time for some SD cards
     furi_hal_gpio_write(furi_hal_sd_spi_handle->cs, true);
 }
 
-static void sd_spi_bus_to_ground(void) {
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->miso,
-        GpioModeOutputPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        GpioAltFnUnused);
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->mosi,
-        GpioModeOutputPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        GpioAltFnUnused);
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->sck,
-        GpioModeOutputPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        GpioAltFnUnused);
+static void sd_spi_bus_to_ground(void)
+{
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->miso, GpioModeOutputPushPull, GpioPullNo,
+                          GpioSpeedVeryHigh, GpioAltFnUnused);
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->mosi, GpioModeOutputPushPull, GpioPullNo,
+                          GpioSpeedVeryHigh, GpioAltFnUnused);
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->sck, GpioModeOutputPushPull, GpioPullNo,
+                          GpioSpeedVeryHigh, GpioAltFnUnused);
 
     sd_spi_select_card();
     furi_hal_gpio_write(furi_hal_sd_spi_handle->miso, false);
@@ -242,66 +233,63 @@ static void sd_spi_bus_to_ground(void) {
     furi_hal_gpio_write(furi_hal_sd_spi_handle->sck, false);
 }
 
-static void sd_spi_bus_rise_up(void) {
+static void sd_spi_bus_rise_up(void)
+{
     sd_spi_deselect_card();
 
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->miso,
-        GpioModeAltFunctionPushPull,
-        GpioPullUp,
-        GpioSpeedVeryHigh,
-        GpioAltFn5SPI2);
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->mosi,
-        GpioModeAltFunctionPushPull,
-        GpioPullUp,
-        GpioSpeedVeryHigh,
-        GpioAltFn5SPI2);
-    furi_hal_gpio_init_ex(
-        furi_hal_sd_spi_handle->sck,
-        GpioModeAltFunctionPushPull,
-        GpioPullUp,
-        GpioSpeedVeryHigh,
-        GpioAltFn5SPI2);
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->miso, GpioModeAltFunctionPushPull, GpioPullUp,
+                          GpioSpeedVeryHigh, GpioAltFn5SPI2);
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->mosi, GpioModeAltFunctionPushPull, GpioPullUp,
+                          GpioSpeedVeryHigh, GpioAltFn5SPI2);
+    furi_hal_gpio_init_ex(furi_hal_sd_spi_handle->sck, GpioModeAltFunctionPushPull, GpioPullUp,
+                          GpioSpeedVeryHigh, GpioAltFn5SPI2);
 }
 
-static inline uint8_t sd_spi_read_byte(void) {
+static inline uint8_t sd_spi_read_byte(void)
+{
     uint8_t responce;
     furi_check(furi_hal_spi_bus_trx(furi_hal_sd_spi_handle, NULL, &responce, 1, SD_TIMEOUT_MS));
     return responce;
 }
 
-static inline void sd_spi_write_byte(uint8_t data) {
+static inline void sd_spi_write_byte(uint8_t data)
+{
     furi_check(furi_hal_spi_bus_trx(furi_hal_sd_spi_handle, &data, NULL, 1, SD_TIMEOUT_MS));
 }
 
-static inline uint8_t sd_spi_write_and_read_byte(uint8_t data) {
+static inline uint8_t sd_spi_write_and_read_byte(uint8_t data)
+{
     uint8_t responce;
     furi_check(furi_hal_spi_bus_trx(furi_hal_sd_spi_handle, &data, &responce, 1, SD_TIMEOUT_MS));
     return responce;
 }
 
-static inline void sd_spi_write_bytes(uint8_t* data, uint32_t size) {
+static inline void sd_spi_write_bytes(uint8_t *data, uint32_t size)
+{
     furi_check(furi_hal_spi_bus_trx(furi_hal_sd_spi_handle, data, NULL, size, SD_TIMEOUT_MS));
 }
 
-static inline void sd_spi_read_bytes(uint8_t* data, uint32_t size) {
+static inline void sd_spi_read_bytes(uint8_t *data, uint32_t size)
+{
     furi_check(furi_hal_spi_bus_trx(furi_hal_sd_spi_handle, NULL, data, size, SD_TIMEOUT_MS));
 }
 
-static inline void sd_spi_write_bytes_dma(uint8_t* data, uint32_t size) {
+static inline void sd_spi_write_bytes_dma(uint8_t *data, uint32_t size)
+{
     uint32_t timeout_mul = (size / 512) + 1;
-    furi_check(furi_hal_spi_bus_trx_dma(
-        furi_hal_sd_spi_handle, data, NULL, size, SD_TIMEOUT_MS * timeout_mul));
+    furi_check(furi_hal_spi_bus_trx_dma(furi_hal_sd_spi_handle, data, NULL, size,
+                                        SD_TIMEOUT_MS * timeout_mul));
 }
 
-static inline void sd_spi_read_bytes_dma(uint8_t* data, uint32_t size) {
+static inline void sd_spi_read_bytes_dma(uint8_t *data, uint32_t size)
+{
     uint32_t timeout_mul = (size / 512) + 1;
-    furi_check(furi_hal_spi_bus_trx_dma(
-        furi_hal_sd_spi_handle, NULL, data, size, SD_TIMEOUT_MS * timeout_mul));
+    furi_check(furi_hal_spi_bus_trx_dma(furi_hal_sd_spi_handle, NULL, data, size,
+                                        SD_TIMEOUT_MS * timeout_mul));
 }
 
-static uint8_t sd_spi_wait_for_data_and_read(void) {
+static uint8_t sd_spi_wait_for_data_and_read(void)
+{
     uint8_t retry_count = SD_ANSWER_RETRY_COUNT;
     uint8_t responce;
 
@@ -310,37 +298,41 @@ static uint8_t sd_spi_wait_for_data_and_read(void) {
         responce = sd_spi_read_byte();
         retry_count--;
 
-    } while((responce == SD_DUMMY_BYTE) && retry_count);
+    } while ((responce == SD_DUMMY_BYTE) && retry_count);
 
     return responce;
 }
 
-static FuriStatus sd_spi_wait_for_data(uint8_t data, uint32_t timeout_ms) {
+static FuriStatus sd_spi_wait_for_data(uint8_t data, uint32_t timeout_ms)
+{
     FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout_ms * 1000);
     uint8_t byte;
 
     do {
         byte = sd_spi_read_byte();
-        if(furi_hal_cortex_timer_is_expired(timer)) {
+        if (furi_hal_cortex_timer_is_expired(timer)) {
             return FuriStatusErrorTimeout;
         }
-    } while(byte != data);
+    } while (byte != data);
 
     return FuriStatusOk;
 }
 
-static inline void sd_spi_deselect_card_and_purge(void) {
+static inline void sd_spi_deselect_card_and_purge(void)
+{
     sd_spi_deselect_card();
     sd_spi_read_byte();
 }
 
-static inline void sd_spi_purge_crc(void) {
+static inline void sd_spi_purge_crc(void)
+{
     sd_spi_read_byte();
     sd_spi_read_byte();
 }
 
-static SdSpiCmdAnswer
-    sd_spi_send_cmd(SdSpiCmd cmd, uint32_t arg, uint8_t crc, SdSpiCmdAnswerType answer_type) {
+static SdSpiCmdAnswer sd_spi_send_cmd(SdSpiCmd cmd, uint32_t arg, uint8_t crc,
+                                      SdSpiCmdAnswerType answer_type)
+{
     uint8_t frame[SD_CMD_LENGTH];
     SdSpiCmdAnswer cmd_answer = {
         .r1 = SD_DUMMY_BYTE,
@@ -364,22 +356,23 @@ static SdSpiCmdAnswer
     sd_spi_select_card();
     sd_spi_write_bytes(frame, sizeof(frame));
 
-    switch(answer_type) {
+    switch (answer_type) {
     case SdSpiCmdAnswerTypeR1:
         cmd_answer.r1 = sd_spi_wait_for_data_and_read();
         break;
     case SdSpiCmdAnswerTypeR1B:
-        // TODO FL-3507: can be wrong, at least for SD_CMD12_STOP_TRANSMISSION you need to purge one byte before reading R1
+        // TODO FL-3507: can be wrong, at least for SD_CMD12_STOP_TRANSMISSION you need to purge one
+        // byte before reading R1
         cmd_answer.r1 = sd_spi_wait_for_data_and_read();
 
-        // In general this shenenigans seems suspicious, please double check SD specs if you are using SdSpiCmdAnswerTypeR1B
-        // reassert card
+        // In general this shenenigans seems suspicious, please double check SD specs if you are
+        // using SdSpiCmdAnswerTypeR1B reassert card
         sd_spi_deselect_card();
         furi_delay_us(1000);
         sd_spi_deselect_card();
 
         // and wait for it to be ready
-        while(sd_spi_read_byte() != 0xFF) {
+        while (sd_spi_read_byte() != 0xFF) {
         };
 
         break;
@@ -401,19 +394,20 @@ static SdSpiCmdAnswer
     return cmd_answer;
 }
 
-static SdSpiDataResponce sd_spi_get_data_response(uint32_t timeout_ms) {
+static SdSpiDataResponce sd_spi_get_data_response(uint32_t timeout_ms)
+{
     SdSpiDataResponce responce = sd_spi_read_byte();
     // read busy response byte
     sd_spi_read_byte();
 
-    switch(responce & 0x1F) {
+    switch (responce & 0x1F) {
     case SdSpiDataResponceOK:
         // TODO FL-3508: check timings
         sd_spi_deselect_card();
         sd_spi_select_card();
 
         // wait for 0xFF
-        if(sd_spi_wait_for_data(0xFF, timeout_ms) == FuriStatusOk) {
+        if (sd_spi_wait_for_data(0xFF, timeout_ms) == FuriStatusOk) {
             return SdSpiDataResponceOK;
         } else {
             return SdSpiDataResponceOtherError;
@@ -427,7 +421,8 @@ static SdSpiDataResponce sd_spi_get_data_response(uint32_t timeout_ms) {
     }
 }
 
-static FuriStatus sd_spi_init_spi_mode_v1(void) {
+static FuriStatus sd_spi_init_spi_mode_v1(void)
+{
     SdSpiCmdAnswer response;
     uint8_t retry_count = 0;
 
@@ -444,17 +439,18 @@ static FuriStatus sd_spi_init_spi_mode_v1(void) {
         response = sd_spi_send_cmd(SD_CMD41_SD_APP_OP_COND, 0, 0xFF, SdSpiCmdAnswerTypeR1);
         sd_spi_deselect_card_and_purge();
 
-        if(retry_count >= SD_IDLE_RETRY_COUNT) {
+        if (retry_count >= SD_IDLE_RETRY_COUNT) {
             return FuriStatusError;
         }
-    } while(response.r1 == SdSpi_R1_IN_IDLE_STATE);
+    } while (response.r1 == SdSpi_R1_IN_IDLE_STATE);
 
     sd_spi_debug("Init SD card in SPI mode v1 done");
 
     return FuriStatusOk;
 }
 
-static FuriStatus sd_spi_init_spi_mode_v2(void) {
+static FuriStatus sd_spi_init_spi_mode_v2(void)
+{
     SdSpiCmdAnswer response;
     uint8_t retry_count = 0;
 
@@ -467,17 +463,16 @@ static FuriStatus sd_spi_init_spi_mode_v2(void) {
         sd_spi_deselect_card_and_purge();
 
         // ACMD41 (APP_OP_COND) to initialize SDHC or SDXC cards: R1 response (0x00: no errors)
-        response =
-            sd_spi_send_cmd(SD_CMD41_SD_APP_OP_COND, 0x40000000, 0xFF, SdSpiCmdAnswerTypeR1);
+        response = sd_spi_send_cmd(SD_CMD41_SD_APP_OP_COND, 0x40000000, 0xFF, SdSpiCmdAnswerTypeR1);
         sd_spi_deselect_card_and_purge();
 
-        if(retry_count >= SD_IDLE_RETRY_COUNT) {
+        if (retry_count >= SD_IDLE_RETRY_COUNT) {
             sd_spi_debug("ACMD41 failed");
             return FuriStatusError;
         }
-    } while(response.r1 == SdSpi_R1_IN_IDLE_STATE);
+    } while (response.r1 == SdSpi_R1_IN_IDLE_STATE);
 
-    if(FLAG_SET(response.r1, SdSpi_R1_ILLEGAL_COMMAND)) {
+    if (FLAG_SET(response.r1, SdSpi_R1_ILLEGAL_COMMAND)) {
         sd_spi_debug("ACMD41 is illegal command");
         retry_count = 0;
         do {
@@ -486,19 +481,20 @@ static FuriStatus sd_spi_init_spi_mode_v2(void) {
             response = sd_spi_send_cmd(SD_CMD55_APP_CMD, 0, 0xFF, SdSpiCmdAnswerTypeR1);
             sd_spi_deselect_card_and_purge();
 
-            if(response.r1 != SdSpi_R1_IN_IDLE_STATE) {
+            if (response.r1 != SdSpi_R1_IN_IDLE_STATE) {
                 sd_spi_debug("CMD55 failed");
                 return FuriStatusError;
             }
-            // ACMD41 (SD_APP_OP_COND) to initialize SDHC or SDXC cards: R1 response (0x00: no errors)
+            // ACMD41 (SD_APP_OP_COND) to initialize SDHC or SDXC cards: R1 response (0x00: no
+            // errors)
             response = sd_spi_send_cmd(SD_CMD41_SD_APP_OP_COND, 0, 0xFF, SdSpiCmdAnswerTypeR1);
             sd_spi_deselect_card_and_purge();
 
-            if(retry_count >= SD_IDLE_RETRY_COUNT) {
+            if (retry_count >= SD_IDLE_RETRY_COUNT) {
                 sd_spi_debug("ACMD41 failed");
                 return FuriStatusError;
             }
-        } while(response.r1 == SdSpi_R1_IN_IDLE_STATE);
+        } while (response.r1 == SdSpi_R1_IN_IDLE_STATE);
     }
 
     sd_spi_debug("Init SD card in SPI mode v2 done");
@@ -506,7 +502,8 @@ static FuriStatus sd_spi_init_spi_mode_v2(void) {
     return FuriStatusOk;
 }
 
-static FuriStatus sd_spi_init_spi_mode(void) {
+static FuriStatus sd_spi_init_spi_mode(void)
+{
     SdSpiCmdAnswer response;
     uint8_t retry_count;
 
@@ -518,25 +515,25 @@ static FuriStatus sd_spi_init_spi_mode(void) {
         response = sd_spi_send_cmd(SD_CMD0_GO_IDLE_STATE, 0, 0x95, SdSpiCmdAnswerTypeR1);
         sd_spi_deselect_card_and_purge();
 
-        if(retry_count >= SD_IDLE_RETRY_COUNT) {
+        if (retry_count >= SD_IDLE_RETRY_COUNT) {
             sd_spi_debug("CMD0 failed");
             return FuriStatusError;
         }
-    } while(response.r1 != SdSpi_R1_IN_IDLE_STATE);
+    } while (response.r1 != SdSpi_R1_IN_IDLE_STATE);
 
     // CMD8 (SEND_IF_COND) to check the power supply status
     // and wait until response (R7 Format) equal to 0xAA and
     response = sd_spi_send_cmd(SD_CMD8_SEND_IF_COND, 0x1AA, 0x87, SdSpiCmdAnswerTypeR7);
     sd_spi_deselect_card_and_purge();
 
-    if(FLAG_SET(response.r1, SdSpi_R1_ILLEGAL_COMMAND)) {
-        if(sd_spi_init_spi_mode_v1() != FuriStatusOk) {
+    if (FLAG_SET(response.r1, SdSpi_R1_ILLEGAL_COMMAND)) {
+        if (sd_spi_init_spi_mode_v1() != FuriStatusOk) {
             sd_spi_debug("Init mode v1 failed");
             return FuriStatusError;
         }
         sd_high_capacity = 0;
-    } else if(response.r1 == SdSpi_R1_IN_IDLE_STATE) {
-        if(sd_spi_init_spi_mode_v2() != FuriStatusOk) {
+    } else if (response.r1 == SdSpi_R1_IN_IDLE_STATE) {
+        if (sd_spi_init_spi_mode_v2() != FuriStatusOk) {
             sd_spi_debug("Init mode v2 failed");
             return FuriStatusError;
         }
@@ -545,7 +542,7 @@ static FuriStatus sd_spi_init_spi_mode(void) {
         response = sd_spi_send_cmd(SD_CMD58_READ_OCR, 0, 0xFF, SdSpiCmdAnswerTypeR3);
         sd_spi_deselect_card_and_purge();
 
-        if(response.r1 != SdSpi_R1_NO_ERROR) {
+        if (response.r1 != SdSpi_R1_NO_ERROR) {
             sd_spi_debug("CMD58 failed");
             return FuriStatusError;
         }
@@ -558,7 +555,8 @@ static FuriStatus sd_spi_init_spi_mode(void) {
     return FuriStatusOk;
 }
 
-static FuriStatus sd_spi_get_csd(SD_CSD* csd) {
+static FuriStatus sd_spi_get_csd(SD_CSD *csd)
+{
     uint16_t counter = 0;
     uint8_t csd_data[16];
     FuriStatus ret = FuriStatusError;
@@ -567,18 +565,18 @@ static FuriStatus sd_spi_get_csd(SD_CSD* csd) {
     // CMD9 (SEND_CSD): R1 format (0x00 is no errors)
     response = sd_spi_send_cmd(SD_CMD9_SEND_CSD, 0, 0xFF, SdSpiCmdAnswerTypeR1);
 
-    if(response.r1 == SdSpi_R1_NO_ERROR) {
-        if(sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, SD_TIMEOUT_MS) ==
-           FuriStatusOk) {
+    if (response.r1 == SdSpi_R1_NO_ERROR) {
+        if (sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, SD_TIMEOUT_MS) ==
+            FuriStatusOk) {
             // read CSD data
-            for(counter = 0; counter < 16; counter++) {
+            for (counter = 0; counter < 16; counter++) {
                 csd_data[counter] = sd_spi_read_byte();
             }
 
             sd_spi_purge_crc();
 
             /*************************************************************************
-            CSD header decoding 
+            CSD header decoding
             *************************************************************************/
 
             csd->CSDStruct = (csd_data[0] & 0xC0) >> 6;
@@ -594,24 +592,24 @@ static FuriStatus sd_spi_get_csd(SD_CSD* csd) {
             csd->DSRImpl = (csd_data[6] & 0x10) >> 4;
 
             /*************************************************************************
-            CSD v1/v2 decoding  
+            CSD v1/v2 decoding
             *************************************************************************/
 
-            if(sd_high_capacity == 0) {
+            if (sd_high_capacity == 0) {
                 csd->version.v1.Reserved1 = ((csd_data[6] & 0x0C) >> 2);
-                csd->version.v1.DeviceSize = ((csd_data[6] & 0x03) << 10) | (csd_data[7] << 2) |
-                                             ((csd_data[8] & 0xC0) >> 6);
+                csd->version.v1.DeviceSize =
+                    ((csd_data[6] & 0x03) << 10) | (csd_data[7] << 2) | ((csd_data[8] & 0xC0) >> 6);
                 csd->version.v1.MaxRdCurrentVDDMin = (csd_data[8] & 0x38) >> 3;
                 csd->version.v1.MaxRdCurrentVDDMax = (csd_data[8] & 0x07);
                 csd->version.v1.MaxWrCurrentVDDMin = (csd_data[9] & 0xE0) >> 5;
                 csd->version.v1.MaxWrCurrentVDDMax = (csd_data[9] & 0x1C) >> 2;
-                csd->version.v1.DeviceSizeMul = ((csd_data[9] & 0x03) << 1) |
-                                                ((csd_data[10] & 0x80) >> 7);
+                csd->version.v1.DeviceSizeMul =
+                    ((csd_data[9] & 0x03) << 1) | ((csd_data[10] & 0x80) >> 7);
             } else {
-                csd->version.v2.Reserved1 = ((csd_data[6] & 0x0F) << 2) |
-                                            ((csd_data[7] & 0xC0) >> 6);
-                csd->version.v2.DeviceSize = ((csd_data[7] & 0x3F) << 16) | (csd_data[8] << 8) |
-                                             csd_data[9];
+                csd->version.v2.Reserved1 =
+                    ((csd_data[6] & 0x0F) << 2) | ((csd_data[7] & 0xC0) >> 6);
+                csd->version.v2.DeviceSize =
+                    ((csd_data[7] & 0x3F) << 16) | (csd_data[8] << 8) | csd_data[9];
                 csd->version.v2.Reserved2 = ((csd_data[10] & 0x80) >> 8);
             }
 
@@ -642,7 +640,8 @@ static FuriStatus sd_spi_get_csd(SD_CSD* csd) {
     return ret;
 }
 
-static FuriStatus sd_spi_get_cid(SD_CID* Cid) {
+static FuriStatus sd_spi_get_cid(SD_CID *Cid)
+{
     uint16_t counter = 0;
     uint8_t cid_data[16];
     FuriStatus ret = FuriStatusError;
@@ -651,11 +650,11 @@ static FuriStatus sd_spi_get_cid(SD_CID* Cid) {
     // CMD10 (SEND_CID): R1 format (0x00 is no errors)
     response = sd_spi_send_cmd(SD_CMD10_SEND_CID, 0, 0xFF, SdSpiCmdAnswerTypeR1);
 
-    if(response.r1 == SdSpi_R1_NO_ERROR) {
-        if(sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, SD_TIMEOUT_MS) ==
-           FuriStatusOk) {
+    if (response.r1 == SdSpi_R1_NO_ERROR) {
+        if (sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, SD_TIMEOUT_MS) ==
+            FuriStatusOk) {
             // read CID data
-            for(counter = 0; counter < 16; counter++) {
+            for (counter = 0; counter < 16; counter++) {
                 cid_data[counter] = sd_spi_read_byte();
             }
 
@@ -685,8 +684,9 @@ static FuriStatus sd_spi_get_cid(SD_CID* Cid) {
     return ret;
 }
 
-static FuriStatus
-    sd_spi_cmd_read_blocks(uint32_t* data, uint32_t address, uint32_t blocks, uint32_t timeout_ms) {
+static FuriStatus sd_spi_cmd_read_blocks(uint32_t *data, uint32_t address, uint32_t blocks,
+                                         uint32_t timeout_ms)
+{
     uint32_t block_address = address;
     uint32_t offset = 0;
 
@@ -695,35 +695,35 @@ static FuriStatus
         sd_spi_send_cmd(SD_CMD16_SET_BLOCKLEN, SD_BLOCK_SIZE, 0xFF, SdSpiCmdAnswerTypeR1);
     sd_spi_deselect_card_and_purge();
 
-    if(response.r1 != SdSpi_R1_NO_ERROR) {
+    if (response.r1 != SdSpi_R1_NO_ERROR) {
         return FuriStatusError;
     }
 
-    if(!sd_high_capacity) {
+    if (!sd_high_capacity) {
         block_address = address * SD_BLOCK_SIZE;
     }
 
-    while(blocks--) {
+    while (blocks--) {
         // CMD17 (READ_SINGLE_BLOCK): R1 response (0x00: no errors)
         response =
             sd_spi_send_cmd(SD_CMD17_READ_SINGLE_BLOCK, block_address, 0xFF, SdSpiCmdAnswerTypeR1);
-        if(response.r1 != SdSpi_R1_NO_ERROR) {
+        if (response.r1 != SdSpi_R1_NO_ERROR) {
             sd_spi_deselect_card_and_purge();
             return FuriStatusError;
         }
 
         // Wait for the data start token
-        if(sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, timeout_ms) ==
-           FuriStatusOk) {
+        if (sd_spi_wait_for_data(SD_TOKEN_START_DATA_SINGLE_BLOCK_READ, timeout_ms) ==
+            FuriStatusOk) {
             // Read the data block
-            sd_spi_read_bytes_dma((uint8_t*)data + offset, SD_BLOCK_SIZE);
+            sd_spi_read_bytes_dma((uint8_t *)data + offset, SD_BLOCK_SIZE);
             sd_spi_purge_crc();
 
             // increase offset
             offset += SD_BLOCK_SIZE;
 
             // increase block address
-            if(sd_high_capacity) {
+            if (sd_high_capacity) {
                 block_address += 1;
             } else {
                 block_address += SD_BLOCK_SIZE;
@@ -739,11 +739,9 @@ static FuriStatus
     return FuriStatusOk;
 }
 
-static FuriStatus sd_spi_cmd_write_blocks(
-    const uint32_t* data,
-    uint32_t address,
-    uint32_t blocks,
-    uint32_t timeout_ms) {
+static FuriStatus sd_spi_cmd_write_blocks(const uint32_t *data, uint32_t address, uint32_t blocks,
+                                          uint32_t timeout_ms)
+{
     uint32_t block_address = address;
     uint32_t offset = 0;
 
@@ -752,19 +750,19 @@ static FuriStatus sd_spi_cmd_write_blocks(
         sd_spi_send_cmd(SD_CMD16_SET_BLOCKLEN, SD_BLOCK_SIZE, 0xFF, SdSpiCmdAnswerTypeR1);
     sd_spi_deselect_card_and_purge();
 
-    if(response.r1 != SdSpi_R1_NO_ERROR) {
+    if (response.r1 != SdSpi_R1_NO_ERROR) {
         return FuriStatusError;
     }
 
-    if(!sd_high_capacity) {
+    if (!sd_high_capacity) {
         block_address = address * SD_BLOCK_SIZE;
     }
 
-    while(blocks--) {
+    while (blocks--) {
         // CMD24 (WRITE_SINGLE_BLOCK): R1 response (0x00: no errors)
-        response = sd_spi_send_cmd(
-            SD_CMD24_WRITE_SINGLE_BLOCK, block_address, 0xFF, SdSpiCmdAnswerTypeR1);
-        if(response.r1 != SdSpi_R1_NO_ERROR) {
+        response =
+            sd_spi_send_cmd(SD_CMD24_WRITE_SINGLE_BLOCK, block_address, 0xFF, SdSpiCmdAnswerTypeR1);
+        if (response.r1 != SdSpi_R1_NO_ERROR) {
             sd_spi_deselect_card_and_purge();
             return FuriStatusError;
         }
@@ -776,14 +774,14 @@ static FuriStatus sd_spi_cmd_write_blocks(
 
         // Send the data start token
         sd_spi_write_byte(SD_TOKEN_START_DATA_SINGLE_BLOCK_WRITE);
-        sd_spi_write_bytes_dma((uint8_t*)data + offset, SD_BLOCK_SIZE);
+        sd_spi_write_bytes_dma((uint8_t *)data + offset, SD_BLOCK_SIZE);
         sd_spi_purge_crc();
 
         // Read data response
         SdSpiDataResponce data_responce = sd_spi_get_data_response(timeout_ms);
         sd_spi_deselect_card_and_purge();
 
-        if(data_responce != SdSpiDataResponceOK) {
+        if (data_responce != SdSpiDataResponceOK) {
             return FuriStatusError;
         }
 
@@ -791,7 +789,7 @@ static FuriStatus sd_spi_cmd_write_blocks(
         offset += SD_BLOCK_SIZE;
 
         // increase block address
-        if(sd_high_capacity) {
+        if (sd_high_capacity) {
             block_address += 1;
         } else {
             block_address += SD_BLOCK_SIZE;
@@ -801,7 +799,8 @@ static FuriStatus sd_spi_cmd_write_blocks(
     return FuriStatusOk;
 }
 
-static FuriStatus sd_spi_get_card_state(void) {
+static FuriStatus sd_spi_get_card_state(void)
+{
     SdSpiCmdAnswer response;
 
     // Send CMD13 (SEND_STATUS) to get SD status
@@ -809,52 +808,57 @@ static FuriStatus sd_spi_get_card_state(void) {
     sd_spi_deselect_card_and_purge();
 
     // Return status OK if response is valid
-    if((response.r1 == SdSpi_R1_NO_ERROR) && (response.r2 == SdSpi_R2_NO_ERROR)) {
+    if ((response.r1 == SdSpi_R1_NO_ERROR) && (response.r2 == SdSpi_R2_NO_ERROR)) {
         return FuriStatusOk;
     }
 
     return FuriStatusError;
 }
 
-static inline bool sd_cache_get(uint32_t address, uint32_t* data) {
-    uint8_t* cached_data = sector_cache_get(address);
-    if(cached_data) {
+static inline bool sd_cache_get(uint32_t address, uint32_t *data)
+{
+    uint8_t *cached_data = sector_cache_get(address);
+    if (cached_data) {
         memcpy(data, cached_data, SD_BLOCK_SIZE);
         return true;
     }
     return false;
 }
 
-static inline void sd_cache_put(uint32_t address, uint32_t* data) {
-    sector_cache_put(address, (uint8_t*)data);
+static inline void sd_cache_put(uint32_t address, uint32_t *data)
+{
+    sector_cache_put(address, (uint8_t *)data);
 }
 
-static inline void sd_cache_invalidate_range(uint32_t start_sector, uint32_t end_sector) {
+static inline void sd_cache_invalidate_range(uint32_t start_sector, uint32_t end_sector)
+{
     sector_cache_invalidate_range(start_sector, end_sector);
 }
 
-static inline void sd_cache_invalidate_all(void) {
+static inline void sd_cache_invalidate_all(void)
+{
     sector_cache_init();
 }
 
-static FuriStatus sd_device_read(uint32_t* buff, uint32_t sector, uint32_t count) {
+static FuriStatus sd_device_read(uint32_t *buff, uint32_t sector, uint32_t count)
+{
     FuriStatus status = FuriStatusError;
 
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_sd_fast);
     furi_hal_sd_spi_handle = &furi_hal_spi_bus_handle_sd_fast;
 
-    if(sd_spi_cmd_read_blocks(buff, sector, count, SD_TIMEOUT_MS) == FuriStatusOk) {
+    if (sd_spi_cmd_read_blocks(buff, sector, count, SD_TIMEOUT_MS) == FuriStatusOk) {
         FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SD_TIMEOUT_MS * 1000);
 
         /* wait until the read operation is finished */
         do {
             status = sd_spi_get_card_state();
 
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if (furi_hal_cortex_timer_is_expired(timer)) {
                 status = FuriStatusErrorTimeout;
                 break;
             }
-        } while(status != FuriStatusOk);
+        } while (status != FuriStatusOk);
     }
 
     furi_hal_sd_spi_handle = NULL;
@@ -863,26 +867,27 @@ static FuriStatus sd_device_read(uint32_t* buff, uint32_t sector, uint32_t count
     return status;
 }
 
-static FuriStatus sd_device_write(const uint32_t* buff, uint32_t sector, uint32_t count) {
+static FuriStatus sd_device_write(const uint32_t *buff, uint32_t sector, uint32_t count)
+{
     FuriStatus status = FuriStatusError;
 
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_sd_fast);
     furi_hal_sd_spi_handle = &furi_hal_spi_bus_handle_sd_fast;
 
-    if(sd_spi_cmd_write_blocks(buff, sector, count, SD_TIMEOUT_MS) == FuriStatusOk) {
+    if (sd_spi_cmd_write_blocks(buff, sector, count, SD_TIMEOUT_MS) == FuriStatusOk) {
         FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SD_TIMEOUT_MS * 1000);
 
         /* wait until the Write operation is finished */
         do {
             status = sd_spi_get_card_state();
 
-            if(furi_hal_cortex_timer_is_expired(timer)) {
+            if (furi_hal_cortex_timer_is_expired(timer)) {
                 sd_cache_invalidate_all();
 
                 status = FuriStatusErrorTimeout;
                 break;
             }
-        } while(status != FuriStatusOk);
+        } while (status != FuriStatusOk);
     }
 
     furi_hal_sd_spi_handle = NULL;
@@ -891,33 +896,38 @@ static FuriStatus sd_device_write(const uint32_t* buff, uint32_t sector, uint32_
     return status;
 }
 
-void furi_hal_sd_presence_init(void) {
+void furi_hal_sd_presence_init(void)
+{
     // low speed input with pullup
     furi_hal_gpio_init(&gpio_sdcard_cd, GpioModeInput, GpioPullUp, GpioSpeedLow);
 }
 
-static void furi_hal_sd_present_pin_set_low(void) {
+static void furi_hal_sd_present_pin_set_low(void)
+{
     // low speed input with pullup
     furi_hal_gpio_init_simple(&gpio_sdcard_cd, GpioModeOutputOpenDrain);
     furi_hal_gpio_write(&gpio_sdcard_cd, 0);
 }
 
-bool furi_hal_sd_is_present(void) {
+bool furi_hal_sd_is_present(void)
+{
     bool result = !furi_hal_gpio_read(&gpio_sdcard_cd);
     return result;
 }
 
-uint8_t furi_hal_sd_max_mount_retry_count(void) {
+uint8_t furi_hal_sd_max_mount_retry_count(void)
+{
     return 10;
 }
 
-FuriStatus furi_hal_sd_init(bool power_reset) {
+FuriStatus furi_hal_sd_init(bool power_reset)
+{
     // Slow speed init
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_sd_slow);
     furi_hal_sd_spi_handle = &furi_hal_spi_bus_handle_sd_slow;
 
     // We reset card in spi_lock context, so it is safe to disturb spi bus
-    if(power_reset) {
+    if (power_reset) {
         sd_spi_debug("Power reset");
 
         // disable power and set low on all bus pins
@@ -937,13 +947,13 @@ FuriStatus furi_hal_sd_init(bool power_reset) {
 
     // Send 80 dummy clocks with CS high
     sd_spi_deselect_card();
-    for(uint8_t i = 0; i < 80; i++) {
+    for (uint8_t i = 0; i < 80; i++) {
         sd_spi_write_byte(SD_DUMMY_BYTE);
     }
 
-    for(uint8_t i = 0; i < 128; i++) {
+    for (uint8_t i = 0; i < 128; i++) {
         status = sd_spi_init_spi_mode();
-        if(status == FuriStatusOk) {
+        if (status == FuriStatusOk) {
             // SD initialized and init to SPI mode properly
             sd_spi_debug("SD init OK after %d retries", i);
             break;
@@ -959,7 +969,8 @@ FuriStatus furi_hal_sd_init(bool power_reset) {
     return status;
 }
 
-FuriStatus furi_hal_sd_get_card_state(void) {
+FuriStatus furi_hal_sd_get_card_state(void)
+{
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_sd_fast);
     furi_hal_sd_spi_handle = &furi_hal_spi_bus_handle_sd_fast;
 
@@ -971,46 +982,48 @@ FuriStatus furi_hal_sd_get_card_state(void) {
     return status;
 }
 
-FuriStatus furi_hal_sd_read_blocks(uint32_t* buff, uint32_t sector, uint32_t count) {
+FuriStatus furi_hal_sd_read_blocks(uint32_t *buff, uint32_t sector, uint32_t count)
+{
     furi_check(buff);
 
     FuriStatus status;
     bool single_sector = count == 1;
 
-    if(single_sector) {
-        if(sd_cache_get(sector, buff)) {
+    if (single_sector) {
+        if (sd_cache_get(sector, buff)) {
             return FuriStatusOk;
         }
     }
 
     status = sd_device_read(buff, sector, count);
 
-    if(status != FuriStatusOk) {
+    if (status != FuriStatusOk) {
         uint8_t counter = furi_hal_sd_max_mount_retry_count();
 
-        while(status != FuriStatusOk && counter > 0 && furi_hal_sd_is_present()) {
-            if((counter % 2) == 0) {
+        while (status != FuriStatusOk && counter > 0 && furi_hal_sd_is_present()) {
+            if ((counter % 2) == 0) {
                 // power reset sd card
                 status = furi_hal_sd_init(true);
             } else {
                 status = furi_hal_sd_init(false);
             }
 
-            if(status == FuriStatusOk) {
+            if (status == FuriStatusOk) {
                 status = sd_device_read(buff, sector, count);
             }
             counter--;
         }
     }
 
-    if(single_sector && status == FuriStatusOk) {
+    if (single_sector && status == FuriStatusOk) {
         sd_cache_put(sector, buff);
     }
 
     return status;
 }
 
-FuriStatus furi_hal_sd_write_blocks(const uint32_t* buff, uint32_t sector, uint32_t count) {
+FuriStatus furi_hal_sd_write_blocks(const uint32_t *buff, uint32_t sector, uint32_t count)
+{
     furi_check(buff);
 
     FuriStatus status;
@@ -1019,18 +1032,18 @@ FuriStatus furi_hal_sd_write_blocks(const uint32_t* buff, uint32_t sector, uint3
 
     status = sd_device_write(buff, sector, count);
 
-    if(status != FuriStatusOk) {
+    if (status != FuriStatusOk) {
         uint8_t counter = furi_hal_sd_max_mount_retry_count();
 
-        while(status != FuriStatusOk && counter > 0 && furi_hal_sd_is_present()) {
-            if((counter % 2) == 0) {
+        while (status != FuriStatusOk && counter > 0 && furi_hal_sd_is_present()) {
+            if ((counter % 2) == 0) {
                 // power reset sd card
                 status = furi_hal_sd_init(true);
             } else {
                 status = furi_hal_sd_init(false);
             }
 
-            if(status == FuriStatusOk) {
+            if (status == FuriStatusOk) {
                 status = sd_device_write(buff, sector, count);
             }
             counter--;
@@ -1040,7 +1053,8 @@ FuriStatus furi_hal_sd_write_blocks(const uint32_t* buff, uint32_t sector, uint3
     return status;
 }
 
-FuriStatus furi_hal_sd_info(FuriHalSdInfo* info) {
+FuriStatus furi_hal_sd_info(FuriHalSdInfo *info)
+{
     furi_check(info);
 
     FuriStatus status;
@@ -1053,17 +1067,17 @@ FuriStatus furi_hal_sd_info(FuriHalSdInfo* info) {
     do {
         status = sd_spi_get_csd(&csd);
 
-        if(status != FuriStatusOk) {
+        if (status != FuriStatusOk) {
             break;
         }
 
         status = sd_spi_get_cid(&cid);
 
-        if(status != FuriStatusOk) {
+        if (status != FuriStatusOk) {
             break;
         }
 
-        if(sd_high_capacity == 1) {
+        if (sd_high_capacity == 1) {
             info->logical_block_size = 512;
             info->block_size = 512;
             info->capacity = ((uint64_t)csd.version.v2.DeviceSize + 1UL) * 1024UL *
@@ -1092,7 +1106,7 @@ FuriStatus furi_hal_sd_info(FuriHalSdInfo* info) {
         info->manufacturing_year = 2000 + cid.ManufactYear;
         info->manufacturing_month = cid.ManufactMonth;
 
-    } while(false);
+    } while (false);
 
     furi_hal_sd_spi_handle = NULL;
     furi_hal_spi_release(&furi_hal_spi_bus_handle_sd_fast);

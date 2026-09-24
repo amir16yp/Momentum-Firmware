@@ -8,11 +8,11 @@ typedef struct {
     StrBuffer str_buffer;
 
     // let mjs do the memory management heavy lifting, store children in a js array
-    struct mjs* mjs;
+    struct mjs *mjs;
     mjs_val_t children;
-    VariableItemList* list;
+    VariableItemList *list;
 
-    FuriMessageQueue* input_queue;
+    FuriMessageQueue *input_queue;
     JsEventLoopContract contract;
 } JsViListContext;
 
@@ -21,14 +21,16 @@ typedef struct {
     int32_t value_index;
 } JsViListEvent;
 
-static mjs_val_t
-    input_transformer(struct mjs* mjs, FuriMessageQueue* queue, JsViListContext* context) {
+static mjs_val_t input_transformer(struct mjs *mjs, FuriMessageQueue *queue,
+                                   JsViListContext *context)
+{
     UNUSED(context);
     JsViListEvent event;
     furi_check(furi_message_queue_get(queue, &event, 0) == FuriStatusOk);
 
     mjs_val_t event_obj = mjs_mk_object(mjs);
-    JS_ASSIGN_MULTI(mjs, event_obj) {
+    JS_ASSIGN_MULTI(mjs, event_obj)
+    {
         JS_FIELD("itemIndex", mjs_mk_number(mjs, event.item_index));
         JS_FIELD("valueIndex", mjs_mk_number(mjs, event.value_index));
     }
@@ -36,9 +38,10 @@ static mjs_val_t
     return event_obj;
 }
 
-static void js_vi_list_change_callback(VariableItem* item) {
-    JsViListContext* context = variable_item_get_context(item);
-    struct mjs* mjs = context->mjs;
+static void js_vi_list_change_callback(VariableItem *item)
+{
+    JsViListContext *context = variable_item_get_context(item);
+    struct mjs *mjs = context->mjs;
     uint8_t item_index = variable_item_list_get_selected_item_index(context->list);
     uint8_t value_index = variable_item_get_current_value_index(item);
 
@@ -54,11 +57,9 @@ static void js_vi_list_change_callback(VariableItem* item) {
     furi_check(furi_message_queue_put(context->input_queue, &event, 0) == FuriStatusOk);
 }
 
-static bool js_vi_list_add_child(
-    struct mjs* mjs,
-    VariableItemList* list,
-    JsViListContext* context,
-    mjs_val_t child_obj) {
+static bool js_vi_list_add_child(struct mjs *mjs, VariableItemList *list, JsViListContext *context,
+                                 mjs_val_t child_obj)
+{
     static const JsValueDeclaration js_vi_list_string = JS_VALUE_SIMPLE(JsValueTypeString);
     static const JsValueDeclaration js_vi_list_arr = JS_VALUE_SIMPLE(JsValueTypeAnyArray);
     static const JsValueDeclaration js_vi_list_int_default_0 =
@@ -73,30 +74,23 @@ static bool js_vi_list_add_child(
         JS_VALUE_OBJECT_W_DEFAULTS(js_vi_list_child_fields);
 
     JsValueParseStatus status;
-    const char* label;
+    const char *label;
     mjs_val_t variants;
     int32_t default_selected;
-    JS_VALUE_PARSE(
-        mjs,
-        JS_VALUE_PARSE_SOURCE_VALUE(&js_vi_list_child),
-        JsValueParseFlagReturnOnError,
-        &status,
-        &child_obj,
-        &label,
-        &variants,
-        &default_selected);
-    if(status != JsValueParseStatusOk) return false;
+    JS_VALUE_PARSE(mjs, JS_VALUE_PARSE_SOURCE_VALUE(&js_vi_list_child),
+                   JsValueParseFlagReturnOnError, &status, &child_obj, &label, &variants,
+                   &default_selected);
+    if (status != JsValueParseStatusOk)
+        return false;
 
     size_t variants_cnt = mjs_array_length(mjs, variants);
-    for(size_t i = 0; i < variants_cnt; i++)
-        if(!mjs_is_string(mjs_array_get(mjs, variants, i))) return false;
+    for (size_t i = 0; i < variants_cnt; i++)
+        if (!mjs_is_string(mjs_array_get(mjs, variants, i)))
+            return false;
 
-    VariableItem* item = variable_item_list_add(
-        list,
-        str_buffer_make_owned_clone(&context->str_buffer, label),
-        variants_cnt,
-        js_vi_list_change_callback,
-        context);
+    VariableItem *item =
+        variable_item_list_add(list, str_buffer_make_owned_clone(&context->str_buffer, label),
+                               variants_cnt, js_vi_list_change_callback, context);
     variable_item_set_current_value_index(item, default_selected);
     mjs_val_t default_variant = mjs_array_get(mjs, variants, default_selected);
     variable_item_set_current_value_text(item, mjs_get_string(mjs, &default_variant, NULL));
@@ -106,7 +100,8 @@ static bool js_vi_list_add_child(
     return true;
 }
 
-static void js_vi_list_reset_children(VariableItemList* list, JsViListContext* context) {
+static void js_vi_list_reset_children(VariableItemList *list, JsViListContext *context)
+{
     mjs_disown(context->mjs, &context->children);
     context->children = mjs_mk_array(context->mjs);
     mjs_own(context->mjs, &context->children);
@@ -115,8 +110,9 @@ static void js_vi_list_reset_children(VariableItemList* list, JsViListContext* c
     str_buffer_clear_all_clones(&context->str_buffer);
 }
 
-static JsViListContext* ctx_make(struct mjs* mjs, VariableItemList* list, mjs_val_t view_obj) {
-    JsViListContext* context = malloc(sizeof(JsViListContext));
+static JsViListContext *ctx_make(struct mjs *mjs, VariableItemList *list, mjs_val_t view_obj)
+{
+    JsViListContext *context = malloc(sizeof(JsViListContext));
     *context = (JsViListContext){
         .str_buffer = {0},
         .mjs = mjs,
@@ -140,7 +136,8 @@ static JsViListContext* ctx_make(struct mjs* mjs, VariableItemList* list, mjs_va
     return context;
 }
 
-static void ctx_destroy(VariableItemList* input, JsViListContext* context, FuriEventLoop* loop) {
+static void ctx_destroy(VariableItemList *input, JsViListContext *context, FuriEventLoop *loop)
+{
     UNUSED(input);
     furi_event_loop_maybe_unsubscribe(loop, context->input_queue);
     furi_message_queue_free(context->input_queue);

@@ -6,8 +6,8 @@
 #pragma once
 
 #ifdef __cplusplus
-template <unsigned int N>
-struct STOP_EXTERNING_ME {};
+template <unsigned int N> struct STOP_EXTERNING_ME {
+};
 #endif
 
 #include <furi_hal_cortex.h>
@@ -53,7 +53,7 @@ void furi_hal_set_is_normal_boot(bool value);
 bool furi_hal_is_normal_boot(void);
 
 /** Early FuriHal init
- * 
+ *
  * Init essential subsystems used in pre-DFU stage.
  * This state can be undone with `furi_hal_deinit_early`.
  *
@@ -61,13 +61,13 @@ bool furi_hal_is_normal_boot(void);
 void furi_hal_init_early(void);
 
 /** Early FuriHal deinit
- * 
+ *
  * Undo `furi_hal_init_early`, prepare system for switch to another firmware/bootloader.
  */
 void furi_hal_deinit_early(void);
 
 /** Init FuriHal
- * 
+ *
  * Initialize the rest of the HAL, must be used after `furi_hal_init_early`.
  */
 void furi_hal_init(void);
@@ -82,7 +82,7 @@ void furi_hal_init(void);
  *
  * @param      address  The System Vector address(start of your new firmware)
  */
-void furi_hal_switch(void* address);
+void furi_hal_switch(void *address);
 
 #ifdef __cplusplus
 }

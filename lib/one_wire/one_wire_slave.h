@@ -1,6 +1,6 @@
 /**
  * @file one_wire_slave.h
- * 
+ *
  * 1-Wire slave library.
  */
 
@@ -18,41 +18,41 @@ extern "C" {
 typedef struct OneWireDevice OneWireDevice;
 typedef struct OneWireSlave OneWireSlave;
 
-typedef bool (*OneWireSlaveResetCallback)(bool is_short, void* context);
-typedef bool (*OneWireSlaveCommandCallback)(uint8_t command, void* context);
-typedef void (*OneWireSlaveResultCallback)(void* context);
+typedef bool (*OneWireSlaveResetCallback)(bool is_short, void *context);
+typedef bool (*OneWireSlaveCommandCallback)(uint8_t command, void *context);
+typedef void (*OneWireSlaveResultCallback)(void *context);
 
 /**
  * Allocate OneWireSlave instance
  * @param [in] gpio_pin connection pin
  * @return pointer to OneWireSlave instance
  */
-OneWireSlave* onewire_slave_alloc(const GpioPin* gpio_pin);
+OneWireSlave *onewire_slave_alloc(const GpioPin *gpio_pin);
 
 /**
  * Destroy OneWireSlave instance, free resources
  * @param [in] bus pointer to OneWireSlave instance
  */
-void onewire_slave_free(OneWireSlave* bus);
+void onewire_slave_free(OneWireSlave *bus);
 
 /**
  * Start working with the bus
  * @param [in] bus pointer to OneWireSlave instance
  */
-void onewire_slave_start(OneWireSlave* bus);
+void onewire_slave_start(OneWireSlave *bus);
 
 /**
  * Stop working with the bus
  * @param [in] bus pointer to OneWireSlave instance
  */
-void onewire_slave_stop(OneWireSlave* bus);
+void onewire_slave_stop(OneWireSlave *bus);
 
 /**
  * Receive one bit
  * @param [in] bus pointer to OneWireSlave instance
  * @return received bit value
  */
-bool onewire_slave_receive_bit(OneWireSlave* bus);
+bool onewire_slave_receive_bit(OneWireSlave *bus);
 
 /**
  * Send one bit
@@ -60,7 +60,7 @@ bool onewire_slave_receive_bit(OneWireSlave* bus);
  * @param [in] value bit value to send
  * @return true on success, false on failure
  */
-bool onewire_slave_send_bit(OneWireSlave* bus, bool value);
+bool onewire_slave_send_bit(OneWireSlave *bus, bool value);
 
 /**
  * Send one or more bytes of data
@@ -69,7 +69,7 @@ bool onewire_slave_send_bit(OneWireSlave* bus, bool value);
  * @param [in] data_size size of the data to send
  * @return true on success, false on failure
  */
-bool onewire_slave_send(OneWireSlave* bus, const uint8_t* data, size_t data_size);
+bool onewire_slave_send(OneWireSlave *bus, const uint8_t *data, size_t data_size);
 
 /**
  * Receive one or more bytes of data
@@ -78,14 +78,14 @@ bool onewire_slave_send(OneWireSlave* bus, const uint8_t* data, size_t data_size
  * @param [in] data_size number of bytes to receive
  * @return true on success, false on failure
  */
-bool onewire_slave_receive(OneWireSlave* bus, uint8_t* data, size_t data_size);
+bool onewire_slave_receive(OneWireSlave *bus, uint8_t *data, size_t data_size);
 
 /**
  * Enable overdrive mode
  * @param [in] bus pointer to OneWireSlave instance
  * @param [in] set true to turn overdrive on, false to turn it off
  */
-void onewire_slave_set_overdrive(OneWireSlave* bus, bool set);
+void onewire_slave_set_overdrive(OneWireSlave *bus, bool set);
 
 /**
  * Set a callback function to be called on each reset.
@@ -98,10 +98,8 @@ void onewire_slave_set_overdrive(OneWireSlave* bus, bool set);
  * @param [in] callback pointer to a callback function
  * @param [in] context additional parameter to be passed to the callback
  */
-void onewire_slave_set_reset_callback(
-    OneWireSlave* bus,
-    OneWireSlaveResetCallback callback,
-    void* context);
+void onewire_slave_set_reset_callback(OneWireSlave *bus, OneWireSlaveResetCallback callback,
+                                      void *context);
 
 /**
  * Set a callback function to be called on each command.
@@ -112,10 +110,8 @@ void onewire_slave_set_reset_callback(
  * @param [in] callback pointer to a callback function
  * @param [in] context additional parameter to be passed to the callback
  */
-void onewire_slave_set_command_callback(
-    OneWireSlave* bus,
-    OneWireSlaveCommandCallback callback,
-    void* context);
+void onewire_slave_set_command_callback(OneWireSlave *bus, OneWireSlaveCommandCallback callback,
+                                        void *context);
 
 /**
  * Set a callback to report emulation success
@@ -123,10 +119,8 @@ void onewire_slave_set_command_callback(
  * @param [in] result_cb pointer to a callback function
  * @param [in] context additional parameter to be passed to the callback
  */
-void onewire_slave_set_result_callback(
-    OneWireSlave* bus,
-    OneWireSlaveResultCallback result_cb,
-    void* context);
+void onewire_slave_set_result_callback(OneWireSlave *bus, OneWireSlaveResultCallback result_cb,
+                                       void *context);
 
 #ifdef __cplusplus
 }

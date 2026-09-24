@@ -9,7 +9,7 @@
 #define TAG "SubGhzProtocolHoneywellWdb"
 
 /*
- * 
+ *
  * https://github.com/klohner/honeywell-wireless-doorbell
  *
  */
@@ -26,8 +26,8 @@ struct SubGhzProtocolDecoderHoneywell_WDB {
 
     SubGhzBlockDecoder decoder;
     SubGhzBlockGeneric generic;
-    const char* device_type;
-    const char* alert;
+    const char *device_type;
+    const char *alert;
     uint8_t secret_knock;
     uint8_t relay;
     uint8_t lowbat;
@@ -84,9 +84,10 @@ const SubGhzProtocol subghz_protocol_honeywell_wdb = {
     .filter = SubGhzProtocolFilter_Sensors,
 };
 
-void* subghz_protocol_encoder_honeywell_wdb_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_honeywell_wdb_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderHoneywell_WDB* instance =
+    SubGhzProtocolEncoderHoneywell_WDB *instance =
         malloc(sizeof(SubGhzProtocolEncoderHoneywell_WDB));
 
     instance->base.protocol = &subghz_protocol_honeywell_wdb;
@@ -99,9 +100,10 @@ void* subghz_protocol_encoder_honeywell_wdb_alloc(SubGhzEnvironment* environment
     return instance;
 }
 
-void subghz_protocol_encoder_honeywell_wdb_free(void* context) {
+void subghz_protocol_encoder_honeywell_wdb_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderHoneywell_WDB* instance = context;
+    SubGhzProtocolEncoderHoneywell_WDB *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
@@ -111,30 +113,31 @@ void subghz_protocol_encoder_honeywell_wdb_free(void* context) {
  * @param instance Pointer to a SubGhzProtocolEncoderHoneywell_WDB instance
  * @return true On success
  */
-static bool subghz_protocol_encoder_honeywell_wdb_get_upload(
-    SubGhzProtocolEncoderHoneywell_WDB* instance) {
+static bool
+subghz_protocol_encoder_honeywell_wdb_get_upload(SubGhzProtocolEncoderHoneywell_WDB *instance)
+{
     furi_assert(instance);
     size_t index = 0;
     size_t size_upload = (instance->generic.data_count_bit * 2) + 2;
-    if(size_upload > instance->encoder.size_upload) {
+    if (size_upload > instance->encoder.size_upload) {
         FURI_LOG_E(TAG, "Size upload exceeds allocated encoder buffer.");
         return false;
     } else {
         instance->encoder.size_upload = size_upload;
     }
-    //Send header
+    // Send header
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)subghz_protocol_honeywell_wdb_const.te_short * 3);
-    //Send key data
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(bit_read(instance->generic.data, i - 1)) {
-            //send bit 1
+    // Send key data
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (bit_read(instance->generic.data, i - 1)) {
+            // send bit 1
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_honeywell_wdb_const.te_long);
             instance->encoder.upload[index++] =
                 level_duration_make(false, (uint32_t)subghz_protocol_honeywell_wdb_const.te_short);
         } else {
-            //send bit 0
+            // send bit 0
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_honeywell_wdb_const.te_short);
             instance->encoder.upload[index++] =
@@ -146,105 +149,111 @@ static bool subghz_protocol_encoder_honeywell_wdb_get_upload(
     return true;
 }
 
-SubGhzProtocolStatus subghz_protocol_encoder_honeywell_wdb_deserialize(
-    void* context,
-    FlipperFormat* flipper_format) {
+SubGhzProtocolStatus
+subghz_protocol_encoder_honeywell_wdb_deserialize(void *context, FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderHoneywell_WDB* instance = context;
+    SubGhzProtocolEncoderHoneywell_WDB *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
+            &instance->generic, flipper_format,
             subghz_protocol_honeywell_wdb_const.min_count_bit_for_found);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
         // Optional value
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 1);
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   1);
 
-        if(!subghz_protocol_encoder_honeywell_wdb_get_upload(instance)) {
+        if (!subghz_protocol_encoder_honeywell_wdb_get_upload(instance)) {
             ret = SubGhzProtocolStatusErrorEncoderGetUpload;
             break;
         }
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-void subghz_protocol_encoder_honeywell_wdb_stop(void* context) {
-    SubGhzProtocolEncoderHoneywell_WDB* instance = context;
+void subghz_protocol_encoder_honeywell_wdb_stop(void *context)
+{
+    SubGhzProtocolEncoderHoneywell_WDB *instance = context;
     instance->encoder.is_running = false;
 }
 
-LevelDuration subghz_protocol_encoder_honeywell_wdb_yield(void* context) {
-    SubGhzProtocolEncoderHoneywell_WDB* instance = context;
+LevelDuration subghz_protocol_encoder_honeywell_wdb_yield(void *context)
+{
+    SubGhzProtocolEncoderHoneywell_WDB *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
-        if(!subghz_block_generic_global.endless_tx) instance->encoder.repeat--;
+    if (++instance->encoder.front == instance->encoder.size_upload) {
+        if (!subghz_block_generic_global.endless_tx)
+            instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
 
     return ret;
 }
 
-void* subghz_protocol_decoder_honeywell_wdb_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_honeywell_wdb_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderHoneywell_WDB* instance =
+    SubGhzProtocolDecoderHoneywell_WDB *instance =
         malloc(sizeof(SubGhzProtocolDecoderHoneywell_WDB));
     instance->base.protocol = &subghz_protocol_honeywell_wdb;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void subghz_protocol_decoder_honeywell_wdb_free(void* context) {
+void subghz_protocol_decoder_honeywell_wdb_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_honeywell_wdb_reset(void* context) {
+void subghz_protocol_decoder_honeywell_wdb_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
     instance->decoder.parser_step = Honeywell_WDBDecoderStepReset;
 }
 
-void subghz_protocol_decoder_honeywell_wdb_feed(void* context, bool level, uint32_t duration) {
+void subghz_protocol_decoder_honeywell_wdb_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
-    switch(instance->decoder.parser_step) {
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
+    switch (instance->decoder.parser_step) {
     case Honeywell_WDBDecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short * 3) <
-                        subghz_protocol_honeywell_wdb_const.te_delta)) {
-            //Found header Honeywell_WDB
+        if ((!level) && (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short * 3) <
+                         subghz_protocol_honeywell_wdb_const.te_delta)) {
+            // Found header Honeywell_WDB
             instance->decoder.decode_count_bit = 0;
             instance->decoder.decode_data = 0;
             instance->decoder.parser_step = Honeywell_WDBDecoderStepSaveDuration;
         }
         break;
     case Honeywell_WDBDecoderStepSaveDuration:
-        if(level) { //save interval
-            if(DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short * 3) <
-               subghz_protocol_honeywell_wdb_const.te_delta) {
-                if((instance->decoder.decode_count_bit ==
-                    subghz_protocol_honeywell_wdb_const.min_count_bit_for_found) &&
-                   ((instance->decoder.decode_data & 0x01) ==
-                    subghz_protocol_blocks_get_parity(
-                        instance->decoder.decode_data >> 1,
-                        subghz_protocol_honeywell_wdb_const.min_count_bit_for_found - 1))) {
+        if (level) { // save interval
+            if (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short * 3) <
+                subghz_protocol_honeywell_wdb_const.te_delta) {
+                if ((instance->decoder.decode_count_bit ==
+                     subghz_protocol_honeywell_wdb_const.min_count_bit_for_found) &&
+                    ((instance->decoder.decode_data & 0x01) ==
+                     subghz_protocol_blocks_get_parity(
+                         instance->decoder.decode_data >> 1,
+                         subghz_protocol_honeywell_wdb_const.min_count_bit_for_found - 1))) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
 
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.parser_step = Honeywell_WDBDecoderStepReset;
@@ -257,20 +266,19 @@ void subghz_protocol_decoder_honeywell_wdb_feed(void* context, bool level, uint3
         }
         break;
     case Honeywell_WDBDecoderStepCheckDuration:
-        if(!level) {
-            if((DURATION_DIFF(
-                    instance->decoder.te_last, subghz_protocol_honeywell_wdb_const.te_short) <
-                subghz_protocol_honeywell_wdb_const.te_delta) &&
-               (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_long) <
-                subghz_protocol_honeywell_wdb_const.te_delta)) {
+        if (!level) {
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               subghz_protocol_honeywell_wdb_const.te_short) <
+                 subghz_protocol_honeywell_wdb_const.te_delta) &&
+                (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_long) <
+                 subghz_protocol_honeywell_wdb_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Honeywell_WDBDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(
-                     instance->decoder.te_last, subghz_protocol_honeywell_wdb_const.te_long) <
-                 subghz_protocol_honeywell_wdb_const.te_delta) &&
-                (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short) <
-                 subghz_protocol_honeywell_wdb_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      subghz_protocol_honeywell_wdb_const.te_long) <
+                        subghz_protocol_honeywell_wdb_const.te_delta) &&
+                       (DURATION_DIFF(duration, subghz_protocol_honeywell_wdb_const.te_short) <
+                        subghz_protocol_honeywell_wdb_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Honeywell_WDBDecoderStepSaveDuration;
             } else
@@ -282,33 +290,45 @@ void subghz_protocol_decoder_honeywell_wdb_feed(void* context, bool level, uint3
     }
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzProtocolDecoderHoneywell_WDB* instance
  */
-static void subghz_protocol_honeywell_wdb_check_remote_controller(
-    SubGhzProtocolDecoderHoneywell_WDB* instance) {
+static void
+subghz_protocol_honeywell_wdb_check_remote_controller(SubGhzProtocolDecoderHoneywell_WDB *instance)
+{
     /*
- *
- * Frame bits used in Honeywell RCWL300A, RCWL330A, Series 3, 5, 9 and all Decor Series Wireless Chimes
- * 0000 0000 1111 1111 2222 2222 3333 3333 4444 4444 5555 5555
- * 7654 3210 7654 3210 7654 3210 7654 3210 7654 3210 7654 3210
- * XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XX.. XXX. .... KEY DATA (any change and receiver doesn't seem to recognize signal)
- * XXXX XXXX XXXX XXXX XXXX .... .... .... .... .... .... .... KEY ID (different for each transmitter)
- * .... .... .... .... .... 0000 00.. 0000 0000 00.. 000. .... KEY UNKNOWN 0 (always 0 in devices I've tested)
- * .... .... .... .... .... .... ..XX .... .... .... .... .... DEVICE TYPE (10 = doorbell, 01 = PIR Motion sensor)
- * .... .... .... .... .... .... .... .... .... ..XX ...X XXX. FLAG DATA (may be modified for possible effects on receiver)
- * .... .... .... .... .... .... .... .... .... ..XX .... .... ALERT (00 = normal, 01 or 10 = right-left halo light pattern, 11 = full volume alarm)
- * .... .... .... .... .... .... .... .... .... .... ...X .... SECRET KNOCK (0 = default, 1 if doorbell is pressed 3x rapidly)
- * .... .... .... .... .... .... .... .... .... .... .... X... RELAY (1 if signal is a retransmission of a received transmission, only some models)
- * .... .... .... .... .... .... .... .... .... .... .... .X.. FLAG UNKNOWN (0 = default, but 1 is accepted and I don't observe any effects)
- * .... .... .... .... .... .... .... .... .... .... .... ..X. LOWBAT (1 if battery is low, receiver gives low battery alert)
- * .... .... .... .... .... .... .... .... .... .... .... ...X PARITY (LSB of count of set bits in previous 47 bits)
- * 
- */
+     *
+     * Frame bits used in Honeywell RCWL300A, RCWL330A, Series 3, 5, 9 and all Decor Series Wireless
+     * Chimes 0000 0000 1111 1111 2222 2222 3333 3333 4444 4444 5555 5555 7654 3210 7654 3210 7654
+     * 3210 7654 3210 7654 3210 7654 3210
+     * XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XX.. XXX. .... KEY DATA (any change and receiver
+     * doesn't seem to recognize signal)
+     * XXXX XXXX XXXX XXXX XXXX .... .... .... .... .... .... .... KEY ID (different for each
+     * transmitter)
+     * .... .... .... .... .... 0000 00.. 0000 0000 00.. 000. .... KEY UNKNOWN 0 (always 0 in
+     * devices I've tested)
+     * .... .... .... .... .... .... ..XX .... .... .... .... .... DEVICE TYPE (10 = doorbell, 01 =
+     * PIR Motion sensor)
+     * .... .... .... .... .... .... .... .... .... ..XX ...X XXX. FLAG DATA (may be modified for
+     * possible effects on receiver)
+     * .... .... .... .... .... .... .... .... .... ..XX .... .... ALERT (00 = normal, 01 or 10 =
+     * right-left halo light pattern, 11 = full volume alarm)
+     * .... .... .... .... .... .... .... .... .... .... ...X .... SECRET KNOCK (0 = default, 1 if
+     * doorbell is pressed 3x rapidly)
+     * .... .... .... .... .... .... .... .... .... .... .... X... RELAY (1 if signal is a
+     * retransmission of a received transmission, only some models)
+     * .... .... .... .... .... .... .... .... .... .... .... .X.. FLAG UNKNOWN (0 = default, but 1
+     * is accepted and I don't observe any effects)
+     * .... .... .... .... .... .... .... .... .... .... .... ..X. LOWBAT (1 if battery is low,
+     * receiver gives low battery alert)
+     * .... .... .... .... .... .... .... .... .... .... .... ...X PARITY (LSB of count of set bits
+     * in previous 47 bits)
+     *
+     */
 
     instance->generic.serial = (instance->generic.data >> 28) & 0xFFFFF;
-    switch((instance->generic.data >> 20) & 0x3) {
+    switch ((instance->generic.data >> 20) & 0x3) {
     case 0x02:
         instance->device_type = "Doorbell";
         break;
@@ -320,7 +340,7 @@ static void subghz_protocol_honeywell_wdb_check_remote_controller(
         break;
     }
 
-    switch((instance->generic.data >> 16) & 0x3) {
+    switch ((instance->generic.data >> 16) & 0x3) {
     case 0x00:
         instance->alert = "Normal";
         break;
@@ -341,53 +361,48 @@ static void subghz_protocol_honeywell_wdb_check_remote_controller(
     instance->lowbat = (uint8_t)((instance->generic.data >> 1) & 0x1);
 }
 
-uint32_t subghz_protocol_decoder_honeywell_wdb_get_hash_data(void* context) {
+uint32_t subghz_protocol_decoder_honeywell_wdb_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_honeywell_wdb_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_honeywell_wdb_serialize(void *context,
+                                                                     FlipperFormat *flipper_format,
+                                                                     SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_honeywell_wdb_deserialize(
-    void* context,
-    FlipperFormat* flipper_format) {
+SubGhzProtocolStatus
+subghz_protocol_decoder_honeywell_wdb_deserialize(void *context, FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         subghz_protocol_honeywell_wdb_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_honeywell_wdb_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_honeywell_wdb_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderHoneywell_WDB* instance = context;
+    SubGhzProtocolDecoderHoneywell_WDB *instance = context;
     subghz_protocol_honeywell_wdb_check_remote_controller(instance);
 
-    furi_string_cat_printf(
-        output,
-        "%s %dbit\r\n"
-        "Key:0x%lX%08lX\r\n"
-        "Sn:0x%05lX\r\n"
-        "DT:%s  Al:%s\r\n"
-        "SK:%01X R:%01X LBat:%01X\r\n",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint32_t)((instance->generic.data >> 32) & 0xFFFFFFFF),
-        (uint32_t)(instance->generic.data & 0xFFFFFFFF),
-        instance->generic.serial,
-        instance->device_type,
-        instance->alert,
-        instance->secret_knock,
-        instance->relay,
-        instance->lowbat);
+    furi_string_cat_printf(output,
+                           "%s %dbit\r\n"
+                           "Key:0x%lX%08lX\r\n"
+                           "Sn:0x%05lX\r\n"
+                           "DT:%s  Al:%s\r\n"
+                           "SK:%01X R:%01X LBat:%01X\r\n",
+                           instance->generic.protocol_name, instance->generic.data_count_bit,
+                           (uint32_t)((instance->generic.data >> 32) & 0xFFFFFFFF),
+                           (uint32_t)(instance->generic.data & 0xFFFFFFFF),
+                           instance->generic.serial, instance->device_type, instance->alert,
+                           instance->secret_knock, instance->relay, instance->lowbat);
 }

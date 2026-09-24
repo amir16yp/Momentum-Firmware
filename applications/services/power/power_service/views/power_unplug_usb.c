@@ -4,10 +4,11 @@
 #include <assets_icons.h>
 
 struct PowerUnplugUsb {
-    View* view;
+    View *view;
 };
 
-static void power_unplug_usb_draw_callback(Canvas* canvas, void* _model) {
+static void power_unplug_usb_draw_callback(Canvas *canvas, void *_model)
+{
     UNUSED(_model);
 
     canvas_set_color(canvas, ColorBlack);
@@ -17,12 +18,13 @@ static void power_unplug_usb_draw_callback(Canvas* canvas, void* _model) {
 
     canvas_set_color(canvas, ColorWhite);
     canvas_set_font(canvas, FontPrimary);
-    elements_multiline_text_aligned(
-        canvas, 64, 32, AlignCenter, AlignCenter, "It's now safe to unplug\nthe USB cable");
+    elements_multiline_text_aligned(canvas, 64, 32, AlignCenter, AlignCenter,
+                                    "It's now safe to unplug\nthe USB cable");
 }
 
-PowerUnplugUsb* power_unplug_usb_alloc(void) {
-    PowerUnplugUsb* power_unplug_usb = malloc(sizeof(PowerUnplugUsb));
+PowerUnplugUsb *power_unplug_usb_alloc(void)
+{
+    PowerUnplugUsb *power_unplug_usb = malloc(sizeof(PowerUnplugUsb));
 
     power_unplug_usb->view = view_alloc();
     view_set_context(power_unplug_usb->view, power_unplug_usb);
@@ -32,13 +34,15 @@ PowerUnplugUsb* power_unplug_usb_alloc(void) {
     return power_unplug_usb;
 }
 
-void power_unplug_usb_free(PowerUnplugUsb* power_unplug_usb) {
+void power_unplug_usb_free(PowerUnplugUsb *power_unplug_usb)
+{
     furi_assert(power_unplug_usb);
     view_free(power_unplug_usb->view);
     free(power_unplug_usb);
 }
 
-View* power_unplug_usb_get_view(PowerUnplugUsb* power_unplug_usb) {
+View *power_unplug_usb_get_view(PowerUnplugUsb *power_unplug_usb)
+{
     furi_assert(power_unplug_usb);
     return power_unplug_usb->view;
 }

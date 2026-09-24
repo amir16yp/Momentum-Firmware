@@ -13,17 +13,17 @@ typedef enum {
 } Iso14443_3aListenerState;
 
 struct Iso14443_3aListener {
-    Nfc* nfc;
-    Iso14443_3aData* data;
+    Nfc *nfc;
+    Iso14443_3aData *data;
     Iso14443_3aListenerState state;
 
-    BitBuffer* tx_buffer;
+    BitBuffer *tx_buffer;
 
     NfcGenericEvent generic_event;
     Iso14443_3aListenerEvent iso14443_3a_event;
     Iso14443_3aListenerEventData iso14443_3a_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 #ifdef __cplusplus

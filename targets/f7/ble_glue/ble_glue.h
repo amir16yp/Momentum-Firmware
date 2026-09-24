@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/* 
+/*
  * Low-level interface to Core2 - startup, shutdown, mode switching, FUS commands.
  */
 
@@ -30,8 +30,8 @@ typedef struct {
     uint8_t VersionReleaseType;
     uint8_t MemorySizeSram2B; /*< Multiple of 1K */
     uint8_t MemorySizeSram2A; /*< Multiple of 1K */
-    uint8_t MemorySizeSram1; /*< Multiple of 1K */
-    uint8_t MemorySizeFlash; /*< Multiple of 4K */
+    uint8_t MemorySizeSram1;  /*< Multiple of 1K */
+    uint8_t MemorySizeFlash;  /*< Multiple of 4K */
     uint8_t StackType;
     char StackTypeString[BLE_MAX_VERSION_STRING_LEN];
     /**
@@ -42,7 +42,7 @@ typedef struct {
     uint8_t FusVersionSub;
     uint8_t FusMemorySizeSram2B; /*< Multiple of 1K */
     uint8_t FusMemorySizeSram2A; /*< Multiple of 1K */
-    uint8_t FusMemorySizeFlash; /*< Multiple of 4K */
+    uint8_t FusMemorySizeFlash;  /*< Multiple of 4K */
 } BleGlueC2Info;
 
 typedef enum {
@@ -55,8 +55,8 @@ typedef enum {
     BleGlueStatusRadioStackMissing
 } BleGlueStatus;
 
-typedef void (
-    *BleGlueKeyStorageChangedCallback)(uint8_t* change_addr_start, uint16_t size, void* context);
+typedef void (*BleGlueKeyStorageChangedCallback)(uint8_t *change_addr_start, uint16_t size,
+                                                 void *context);
 
 /** Initialize start core2 and initialize transport */
 void ble_glue_init(void);
@@ -70,7 +70,7 @@ bool ble_glue_start(void);
 void ble_glue_stop(void);
 
 /** Is core2 alive and at least FUS is running
- * 
+ *
  * @return     true if core2 is alive
  */
 bool ble_glue_is_alive(void);
@@ -83,7 +83,7 @@ bool ble_glue_wait_for_c2_start(int32_t timeout_ms);
 
 BleGlueStatus ble_glue_get_c2_status(void);
 
-const BleGlueC2Info* ble_glue_get_c2_info(void);
+const BleGlueC2Info *ble_glue_get_c2_info(void);
 
 /** Is core2 radio stack present and ready
  *
@@ -96,9 +96,8 @@ bool ble_glue_is_radio_stack_ready(void);
  * @param[in]  callback  The callback to call on NVM change
  * @param      context   The context for callback
  */
-void ble_glue_set_key_storage_changed_callback(
-    BleGlueKeyStorageChangedCallback callback,
-    void* context);
+void ble_glue_set_key_storage_changed_callback(BleGlueKeyStorageChangedCallback callback,
+                                               void *context);
 
 bool ble_glue_reinit_c2(void);
 
@@ -135,7 +134,7 @@ typedef struct {
  *
  * @return     hardfault info. NULL if no hardfault
  */
-const BleGlueHardfaultInfo* ble_glue_get_hardfault_info(void);
+const BleGlueHardfaultInfo *ble_glue_get_hardfault_info(void);
 
 #ifdef __cplusplus
 }

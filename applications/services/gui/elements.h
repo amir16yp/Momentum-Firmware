@@ -1,9 +1,9 @@
 /**
  * @file elements.h
  * GUI: Elements API
- * 
+ *
  * Canvas helpers and UI building blocks.
- * 
+ *
  */
 
 #pragma once
@@ -16,9 +16,9 @@
 extern "C" {
 #endif
 
-#define ELEMENTS_MAX_LINES_NUM  (7)
-#define ELEMENTS_BOLD_MARKER    '#'
-#define ELEMENTS_MONO_MARKER    '*'
+#define ELEMENTS_MAX_LINES_NUM (7)
+#define ELEMENTS_BOLD_MARKER '#'
+#define ELEMENTS_MONO_MARKER '*'
 #define ELEMENTS_INVERSE_MARKER '!'
 
 /** Draw progress bar.
@@ -29,7 +29,7 @@ extern "C" {
  * @param   width       progress bar width
  * @param   progress    progress (0.0 - 1.0)
  */
-void elements_progress_bar(Canvas* canvas, int32_t x, int32_t y, size_t width, float progress);
+void elements_progress_bar(Canvas *canvas, int32_t x, int32_t y, size_t width, float progress);
 
 /** Draw progress bar with text.
  *
@@ -40,13 +40,8 @@ void elements_progress_bar(Canvas* canvas, int32_t x, int32_t y, size_t width, f
  * @param   progress    progress (0.0 - 1.0)
  * @param   text        text to draw
  */
-void elements_progress_bar_with_text(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    float progress,
-    const char* text);
+void elements_progress_bar_with_text(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                     float progress, const char *text);
 
 /** Draw scrollbar on canvas at specific position.
  *
@@ -57,13 +52,8 @@ void elements_progress_bar_with_text(
  * @param   pos     current element
  * @param   total   total elements
  */
-void elements_scrollbar_pos(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t height,
-    size_t pos,
-    size_t total);
+void elements_scrollbar_pos(Canvas *canvas, int32_t x, int32_t y, size_t height, size_t pos,
+                            size_t total);
 
 /** Draw horizontal scrollbar on canvas at specific position.
  *
@@ -74,13 +64,8 @@ void elements_scrollbar_pos(
  * @param   pos     current element
  * @param   total   total elements
  */
-void elements_scrollbar_horizontal(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t pos,
-    size_t total);
+void elements_scrollbar_horizontal(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t pos,
+                                   size_t total);
 
 /** Draw scrollbar on canvas.
  * @note    width 3px, height equal to canvas height
@@ -89,7 +74,7 @@ void elements_scrollbar_horizontal(
  * @param   pos     current element of total elements
  * @param   total   total elements
  */
-void elements_scrollbar(Canvas* canvas, size_t pos, size_t total);
+void elements_scrollbar(Canvas *canvas, size_t pos, size_t total);
 
 /** Draw rounded frame
  *
@@ -97,21 +82,21 @@ void elements_scrollbar(Canvas* canvas, size_t pos, size_t total);
  * @param   x, y            top left corner coordinates
  * @param   width, height   frame width and height
  */
-void elements_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height);
+void elements_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height);
 
 /** Draw button in left corner
  *
  * @param   canvas  Canvas instance
  * @param   str     button text
  */
-void elements_button_left(Canvas* canvas, const char* str);
+void elements_button_left(Canvas *canvas, const char *str);
 
 /** Draw button in right corner
  *
  * @param   canvas  Canvas instance
  * @param   str     button text
  */
-void elements_button_right(Canvas* canvas, const char* str);
+void elements_button_right(Canvas *canvas, const char *str);
 
 /**
  * @brief This function draws a button in the top left corner of the canvas with icon and string.
@@ -122,7 +107,7 @@ void elements_button_right(Canvas* canvas, const char* str);
  * @param[in] str This is a pointer to the character string that will be drawn within the button.
  *
  */
-void elements_button_up(Canvas* canvas, const char* str);
+void elements_button_up(Canvas *canvas, const char *str);
 
 /**
  * @brief This function draws a button in the top right corner of the canvas with icon and string.
@@ -133,14 +118,14 @@ void elements_button_up(Canvas* canvas, const char* str);
  * @param[in] str This is a pointer to the character string that will be drawn within the button.
  *
  */
-void elements_button_down(Canvas* canvas, const char* str);
+void elements_button_down(Canvas *canvas, const char *str);
 
 /** Draw button in center
  *
  * @param   canvas  Canvas instance
  * @param   str     button text
  */
-void elements_button_center(Canvas* canvas, const char* str);
+void elements_button_center(Canvas *canvas, const char *str);
 
 /** Draw aligned multiline text
  *
@@ -149,13 +134,8 @@ void elements_button_center(Canvas* canvas, const char* str);
  * @param   horizontal, vertical    alignment of multiline text
  * @param   text                    string (possible multiline)
  */
-void elements_multiline_text_aligned(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    Align horizontal,
-    Align vertical,
-    const char* text);
+void elements_multiline_text_aligned(Canvas *canvas, int32_t x, int32_t y, Align horizontal,
+                                     Align vertical, const char *text);
 
 /** Draw multiline text
  *
@@ -164,7 +144,7 @@ void elements_multiline_text_aligned(
  * @param   y       top left corner coordinates
  * @param   text    string (possible multiline)
  */
-void elements_multiline_text(Canvas* canvas, int32_t x, int32_t y, const char* text);
+void elements_multiline_text(Canvas *canvas, int32_t x, int32_t y, const char *text);
 
 /** Draw framed multiline text
  *
@@ -173,7 +153,7 @@ void elements_multiline_text(Canvas* canvas, int32_t x, int32_t y, const char* t
  * @param   y       top left corner coordinates
  * @param   text    string (possible multiline)
  */
-void elements_multiline_text_framed(Canvas* canvas, int32_t x, int32_t y, const char* text);
+void elements_multiline_text_framed(Canvas *canvas, int32_t x, int32_t y, const char *text);
 
 /** Draw slightly rounded frame
  *
@@ -183,12 +163,8 @@ void elements_multiline_text_framed(Canvas* canvas, int32_t x, int32_t y, const 
  * @param   width           width of frame
  * @param   height          height of frame
  */
-void elements_slightly_rounded_frame(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height);
+void elements_slightly_rounded_frame(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                     size_t height);
 
 /** Draw slightly rounded box
  *
@@ -198,12 +174,8 @@ void elements_slightly_rounded_frame(
  * @param   width           height of box
  * @param   height          height of box
  */
-void elements_slightly_rounded_box(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height);
+void elements_slightly_rounded_box(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                   size_t height);
 
 /** Draw bold rounded frame
  *
@@ -213,7 +185,7 @@ void elements_slightly_rounded_box(
  * @param   width           width of frame
  * @param   height          height of frame
  */
-void elements_bold_rounded_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height);
+void elements_bold_rounded_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height);
 
 /** Draw bubble frame for text
  *
@@ -223,7 +195,7 @@ void elements_bold_rounded_frame(Canvas* canvas, int32_t x, int32_t y, size_t wi
  * @param   width   bubble width
  * @param   height  bubble height
  */
-void elements_bubble(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height);
+void elements_bubble(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height);
 
 /** Draw bubble frame for text with corner
  *
@@ -234,13 +206,8 @@ void elements_bubble(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t 
  * @param   horizontal  horizontal aligning
  * @param   vertical    aligning
  */
-void elements_bubble_str(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    const char* text,
-    Align horizontal,
-    Align vertical);
+void elements_bubble_str(Canvas *canvas, int32_t x, int32_t y, const char *text, Align horizontal,
+                         Align vertical);
 
 /** Trim string buffer to fit width in pixels
  *
@@ -248,7 +215,7 @@ void elements_bubble_str(
  * @param   string  string to trim
  * @param   width   max width
  */
-void elements_string_fit_width(Canvas* canvas, FuriString* string, size_t width);
+void elements_string_fit_width(Canvas *canvas, FuriString *string, size_t width);
 
 /** Draw scrollable text line
  *
@@ -257,17 +224,12 @@ void elements_string_fit_width(Canvas* canvas, FuriString* string, size_t width)
  * @param[in]  y         Y coordinate
  * @param[in]  width     The width
  * @param      string    The string
- * @param[in]  scroll    The scroll counter: 0 - no scroll, any other number - scroll. Just count up, everything else will be calculated on the inside.
+ * @param[in]  scroll    The scroll counter: 0 - no scroll, any other number - scroll. Just count
+ * up, everything else will be calculated on the inside.
  * @param[in]  ellipsis  The ellipsis flag: true to add ellipse
  */
-void elements_scrollable_text_line(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    FuriString* string,
-    size_t scroll,
-    bool ellipsis);
+void elements_scrollable_text_line(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                   FuriString *string, size_t scroll, bool ellipsis);
 
 /** Draw scrollable text line, optionally centered
  *
@@ -276,19 +238,15 @@ void elements_scrollable_text_line(
  * @param[in]  y         Y coordinate
  * @param[in]  width     The width
  * @param      string    The string
- * @param[in]  scroll    The scroll counter: 0 - no scroll, any other number - scroll. Just count up, everything else will be calculated on the inside.
+ * @param[in]  scroll    The scroll counter: 0 - no scroll, any other number - scroll. Just count
+ * up, everything else will be calculated on the inside.
  * @param[in]  ellipsis  The ellipsis flag: true to add ellipse
- * @param[in]  centered  The centered flag: true to center text horizontally, x coordinate will indicate the middle
+ * @param[in]  centered  The centered flag: true to center text horizontally, x coordinate will
+ * indicate the middle
  */
-void elements_scrollable_text_line_centered(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    FuriString* string,
-    size_t scroll,
-    bool ellipsis,
-    bool centered);
+void elements_scrollable_text_line_centered(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                            FuriString *string, size_t scroll, bool ellipsis,
+                                            bool centered);
 
 /** Draw text box element
  *
@@ -305,16 +263,8 @@ void elements_scrollable_text_line_centered(
  *                              "\e!Inverted text\e!" - white text on black background
  * @param      strip_to_dots    Strip text to ... if does not fit to width
  */
-void elements_text_box(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    Align horizontal,
-    Align vertical,
-    const char* text,
-    bool strip_to_dots);
+void elements_text_box(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                       Align horizontal, Align vertical, const char *text, bool strip_to_dots);
 
 #ifdef __cplusplus
 }

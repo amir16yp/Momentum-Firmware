@@ -298,27 +298,15 @@ const NotificationSequence sequence_not_charging = {
 
 // Light up
 const NotificationSequence sequence_set_only_red_255 = {
-    &message_red_255,
-    &message_green_0,
-    &message_blue_0,
-    &message_do_not_reset,
-    NULL,
+    &message_red_255, &message_green_0, &message_blue_0, &message_do_not_reset, NULL,
 };
 
 const NotificationSequence sequence_set_only_green_255 = {
-    &message_red_0,
-    &message_green_255,
-    &message_blue_0,
-    &message_do_not_reset,
-    NULL,
+    &message_red_0, &message_green_255, &message_blue_0, &message_do_not_reset, NULL,
 };
 
 const NotificationSequence sequence_set_only_blue_255 = {
-    &message_red_0,
-    &message_green_0,
-    &message_blue_255,
-    &message_do_not_reset,
-    NULL,
+    &message_red_0, &message_green_0, &message_blue_255, &message_do_not_reset, NULL,
 };
 
 const NotificationSequence sequence_set_red_255 = {
@@ -341,11 +329,7 @@ const NotificationSequence sequence_set_blue_255 = {
 
 // Solid colors
 const NotificationSequence sequence_solid_yellow = {
-    &message_red_255,
-    &message_green_255,
-    &message_blue_0,
-    &message_do_not_reset,
-    NULL,
+    &message_red_255, &message_green_255, &message_blue_0, &message_do_not_reset, NULL,
 };
 
 // Blink
@@ -428,11 +412,7 @@ const NotificationSequence sequence_blink_magenta_100 = {
 };
 
 const NotificationSequence sequence_blink_white_100 = {
-    &message_red_255,
-    &message_green_255,
-    &message_blue_255,
-    &message_delay_100,
-    NULL,
+    &message_red_255, &message_green_255, &message_blue_255, &message_delay_100, NULL,
 };
 
 // Hardware blink
@@ -483,7 +463,7 @@ const NotificationSequence sequence_blink_stop = {
     NULL,
 };
 
-//General
+// General
 const NotificationSequence sequence_single_vibro = {
     &message_vibro_on,
     &message_delay_100,
@@ -492,14 +472,8 @@ const NotificationSequence sequence_single_vibro = {
 };
 
 const NotificationSequence sequence_double_vibro = {
-    &message_vibro_on,
-    &message_delay_100,
-    &message_vibro_off,
-    &message_delay_100,
-    &message_vibro_on,
-    &message_delay_100,
-    &message_vibro_off,
-    NULL,
+    &message_vibro_on, &message_delay_100, &message_vibro_off, &message_delay_100,
+    &message_vibro_on, &message_delay_100, &message_vibro_off, NULL,
 };
 
 const NotificationSequence sequence_success = {

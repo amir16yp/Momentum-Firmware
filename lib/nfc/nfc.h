@@ -35,22 +35,22 @@ typedef struct Nfc Nfc;
  */
 typedef enum {
     NfcEventTypeUserAbort, /**< User code explicitly aborted the current operation. */
-    NfcEventTypeFieldOn, /**< Reader's field was detected by the NFC hardware. */
-    NfcEventTypeFieldOff, /**< Reader's field was lost. */
-    NfcEventTypeTxStart, /**< Data transmission has started. */
-    NfcEventTypeTxEnd, /**< Data transmission has ended. */
-    NfcEventTypeRxStart, /**< Data reception has started. */
-    NfcEventTypeRxEnd, /**< Data reception has ended. */
+    NfcEventTypeFieldOn,   /**< Reader's field was detected by the NFC hardware. */
+    NfcEventTypeFieldOff,  /**< Reader's field was lost. */
+    NfcEventTypeTxStart,   /**< Data transmission has started. */
+    NfcEventTypeTxEnd,     /**< Data transmission has ended. */
+    NfcEventTypeRxStart,   /**< Data reception has started. */
+    NfcEventTypeRxEnd,     /**< Data reception has ended. */
 
     NfcEventTypeListenerActivated, /**< The listener has been activated by the reader. */
-    NfcEventTypePollerReady, /**< The card has been activated by the poller. */
+    NfcEventTypePollerReady,       /**< The card has been activated by the poller. */
 } NfcEventType;
 
 /**
  * @brief Nfc event data structure.
  */
 typedef struct {
-    BitBuffer* buffer; /**< Pointer to the received data buffer. */
+    BitBuffer *buffer; /**< Pointer to the received data buffer. */
 } NfcEventData;
 
 /**
@@ -70,9 +70,9 @@ typedef struct {
  */
 typedef enum {
     NfcCommandContinue, /**< Continue operation normally. */
-    NfcCommandReset, /**< Reset the current state. */
-    NfcCommandStop, /**< Stop the current operation. */
-    NfcCommandSleep, /**< Switch Nfc hardware to low-power mode. */
+    NfcCommandReset,    /**< Reset the current state. */
+    NfcCommandStop,     /**< Stop the current operation. */
+    NfcCommandSleep,    /**< Switch Nfc hardware to low-power mode. */
 } NfcCommand;
 
 /**
@@ -84,7 +84,7 @@ typedef enum {
  * @param [in,out] context pointer to the user-specific context (set when starting an Nfc instance).
  * @returns command which the event producer must execute.
  */
-typedef NfcCommand (*NfcEventCallback)(NfcEvent event, void* context);
+typedef NfcCommand (*NfcEventCallback)(NfcEvent event, void *context);
 
 /**
  * @brief Enumeration of possible operating modes.
@@ -92,7 +92,7 @@ typedef NfcCommand (*NfcEventCallback)(NfcEvent event, void* context);
  * Not all technologies implement the listener operating mode.
  */
 typedef enum {
-    NfcModePoller, /**< Configure the Nfc instance as a poller. */
+    NfcModePoller,   /**< Configure the Nfc instance as a poller. */
     NfcModeListener, /**< Configure the Nfc instance as a listener. */
 
     NfcModeNum, /**< Operating mode count. Internal use. */
@@ -104,8 +104,8 @@ typedef enum {
 typedef enum {
     NfcTechIso14443a, /**< Configure the Nfc instance to use the ISO14443-3A technology. */
     NfcTechIso14443b, /**< Configure the Nfc instance to use the ISO14443-3B technology. */
-    NfcTechIso15693, /**< Configure the Nfc instance to use the ISO15693 technology. */
-    NfcTechFelica, /**< Configure the Nfc instance to use the FeliCa technology. */
+    NfcTechIso15693,  /**< Configure the Nfc instance to use the ISO15693 technology. */
+    NfcTechFelica,    /**< Configure the Nfc instance to use the FeliCa technology. */
 
     NfcTechNum, /**< Technologies count. Internal use. */
 } NfcTech;
@@ -114,11 +114,11 @@ typedef enum {
  * @brief Enumeration of possible Nfc error codes.
  */
 typedef enum {
-    NfcErrorNone, /**< No error has occurred. */
-    NfcErrorInternal, /**< An unknown error has occured on the lower level. */
-    NfcErrorTimeout, /**< Operation is taking too long (e.g. card does not respond). */
+    NfcErrorNone,            /**< No error has occurred. */
+    NfcErrorInternal,        /**< An unknown error has occured on the lower level. */
+    NfcErrorTimeout,         /**< Operation is taking too long (e.g. card does not respond). */
     NfcErrorIncompleteFrame, /**< An incomplete data frame has been received. */
-    NfcErrorDataFormat, /**< Data has not been parsed due to wrong/unknown format. */
+    NfcErrorDataFormat,      /**< Data has not been parsed due to wrong/unknown format. */
 } NfcError;
 
 /**
@@ -128,7 +128,7 @@ typedef enum {
  *
  * @returns pointer to the allocated Nfc instance.
  */
-Nfc* nfc_alloc(void);
+Nfc *nfc_alloc(void);
 
 /**
  * @brief Delete an Nfc instance.
@@ -137,7 +137,7 @@ Nfc* nfc_alloc(void);
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-void nfc_free(Nfc* instance);
+void nfc_free(Nfc *instance);
 
 /**
  * @brief Configure the Nfc instance to work in a particular mode.
@@ -148,15 +148,15 @@ void nfc_free(Nfc* instance);
  * @param[in] mode required operating mode.
  * @param[in] tech required technology configuration.
  */
-void nfc_config(Nfc* instance, NfcMode mode, NfcTech tech);
+void nfc_config(Nfc *instance, NfcMode mode, NfcTech tech);
 
 /**
  * @brief Set poller frame delay time.
  *
  * @param[in,out] instance pointer to the instance to be modified.
  * @param[in] fdt_poll_fc frame delay time, in carrier cycles.
-*/
-void nfc_set_fdt_poll_fc(Nfc* instance, uint32_t fdt_poll_fc);
+ */
+void nfc_set_fdt_poll_fc(Nfc *instance, uint32_t fdt_poll_fc);
 
 /**
  * @brief Set listener frame delay time.
@@ -164,7 +164,7 @@ void nfc_set_fdt_poll_fc(Nfc* instance, uint32_t fdt_poll_fc);
  * @param[in,out] instance pointer to the instance to be modified.
  * @param[in] fdt_listen_fc frame delay time, in carrier cycles.
  */
-void nfc_set_fdt_listen_fc(Nfc* instance, uint32_t fdt_listen_fc);
+void nfc_set_fdt_listen_fc(Nfc *instance, uint32_t fdt_listen_fc);
 
 /**
  * @brief Set mask receive time.
@@ -172,7 +172,7 @@ void nfc_set_fdt_listen_fc(Nfc* instance, uint32_t fdt_listen_fc);
  * @param[in,out] instance pointer to the instance to be modified.
  * @param[in] mask_rx_time_fc mask receive time, in carrier cycles.
  */
-void nfc_set_mask_receive_time_fc(Nfc* instance, uint32_t mask_rx_time_fc);
+void nfc_set_mask_receive_time_fc(Nfc *instance, uint32_t mask_rx_time_fc);
 
 /**
  * @brief Set frame delay time.
@@ -182,7 +182,7 @@ void nfc_set_mask_receive_time_fc(Nfc* instance, uint32_t mask_rx_time_fc);
  * @param[in,out] instance pointer to the instance to be modified.
  * @param[in] fdt_poll_poll_us frame delay time, in microseconds.
  */
-void nfc_set_fdt_poll_poll_us(Nfc* instance, uint32_t fdt_poll_poll_us);
+void nfc_set_fdt_poll_poll_us(Nfc *instance, uint32_t fdt_poll_poll_us);
 
 /**
  * @brief Set guard time.
@@ -190,7 +190,7 @@ void nfc_set_fdt_poll_poll_us(Nfc* instance, uint32_t fdt_poll_poll_us);
  * @param[in,out] instance pointer to the instance to be modified.
  * @param[in] guard_time_us guard time, in microseconds.
  */
-void nfc_set_guard_time_us(Nfc* instance, uint32_t guard_time_us);
+void nfc_set_guard_time_us(Nfc *instance, uint32_t guard_time_us);
 
 /**
  * @brief Start the Nfc instance.
@@ -205,7 +205,7 @@ void nfc_set_guard_time_us(Nfc* instance, uint32_t guard_time_us);
  * @param[in] callback pointer to a user-defined callback function which will receive events.
  * @param[in] context pointer to a user-specific context (will be passed to the callback).
  */
-void nfc_start(Nfc* instance, NfcEventCallback callback, void* context);
+void nfc_start(Nfc *instance, NfcEventCallback callback, void *context);
 
 /**
  * @brief Stop Nfc instance.
@@ -214,7 +214,7 @@ void nfc_start(Nfc* instance, NfcEventCallback callback, void* context);
  *
  * @param[in,out] instance pointer to the instance to be stopped.
  */
-void nfc_stop(Nfc* instance);
+void nfc_stop(Nfc *instance);
 
 /**
  * @brief Transmit and receive a data frame in poller mode.
@@ -234,8 +234,8 @@ void nfc_stop(Nfc* instance);
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError
-    nfc_poller_trx(Nfc* instance, const BitBuffer* tx_buffer, BitBuffer* rx_buffer, uint32_t fwt);
+NfcError nfc_poller_trx(Nfc *instance, const BitBuffer *tx_buffer, BitBuffer *rx_buffer,
+                        uint32_t fwt);
 
 /**
  * @brief Transmit a data frame in listener mode.
@@ -252,7 +252,7 @@ NfcError
  * @param[in] tx_buffer pointer to the buffer containing the data to be transmitted.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_listener_tx(Nfc* instance, const BitBuffer* tx_buffer);
+NfcError nfc_listener_tx(Nfc *instance, const BitBuffer *tx_buffer);
 
 /*
  * Technology-specific functions.
@@ -281,11 +281,8 @@ typedef enum {
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso14443a_poller_trx_short_frame(
-    Nfc* instance,
-    NfcIso14443aShortFrame frame,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+NfcError nfc_iso14443a_poller_trx_short_frame(Nfc *instance, NfcIso14443aShortFrame frame,
+                                              BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Transmit an ISO14443-3A SDD frame and receive the response in poller mode.
@@ -296,14 +293,12 @@ NfcError nfc_iso14443a_poller_trx_short_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso14443a_poller_trx_sdd_frame(
-    Nfc* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+NfcError nfc_iso14443a_poller_trx_sdd_frame(Nfc *instance, const BitBuffer *tx_buffer,
+                                            BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
- * @brief Transmit an ISO14443-3A data frame with custom parity bits and receive the response in poller mode.
+ * @brief Transmit an ISO14443-3A data frame with custom parity bits and receive the response in
+ * poller mode.
  *
  * Same as nfc_poller_trx(), but uses the parity bits provided by the user code
  * instead of calculating them automatically.
@@ -314,11 +309,8 @@ NfcError nfc_iso14443a_poller_trx_sdd_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso14443a_poller_trx_custom_parity(
-    Nfc* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+NfcError nfc_iso14443a_poller_trx_custom_parity(Nfc *instance, const BitBuffer *tx_buffer,
+                                                BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Transmit an ISO14443-3A frame with custom parity bits in listener mode.
@@ -330,7 +322,7 @@ NfcError nfc_iso14443a_poller_trx_custom_parity(
  * @param[in] tx_buffer pointer to the buffer containing the data to be transmitted.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso14443a_listener_tx_custom_parity(Nfc* instance, const BitBuffer* tx_buffer);
+NfcError nfc_iso14443a_listener_tx_custom_parity(Nfc *instance, const BitBuffer *tx_buffer);
 
 /**
  * @brief Set ISO14443-3A collision resolution parameters in listener mode.
@@ -344,16 +336,12 @@ NfcError nfc_iso14443a_listener_tx_custom_parity(Nfc* instance, const BitBuffer*
  * @param[in] sak SAK byte value.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso14443a_listener_set_col_res_data(
-    Nfc* instance,
-    uint8_t* uid,
-    uint8_t uid_len,
-    uint8_t* atqa,
-    uint8_t sak);
+NfcError nfc_iso14443a_listener_set_col_res_data(Nfc *instance, uint8_t *uid, uint8_t uid_len,
+                                                 uint8_t *atqa, uint8_t sak);
 
 /**
  * @brief Set FeliCa collision resolution parameters in listener mode.
- * 
+ *
  * Configures the NFC hardware for automatic collision resolution.
  *
  * @param[in,out] instance pointer to the instance to be configured.
@@ -363,14 +351,10 @@ NfcError nfc_iso14443a_listener_set_col_res_data(
  * @param[in] pmm_len PMm length in bytes.
  * @param[in] sys_code System code from SYS_C block
  * @returns NfcErrorNone on success, any other error code on failure.
-*/
-NfcError nfc_felica_listener_set_sensf_res_data(
-    Nfc* instance,
-    const uint8_t* idm,
-    const uint8_t idm_len,
-    const uint8_t* pmm,
-    const uint8_t pmm_len,
-    const uint16_t sys_code);
+ */
+NfcError nfc_felica_listener_set_sensf_res_data(Nfc *instance, const uint8_t *idm,
+                                                const uint8_t idm_len, const uint8_t *pmm,
+                                                const uint8_t pmm_len, const uint16_t sys_code);
 
 /**
  * @brief Send ISO15693 Start of Frame pattern in listener mode
@@ -378,25 +362,26 @@ NfcError nfc_felica_listener_set_sensf_res_data(
  * @param[in,out] instance pointer to the instance to be configured.
  * @returns NfcErrorNone on success, any other error code on failure.
  */
-NfcError nfc_iso15693_listener_tx_sof(Nfc* instance);
+NfcError nfc_iso15693_listener_tx_sof(Nfc *instance);
 
 /**
  * @brief Start the timer used for manual FeliCa collision resolution in listener mode.
- * 
+ *
  * This blocks TX until the desired Time Slot, and should be called as soon as the listener
  * determines that a collision resolution needs to be handled manually.
  *
  * @param[in, out] instance instance pointer to the instance to be configured.
- * @param[in] target_time_slot Target Time Slot number. Should be a value within the range of 0-15 (double-inclusive).
+ * @param[in] target_time_slot Target Time Slot number. Should be a value within the range of 0-15
+ * (double-inclusive).
  */
-void nfc_felica_listener_timer_anticol_start(Nfc* instance, uint8_t target_time_slot);
+void nfc_felica_listener_timer_anticol_start(Nfc *instance, uint8_t target_time_slot);
 
 /**
  * @brief Cancel the timer used for manual FeliCa collision resolution in listener mode.
- * 
+ *
  * @param[in, out] instance instance pointer to the instance to be configured.
  */
-void nfc_felica_listener_timer_anticol_stop(Nfc* instance);
+void nfc_felica_listener_timer_anticol_stop(Nfc *instance);
 
 #ifdef __cplusplus
 }

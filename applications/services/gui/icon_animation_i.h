@@ -10,12 +10,12 @@
 #include <furi.h>
 
 struct IconAnimation {
-    const Icon* icon;
+    const Icon *icon;
     uint8_t frame;
     bool animating;
-    FuriTimer* timer;
+    FuriTimer *timer;
     IconAnimationCallback callback;
-    void* callback_context;
+    void *callback_context;
 };
 
 /** Get pointer to current frame data
@@ -24,16 +24,16 @@ struct IconAnimation {
  *
  * @return     pointer to current frame XBM bitmap data
  */
-const uint8_t* icon_animation_get_data(const IconAnimation* instance);
+const uint8_t *icon_animation_get_data(const IconAnimation *instance);
 
 /** Advance to next frame
  *
  * @param      instance  IconAnimation instance
  */
-void icon_animation_next_frame(IconAnimation* instance);
+void icon_animation_next_frame(IconAnimation *instance);
 
 /** IconAnimation timer callback
  *
  * @param      context  pointer to IconAnimation
  */
-void icon_animation_timer_callback(void* context);
+void icon_animation_timer_callback(void *context);

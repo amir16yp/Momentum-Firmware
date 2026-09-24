@@ -3,7 +3,8 @@
 
 #include "../test.h" // IWYU pragma: keep
 
-MU_TEST(float_tools_equal_test) {
+MU_TEST(float_tools_equal_test)
+{
     mu_check(float_is_equal(FLT_MAX, FLT_MAX));
     mu_check(float_is_equal(FLT_MIN, FLT_MIN));
     mu_check(float_is_equal(-FLT_MAX, -FLT_MAX));
@@ -50,11 +51,13 @@ MU_TEST(float_tools_equal_test) {
     mu_check(!float_is_equal(-slightly_more_than_one, slightly_less_than_one));
 }
 
-MU_TEST_SUITE(float_tools_suite) {
+MU_TEST_SUITE(float_tools_suite)
+{
     MU_RUN_TEST(float_tools_equal_test);
 }
 
-int run_minunit_test_float_tools(void) {
+int run_minunit_test_float_tools(void)
+{
     MU_RUN_SUITE(float_tools_suite);
     return MU_EXIT_CODE;
 }

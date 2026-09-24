@@ -23,41 +23,42 @@ void furi_hal_spi_dma_init(void);
  *
  * @param      handle  pointer to FuriHalSpiBus instance
  */
-void furi_hal_spi_bus_init(FuriHalSpiBus* bus);
+void furi_hal_spi_bus_init(FuriHalSpiBus *bus);
 
 /** Deinitialize SPI Bus
  *
  * @param      handle  pointer to FuriHalSpiBus instance
  */
-void furi_hal_spi_bus_deinit(FuriHalSpiBus* bus);
+void furi_hal_spi_bus_deinit(FuriHalSpiBus *bus);
 
 /** Initialize SPI Bus Handle
  *
  * @param      handle  pointer to FuriHalSpiBusHandle instance
  */
-void furi_hal_spi_bus_handle_init(const FuriHalSpiBusHandle* handle);
+void furi_hal_spi_bus_handle_init(const FuriHalSpiBusHandle *handle);
 
 /** Deinitialize SPI Bus Handle
  *
  * @param      handle  pointer to FuriHalSpiBusHandle instance
  */
-void furi_hal_spi_bus_handle_deinit(const FuriHalSpiBusHandle* handle);
+void furi_hal_spi_bus_handle_deinit(const FuriHalSpiBusHandle *handle);
 
 /** Acquire SPI bus
  *
- * @warning blocking, calls `furi_crash` on programming error, CS transition is up to handler event routine
+ * @warning blocking, calls `furi_crash` on programming error, CS transition is up to handler event
+ * routine
  *
  * @param      handle  pointer to FuriHalSpiBusHandle instance
  */
-void furi_hal_spi_acquire(const FuriHalSpiBusHandle* handle);
+void furi_hal_spi_acquire(const FuriHalSpiBusHandle *handle);
 
 /** Release SPI bus
  *
  * @warning calls `furi_crash` on programming error, CS transition is up to handler event routine
- * 
+ *
  * @param      handle  pointer to FuriHalSpiBusHandle instance
  */
-void furi_hal_spi_release(const FuriHalSpiBusHandle* handle);
+void furi_hal_spi_release(const FuriHalSpiBusHandle *handle);
 
 /** SPI Receive
  *
@@ -68,11 +69,8 @@ void furi_hal_spi_release(const FuriHalSpiBusHandle* handle);
  *
  * @return     true on sucess
  */
-bool furi_hal_spi_bus_rx(
-    const FuriHalSpiBusHandle* handle,
-    uint8_t* buffer,
-    size_t size,
-    uint32_t timeout);
+bool furi_hal_spi_bus_rx(const FuriHalSpiBusHandle *handle, uint8_t *buffer, size_t size,
+                         uint32_t timeout);
 
 /** SPI Transmit
  *
@@ -83,11 +81,8 @@ bool furi_hal_spi_bus_rx(
  *
  * @return     true on success
  */
-bool furi_hal_spi_bus_tx(
-    const FuriHalSpiBusHandle* handle,
-    const uint8_t* buffer,
-    size_t size,
-    uint32_t timeout);
+bool furi_hal_spi_bus_tx(const FuriHalSpiBusHandle *handle, const uint8_t *buffer, size_t size,
+                         uint32_t timeout);
 
 /** SPI Transmit and Receive
  *
@@ -99,12 +94,8 @@ bool furi_hal_spi_bus_tx(
  *
  * @return     true on success
  */
-bool furi_hal_spi_bus_trx(
-    const FuriHalSpiBusHandle* handle,
-    const uint8_t* tx_buffer,
-    uint8_t* rx_buffer,
-    size_t size,
-    uint32_t timeout);
+bool furi_hal_spi_bus_trx(const FuriHalSpiBusHandle *handle, const uint8_t *tx_buffer,
+                          uint8_t *rx_buffer, size_t size, uint32_t timeout);
 
 /** SPI Transmit and Receive with DMA
  *
@@ -116,12 +107,8 @@ bool furi_hal_spi_bus_trx(
  *
  * @return     true on success
  */
-bool furi_hal_spi_bus_trx_dma(
-    const FuriHalSpiBusHandle* handle,
-    uint8_t* tx_buffer,
-    uint8_t* rx_buffer,
-    size_t size,
-    uint32_t timeout_ms);
+bool furi_hal_spi_bus_trx_dma(const FuriHalSpiBusHandle *handle, uint8_t *tx_buffer,
+                              uint8_t *rx_buffer, size_t size, uint32_t timeout_ms);
 
 #ifdef __cplusplus
 }

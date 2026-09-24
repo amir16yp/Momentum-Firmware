@@ -22,12 +22,12 @@ typedef enum {
 } ExampleDateTimeInputViewId;
 
 typedef struct {
-    Gui* gui;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    Gui *gui;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    DateTimeInput* date_time_input;
-    DialogEx* dialog_ex;
+    DateTimeInput *date_time_input;
+    DialogEx *dialog_ex;
 
     DateTime date_time;
 

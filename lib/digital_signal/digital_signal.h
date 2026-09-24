@@ -39,14 +39,14 @@ typedef struct DigitalSignal DigitalSignal;
  * @param[in] max_size the maximum number of periods the instance will be able to contain.
  * @returns pointer to the allocated instance.
  */
-DigitalSignal* digital_signal_alloc(uint32_t max_size);
+DigitalSignal *digital_signal_alloc(uint32_t max_size);
 
 /**
  * @brief Delete a previously allocated DigitalSignal instance.
  *
  * @param[in,out] signal pointer to the instance to be deleted.
  */
-void digital_signal_free(DigitalSignal* signal);
+void digital_signal_free(DigitalSignal *signal);
 
 /**
  * @brief Append one period to the end of the DigitalSignal instance.
@@ -54,7 +54,7 @@ void digital_signal_free(DigitalSignal* signal);
  * @param[in,out] signal pointer to a the instance to append to.
  * @param[in] ticks the period length, in 10 picosecond units.
  */
-void digital_signal_add_period(DigitalSignal* signal, uint32_t ticks);
+void digital_signal_add_period(DigitalSignal *signal, uint32_t ticks);
 
 /**
  * @brief Append one period to the end of the DigitalSignal instance, with the level specified.
@@ -89,7 +89,7 @@ void digital_signal_add_period(DigitalSignal* signal, uint32_t ticks);
  * @param[in] ticks the period length, in 10 picosecond units.
  * @param[in] level the level to be set during the period.
  */
-void digital_signal_add_period_with_level(DigitalSignal* signal, uint32_t ticks, bool level);
+void digital_signal_add_period_with_level(DigitalSignal *signal, uint32_t ticks, bool level);
 
 /**
  * @brief Get the current start level contained in the DigitalSignal instance.
@@ -99,7 +99,7 @@ void digital_signal_add_period_with_level(DigitalSignal* signal, uint32_t ticks,
  * @param[in] signal pointer to the instance to be queried.
  * @returns the start level value.
  */
-bool digital_signal_get_start_level(const DigitalSignal* signal);
+bool digital_signal_get_start_level(const DigitalSignal *signal);
 
 /**
  * @brief Set the start level contained in the DigitalSignal instance.
@@ -107,7 +107,7 @@ bool digital_signal_get_start_level(const DigitalSignal* signal);
  * @param[in,out] signal pointer to the instance to be modified.
  * @param[in] level signal level to be set as the start level.
  */
-void digital_signal_set_start_level(DigitalSignal* signal, bool level);
+void digital_signal_set_start_level(DigitalSignal *signal, bool level);
 
 /**
  * @brief Get the number of periods currently stored in a DigitalSignal instance.
@@ -115,7 +115,7 @@ void digital_signal_set_start_level(DigitalSignal* signal, bool level);
  * @param[in] signal pointer to the instance to be queried.
  * @return the number of periods stored in the instance.
  */
-uint32_t digital_signal_get_size(const DigitalSignal* signal);
+uint32_t digital_signal_get_size(const DigitalSignal *signal);
 
 #ifdef __cplusplus
 }

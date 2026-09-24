@@ -9,12 +9,12 @@
 #include <usb_hid.h>
 #include <ble/ble.h>
 
-#define HID_INFO_BASE_USB_SPECIFICATION                    (0x0101)
-#define HID_INFO_COUNTRY_CODE                              (0x00)
-#define BLE_PROFILE_HID_INFO_FLAG_REMOTE_WAKE_MSK          (0x01)
+#define HID_INFO_BASE_USB_SPECIFICATION (0x0101)
+#define HID_INFO_COUNTRY_CODE (0x00)
+#define BLE_PROFILE_HID_INFO_FLAG_REMOTE_WAKE_MSK (0x01)
 #define BLE_PROFILE_HID_INFO_FLAG_NORMALLY_CONNECTABLE_MSK (0x02)
 
-#define BLE_PROFILE_HID_KB_MAX_KEYS   (6)
+#define BLE_PROFILE_HID_KB_MAX_KEYS (6)
 #define BLE_PROFILE_CONSUMER_MAX_KEYS (1)
 
 // Report ids cant be 0
@@ -127,20 +127,21 @@ static const uint8_t ble_profile_hid_report_map_data[] = {
 typedef struct {
     FuriHalBleProfileBase base;
 
-    FuriHalBtHidKbReport* kb_report;
-    FuriHalBtHidMouseReport* mouse_report;
-    FuriHalBtHidConsumerReport* consumer_report;
+    FuriHalBtHidKbReport *kb_report;
+    FuriHalBtHidMouseReport *mouse_report;
+    FuriHalBtHidConsumerReport *consumer_report;
 
-    BleServiceBattery* battery_svc;
-    BleServiceDevInfo* dev_info_svc;
-    BleServiceHid* hid_svc;
+    BleServiceBattery *battery_svc;
+    BleServiceDevInfo *dev_info_svc;
+    BleServiceHid *hid_svc;
 } BleProfileHid;
 _Static_assert(offsetof(BleProfileHid, base) == 0, "Wrong layout");
 
-static FuriHalBleProfileBase* ble_profile_hid_start(FuriHalBleProfileParams profile_params) {
+static FuriHalBleProfileBase *ble_profile_hid_start(FuriHalBleProfileParams profile_params)
+{
     UNUSED(profile_params);
 
-    BleProfileHid* profile = malloc(sizeof(BleProfileHid));
+    BleProfileHid *profile = malloc(sizeof(BleProfileHid));
 
     profile->base.config = ble_profile_hid;
 
@@ -154,10 +155,8 @@ static FuriHalBleProfileBase* ble_profile_hid_start(FuriHalBleProfileParams prof
     profile->consumer_report = malloc(sizeof(FuriHalBtHidConsumerReport));
 
     // Configure Report Map characteristic
-    ble_svc_hid_update_report_map(
-        profile->hid_svc,
-        ble_profile_hid_report_map_data,
-        sizeof(ble_profile_hid_report_map_data));
+    ble_svc_hid_update_report_map(profile->hid_svc, ble_profile_hid_report_map_data,
+                                  sizeof(ble_profile_hid_report_map_data));
     // Configure HID Information characteristic
     uint8_t hid_info_val[4] = {
         HID_INFO_BASE_USB_SPECIFICATION & 0x00ff,
@@ -171,11 +170,12 @@ static FuriHalBleProfileBase* ble_profile_hid_start(FuriHalBleProfileParams prof
     return &profile->base;
 }
 
-static void ble_profile_hid_stop(FuriHalBleProfileBase* profile) {
+static void ble_profile_hid_stop(FuriHalBleProfileBase *profile)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
     ble_svc_battery_stop(hid_profile->battery_svc);
     ble_svc_dev_info_stop(hid_profile->dev_info_svc);
     ble_svc_hid_stop(hid_profile->hid_svc);
@@ -186,196 +186,182 @@ static void ble_profile_hid_stop(FuriHalBleProfileBase* profile) {
     free(hid_profile);
 }
 
-bool ble_profile_hid_kb_press(FuriHalBleProfileBase* profile, uint16_t button) {
+bool ble_profile_hid_kb_press(FuriHalBleProfileBase *profile, uint16_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidKbReport* kb_report = hid_profile->kb_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
-        if(kb_report->key[i] == 0) {
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidKbReport *kb_report = hid_profile->kb_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
+        if (kb_report->key[i] == 0) {
             kb_report->key[i] = button & 0xFF;
             break;
         }
     }
     kb_report->mods |= (button >> 8);
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberKeyboard,
-        (uint8_t*)kb_report,
-        sizeof(FuriHalBtHidKbReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberKeyboard,
+                                           (uint8_t *)kb_report, sizeof(FuriHalBtHidKbReport));
 }
 
-bool ble_profile_hid_kb_release(FuriHalBleProfileBase* profile, uint16_t button) {
+bool ble_profile_hid_kb_release(FuriHalBleProfileBase *profile, uint16_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
 
-    FuriHalBtHidKbReport* kb_report = hid_profile->kb_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
-        if(kb_report->key[i] == (button & 0xFF)) {
+    FuriHalBtHidKbReport *kb_report = hid_profile->kb_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
+        if (kb_report->key[i] == (button & 0xFF)) {
             kb_report->key[i] = 0;
             break;
         }
     }
     kb_report->mods &= ~(button >> 8);
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberKeyboard,
-        (uint8_t*)kb_report,
-        sizeof(FuriHalBtHidKbReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberKeyboard,
+                                           (uint8_t *)kb_report, sizeof(FuriHalBtHidKbReport));
 }
 
-bool ble_profile_hid_kb_release_all(FuriHalBleProfileBase* profile) {
+bool ble_profile_hid_kb_release_all(FuriHalBleProfileBase *profile)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidKbReport* kb_report = hid_profile->kb_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidKbReport *kb_report = hid_profile->kb_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_HID_KB_MAX_KEYS; i++) {
         kb_report->key[i] = 0;
     }
     kb_report->mods = 0;
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberKeyboard,
-        (uint8_t*)kb_report,
-        sizeof(FuriHalBtHidKbReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberKeyboard,
+                                           (uint8_t *)kb_report, sizeof(FuriHalBtHidKbReport));
 }
 
-bool ble_profile_hid_consumer_key_press(FuriHalBleProfileBase* profile, uint16_t button) {
+bool ble_profile_hid_consumer_key_press(FuriHalBleProfileBase *profile, uint16_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidConsumerReport* consumer_report = hid_profile->consumer_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
-        if(consumer_report->key[i] == 0) {
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidConsumerReport *consumer_report = hid_profile->consumer_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
+        if (consumer_report->key[i] == 0) {
             consumer_report->key[i] = button;
             break;
         }
     }
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberConsumer,
-        (uint8_t*)consumer_report,
-        sizeof(FuriHalBtHidConsumerReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberConsumer,
+                                           (uint8_t *)consumer_report,
+                                           sizeof(FuriHalBtHidConsumerReport));
 }
 
-bool ble_profile_hid_consumer_key_release(FuriHalBleProfileBase* profile, uint16_t button) {
+bool ble_profile_hid_consumer_key_release(FuriHalBleProfileBase *profile, uint16_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidConsumerReport* consumer_report = hid_profile->consumer_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
-        if(consumer_report->key[i] == button) {
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidConsumerReport *consumer_report = hid_profile->consumer_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
+        if (consumer_report->key[i] == button) {
             consumer_report->key[i] = 0;
             break;
         }
     }
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberConsumer,
-        (uint8_t*)consumer_report,
-        sizeof(FuriHalBtHidConsumerReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberConsumer,
+                                           (uint8_t *)consumer_report,
+                                           sizeof(FuriHalBtHidConsumerReport));
 }
 
-bool ble_profile_hid_consumer_key_release_all(FuriHalBleProfileBase* profile) {
+bool ble_profile_hid_consumer_key_release_all(FuriHalBleProfileBase *profile)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidConsumerReport* consumer_report = hid_profile->consumer_report;
-    for(uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidConsumerReport *consumer_report = hid_profile->consumer_report;
+    for (uint8_t i = 0; i < BLE_PROFILE_CONSUMER_MAX_KEYS; i++) { //-V1008
         consumer_report->key[i] = 0;
     }
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberConsumer,
-        (uint8_t*)consumer_report,
-        sizeof(FuriHalBtHidConsumerReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberConsumer,
+                                           (uint8_t *)consumer_report,
+                                           sizeof(FuriHalBtHidConsumerReport));
 }
 
-bool ble_profile_hid_mouse_move(FuriHalBleProfileBase* profile, int8_t dx, int8_t dy) {
+bool ble_profile_hid_mouse_move(FuriHalBleProfileBase *profile, int8_t dx, int8_t dy)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidMouseReport* mouse_report = hid_profile->mouse_report;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidMouseReport *mouse_report = hid_profile->mouse_report;
     mouse_report->x = dx;
     mouse_report->y = dy;
-    bool state = ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberMouse,
-        (uint8_t*)mouse_report,
-        sizeof(FuriHalBtHidMouseReport));
+    bool state =
+        ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberMouse,
+                                        (uint8_t *)mouse_report, sizeof(FuriHalBtHidMouseReport));
     mouse_report->x = 0;
     mouse_report->y = 0;
     return state;
 }
 
-bool ble_profile_hid_mouse_press(FuriHalBleProfileBase* profile, uint8_t button) {
+bool ble_profile_hid_mouse_press(FuriHalBleProfileBase *profile, uint8_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidMouseReport* mouse_report = hid_profile->mouse_report;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidMouseReport *mouse_report = hid_profile->mouse_report;
     mouse_report->btn |= button;
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberMouse,
-        (uint8_t*)mouse_report,
-        sizeof(FuriHalBtHidMouseReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberMouse,
+                                           (uint8_t *)mouse_report,
+                                           sizeof(FuriHalBtHidMouseReport));
 }
 
-bool ble_profile_hid_mouse_release(FuriHalBleProfileBase* profile, uint8_t button) {
+bool ble_profile_hid_mouse_release(FuriHalBleProfileBase *profile, uint8_t button)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidMouseReport* mouse_report = hid_profile->mouse_report;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidMouseReport *mouse_report = hid_profile->mouse_report;
     mouse_report->btn &= ~button;
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberMouse,
-        (uint8_t*)mouse_report,
-        sizeof(FuriHalBtHidMouseReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberMouse,
+                                           (uint8_t *)mouse_report,
+                                           sizeof(FuriHalBtHidMouseReport));
 }
 
-bool ble_profile_hid_mouse_release_all(FuriHalBleProfileBase* profile) {
+bool ble_profile_hid_mouse_release_all(FuriHalBleProfileBase *profile)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidMouseReport* mouse_report = hid_profile->mouse_report;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidMouseReport *mouse_report = hid_profile->mouse_report;
     mouse_report->btn = 0;
-    return ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberMouse,
-        (uint8_t*)mouse_report,
-        sizeof(FuriHalBtHidMouseReport));
+    return ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberMouse,
+                                           (uint8_t *)mouse_report,
+                                           sizeof(FuriHalBtHidMouseReport));
 }
 
-bool ble_profile_hid_mouse_scroll(FuriHalBleProfileBase* profile, int8_t delta) {
+bool ble_profile_hid_mouse_scroll(FuriHalBleProfileBase *profile, int8_t delta)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_hid);
 
-    BleProfileHid* hid_profile = (BleProfileHid*)profile;
-    FuriHalBtHidMouseReport* mouse_report = hid_profile->mouse_report;
+    BleProfileHid *hid_profile = (BleProfileHid *)profile;
+    FuriHalBtHidMouseReport *mouse_report = hid_profile->mouse_report;
     mouse_report->wheel = delta;
-    bool state = ble_svc_hid_update_input_report(
-        hid_profile->hid_svc,
-        ReportNumberMouse,
-        (uint8_t*)mouse_report,
-        sizeof(FuriHalBtHidMouseReport));
+    bool state =
+        ble_svc_hid_update_input_report(hid_profile->hid_svc, ReportNumberMouse,
+                                        (uint8_t *)mouse_report, sizeof(FuriHalBtHidMouseReport));
     mouse_report->wheel = 0;
     return state;
 }
 
-// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement, which is 30 ms
-// Since we don't use flash controller anymore interval can be lowered to 7.5ms
+// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement,
+// which is 30 ms Since we don't use flash controller anymore interval can be lowered to 7.5ms
 #define CONNECTION_INTERVAL_MIN (0x0006)
 // Up to 45 ms
 #define CONNECTION_INTERVAL_MAX (0x24)
@@ -398,8 +384,9 @@ static const GapConfig template_config = {
         },
 };
 
-static void ble_profile_hid_get_config(GapConfig* config, FuriHalBleProfileParams profile_params) {
-    BleProfileHidParams* hid_profile_params = profile_params;
+static void ble_profile_hid_get_config(GapConfig *config, FuriHalBleProfileParams profile_params)
+{
+    BleProfileHidParams *hid_profile_params = profile_params;
 
     furi_check(config);
     memcpy(config, &template_config, sizeof(GapConfig));
@@ -408,23 +395,19 @@ static void ble_profile_hid_get_config(GapConfig* config, FuriHalBleProfileParam
 
     // Change MAC address for HID profile
     config->mac_address[2]++;
-    if(hid_profile_params) {
+    if (hid_profile_params) {
         config->mac_address[0] ^= hid_profile_params->mac_xor;
         config->mac_address[1] ^= hid_profile_params->mac_xor >> 8;
     }
 
     // Set advertise name
-    const char* clicker_str = "Control";
-    if(hid_profile_params && hid_profile_params->device_name_prefix) {
+    const char *clicker_str = "Control";
+    if (hid_profile_params && hid_profile_params->device_name_prefix) {
         clicker_str = hid_profile_params->device_name_prefix;
     }
-    snprintf(
-        config->adv_name,
-        sizeof(config->adv_name),
-        "%c%s %s",
-        furi_hal_version_get_ble_local_device_name_ptr()[0],
-        clicker_str,
-        furi_hal_version_get_name_ptr());
+    snprintf(config->adv_name, sizeof(config->adv_name), "%c%s %s",
+             furi_hal_version_get_ble_local_device_name_ptr()[0], clicker_str,
+             furi_hal_version_get_name_ptr());
 }
 
 static const FuriHalBleProfileTemplate profile_callbacks = {
@@ -433,4 +416,4 @@ static const FuriHalBleProfileTemplate profile_callbacks = {
     .get_gap_config = ble_profile_hid_get_config,
 };
 
-const FuriHalBleProfileTemplate* ble_profile_hid = &profile_callbacks;
+const FuriHalBleProfileTemplate *ble_profile_hid = &profile_callbacks;

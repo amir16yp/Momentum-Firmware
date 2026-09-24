@@ -14,10 +14,11 @@
  * To add a new plugin, create a uniquely-named .c file in the `supported_cards` directory
  * and implement at least the parse() function in the NfcSupportedCardsPlugin structure.
  * Then, register the plugin in the `application.fam` file in the `nfc` directory. Use the existing
- * entries as an example. After being registered, the plugin will be automatically deployed with the application.
+ * entries as an example. After being registered, the plugin will be automatically deployed with the
+ * application.
  *
- * @note the APPID field MUST end with `_parser` so the applicaton would know that this particular file
- * is a supported card plugin.
+ * @note the APPID field MUST end with `_parser` so the applicaton would know that this particular
+ * file is a supported card plugin.
  *
  * @see nfc_supported_cards.h
  */
@@ -49,7 +50,7 @@
  * @param[in,out] nfc pointer to an Nfc instance.
  * @returns true if the card was successfully verified, false otherwise.
  */
-typedef bool (*NfcSupportedCardPluginVerify)(Nfc* nfc);
+typedef bool (*NfcSupportedCardPluginVerify)(Nfc *nfc);
 
 /**
  * @brief Read the card using a custom procedure.
@@ -63,7 +64,7 @@ typedef bool (*NfcSupportedCardPluginVerify)(Nfc* nfc);
  * @param[in,out] device pointer to a device instance to hold the read data.
  * @returns true if the card was successfully read, false otherwise.
  */
-typedef bool (*NfcSupportedCardPluginRead)(Nfc* nfc, NfcDevice* device);
+typedef bool (*NfcSupportedCardPluginRead)(Nfc *nfc, NfcDevice *device);
 
 /**
  * @brief Parse raw data into human-readable representation.
@@ -79,7 +80,7 @@ typedef bool (*NfcSupportedCardPluginRead)(Nfc* nfc, NfcDevice* device);
  * @param[out] parsed_data pointer to the string to contain the formatted result.
  * @returns true if the card was successfully parsed, false otherwise.
  */
-typedef bool (*NfcSupportedCardPluginParse)(const NfcDevice* device, FuriString* parsed_data);
+typedef bool (*NfcSupportedCardPluginParse)(const NfcDevice *device, FuriString *parsed_data);
 
 /**
  * @brief Supported card plugin interface.
@@ -89,6 +90,6 @@ typedef bool (*NfcSupportedCardPluginParse)(const NfcDevice* device, FuriString*
 typedef struct {
     NfcProtocol protocol; /**< Identifier of the protocol this card type works on top of. */
     NfcSupportedCardPluginVerify verify; /**< Pointer to the verify() function. */
-    NfcSupportedCardPluginRead read; /**< Pointer to the read() function. */
-    NfcSupportedCardPluginParse parse; /**< Pointer to the parse() function. */
+    NfcSupportedCardPluginRead read;     /**< Pointer to the read() function. */
+    NfcSupportedCardPluginParse parse;   /**< Pointer to the parse() function. */
 } NfcSupportedCardsPlugin;

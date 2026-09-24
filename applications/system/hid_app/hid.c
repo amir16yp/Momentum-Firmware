@@ -8,24 +8,27 @@
 
 #define TAG "HidApp"
 
-#define HID_BT_CFG_PATH      APP_DATA_PATH(".bt_hid.cfg")
+#define HID_BT_CFG_PATH APP_DATA_PATH(".bt_hid.cfg")
 #define HID_BT_CFG_FILE_TYPE "Flipper BT Remote Settings File"
-#define HID_BT_CFG_VERSION   1
+#define HID_BT_CFG_VERSION 1
 
-bool hid_custom_event_callback(void* context, uint32_t event) {
+bool hid_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    Hid* app = context;
+    Hid *app = context;
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-bool hid_back_event_callback(void* context) {
+bool hid_back_event_callback(void *context)
+{
     furi_assert(context);
-    Hid* app = context;
+    Hid *app = context;
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-void bt_hid_remove_pairing(Hid* app) {
-    Bt* bt = app->bt;
+void bt_hid_remove_pairing(Hid *app)
+{
+    Bt *bt = app->bt;
     bt_disconnect(bt);
 
     // Wait 2nd core to update nvm storage
@@ -38,66 +41,70 @@ void bt_hid_remove_pairing(Hid* app) {
     furi_hal_bt_start_advertising();
 }
 
-static void bt_hid_load_cfg(Hid* app) {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FlipperFormat* fff = flipper_format_file_alloc(storage);
+static void bt_hid_load_cfg(Hid *app)
+{
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FlipperFormat *fff = flipper_format_file_alloc(storage);
     bool loaded = false;
 
-    FuriString* temp_str = furi_string_alloc();
+    FuriString *temp_str = furi_string_alloc();
     uint32_t temp_uint = 0;
 
     do {
-        if(!flipper_format_file_open_existing(fff, HID_BT_CFG_PATH)) break;
-
-        if(!flipper_format_read_header(fff, temp_str, &temp_uint)) break;
-        if((strcmp(furi_string_get_cstr(temp_str), HID_BT_CFG_FILE_TYPE) != 0) ||
-           (temp_uint != HID_BT_CFG_VERSION))
+        if (!flipper_format_file_open_existing(fff, HID_BT_CFG_PATH))
             break;
 
-        if(flipper_format_read_string(fff, "name", temp_str)) {
-            strlcpy(
-                app->ble_hid_cfg.name,
-                furi_string_get_cstr(temp_str),
-                sizeof(app->ble_hid_cfg.name));
+        if (!flipper_format_read_header(fff, temp_str, &temp_uint))
+            break;
+        if ((strcmp(furi_string_get_cstr(temp_str), HID_BT_CFG_FILE_TYPE) != 0) ||
+            (temp_uint != HID_BT_CFG_VERSION))
+            break;
+
+        if (flipper_format_read_string(fff, "name", temp_str)) {
+            strlcpy(app->ble_hid_cfg.name, furi_string_get_cstr(temp_str),
+                    sizeof(app->ble_hid_cfg.name));
         } else {
             flipper_format_rewind(fff);
         }
 
         loaded = true;
-    } while(0);
+    } while (0);
 
     furi_string_free(temp_str);
 
     flipper_format_free(fff);
     furi_record_close(RECORD_STORAGE);
 
-    if(!loaded) {
+    if (!loaded) {
         app->ble_hid_cfg.name[0] = '\0';
     }
 }
 
-void bt_hid_save_cfg(Hid* app) {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FlipperFormat* fff = flipper_format_file_alloc(storage);
+void bt_hid_save_cfg(Hid *app)
+{
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FlipperFormat *fff = flipper_format_file_alloc(storage);
 
-    if(flipper_format_file_open_always(fff, HID_BT_CFG_PATH)) {
+    if (flipper_format_file_open_always(fff, HID_BT_CFG_PATH)) {
         do {
-            if(!flipper_format_write_header_cstr(fff, HID_BT_CFG_FILE_TYPE, HID_BT_CFG_VERSION))
+            if (!flipper_format_write_header_cstr(fff, HID_BT_CFG_FILE_TYPE, HID_BT_CFG_VERSION))
                 break;
-            if(!flipper_format_write_string_cstr(fff, "name", app->ble_hid_cfg.name)) break;
-        } while(0);
+            if (!flipper_format_write_string_cstr(fff, "name", app->ble_hid_cfg.name))
+                break;
+        } while (0);
     }
 
     flipper_format_free(fff);
     furi_record_close(RECORD_STORAGE);
 }
 
-static void bt_hid_connection_status_changed_callback(BtStatus status, void* context) {
+static void bt_hid_connection_status_changed_callback(BtStatus status, void *context)
+{
     furi_assert(context);
-    Hid* hid = context;
+    Hid *hid = context;
     const bool connected = (status == BtStatusConnected);
-    notification_internal_message(
-        hid->notifications, connected ? &sequence_set_blue_255 : &sequence_reset_blue);
+    notification_internal_message(hid->notifications,
+                                  connected ? &sequence_set_blue_255 : &sequence_reset_blue);
     hid_keynote_set_connected_status(hid->hid_keynote, connected);
     hid_keyboard_set_connected_status(hid->hid_keyboard, connected);
     hid_numpad_set_connected_status(hid->hid_numpad, connected);
@@ -112,13 +119,15 @@ static void bt_hid_connection_status_changed_callback(BtStatus status, void* con
     hid_tiktok_set_connected_status(hid->hid_tiktok, connected);
 }
 
-static uint32_t hid_ptt_menu_view(void* context) {
+static uint32_t hid_ptt_menu_view(void *context)
+{
     UNUSED(context);
     return HidViewPushToTalkMenu;
 }
 
-Hid* hid_alloc() {
-    Hid* app = malloc(sizeof(Hid));
+Hid *hid_alloc()
+{
+    Hid *app = malloc(sizeof(Hid));
 
     // Gui
     app->gui = furi_record_open(RECORD_GUI);
@@ -150,8 +159,8 @@ Hid* hid_alloc() {
 
     // Text input
     app->text_input = text_input_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewTextInput, text_input_get_view(app->text_input));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewTextInput,
+                             text_input_get_view(app->text_input));
 
     // Popup view
     app->popup = popup_alloc();
@@ -159,77 +168,72 @@ Hid* hid_alloc() {
 
     // Keynote view
     app->hid_keynote = hid_keynote_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewKeynote, hid_keynote_get_view(app->hid_keynote));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewKeynote,
+                             hid_keynote_get_view(app->hid_keynote));
 
     // Keyboard view
     app->hid_keyboard = hid_keyboard_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewKeyboard, hid_keyboard_get_view(app->hid_keyboard));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewKeyboard,
+                             hid_keyboard_get_view(app->hid_keyboard));
 
-    //Numpad keyboard view
+    // Numpad keyboard view
     app->hid_numpad = hid_numpad_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewNumpad, hid_numpad_get_view(app->hid_numpad));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewNumpad,
+                             hid_numpad_get_view(app->hid_numpad));
 
     // Media view
     app->hid_media = hid_media_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewMedia, hid_media_get_view(app->hid_media));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMedia,
+                             hid_media_get_view(app->hid_media));
 
     // Music MacOs view
     app->hid_music_macos = hid_music_macos_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewMusicMacOs, hid_music_macos_get_view(app->hid_music_macos));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMusicMacOs,
+                             hid_music_macos_get_view(app->hid_music_macos));
 
     // Movie view
     app->hid_movie = hid_movie_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewMovie, hid_movie_get_view(app->hid_movie));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMovie,
+                             hid_movie_get_view(app->hid_movie));
 
     // TikTok view
     app->hid_tiktok = hid_tiktok_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, BtHidViewTikTok, hid_tiktok_get_view(app->hid_tiktok));
+    view_dispatcher_add_view(app->view_dispatcher, BtHidViewTikTok,
+                             hid_tiktok_get_view(app->hid_tiktok));
 
     // Mouse view
     app->hid_mouse = hid_mouse_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewMouse, hid_mouse_get_view(app->hid_mouse));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMouse,
+                             hid_mouse_get_view(app->hid_mouse));
 
     // Mouse clicker view
     app->hid_mouse_clicker = hid_mouse_clicker_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        HidViewMouseClicker,
-        hid_mouse_clicker_get_view(app->hid_mouse_clicker));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMouseClicker,
+                             hid_mouse_clicker_get_view(app->hid_mouse_clicker));
 
     // Mouse jiggler view
     app->hid_mouse_jiggler = hid_mouse_jiggler_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        HidViewMouseJiggler,
-        hid_mouse_jiggler_get_view(app->hid_mouse_jiggler));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMouseJiggler,
+                             hid_mouse_jiggler_get_view(app->hid_mouse_jiggler));
     // Mouse jiggler stealth view
     app->hid_mouse_jiggler_stealth = hid_mouse_jiggler_stealth_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        HidViewMouseJigglerStealth,
-        hid_mouse_jiggler_stealth_get_view(app->hid_mouse_jiggler_stealth));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewMouseJigglerStealth,
+                             hid_mouse_jiggler_stealth_get_view(app->hid_mouse_jiggler_stealth));
 
     // PushToTalk view
     app->hid_ptt_menu = hid_ptt_menu_alloc(app);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewPushToTalkMenu, hid_ptt_menu_get_view(app->hid_ptt_menu));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewPushToTalkMenu,
+                             hid_ptt_menu_get_view(app->hid_ptt_menu));
     app->hid_ptt = hid_ptt_alloc(app);
     view_set_previous_callback(hid_ptt_get_view(app->hid_ptt), hid_ptt_menu_view);
-    view_dispatcher_add_view(
-        app->view_dispatcher, HidViewPushToTalk, hid_ptt_get_view(app->hid_ptt));
+    view_dispatcher_add_view(app->view_dispatcher, HidViewPushToTalk,
+                             hid_ptt_get_view(app->hid_ptt));
 
     return app;
 }
 
-void hid_free(Hid* app) {
+void hid_free(Hid *app)
+{
     furi_assert(app);
 
     // Reset notification
@@ -286,13 +290,14 @@ void hid_free(Hid* app) {
     free(app);
 }
 
-int32_t hid_usb_app(void* p) {
+int32_t hid_usb_app(void *p)
+{
     UNUSED(p);
-    Hid* app = hid_alloc();
+    Hid *app = hid_alloc();
 
     FURI_LOG_D("HID", "Starting as USB app");
 
-    FuriHalUsbInterface* usb_mode_prev = furi_hal_usb_get_config();
+    FuriHalUsbInterface *usb_mode_prev = furi_hal_usb_get_config();
     furi_hal_usb_unlock();
     furi_check(furi_hal_usb_set_config(&usb_hid, NULL) == true);
 
@@ -309,9 +314,10 @@ int32_t hid_usb_app(void* p) {
     return 0;
 }
 
-int32_t hid_ble_app(void* p) {
+int32_t hid_ble_app(void *p)
+{
     UNUSED(p);
-    Hid* app = hid_alloc();
+    Hid *app = hid_alloc();
 
     FURI_LOG_D("HID", "Starting as BLE app");
 
@@ -321,12 +327,10 @@ int32_t hid_ble_app(void* p) {
     furi_delay_ms(200);
 
     // Migrate data from old sd-card folder
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
-    storage_common_migrate(
-        storage,
-        EXT_PATH("apps/Tools/" HID_BT_KEYS_STORAGE_NAME),
-        APP_DATA_PATH(HID_BT_KEYS_STORAGE_NAME));
+    storage_common_migrate(storage, EXT_PATH("apps/Tools/" HID_BT_KEYS_STORAGE_NAME),
+                           APP_DATA_PATH(HID_BT_KEYS_STORAGE_NAME));
 
     bt_keys_storage_set_storage_path(app->bt, APP_DATA_PATH(HID_BT_KEYS_STORAGE_NAME));
 

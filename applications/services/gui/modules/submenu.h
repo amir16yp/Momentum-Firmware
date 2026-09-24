@@ -13,22 +13,22 @@ extern "C" {
 
 /** Submenu anonymous structure */
 typedef struct Submenu Submenu;
-typedef void (*SubmenuItemCallback)(void* context, uint32_t index);
-typedef void (*SubmenuItemCallbackEx)(void* context, InputType input_type, uint32_t index);
+typedef void (*SubmenuItemCallback)(void *context, uint32_t index);
+typedef void (*SubmenuItemCallbackEx)(void *context, InputType input_type, uint32_t index);
 
-/** Allocate and initialize submenu 
- * 
+/** Allocate and initialize submenu
+ *
  * This submenu is used to select one option
  *
  * @return     Submenu instance
  */
-Submenu* submenu_alloc(void);
+Submenu *submenu_alloc(void);
 
 /** Deinitialize and free submenu
  *
  * @param      submenu  Submenu instance
  */
-void submenu_free(Submenu* submenu);
+void submenu_free(Submenu *submenu);
 
 /** Get submenu view
  *
@@ -36,7 +36,7 @@ void submenu_free(Submenu* submenu);
  *
  * @return     View instance that can be used for embedding
  */
-View* submenu_get_view(Submenu* submenu);
+View *submenu_get_view(Submenu *submenu);
 
 /** Add item to submenu
  *
@@ -47,12 +47,8 @@ View* submenu_get_view(Submenu* submenu);
  * @param      callback          menu item callback
  * @param      callback_context  menu item callback context
  */
-void submenu_add_item(
-    Submenu* submenu,
-    const char* label,
-    uint32_t index,
-    SubmenuItemCallback callback,
-    void* callback_context);
+void submenu_add_item(Submenu *submenu, const char *label, uint32_t index,
+                      SubmenuItemCallback callback, void *callback_context);
 
 /** Add lockable item to submenu
  *
@@ -65,14 +61,9 @@ void submenu_add_item(
  * @param      locked            menu item locked status
  * @param      locked_message    menu item locked message
  */
-void submenu_add_lockable_item(
-    Submenu* submenu,
-    const char* label,
-    uint32_t index,
-    SubmenuItemCallback callback,
-    void* callback_context,
-    bool locked,
-    const char* locked_message);
+void submenu_add_lockable_item(Submenu *submenu, const char *label, uint32_t index,
+                               SubmenuItemCallback callback, void *callback_context, bool locked,
+                               const char *locked_message);
 
 /** Add item to submenu with extended press events
  *
@@ -83,20 +74,16 @@ void submenu_add_lockable_item(
  * @param      callback          menu item extended callback
  * @param      callback_context  menu item callback context
  */
-void submenu_add_item_ex(
-    Submenu* submenu,
-    const char* label,
-    uint32_t index,
-    SubmenuItemCallbackEx callback,
-    void* callback_context);
+void submenu_add_item_ex(Submenu *submenu, const char *label, uint32_t index,
+                         SubmenuItemCallbackEx callback, void *callback_context);
 
 /** Change label of an existing item
- * 
+ *
  * @param      submenu  Submenu instance
  * @param      index    The index of the item
  * @param      label    The new label
  */
-void submenu_change_item_label(Submenu* submenu, uint32_t index, const char* label);
+void submenu_change_item_label(Submenu *submenu, uint32_t index, const char *label);
 
 /** Remove item from submenu
  *
@@ -104,13 +91,13 @@ void submenu_change_item_label(Submenu* submenu, uint32_t index, const char* lab
  * @param      index             menu item index, used for callback, may be
  *                               the same with other items, first one is removed
  */
-void submenu_remove_item(Submenu* submenu, uint32_t index);
+void submenu_remove_item(Submenu *submenu, uint32_t index);
 
 /** Remove all items from submenu
  *
  * @param      submenu  Submenu instance
  */
-void submenu_reset(Submenu* submenu);
+void submenu_reset(Submenu *submenu);
 
 /** Get submenu selected item index
  *
@@ -118,14 +105,14 @@ void submenu_reset(Submenu* submenu);
  *
  * @return     Index of the selected item
  */
-uint32_t submenu_get_selected_item(Submenu* submenu);
+uint32_t submenu_get_selected_item(Submenu *submenu);
 
 /** Set submenu selected item by index
  *
  * @param      submenu  Submenu instance
  * @param      index    The index of the selected item
  */
-void submenu_set_selected_item(Submenu* submenu, uint32_t index);
+void submenu_set_selected_item(Submenu *submenu, uint32_t index);
 
 /** Set optional header for submenu
  * Must be called before adding items OR after adding items and before set_selected_item()
@@ -133,14 +120,14 @@ void submenu_set_selected_item(Submenu* submenu, uint32_t index);
  * @param      submenu  Submenu instance
  * @param      header   header to set
  */
-void submenu_set_header(Submenu* submenu, const char* header);
+void submenu_set_header(Submenu *submenu, const char *header);
 
 /** Set submenu orientation
  *
  * @param      submenu  Submenu instance
  * @param      orientation  either vertical or horizontal
  */
-void submenu_set_orientation(Submenu* submenu, ViewOrientation orientation);
+void submenu_set_orientation(Submenu *submenu, ViewOrientation orientation);
 
 #ifdef __cplusplus
 }

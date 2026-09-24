@@ -3,17 +3,17 @@
 #include <furi.h>
 
 struct Popup {
-    View* view;
-    void* context;
+    View *view;
+    void *context;
     PopupCallback callback;
 
-    FuriTimer* timer;
+    FuriTimer *timer;
     uint32_t timer_period_in_ms;
     bool timer_enabled;
 };
 
 typedef struct {
-    const char* text;
+    const char *text;
     uint8_t x;
     uint8_t y;
     Align horizontal;
@@ -23,7 +23,7 @@ typedef struct {
 typedef struct {
     uint8_t x;
     uint8_t y;
-    const Icon* icon;
+    const Icon *icon;
 } IconElement;
 
 typedef struct {
@@ -32,57 +32,52 @@ typedef struct {
     IconElement icon;
 } PopupModel;
 
-static void popup_view_draw_callback(Canvas* canvas, void* _model) {
-    PopupModel* model = _model;
+static void popup_view_draw_callback(Canvas *canvas, void *_model)
+{
+    PopupModel *model = _model;
 
     // Prepare canvas
     canvas_clear(canvas);
     canvas_set_color(canvas, ColorBlack);
 
-    if(model->icon.icon != NULL) {
+    if (model->icon.icon != NULL) {
         canvas_draw_icon(canvas, model->icon.x, model->icon.y, model->icon.icon);
     }
 
     // Draw header
-    if(model->header.text != NULL) {
+    if (model->header.text != NULL) {
         canvas_set_font(canvas, FontPrimary);
-        elements_multiline_text_aligned(
-            canvas,
-            model->header.x,
-            model->header.y,
-            model->header.horizontal,
-            model->header.vertical,
-            model->header.text);
+        elements_multiline_text_aligned(canvas, model->header.x, model->header.y,
+                                        model->header.horizontal, model->header.vertical,
+                                        model->header.text);
     }
 
     // Draw text
-    if(model->text.text != NULL) {
+    if (model->text.text != NULL) {
         canvas_set_font(canvas, FontSecondary);
-        elements_multiline_text_aligned(
-            canvas,
-            model->text.x,
-            model->text.y,
-            model->text.horizontal,
-            model->text.vertical,
-            model->text.text);
+        elements_multiline_text_aligned(canvas, model->text.x, model->text.y,
+                                        model->text.horizontal, model->text.vertical,
+                                        model->text.text);
     }
 }
 
-static void popup_timer_callback(void* context) {
+static void popup_timer_callback(void *context)
+{
     furi_assert(context);
-    Popup* popup = context;
+    Popup *popup = context;
 
-    if(popup->callback) {
+    if (popup->callback) {
         popup->callback(popup->context);
     }
 }
 
-static bool popup_view_input_callback(InputEvent* event, void* context) {
-    Popup* popup = context;
+static bool popup_view_input_callback(InputEvent *event, void *context)
+{
+    Popup *popup = context;
     bool consumed = false;
 
     // Process key presses only
-    if(event->type == InputTypeShort && popup->callback) {
+    if (event->type == InputTypeShort && popup->callback) {
         popup->callback(popup->context);
         consumed = true;
     }
@@ -90,25 +85,29 @@ static bool popup_view_input_callback(InputEvent* event, void* context) {
     return consumed;
 }
 
-void popup_start_timer(void* context) {
-    Popup* popup = context;
-    if(popup->timer_enabled) {
+void popup_start_timer(void *context)
+{
+    Popup *popup = context;
+    if (popup->timer_enabled) {
         uint32_t timer_period = furi_ms_to_ticks(popup->timer_period_in_ms);
-        if(timer_period == 0) timer_period = 1;
+        if (timer_period == 0)
+            timer_period = 1;
 
-        if(furi_timer_start(popup->timer, timer_period) != FuriStatusOk) {
+        if (furi_timer_start(popup->timer, timer_period) != FuriStatusOk) {
             furi_crash();
         }
     }
 }
 
-void popup_stop_timer(void* context) {
-    Popup* popup = context;
+void popup_stop_timer(void *context)
+{
+    Popup *popup = context;
     furi_timer_stop(popup->timer);
 }
 
-Popup* popup_alloc(void) {
-    Popup* popup = malloc(sizeof(Popup));
+Popup *popup_alloc(void)
+{
+    Popup *popup = malloc(sizeof(Popup));
     popup->view = view_alloc();
     popup->timer = furi_timer_alloc(popup_timer_callback, FuriTimerTypeOnce, popup);
     popup->timer_period_in_ms = 1000;
@@ -122,8 +121,7 @@ Popup* popup_alloc(void) {
     view_set_exit_callback(popup->view, popup_stop_timer);
 
     with_view_model(
-        popup->view,
-        PopupModel * model,
+        popup->view, PopupModel * model,
         {
             model->header.text = NULL;
             model->header.x = 0;
@@ -145,41 +143,40 @@ Popup* popup_alloc(void) {
     return popup;
 }
 
-void popup_free(Popup* popup) {
+void popup_free(Popup *popup)
+{
     furi_check(popup);
     furi_timer_free(popup->timer);
     view_free(popup->view);
     free(popup);
 }
 
-View* popup_get_view(Popup* popup) {
+View *popup_get_view(Popup *popup)
+{
     furi_check(popup);
 
     return popup->view;
 }
 
-void popup_set_callback(Popup* popup, PopupCallback callback) {
+void popup_set_callback(Popup *popup, PopupCallback callback)
+{
     furi_check(popup);
     popup->callback = callback;
 }
 
-void popup_set_context(Popup* popup, void* context) {
+void popup_set_context(Popup *popup, void *context)
+{
     furi_check(popup);
     popup->context = context;
 }
 
-void popup_set_header(
-    Popup* popup,
-    const char* text,
-    uint8_t x,
-    uint8_t y,
-    Align horizontal,
-    Align vertical) {
+void popup_set_header(Popup *popup, const char *text, uint8_t x, uint8_t y, Align horizontal,
+                      Align vertical)
+{
     furi_check(popup);
 
     with_view_model(
-        popup->view,
-        PopupModel * model,
+        popup->view, PopupModel * model,
         {
             model->header.text = text;
             model->header.x = x;
@@ -190,18 +187,13 @@ void popup_set_header(
         true);
 }
 
-void popup_set_text(
-    Popup* popup,
-    const char* text,
-    uint8_t x,
-    uint8_t y,
-    Align horizontal,
-    Align vertical) {
+void popup_set_text(Popup *popup, const char *text, uint8_t x, uint8_t y, Align horizontal,
+                    Align vertical)
+{
     furi_check(popup);
 
     with_view_model(
-        popup->view,
-        PopupModel * model,
+        popup->view, PopupModel * model,
         {
             model->text.text = text;
             model->text.x = x;
@@ -212,12 +204,12 @@ void popup_set_text(
         true);
 }
 
-void popup_set_icon(Popup* popup, uint8_t x, uint8_t y, const Icon* icon) {
+void popup_set_icon(Popup *popup, uint8_t x, uint8_t y, const Icon *icon)
+{
     furi_check(popup);
 
     with_view_model(
-        popup->view,
-        PopupModel * model,
+        popup->view, PopupModel * model,
         {
             model->icon.x = x;
             model->icon.y = y;
@@ -226,29 +218,32 @@ void popup_set_icon(Popup* popup, uint8_t x, uint8_t y, const Icon* icon) {
         true);
 }
 
-void popup_set_timeout(Popup* popup, uint32_t timeout_in_ms) {
+void popup_set_timeout(Popup *popup, uint32_t timeout_in_ms)
+{
     furi_check(popup);
     popup->timer_period_in_ms = timeout_in_ms;
 }
 
-void popup_enable_timeout(Popup* popup) {
+void popup_enable_timeout(Popup *popup)
+{
     furi_check(popup);
 
     popup->timer_enabled = true;
 }
 
-void popup_disable_timeout(Popup* popup) {
+void popup_disable_timeout(Popup *popup)
+{
     furi_check(popup);
 
     popup->timer_enabled = false;
 }
 
-void popup_reset(Popup* popup) {
+void popup_reset(Popup *popup)
+{
     furi_check(popup);
 
     with_view_model(
-        popup->view,
-        PopupModel * model,
+        popup->view, PopupModel * model,
         {
             memset(&model->header, 0, sizeof(model->header));
             memset(&model->text, 0, sizeof(model->text));

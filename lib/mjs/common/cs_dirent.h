@@ -27,15 +27,17 @@ extern "C" {
 #endif /* __cplusplus */
 
 #ifdef CS_DEFINE_DIRENT
-typedef struct { int dummy; } DIR;
+typedef struct {
+    int dummy;
+} DIR;
 
 struct dirent {
-  int d_ino;
+    int d_ino;
 #ifdef _WIN32
-  char d_name[MAX_PATH];
+    char d_name[MAX_PATH];
 #else
-  /* TODO(rojer): Use PATH_MAX but make sure it's sane on every platform */
-  char d_name[256];
+    /* TODO(rojer): Use PATH_MAX but make sure it's sane on every platform */
+    char d_name[256];
 #endif
 };
 

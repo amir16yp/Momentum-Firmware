@@ -29,14 +29,14 @@ extern "C" {
  * @param[in] base_poller pointer to the parent poller instance.
  * @returns pointer to the allocated poller instance.
  */
-typedef NfcGenericInstance* (*NfcPollerAlloc)(NfcGenericInstance* base_poller);
+typedef NfcGenericInstance *(*NfcPollerAlloc)(NfcGenericInstance *base_poller);
 
 /**
  * @brief Delete a protocol-specific poller instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-typedef void (*NfcPollerFree)(NfcGenericInstance* instance);
+typedef void (*NfcPollerFree)(NfcGenericInstance *instance);
 
 /**
  * @brief Set the callback function to handle events emitted by the poller instance.
@@ -47,8 +47,8 @@ typedef void (*NfcPollerFree)(NfcGenericInstance* instance);
  * @param[in] callback pointer to the user-defined callback function which will receive events.
  * @param[in] context pointer to the user-specific context (will be passed to the callback).
  */
-typedef void (
-    *NfcPollerSetCallback)(NfcGenericInstance* poller, NfcGenericCallback callback, void* context);
+typedef void (*NfcPollerSetCallback)(NfcGenericInstance *poller, NfcGenericCallback callback,
+                                     void *context);
 
 /**
  * @brief Activate and read a supported NFC card.
@@ -83,7 +83,7 @@ typedef void (
  * @param[in,out] context pointer to the protocol-specific poller instance.
  * @returns command to be executed by the parent poller instance.
  */
-typedef NfcCommand (*NfcPollerRun)(NfcGenericEvent event, void* context);
+typedef NfcCommand (*NfcPollerRun)(NfcGenericEvent event, void *context);
 
 /**
  * @brief Determine whether there is a supported card in the vicinity.
@@ -100,7 +100,7 @@ typedef NfcCommand (*NfcPollerRun)(NfcGenericEvent event, void* context);
  * @param[in,out] context pointer to the protocol-specific poller instance.
  * @returns true if a supported card was detected, false otherwise.
  */
-typedef bool (*NfcPollerDetect)(NfcGenericEvent event, void* context);
+typedef bool (*NfcPollerDetect)(NfcGenericEvent event, void *context);
 
 /**
  * @brief Get the data that was that was gathered during the reading process.
@@ -108,7 +108,7 @@ typedef bool (*NfcPollerDetect)(NfcGenericEvent event, void* context);
  * @param[in] instance pointer to the protocol-specific poller instance.
  * @returns pointer to the NFC device data.
  */
-typedef const NfcDeviceData* (*NfcPollerGetData)(const NfcGenericInstance* instance);
+typedef const NfcDeviceData *(*NfcPollerGetData)(const NfcGenericInstance *instance);
 
 /**
  * @brief Generic NFC poller interface.
@@ -119,12 +119,12 @@ typedef const NfcDeviceData* (*NfcPollerGetData)(const NfcGenericInstance* insta
  * Additionally, see ${PROTOCOL_NAME}/${PROTOCOL_NAME}_poller.c for usage examples.
  */
 typedef struct {
-    NfcPollerAlloc alloc; /**< Pointer to the alloc() function. */
-    NfcPollerFree free; /**< Pointer to the free() function. */
+    NfcPollerAlloc alloc;              /**< Pointer to the alloc() function. */
+    NfcPollerFree free;                /**< Pointer to the free() function. */
     NfcPollerSetCallback set_callback; /**< Pointer to the set_callback() function. */
-    NfcPollerRun run; /**< Pointer to the run() function. */
-    NfcPollerDetect detect; /**< Pointer to the detect() function. */
-    NfcPollerGetData get_data; /**< Pointer to the get_data() function. */
+    NfcPollerRun run;                  /**< Pointer to the run() function. */
+    NfcPollerDetect detect;            /**< Pointer to the detect() function. */
+    NfcPollerGetData get_data;         /**< Pointer to the get_data() function. */
 } NfcPollerBase;
 
 #ifdef __cplusplus

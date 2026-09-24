@@ -1,17 +1,18 @@
 #include "../ibutton_i.h"
 #include <toolbox/path.h>
 
-void ibutton_scene_delete_confirm_on_enter(void* context) {
-    iButton* ibutton = context;
-    iButtonKey* key = ibutton->key;
-    Widget* widget = ibutton->widget;
+void ibutton_scene_delete_confirm_on_enter(void *context)
+{
+    iButton *ibutton = context;
+    iButtonKey *key = ibutton->key;
+    Widget *widget = ibutton->widget;
 
-    FuriString* tmp = furi_string_alloc();
-    FuriString* uid = furi_string_alloc();
+    FuriString *tmp = furi_string_alloc();
+    FuriString *uid = furi_string_alloc();
 
     widget_add_button_element(widget, GuiButtonTypeLeft, "Back", ibutton_widget_callback, context);
-    widget_add_button_element(
-        widget, GuiButtonTypeRight, "Delete", ibutton_widget_callback, context);
+    widget_add_button_element(widget, GuiButtonTypeRight, "Delete", ibutton_widget_callback,
+                              context);
 
     furi_string_printf(tmp, "\e#Delete %s?\e#\n", ibutton->key_name);
 
@@ -21,19 +22,19 @@ void ibutton_scene_delete_confirm_on_enter(void* context) {
 
     furi_string_push_back(tmp, '\n');
 
-    const char* protocol =
+    const char *protocol =
         ibutton_protocols_get_name(ibutton->protocols, ibutton_key_get_protocol_id(key));
-    const char* manufacturer =
+    const char *manufacturer =
         ibutton_protocols_get_manufacturer(ibutton->protocols, ibutton_key_get_protocol_id(key));
 
-    if(strcasecmp(protocol, manufacturer) != 0 && strcasecmp(manufacturer, "N/A") != 0) {
+    if (strcasecmp(protocol, manufacturer) != 0 && strcasecmp(manufacturer, "N/A") != 0) {
         furi_string_cat_printf(tmp, "%s ", manufacturer);
     }
 
     furi_string_cat(tmp, protocol);
 
-    widget_add_text_box_element(
-        widget, 0, 0, 128, 64, AlignCenter, AlignTop, furi_string_get_cstr(tmp), false);
+    widget_add_text_box_element(widget, 0, 0, 128, 64, AlignCenter, AlignTop,
+                                furi_string_get_cstr(tmp), false);
 
     furi_string_reset(tmp);
     furi_string_reset(uid);
@@ -43,21 +44,22 @@ void ibutton_scene_delete_confirm_on_enter(void* context) {
     furi_string_free(uid);
 }
 
-bool ibutton_scene_delete_confirm_on_event(void* context, SceneManagerEvent event) {
-    iButton* ibutton = context;
-    SceneManager* scene_manager = ibutton->scene_manager;
+bool ibutton_scene_delete_confirm_on_event(void *context, SceneManagerEvent event)
+{
+    iButton *ibutton = context;
+    SceneManager *scene_manager = ibutton->scene_manager;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == GuiButtonTypeRight) {
-            if(ibutton_delete_key(ibutton)) {
+        if (event.event == GuiButtonTypeRight) {
+            if (ibutton_delete_key(ibutton)) {
                 scene_manager_next_scene(scene_manager, iButtonSceneDeleteSuccess);
             } else {
                 dialog_message_show_storage_error(ibutton->dialogs, "Cannot delete\nkey file");
                 scene_manager_previous_scene(scene_manager);
             }
-        } else if(event.event == GuiButtonTypeLeft) {
+        } else if (event.event == GuiButtonTypeLeft) {
             scene_manager_previous_scene(scene_manager);
         }
     }
@@ -65,7 +67,8 @@ bool ibutton_scene_delete_confirm_on_event(void* context, SceneManagerEvent even
     return consumed;
 }
 
-void ibutton_scene_delete_confirm_on_exit(void* context) {
-    iButton* ibutton = context;
+void ibutton_scene_delete_confirm_on_exit(void *context)
+{
+    iButton *ibutton = context;
     widget_reset(ibutton->widget);
 }

@@ -72,7 +72,7 @@ void cs_log_set_level(enum cs_log_level level);
  *   mongoose.c=1,mjs.c=1,=4 - everything at verbose debug except mg_* and mjs_*
  *
  */
-void cs_log_set_file_level(const char* file_level);
+void cs_log_set_file_level(const char *file_level);
 
 /*
  * Helper function which prints message prefix with the given `level`.
@@ -81,7 +81,7 @@ void cs_log_set_file_level(const char* file_level);
  *
  * Clients should typically just use `LOG()` macro.
  */
-int cs_log_print_prefix(enum cs_log_level level, const char* fname, int line);
+int cs_log_print_prefix(enum cs_log_level level, const char *fname, int line);
 
 extern enum cs_log_level cs_log_level;
 
@@ -90,13 +90,13 @@ extern enum cs_log_level cs_log_level;
 /*
  * Set file to write logs into. If `NULL`, logs go to `stderr`.
  */
-void cs_log_set_file(FILE* file);
+void cs_log_set_file(FILE *file);
 
 /*
  * Prints log to the current log file, appends "\n" in the end and flushes the
  * stream.
  */
-void cs_log_printf(const char* fmt, ...) PRINTF_LIKE(1, 2);
+void cs_log_printf(const char *fmt, ...) PRINTF_LIKE(1, 2);
 
 #if CS_ENABLE_STDIO
 
@@ -108,12 +108,12 @@ void cs_log_printf(const char* fmt, ...) PRINTF_LIKE(1, 2);
  * LOG(LL_DEBUG, ("my debug message: %d", 123));
  * ```
  */
-#define LOG(l, x)                                        \
-    do {                                                 \
-        if(cs_log_print_prefix(l, __FILE__, __LINE__)) { \
-            cs_log_printf x;                             \
-        }                                                \
-    } while(0)
+#define LOG(l, x)                                                                                  \
+    do {                                                                                           \
+        if (cs_log_print_prefix(l, __FILE__, __LINE__)) {                                          \
+            cs_log_printf x;                                                                       \
+        }                                                                                          \
+    } while (0)
 
 #else
 

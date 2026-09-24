@@ -1,8 +1,9 @@
 #include "varint.h"
 
-size_t varint_uint32_pack(uint32_t value, uint8_t* output) {
-    uint8_t* start = output;
-    while(value >= 0x80) {
+size_t varint_uint32_pack(uint32_t value, uint8_t *output)
+{
+    uint8_t *start = output;
+    while (value >= 0x80) {
         *output++ = (value | 0x80);
         value >>= 7;
     }
@@ -10,14 +11,16 @@ size_t varint_uint32_pack(uint32_t value, uint8_t* output) {
     return output - start;
 }
 
-size_t varint_uint32_unpack(uint32_t* value, const uint8_t* input, size_t input_size) {
+size_t varint_uint32_unpack(uint32_t *value, const uint8_t *input, size_t input_size)
+{
     uint32_t parsed = 0;
 
-    for(size_t i = 0; i < input_size && i < 5; i++) {
-        if(i == 4 && (input[i] & 0xF0)) return 0;
+    for (size_t i = 0; i < input_size && i < 5; i++) {
+        if (i == 4 && (input[i] & 0xF0))
+            return 0;
         parsed |= (uint32_t)(input[i] & 0x7F) << (7 * i);
 
-        if(!(input[i] & 0x80)) {
+        if (!(input[i] & 0x80)) {
             *value = parsed;
             return i + 1;
         }
@@ -25,9 +28,10 @@ size_t varint_uint32_unpack(uint32_t* value, const uint8_t* input, size_t input_
     return 0;
 }
 
-size_t varint_uint32_length(uint32_t value) {
+size_t varint_uint32_length(uint32_t value)
+{
     size_t size = 0;
-    while(value >= 0x80) {
+    while (value >= 0x80) {
         value >>= 7;
         size++;
     }
@@ -36,18 +40,21 @@ size_t varint_uint32_length(uint32_t value) {
     return size;
 }
 
-size_t varint_int32_pack(int32_t value, uint8_t* output) {
+size_t varint_int32_pack(int32_t value, uint8_t *output)
+{
     uint32_t v = ((uint32_t)value << 1) ^ (value < 0 ? UINT32_MAX : 0);
 
     return varint_uint32_pack(v, output);
 }
 
-size_t varint_int32_unpack(int32_t* value, const uint8_t* input, size_t input_size) {
+size_t varint_int32_unpack(int32_t *value, const uint8_t *input, size_t input_size)
+{
     uint32_t v;
     size_t size = varint_uint32_unpack(&v, input, input_size);
-    if(size == 0) return 0;
+    if (size == 0)
+        return 0;
 
-    if(v & 1) {
+    if (v & 1) {
         *value = -(int32_t)(v >> 1) - 1;
     } else {
         *value = v / 2;
@@ -56,7 +63,8 @@ size_t varint_int32_unpack(int32_t* value, const uint8_t* input, size_t input_si
     return size;
 }
 
-size_t varint_int32_length(int32_t value) {
+size_t varint_int32_length(int32_t value)
+{
     uint32_t v = ((uint32_t)value << 1) ^ (value < 0 ? UINT32_MAX : 0);
 
     return varint_uint32_length(v);

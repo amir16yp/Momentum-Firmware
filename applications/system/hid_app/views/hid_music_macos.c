@@ -10,8 +10,8 @@
 #define TAG "HidMusicMacos"
 
 struct HidMusicMacos {
-    View* view;
-    Hid* hid;
+    View *view;
+    Hid *hid;
 };
 
 typedef struct {
@@ -24,26 +24,28 @@ typedef struct {
     bool back_pressed;
 } HidMusicMacosModel;
 
-static void hid_music_macos_draw_arrow(Canvas* canvas, uint8_t x, uint8_t y, CanvasDirection dir) {
+static void hid_music_macos_draw_arrow(Canvas *canvas, uint8_t x, uint8_t y, CanvasDirection dir)
+{
     canvas_draw_triangle(canvas, x, y, 5, 3, dir);
-    if(dir == CanvasDirectionBottomToTop) {
+    if (dir == CanvasDirectionBottomToTop) {
         canvas_draw_dot(canvas, x, y - 1);
-    } else if(dir == CanvasDirectionTopToBottom) {
+    } else if (dir == CanvasDirectionTopToBottom) {
         canvas_draw_dot(canvas, x, y + 1);
-    } else if(dir == CanvasDirectionRightToLeft) {
+    } else if (dir == CanvasDirectionRightToLeft) {
         canvas_draw_dot(canvas, x - 1, y);
-    } else if(dir == CanvasDirectionLeftToRight) {
+    } else if (dir == CanvasDirectionLeftToRight) {
         canvas_draw_dot(canvas, x + 1, y);
     }
 }
 
-static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
+static void hid_music_macos_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
-    HidMusicMacosModel* model = context;
+    HidMusicMacosModel *model = context;
 
     // Header
 #ifdef HID_TRANSPORT_BLE
-    if(model->connected) {
+    if (model->connected) {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_connected_15x15);
     } else {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
@@ -58,7 +60,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_draw_icon(canvas, 58, 3, &I_OutCircles_70x51);
 
     // Up
-    if(model->up_pressed) {
+    if (model->up_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 68, 6, &I_S_UP_31x15);
         canvas_set_bitmap_mode(canvas, false);
@@ -68,7 +70,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Down
-    if(model->down_pressed) {
+    if (model->down_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 68, 36, &I_S_DOWN_31x15);
         canvas_set_bitmap_mode(canvas, false);
@@ -78,7 +80,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Left
-    if(model->left_pressed) {
+    if (model->left_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 61, 13, &I_S_LEFT_15x31);
         canvas_set_bitmap_mode(canvas, false);
@@ -90,7 +92,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Right
-    if(model->right_pressed) {
+    if (model->right_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 91, 13, &I_S_RIGHT_15x31);
         canvas_set_bitmap_mode(canvas, false);
@@ -102,7 +104,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Ok
-    if(model->ok_pressed) {
+    if (model->ok_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 74, 19, &I_Pressed_Button_19x19);
         canvas_set_bitmap_mode(canvas, false);
@@ -114,7 +116,7 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Exit
-    if(model->back_pressed) {
+    if (model->back_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 107, 33, &I_Pressed_Button_19x19);
         canvas_set_bitmap_mode(canvas, false);
@@ -128,85 +130,87 @@ static void hid_music_macos_draw_callback(Canvas* canvas, void* context) {
     elements_multiline_text_aligned(canvas, 13, 62, AlignLeft, AlignBottom, "Hold to exit");
 }
 
-static void hid_music_macos_process_press(HidMusicMacos* hid_music_macos, InputEvent* event) {
+static void hid_music_macos_process_press(HidMusicMacos *hid_music_macos, InputEvent *event)
+{
     with_view_model(
-        hid_music_macos->view,
-        HidMusicMacosModel * model,
+        hid_music_macos->view, HidMusicMacosModel * model,
         {
-            if(event->key == InputKeyUp) {
+            if (event->key == InputKeyUp) {
                 model->up_pressed = true;
-                hid_hal_keyboard_press(
-                    hid_music_macos->hid, KEY_MOD_LEFT_GUI | HID_KEYBOARD_UP_ARROW);
-                hid_hal_keyboard_release(
-                    hid_music_macos->hid, KEY_MOD_LEFT_GUI | HID_KEYBOARD_UP_ARROW);
-            } else if(event->key == InputKeyDown) {
+                hid_hal_keyboard_press(hid_music_macos->hid,
+                                       KEY_MOD_LEFT_GUI | HID_KEYBOARD_UP_ARROW);
+                hid_hal_keyboard_release(hid_music_macos->hid,
+                                         KEY_MOD_LEFT_GUI | HID_KEYBOARD_UP_ARROW);
+            } else if (event->key == InputKeyDown) {
                 model->down_pressed = true;
-                hid_hal_keyboard_press(
-                    hid_music_macos->hid, KEY_MOD_LEFT_GUI | HID_KEYBOARD_DOWN_ARROW);
-                hid_hal_keyboard_release(
-                    hid_music_macos->hid, KEY_MOD_LEFT_GUI | HID_KEYBOARD_DOWN_ARROW);
-            } else if(event->key == InputKeyLeft) {
+                hid_hal_keyboard_press(hid_music_macos->hid,
+                                       KEY_MOD_LEFT_GUI | HID_KEYBOARD_DOWN_ARROW);
+                hid_hal_keyboard_release(hid_music_macos->hid,
+                                         KEY_MOD_LEFT_GUI | HID_KEYBOARD_DOWN_ARROW);
+            } else if (event->key == InputKeyLeft) {
                 model->left_pressed = true;
                 hid_hal_consumer_key_press(hid_music_macos->hid, HID_CONSUMER_SCAN_PREVIOUS_TRACK);
-            } else if(event->key == InputKeyRight) {
+            } else if (event->key == InputKeyRight) {
                 model->right_pressed = true;
                 hid_hal_consumer_key_press(hid_music_macos->hid, HID_CONSUMER_SCAN_NEXT_TRACK);
-            } else if(event->key == InputKeyOk) {
+            } else if (event->key == InputKeyOk) {
                 model->ok_pressed = true;
                 hid_hal_consumer_key_press(hid_music_macos->hid, HID_CONSUMER_PLAY_PAUSE);
-            } else if(event->key == InputKeyBack) {
+            } else if (event->key == InputKeyBack) {
                 model->back_pressed = true;
             }
         },
         true);
 }
 
-static void hid_music_macos_process_release(HidMusicMacos* hid_music_macos, InputEvent* event) {
+static void hid_music_macos_process_release(HidMusicMacos *hid_music_macos, InputEvent *event)
+{
     with_view_model(
-        hid_music_macos->view,
-        HidMusicMacosModel * model,
+        hid_music_macos->view, HidMusicMacosModel * model,
         {
-            if(event->key == InputKeyUp) {
+            if (event->key == InputKeyUp) {
                 model->up_pressed = false;
-            } else if(event->key == InputKeyDown) {
+            } else if (event->key == InputKeyDown) {
                 model->down_pressed = false;
-            } else if(event->key == InputKeyLeft) {
+            } else if (event->key == InputKeyLeft) {
                 model->left_pressed = false;
-                hid_hal_consumer_key_release(
-                    hid_music_macos->hid, HID_CONSUMER_SCAN_PREVIOUS_TRACK);
-            } else if(event->key == InputKeyRight) {
+                hid_hal_consumer_key_release(hid_music_macos->hid,
+                                             HID_CONSUMER_SCAN_PREVIOUS_TRACK);
+            } else if (event->key == InputKeyRight) {
                 model->right_pressed = false;
                 hid_hal_consumer_key_release(hid_music_macos->hid, HID_CONSUMER_SCAN_NEXT_TRACK);
-            } else if(event->key == InputKeyOk) {
+            } else if (event->key == InputKeyOk) {
                 model->ok_pressed = false;
                 hid_hal_consumer_key_release(hid_music_macos->hid, HID_CONSUMER_PLAY_PAUSE);
-            } else if(event->key == InputKeyBack) {
+            } else if (event->key == InputKeyBack) {
                 model->back_pressed = false;
             }
         },
         true);
 }
 
-static bool hid_music_macos_input_callback(InputEvent* event, void* context) {
+static bool hid_music_macos_input_callback(InputEvent *event, void *context)
+{
     furi_assert(context);
-    HidMusicMacos* hid_music_macos = context;
+    HidMusicMacos *hid_music_macos = context;
     bool consumed = false;
 
-    if(event->type == InputTypeLong && event->key == InputKeyBack) {
+    if (event->type == InputTypeLong && event->key == InputKeyBack) {
         hid_hal_keyboard_release_all(hid_music_macos->hid);
     } else {
         consumed = true;
-        if(event->type == InputTypePress) {
+        if (event->type == InputTypePress) {
             hid_music_macos_process_press(hid_music_macos, event);
-        } else if(event->type == InputTypeRelease) {
+        } else if (event->type == InputTypeRelease) {
             hid_music_macos_process_release(hid_music_macos, event);
         }
     }
     return consumed;
 }
 
-HidMusicMacos* hid_music_macos_alloc(Hid* hid) {
-    HidMusicMacos* hid_music_macos = malloc(sizeof(HidMusicMacos));
+HidMusicMacos *hid_music_macos_alloc(Hid *hid)
+{
+    HidMusicMacos *hid_music_macos = malloc(sizeof(HidMusicMacos));
     hid_music_macos->view = view_alloc();
     hid_music_macos->hid = hid;
     view_set_context(hid_music_macos->view, hid_music_macos);
@@ -217,18 +221,21 @@ HidMusicMacos* hid_music_macos_alloc(Hid* hid) {
     return hid_music_macos;
 }
 
-void hid_music_macos_free(HidMusicMacos* hid_music_macos) {
+void hid_music_macos_free(HidMusicMacos *hid_music_macos)
+{
     furi_assert(hid_music_macos);
     view_free(hid_music_macos->view);
     free(hid_music_macos);
 }
 
-View* hid_music_macos_get_view(HidMusicMacos* hid_music_macos) {
+View *hid_music_macos_get_view(HidMusicMacos *hid_music_macos)
+{
     furi_assert(hid_music_macos);
     return hid_music_macos->view;
 }
 
-void hid_music_macos_set_connected_status(HidMusicMacos* hid_music_macos, bool connected) {
+void hid_music_macos_set_connected_status(HidMusicMacos *hid_music_macos, bool connected)
+{
     furi_assert(hid_music_macos);
     with_view_model(
         hid_music_macos->view, HidMusicMacosModel * model, { model->connected = connected; }, true);

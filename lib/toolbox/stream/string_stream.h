@@ -8,9 +8,9 @@ extern "C" {
 
 /**
  * Allocate string stream
- * @return Stream* 
+ * @return Stream*
  */
-Stream* string_stream_alloc(void);
+Stream *string_stream_alloc(void);
 
 #ifdef __cplusplus
 }

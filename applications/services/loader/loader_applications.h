@@ -7,9 +7,9 @@ extern "C" {
 
 typedef struct LoaderApplications LoaderApplications;
 
-LoaderApplications* loader_applications_alloc(void (*closed_cb)(void*), void* context);
+LoaderApplications *loader_applications_alloc(void (*closed_cb)(void *), void *context);
 
-void loader_applications_free(LoaderApplications* loader_applications);
+void loader_applications_free(LoaderApplications *loader_applications);
 
 #ifdef __cplusplus
 }

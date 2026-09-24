@@ -3,7 +3,7 @@
  * Tariffs research by DNZ1393
  *
  * Copyright 2023 Leptoptilos <leptoptilos@icloud.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,10 +29,11 @@
 #define TRIP_SECTOR_NUM (4)
 #define INFO_SECTOR_NUM (15)
 
-bool parse_online_card_tariff(uint16_t tariff_num, FuriString* tariff_name) {
+bool parse_online_card_tariff(uint16_t tariff_num, FuriString *tariff_name)
+{
     bool tariff_parsed = false;
 
-    switch(tariff_num) {
+    switch (tariff_num) {
     case 0x0100:
         furi_string_set_str(tariff_name, "Standart (online)");
         tariff_parsed = true;
@@ -71,10 +72,11 @@ bool parse_online_card_tariff(uint16_t tariff_num, FuriString* tariff_name) {
     return tariff_parsed;
 }
 
-static bool zolotaya_korona_online_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool zolotaya_korona_online_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
     bool parsed = false;
 
@@ -84,19 +86,22 @@ static bool zolotaya_korona_online_parse(const NfcDevice* device, FuriString* pa
             mf_classic_get_first_block_num_of_sector(TRIP_SECTOR_NUM);
         const uint8_t start_info_block_number =
             mf_classic_get_first_block_num_of_sector(INFO_SECTOR_NUM);
-        const uint8_t* block_start_ptr = &data->block[start_info_block_number].data[3];
+        const uint8_t *block_start_ptr = &data->block[start_info_block_number].data[3];
 
         // Validate card number
         bool is_bcd;
         const uint16_t card_number_prefix = bit_lib_bytes_to_num_bcd(block_start_ptr, 2, &is_bcd);
-        if(!is_bcd) break;
-        if(card_number_prefix != 9643) break;
+        if (!is_bcd)
+            break;
+        if (card_number_prefix != 9643)
+            break;
         const uint64_t card_number_postfix =
             bit_lib_bytes_to_num_bcd(block_start_ptr + 2, 8, &is_bcd) / 10;
-        if(!is_bcd) break;
+        if (!is_bcd)
+            break;
 
         // Parse data
-        FuriString* tariff_name = furi_string_alloc();
+        FuriString *tariff_name = furi_string_alloc();
 
         block_start_ptr = &data->block[start_info_block_number].data[1];
         const uint16_t tariff = bit_lib_bytes_to_num_be(block_start_ptr, 2);
@@ -108,17 +113,13 @@ static bool zolotaya_korona_online_parse(const NfcDevice* device, FuriString* pa
         furi_string_cat_printf(
             parsed_data,
             "\e#Zolotaya korona\nCard number: %u%015llu\nTariff: %02X.%02X: %s\nRegion: %u\n",
-            card_number_prefix,
-            card_number_postfix,
-            tariff / 256,
-            tariff % 256,
-            furi_string_get_cstr(tariff_name),
-            region_number);
+            card_number_prefix, card_number_postfix, tariff / 256, tariff % 256,
+            furi_string_get_cstr(tariff_name), region_number);
 
         furi_string_free(tariff_name);
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -139,6 +140,7 @@ static const FlipperAppPluginDescriptor zolotaya_korona_online_plugin_descriptor
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* zolotaya_korona_online_plugin_ep(void) {
+const FlipperAppPluginDescriptor *zolotaya_korona_online_plugin_ep(void)
+{
     return &zolotaya_korona_online_plugin_descriptor;
 }

@@ -4,6 +4,6 @@
 
 struct SubGhzKeystore {
     SubGhzKeyArray_t data;
-    const char* mfname;
+    const char *mfname;
     uint8_t kl_type;
 };

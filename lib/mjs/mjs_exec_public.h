@@ -13,19 +13,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
-mjs_err_t mjs_exec(struct mjs*, const char* src, mjs_val_t* res);
+mjs_err_t mjs_exec(struct mjs *, const char *src, mjs_val_t *res);
 
-mjs_err_t mjs_exec_file(struct mjs* mjs, const char* path, mjs_val_t* res);
-mjs_err_t mjs_apply(
-    struct mjs* mjs,
-    mjs_val_t* res,
-    mjs_val_t func,
-    mjs_val_t this_val,
-    int nargs,
-    mjs_val_t* args);
-mjs_err_t
-    mjs_call(struct mjs* mjs, mjs_val_t* res, mjs_val_t func, mjs_val_t this_val, int nargs, ...);
-mjs_val_t mjs_get_this(struct mjs* mjs);
+mjs_err_t mjs_exec_file(struct mjs *mjs, const char *path, mjs_val_t *res);
+mjs_err_t mjs_apply(struct mjs *mjs, mjs_val_t *res, mjs_val_t func, mjs_val_t this_val, int nargs,
+                    mjs_val_t *args);
+mjs_err_t mjs_call(struct mjs *mjs, mjs_val_t *res, mjs_val_t func, mjs_val_t this_val, int nargs,
+                   ...);
+mjs_val_t mjs_get_this(struct mjs *mjs);
 
 #if defined(__cplusplus)
 }

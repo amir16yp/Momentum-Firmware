@@ -17,8 +17,9 @@ const CanvasFontParameters canvas_font_params[FontTotalNumber] = {
     [FontBatteryPercent] = {.leading_default = 11, .leading_min = 9, .height = 6, .descender = 0},
 };
 
-Canvas* canvas_init(void) {
-    Canvas* canvas = malloc(sizeof(Canvas));
+Canvas *canvas_init(void)
+{
+    Canvas *canvas = malloc(sizeof(Canvas));
     canvas->compress_icon = compress_icon_alloc(ICON_DECOMPRESSOR_BUFFER_SIZE);
 
     // Initialize mutex
@@ -42,7 +43,8 @@ Canvas* canvas_init(void) {
     return canvas;
 }
 
-void canvas_free(Canvas* canvas) {
+void canvas_free(Canvas *canvas)
+{
     furi_check(canvas);
     compress_icon_free(canvas->compress_icon);
     CanvasCallbackPairArray_clear(canvas->canvas_callback_pair);
@@ -50,17 +52,20 @@ void canvas_free(Canvas* canvas) {
     free(canvas);
 }
 
-static void canvas_lock(Canvas* canvas) {
+static void canvas_lock(Canvas *canvas)
+{
     furi_assert(canvas);
     furi_check(furi_mutex_acquire(canvas->mutex, FuriWaitForever) == FuriStatusOk);
 }
 
-static void canvas_unlock(Canvas* canvas) {
+static void canvas_unlock(Canvas *canvas)
+{
     furi_assert(canvas);
     furi_check(furi_mutex_release(canvas->mutex) == FuriStatusOk);
 }
 
-void canvas_reset(Canvas* canvas) {
+void canvas_reset(Canvas *canvas)
+{
     furi_check(canvas);
 
     canvas_clear(canvas);
@@ -70,39 +75,37 @@ void canvas_reset(Canvas* canvas) {
     canvas_set_font_direction(canvas, CanvasDirectionLeftToRight);
 }
 
-void canvas_commit(Canvas* canvas) {
+void canvas_commit(Canvas *canvas)
+{
     furi_check(canvas);
     u8g2_SendBuffer(&canvas->fb);
 
     // Iterate over callbacks
     canvas_lock(canvas);
     for
-        M_EACH(p, canvas->canvas_callback_pair, CanvasCallbackPairArray_t) {
-            p->callback(
-                canvas_get_buffer(canvas),
-                canvas_get_buffer_size(canvas),
-                canvas_get_orientation(canvas),
-                p->context);
+        M_EACH(p, canvas->canvas_callback_pair, CanvasCallbackPairArray_t)
+        {
+            p->callback(canvas_get_buffer(canvas), canvas_get_buffer_size(canvas),
+                        canvas_get_orientation(canvas), p->context);
         }
     canvas_unlock(canvas);
 }
 
-uint8_t* canvas_get_buffer(Canvas* canvas) {
+uint8_t *canvas_get_buffer(Canvas *canvas)
+{
     furi_check(canvas);
     return u8g2_GetBufferPtr(&canvas->fb);
 }
 
-size_t canvas_get_buffer_size(const Canvas* canvas) {
+size_t canvas_get_buffer_size(const Canvas *canvas)
+{
     furi_check(canvas);
     return u8g2_GetBufferTileWidth(&canvas->fb) * u8g2_GetBufferTileHeight(&canvas->fb) * 8;
 }
 
-void canvas_frame_set(
-    Canvas* canvas,
-    int32_t offset_x,
-    int32_t offset_y,
-    size_t width,
-    size_t height) {
+void canvas_frame_set(Canvas *canvas, int32_t offset_x, int32_t offset_y, size_t width,
+                      size_t height)
+{
     furi_check(canvas);
     canvas->offset_x = offset_x;
     canvas->offset_y = offset_y;
@@ -110,69 +113,78 @@ void canvas_frame_set(
     canvas->height = height;
 }
 
-size_t canvas_width(const Canvas* canvas) {
+size_t canvas_width(const Canvas *canvas)
+{
     furi_check(canvas);
     return canvas->width;
 }
 
-size_t canvas_height(const Canvas* canvas) {
+size_t canvas_height(const Canvas *canvas)
+{
     furi_check(canvas);
     return canvas->height;
 }
 
-size_t canvas_current_font_height(const Canvas* canvas) {
+size_t canvas_current_font_height(const Canvas *canvas)
+{
     furi_check(canvas);
     size_t font_height = u8g2_GetMaxCharHeight(&canvas->fb);
 
-    if(canvas->fb.font == u8g2_font_haxrcorp4089_tr) {
+    if (canvas->fb.font == u8g2_font_haxrcorp4089_tr) {
         font_height += 1;
     }
 
     return font_height;
 }
 
-size_t canvas_current_font_width(const Canvas* canvas) {
+size_t canvas_current_font_width(const Canvas *canvas)
+{
     furi_check(canvas);
     return u8g2_GetMaxCharWidth(&canvas->fb);
 }
 
-const CanvasFontParameters* canvas_get_font_params(const Canvas* canvas, Font font) {
+const CanvasFontParameters *canvas_get_font_params(const Canvas *canvas, Font font)
+{
     furi_check(canvas);
     furi_check(font < FontTotalNumber);
-    if(asset_packs && asset_packs->font_params[font]) {
+    if (asset_packs && asset_packs->font_params[font]) {
         return asset_packs->font_params[font];
     }
     return &canvas_font_params[font];
 }
 
-void canvas_clear(Canvas* canvas) {
+void canvas_clear(Canvas *canvas)
+{
     furi_check(canvas);
-    if(momentum_settings.dark_mode) {
+    if (momentum_settings.dark_mode) {
         u8g2_FillBuffer(&canvas->fb);
     } else {
         u8g2_ClearBuffer(&canvas->fb);
     }
 }
 
-void canvas_set_color(Canvas* canvas, Color color) {
+void canvas_set_color(Canvas *canvas, Color color)
+{
     furi_check(canvas);
-    if(momentum_settings.dark_mode) {
-        if(color == ColorBlack) {
+    if (momentum_settings.dark_mode) {
+        if (color == ColorBlack) {
             color = ColorWhite;
-        } else if(color == ColorWhite) {
+        } else if (color == ColorWhite) {
             color = ColorBlack;
         }
     }
     u8g2_SetDrawColor(&canvas->fb, color);
 }
 
-void canvas_set_font_direction(Canvas* canvas, CanvasDirection dir) {
+void canvas_set_font_direction(Canvas *canvas, CanvasDirection dir)
+{
     furi_check(canvas);
     u8g2_SetFontDirection(&canvas->fb, dir);
 }
 
-void canvas_invert_color(Canvas* canvas) {
-    if(canvas->fb.draw_color == ColorXOR && momentum_settings.dark_mode) {
+void canvas_invert_color(Canvas *canvas)
+{
+    if (canvas->fb.draw_color == ColorXOR && momentum_settings.dark_mode) {
         // XOR is 0x02, invert changes it to 0x00 which is White
         // Basically like resetting to background color
         // In Dark Mode, background color is Black instead
@@ -182,14 +194,15 @@ void canvas_invert_color(Canvas* canvas) {
     }
 }
 
-void canvas_set_font(Canvas* canvas, Font font) {
+void canvas_set_font(Canvas *canvas, Font font)
+{
     furi_check(canvas);
     u8g2_SetFontMode(&canvas->fb, 1);
-    if(asset_packs && asset_packs->fonts[font]) {
+    if (asset_packs && asset_packs->fonts[font]) {
         u8g2_SetFont(&canvas->fb, asset_packs->fonts[font]);
         return;
     }
-    switch(font) {
+    switch (font) {
     case FontPrimary:
         u8g2_SetFont(&canvas->fb, u8g2_font_helvB08_tr);
         break;
@@ -203,7 +216,7 @@ void canvas_set_font(Canvas* canvas, Font font) {
         u8g2_SetFont(&canvas->fb, u8g2_font_profont22_tn);
         break;
     case FontBatteryPercent:
-        u8g2_SetFont(&canvas->fb, u8g2_font_5x7_tr); //u8g2_font_micro_tr);
+        u8g2_SetFont(&canvas->fb, u8g2_font_5x7_tr); // u8g2_font_micro_tr);
         break;
     default:
         furi_crash();
@@ -211,33 +224,33 @@ void canvas_set_font(Canvas* canvas, Font font) {
     }
 }
 
-void canvas_set_custom_u8g2_font(Canvas* canvas, const uint8_t* font) {
+void canvas_set_custom_u8g2_font(Canvas *canvas, const uint8_t *font)
+{
     furi_check(canvas);
     u8g2_SetFontMode(&canvas->fb, 1);
     u8g2_SetFont(&canvas->fb, font);
 }
 
-void canvas_draw_str(Canvas* canvas, int32_t x, int32_t y, const char* str) {
+void canvas_draw_str(Canvas *canvas, int32_t x, int32_t y, const char *str)
+{
     furi_check(canvas);
-    if(!str) return;
+    if (!str)
+        return;
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawUTF8(&canvas->fb, x, y, str);
 }
 
-void canvas_draw_str_aligned(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    Align horizontal,
-    Align vertical,
-    const char* str) {
+void canvas_draw_str_aligned(Canvas *canvas, int32_t x, int32_t y, Align horizontal, Align vertical,
+                             const char *str)
+{
     furi_check(canvas);
-    if(!str) return;
+    if (!str)
+        return;
     x += canvas->offset_x;
     y += canvas->offset_y;
 
-    switch(horizontal) {
+    switch (horizontal) {
     case AlignLeft:
         break;
     case AlignRight:
@@ -251,7 +264,7 @@ void canvas_draw_str_aligned(
         break;
     }
 
-    switch(vertical) {
+    switch (vertical) {
     case AlignTop:
         y += u8g2_GetAscent(&canvas->fb);
         break;
@@ -268,40 +281,35 @@ void canvas_draw_str_aligned(
     u8g2_DrawUTF8(&canvas->fb, x, y, str);
 }
 
-uint16_t canvas_string_width(Canvas* canvas, const char* str) {
+uint16_t canvas_string_width(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
-    if(!str) return 0;
+    if (!str)
+        return 0;
     return u8g2_GetUTF8Width(&canvas->fb, str);
 }
 
-size_t canvas_glyph_width(Canvas* canvas, uint16_t symbol) {
+size_t canvas_glyph_width(Canvas *canvas, uint16_t symbol)
+{
     furi_check(canvas);
     return u8g2_GetGlyphWidth(&canvas->fb, symbol);
 }
 
-void canvas_draw_bitmap(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    const uint8_t* compressed_bitmap_data) {
+void canvas_draw_bitmap(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        const uint8_t *compressed_bitmap_data)
+{
     furi_check(canvas);
 
     x += canvas->offset_x;
     y += canvas->offset_y;
-    uint8_t* bitmap_data = NULL;
+    uint8_t *bitmap_data = NULL;
     compress_icon_decode(canvas->compress_icon, compressed_bitmap_data, &bitmap_data);
     canvas_draw_u8g2_bitmap(&canvas->fb, x, y, width, height, bitmap_data, IconRotation0);
 }
 
-static void _canvas_draw_icon_animation(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    int32_t width_scale,
-    int32_t height_scale,
-    IconAnimation* icon_animation) {
+static void _canvas_draw_icon_animation(Canvas *canvas, int32_t x, int32_t y, int32_t width_scale,
+                                        int32_t height_scale, IconAnimation *icon_animation)
+{
     furi_check(canvas);
     furi_check(icon_animation);
     // Ensure scale % is > 0
@@ -313,59 +321,47 @@ static void _canvas_draw_icon_animation(
     x += canvas->offset_x;
     y += canvas->offset_y;
 
-    uint8_t* icon_data = NULL;
-    compress_icon_decode(
-        canvas->compress_icon, icon_animation_get_data(icon_animation), &icon_data);
+    uint8_t *icon_data = NULL;
+    compress_icon_decode(canvas->compress_icon, icon_animation_get_data(icon_animation),
+                         &icon_data);
 
     int32_t width = icon_animation_get_width(icon_animation);
     int32_t height = icon_animation_get_height(icon_animation);
     int32_t width_scaled = (width * width_scale) / 100;
     int32_t height_scaled = (height * height_scale) / 100;
 
-    canvas_draw_u8g2_bitmap(
-        &canvas->fb, x, y, width_scaled, height_scaled, icon_data, IconRotation0);
+    canvas_draw_u8g2_bitmap(&canvas->fb, x, y, width_scaled, height_scaled, icon_data,
+                            IconRotation0);
 }
 
-void canvas_draw_icon_animation(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    IconAnimation* icon_animation) {
+void canvas_draw_icon_animation(Canvas *canvas, int32_t x, int32_t y, IconAnimation *icon_animation)
+{
     _canvas_draw_icon_animation(canvas, x, y, 100, 100, icon_animation);
 }
 
-void canvas_draw_icon_animation_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    int32_t width_scale,
-    int32_t height_scale,
-    IconAnimation* icon_animation) {
+void canvas_draw_icon_animation_ex(Canvas *canvas, int32_t x, int32_t y, int32_t width_scale,
+                                   int32_t height_scale, IconAnimation *icon_animation)
+{
     _canvas_draw_icon_animation(canvas, x, y, width_scale, height_scale, icon_animation);
 }
 
-static void canvas_draw_u8g2_bitmap_int(
-    u8g2_t* u8g2,
-    u8g2_uint_t x,
-    u8g2_uint_t y,
-    u8g2_uint_t w,
-    u8g2_uint_t h,
-    bool mirror,
-    bool rotation,
-    const uint8_t* bitmap) {
+static void canvas_draw_u8g2_bitmap_int(u8g2_t *u8g2, u8g2_uint_t x, u8g2_uint_t y, u8g2_uint_t w,
+                                        u8g2_uint_t h, bool mirror, bool rotation,
+                                        const uint8_t *bitmap)
+{
     u8g2_uint_t blen;
     blen = w;
     blen += 7;
     blen >>= 3;
 
-    if(rotation && !mirror) {
+    if (rotation && !mirror) {
         x += w + 1;
-    } else if(mirror && !rotation) {
+    } else if (mirror && !rotation) {
         y += h - 1;
     }
 
-    while(h > 0) {
-        const uint8_t* b = bitmap;
+    while (h > 0) {
+        const uint8_t *b = bitmap;
         uint16_t len = w;
         uint16_t x0 = x;
         uint16_t y0 = y;
@@ -374,23 +370,23 @@ static void canvas_draw_u8g2_bitmap_int(
         uint8_t ncolor = (color == 0 ? 1 : 0);
         mask = 1;
 
-        while(len > 0) {
-            if(u8x8_pgm_read(b) & mask) {
+        while (len > 0) {
+            if (u8x8_pgm_read(b) & mask) {
                 u8g2->draw_color = color;
                 u8g2_DrawHVLine(u8g2, x0, y0, 1, 0);
-            } else if(u8g2->bitmap_transparency == 0) {
+            } else if (u8g2->bitmap_transparency == 0) {
                 u8g2->draw_color = ncolor;
                 u8g2_DrawHVLine(u8g2, x0, y0, 1, 0);
             }
 
-            if(rotation) {
+            if (rotation) {
                 y0++;
             } else {
                 x0++;
             }
 
             mask <<= 1;
-            if(mask == 0) {
+            if (mask == 0) {
                 mask = 1;
                 b++;
             }
@@ -400,14 +396,14 @@ static void canvas_draw_u8g2_bitmap_int(
         u8g2->draw_color = color;
         bitmap += blen;
 
-        if(mirror) {
-            if(rotation) {
+        if (mirror) {
+            if (rotation) {
                 x++;
             } else {
                 y--;
             }
         } else {
-            if(rotation) {
+            if (rotation) {
                 x--;
             } else {
                 y++;
@@ -417,19 +413,15 @@ static void canvas_draw_u8g2_bitmap_int(
     }
 }
 
-void canvas_draw_u8g2_bitmap(
-    u8g2_t* u8g2,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    const uint8_t* bitmap,
-    IconRotation rotation) {
+void canvas_draw_u8g2_bitmap(u8g2_t *u8g2, int32_t x, int32_t y, size_t width, size_t height,
+                             const uint8_t *bitmap, IconRotation rotation)
+{
 #ifdef U8G2_WITH_INTERSECTION
-    if(u8g2_IsIntersection(u8g2, x, y, x + width, y + height) == 0) return;
+    if (u8g2_IsIntersection(u8g2, x, y, x + width, y + height) == 0)
+        return;
 #endif /* U8G2_WITH_INTERSECTION */
 
-    switch(rotation) {
+    switch (rotation) {
     case IconRotation0:
         canvas_draw_u8g2_bitmap_int(u8g2, x, y, width, height, 0, 0, bitmap);
         break;
@@ -447,53 +439,53 @@ void canvas_draw_u8g2_bitmap(
     }
 }
 
-void canvas_draw_icon_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    const Icon* icon,
-    IconRotation rotation) {
+void canvas_draw_icon_ex(Canvas *canvas, int32_t x, int32_t y, const Icon *icon,
+                         IconRotation rotation)
+{
     furi_check(canvas);
     furi_check(icon);
 
     x += canvas->offset_x;
     y += canvas->offset_y;
-    uint8_t* icon_data = NULL;
+    uint8_t *icon_data = NULL;
     icon = asset_packs_swap_icon(icon);
     compress_icon_decode(canvas->compress_icon, icon_get_frame_data(icon, 0), &icon_data);
-    canvas_draw_u8g2_bitmap(
-        &canvas->fb, x, y, icon_get_width(icon), icon_get_height(icon), icon_data, rotation);
+    canvas_draw_u8g2_bitmap(&canvas->fb, x, y, icon_get_width(icon), icon_get_height(icon),
+                            icon_data, rotation);
 }
 
-void canvas_draw_icon(Canvas* canvas, int32_t x, int32_t y, const Icon* icon) {
+void canvas_draw_icon(Canvas *canvas, int32_t x, int32_t y, const Icon *icon)
+{
     furi_check(canvas);
     furi_check(icon);
 
     x += canvas->offset_x;
     y += canvas->offset_y;
-    uint8_t* icon_data = NULL;
+    uint8_t *icon_data = NULL;
     icon = asset_packs_swap_icon(icon);
     compress_icon_decode(canvas->compress_icon, icon_get_frame_data(icon, 0), &icon_data);
-    canvas_draw_u8g2_bitmap(
-        &canvas->fb, x, y, icon_get_width(icon), icon_get_height(icon), icon_data, IconRotation0);
+    canvas_draw_u8g2_bitmap(&canvas->fb, x, y, icon_get_width(icon), icon_get_height(icon),
+                            icon_data, IconRotation0);
 }
 
-void canvas_draw_dot(Canvas* canvas, int32_t x, int32_t y) {
+void canvas_draw_dot(Canvas *canvas, int32_t x, int32_t y)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawPixel(&canvas->fb, x, y);
 }
 
-void canvas_draw_overlay(Canvas* canvas) {
+void canvas_draw_overlay(Canvas *canvas)
+{
     furi_check(canvas);
     uint8_t original = canvas->fb.draw_color;
     canvas_set_color(canvas, ColorWhite);
-    for(size_t j = 0; j < canvas->height; j++) {
+    for (size_t j = 0; j < canvas->height; j++) {
         bool draw_pixel = (j % 2) == 0;
-        for(size_t i = 0; i < canvas->width; i += 2) {
+        for (size_t i = 0; i < canvas->width; i += 2) {
             size_t x = i + (draw_pixel ? 0 : 1);
-            if(x < canvas->width) {
+            if (x < canvas->width) {
                 canvas_draw_dot(canvas, x, j);
             }
         }
@@ -501,47 +493,42 @@ void canvas_draw_overlay(Canvas* canvas) {
     canvas->fb.draw_color = original;
 }
 
-void canvas_draw_box(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height) {
+void canvas_draw_box(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawBox(&canvas->fb, x, y, width, height);
 }
 
-void canvas_draw_rbox(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    size_t radius) {
+void canvas_draw_rbox(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                      size_t radius)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawRBox(&canvas->fb, x, y, width, height, radius);
 }
 
-void canvas_draw_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height) {
+void canvas_draw_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawFrame(&canvas->fb, x, y, width, height);
 }
 
-void canvas_draw_rframe(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    size_t radius) {
+void canvas_draw_rframe(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        size_t radius)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawRFrame(&canvas->fb, x, y, width, height, radius);
 }
 
-void canvas_draw_line(Canvas* canvas, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
+void canvas_draw_line(Canvas *canvas, int32_t x1, int32_t y1, int32_t x2, int32_t y2)
+{
     furi_check(canvas);
     x1 += canvas->offset_x;
     y1 += canvas->offset_y;
@@ -550,89 +537,81 @@ void canvas_draw_line(Canvas* canvas, int32_t x1, int32_t y1, int32_t x2, int32_
     u8g2_DrawLine(&canvas->fb, x1, y1, x2, y2);
 }
 
-void canvas_draw_circle(Canvas* canvas, int32_t x, int32_t y, size_t radius) {
+void canvas_draw_circle(Canvas *canvas, int32_t x, int32_t y, size_t radius)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawCircle(&canvas->fb, x, y, radius, U8G2_DRAW_ALL);
 }
 
-void canvas_draw_disc(Canvas* canvas, int32_t x, int32_t y, size_t radius) {
+void canvas_draw_disc(Canvas *canvas, int32_t x, int32_t y, size_t radius)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawDisc(&canvas->fb, x, y, radius, U8G2_DRAW_ALL);
 }
 
-void canvas_draw_triangle(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t base,
-    size_t height,
-    CanvasDirection dir) {
+void canvas_draw_triangle(Canvas *canvas, int32_t x, int32_t y, size_t base, size_t height,
+                          CanvasDirection dir)
+{
     furi_check(canvas);
-    if(dir == CanvasDirectionBottomToTop) {
+    if (dir == CanvasDirectionBottomToTop) {
         canvas_draw_line(canvas, x - base / 2, y, x + base / 2, y);
         canvas_draw_line(canvas, x - base / 2, y, x, y - height + 1);
         canvas_draw_line(canvas, x, y - height + 1, x + base / 2, y);
-    } else if(dir == CanvasDirectionTopToBottom) {
+    } else if (dir == CanvasDirectionTopToBottom) {
         canvas_draw_line(canvas, x - base / 2, y, x + base / 2, y);
         canvas_draw_line(canvas, x - base / 2, y, x, y + height - 1);
         canvas_draw_line(canvas, x, y + height - 1, x + base / 2, y);
-    } else if(dir == CanvasDirectionRightToLeft) {
+    } else if (dir == CanvasDirectionRightToLeft) {
         canvas_draw_line(canvas, x, y - base / 2, x, y + base / 2);
         canvas_draw_line(canvas, x, y - base / 2, x - height + 1, y);
         canvas_draw_line(canvas, x - height + 1, y, x, y + base / 2);
-    } else if(dir == CanvasDirectionLeftToRight) {
+    } else if (dir == CanvasDirectionLeftToRight) {
         canvas_draw_line(canvas, x, y - base / 2, x, y + base / 2);
         canvas_draw_line(canvas, x, y - base / 2, x + height - 1, y);
         canvas_draw_line(canvas, x + height - 1, y, x, y + base / 2);
     }
 }
 
-void canvas_draw_xbm(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    const uint8_t* bitmap) {
+void canvas_draw_xbm(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                     const uint8_t *bitmap)
+{
     furi_check(canvas);
     canvas_draw_xbm_ex(canvas, x, y, width, height, IconRotation0, bitmap);
 }
 
-void canvas_draw_xbm_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    IconRotation rotation,
-    const uint8_t* bitmap_data) {
+void canvas_draw_xbm_ex(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        IconRotation rotation, const uint8_t *bitmap_data)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     canvas_draw_u8g2_bitmap(&canvas->fb, x, y, width, height, bitmap_data, rotation);
 }
 
-void canvas_draw_glyph(Canvas* canvas, int32_t x, int32_t y, uint16_t ch) {
+void canvas_draw_glyph(Canvas *canvas, int32_t x, int32_t y, uint16_t ch)
+{
     furi_check(canvas);
     x += canvas->offset_x;
     y += canvas->offset_y;
     u8g2_DrawGlyph(&canvas->fb, x, y, ch);
 }
 
-void canvas_set_bitmap_mode(Canvas* canvas, bool alpha) {
+void canvas_set_bitmap_mode(Canvas *canvas, bool alpha)
+{
     u8g2_SetBitmapMode(&canvas->fb, alpha ? 1 : 0);
 }
 
-void canvas_set_orientation(Canvas* canvas, CanvasOrientation orientation) {
+void canvas_set_orientation(Canvas *canvas, CanvasOrientation orientation)
+{
     furi_check(canvas);
-    const u8g2_cb_t* rotate_cb = NULL;
+    const u8g2_cb_t *rotate_cb = NULL;
     bool need_swap = false;
-    if(canvas->orientation != orientation) {
-        switch(orientation) {
+    if (canvas->orientation != orientation) {
+        switch (orientation) {
         case CanvasOrientationHorizontal:
             need_swap = canvas->orientation == CanvasOrientationVertical ||
                         canvas->orientation == CanvasOrientationVerticalFlip;
@@ -657,17 +636,20 @@ void canvas_set_orientation(Canvas* canvas, CanvasOrientation orientation) {
             furi_crash();
         }
 
-        if(need_swap) FURI_SWAP(canvas->width, canvas->height);
+        if (need_swap)
+            FURI_SWAP(canvas->width, canvas->height);
         u8g2_SetDisplayRotation(&canvas->fb, rotate_cb);
         canvas->orientation = orientation;
     }
 }
 
-CanvasOrientation canvas_get_orientation(const Canvas* canvas) {
+CanvasOrientation canvas_get_orientation(const Canvas *canvas)
+{
     return canvas->orientation;
 }
 
-void canvas_add_framebuffer_callback(Canvas* canvas, CanvasCommitCallback callback, void* context) {
+void canvas_add_framebuffer_callback(Canvas *canvas, CanvasCommitCallback callback, void *context)
+{
     furi_check(canvas);
 
     const CanvasCallbackPair p = {callback, context};
@@ -678,10 +660,9 @@ void canvas_add_framebuffer_callback(Canvas* canvas, CanvasCommitCallback callba
     canvas_unlock(canvas);
 }
 
-void canvas_remove_framebuffer_callback(
-    Canvas* canvas,
-    CanvasCommitCallback callback,
-    void* context) {
+void canvas_remove_framebuffer_callback(Canvas *canvas, CanvasCommitCallback callback,
+                                        void *context)
+{
     furi_check(canvas);
 
     const CanvasCallbackPair p = {callback, context};

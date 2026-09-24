@@ -9,8 +9,8 @@
  * Analysis using Genuino (see http://gitlab.com/hp-uno, e.g. uno_log_433):
  * Observed On-Off-Key (OOK) data pattern:
  *     preamble            syncPrefix        data...(40 bit)                        syncPostfix
- *     HHLL HHLL HHLL HHLL HLLLLLLLLLLLLLLLL (HLLLL HLLLLLLLL HLLLL HLLLLLLLL ....) HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
- * Breakdown:
+ *     HHLL HHLL HHLL HHLL HLLLLLLLLLLLLLLLL (HLLLL HLLLLLLLL HLLLL HLLLLLLLL ....)
+ * HLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL Breakdown:
  * - four preamble pairs '1'/'0' each with a length of ca. 1000us
  * - syncPre, syncPost, data0, data1 have a '1' start pulse of ca. 500us
  * - syncPre pulse before dataPtr has a '0' pulse length of ca. 8000us
@@ -19,7 +19,7 @@
  * - syncPost after dataPtr has a '0' pulse length of ca. 16000us
  * This analysis is the reason for the new r_device definitions below.
  * NB: pulse_slicer_ppm does not use .gap_limit if .tolerance is set.
- * 
+ *
  * Outdoor sensor, transmits temperature and humidity data
  * - inFactory NC-3982-913/NX-5817-902, Pearl (for FWS-686 station)
  * - nor-tec 73383 (weather station + sensor), Schou Company AS, Denmark
@@ -35,7 +35,7 @@
  * - h: Humidity; BCD-encoded, each nibble is one digit, 'A0' means 100%rH
  * - t: Temperature; in °F as binary number with one decimal place + 90 °F offset
  * - n: Channel; Channel number 1 - 3
- * 
+ *
  */
 
 static const SubGhzBlockConst ws_protocol_infactory_const = {
@@ -105,38 +105,40 @@ const SubGhzProtocol ws_protocol_infactory = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_infactory_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_infactory_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderInfactory* instance = malloc(sizeof(WSProtocolDecoderInfactory));
+    WSProtocolDecoderInfactory *instance = malloc(sizeof(WSProtocolDecoderInfactory));
     instance->base.protocol = &ws_protocol_infactory;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_infactory_free(void* context) {
+void ws_protocol_decoder_infactory_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_infactory_reset(void* context) {
+void ws_protocol_decoder_infactory_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
     instance->decoder.parser_step = InfactoryDecoderStepReset;
 }
 
-static bool ws_protocol_infactory_check_crc(WSProtocolDecoderInfactory* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 32,
-        (((instance->decoder.decode_data >> 24) & 0x0F) | (instance->decoder.decode_data & 0x0F)
-                                                              << 4),
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8,
-        instance->decoder.decode_data};
+static bool ws_protocol_infactory_check_crc(WSProtocolDecoderInfactory *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 32,
+                     (((instance->decoder.decode_data >> 24) & 0x0F) |
+                      (instance->decoder.decode_data & 0x0F) << 4),
+                     instance->decoder.decode_data >> 16, instance->decoder.decode_data >> 8,
+                     instance->decoder.decode_data};
 
     uint8_t crc =
         subghz_protocol_blocks_crc4(msg, 4, 0x13, 0); // Koopmann 0x9, CCITT-4; FP-4; ITU-T G.704
-    crc ^= msg[4] >> 4; // last nibble is only XORed
+    crc ^= msg[4] >> 4;                               // last nibble is only XORed
     return (crc == ((instance->decoder.decode_data >> 28) & 0x0F));
 }
 
@@ -144,7 +146,8 @@ static bool ws_protocol_infactory_check_crc(WSProtocolDecoderInfactory* instance
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_infactory_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_infactory_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = instance->data >> 32;
     instance->battery_low = (instance->data >> 26) & 1;
     instance->btn = WS_NO_BTN;
@@ -155,14 +158,15 @@ static void ws_protocol_infactory_remote_controller(WSBlockGeneric* instance) {
     instance->channel = instance->data & 0x03;
 }
 
-void ws_protocol_decoder_infactory_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_infactory_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case InfactoryDecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 2) <
-                       ws_protocol_infactory_const.te_delta * 2)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 2) <
+                        ws_protocol_infactory_const.te_delta * 2)) {
             instance->decoder.parser_step = InfactoryDecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -170,22 +174,23 @@ void ws_protocol_decoder_infactory_feed(void* context, bool level, uint32_t dura
         break;
 
     case InfactoryDecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(instance->decoder.te_last, ws_protocol_infactory_const.te_short * 2) <
-                ws_protocol_infactory_const.te_delta * 2) &&
-               (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 2) <
-                ws_protocol_infactory_const.te_delta * 2)) {
-                //Found preambule
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               ws_protocol_infactory_const.te_short * 2) <
+                 ws_protocol_infactory_const.te_delta * 2) &&
+                (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 2) <
+                 ws_protocol_infactory_const.te_delta * 2)) {
+                // Found preambule
                 instance->header_count++;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_infactory_const.te_short) <
-                 ws_protocol_infactory_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 16) <
-                 ws_protocol_infactory_const.te_delta * 8)) {
-                //Found syncPrefix
-                if(instance->header_count > 3) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_infactory_const.te_short) <
+                        ws_protocol_infactory_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_infactory_const.te_short * 16) <
+                        ws_protocol_infactory_const.te_delta * 8)) {
+                // Found syncPrefix
+                if (instance->header_count > 3) {
                     instance->decoder.parser_step = InfactoryDecoderStepSaveDuration;
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
@@ -197,7 +202,7 @@ void ws_protocol_decoder_infactory_feed(void* context, bool level, uint32_t dura
         break;
 
     case InfactoryDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = InfactoryDecoderStepCheckDuration;
         } else {
@@ -206,34 +211,34 @@ void ws_protocol_decoder_infactory_feed(void* context, bool level, uint32_t dura
         break;
 
     case InfactoryDecoderStepCheckDuration:
-        if(!level) {
-            if(duration >= ((uint32_t)ws_protocol_infactory_const.te_short * 30)) {
-                //Found syncPostfix
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_infactory_const.min_count_bit_for_found) &&
-                   ws_protocol_infactory_check_crc(instance)) {
+        if (!level) {
+            if (duration >= ((uint32_t)ws_protocol_infactory_const.te_short * 30)) {
+                // Found syncPostfix
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_infactory_const.min_count_bit_for_found) &&
+                    ws_protocol_infactory_check_crc(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_infactory_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = InfactoryDecoderStepReset;
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_infactory_const.te_short) <
-                 ws_protocol_infactory_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_infactory_const.te_long) <
-                 ws_protocol_infactory_const.te_delta * 2)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_infactory_const.te_short) <
+                        ws_protocol_infactory_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_infactory_const.te_long) <
+                        ws_protocol_infactory_const.te_delta * 2)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = InfactoryDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_infactory_const.te_short) <
-                 ws_protocol_infactory_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_infactory_const.te_long * 2) <
-                 ws_protocol_infactory_const.te_delta * 4)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_infactory_const.te_short) <
+                        ws_protocol_infactory_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_infactory_const.te_long * 2) <
+                        ws_protocol_infactory_const.te_delta * 4)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = InfactoryDecoderStepSaveDuration;
             } else {
@@ -246,32 +251,35 @@ void ws_protocol_decoder_infactory_feed(void* context, bool level, uint32_t dura
     }
 }
 
-uint32_t ws_protocol_decoder_infactory_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_infactory_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderInfactory *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_infactory_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_infactory_serialize(void *context,
+                                                             FlipperFormat *flipper_format,
+                                                             SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_infactory_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_infactory_deserialize(void *context,
+                                                               FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_infactory_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_infactory_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_infactory_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderInfactory* instance = context;
+    WSProtocolDecoderInfactory *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

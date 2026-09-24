@@ -35,8 +35,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Iso14443_3bPollerEventType type; /**< Type of emmitted event. */
-    Iso14443_3bPollerEventData* data; /**< Pointer to event specific data. */
+    Iso14443_3bPollerEventType type;  /**< Type of emmitted event. */
+    Iso14443_3bPollerEventData *data; /**< Pointer to event specific data. */
 } Iso14443_3bPollerEvent;
 
 /**
@@ -53,10 +53,8 @@ typedef struct {
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return Iso14443_3bErrorNone on success, an error code on failure.
  */
-Iso14443_3bError iso14443_3b_poller_send_frame(
-    Iso14443_3bPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer);
+Iso14443_3bError iso14443_3b_poller_send_frame(Iso14443_3bPoller *instance,
+                                               const BitBuffer *tx_buffer, BitBuffer *rx_buffer);
 
 /**
  * @brief Perform collision resolution procedure.
@@ -70,7 +68,7 @@ Iso14443_3bError iso14443_3b_poller_send_frame(
  * @param[out] data pointer to the Iso14443_3b data structure to be filled.
  * @return Iso14443_3bErrorNone on success, an error code on failure.
  */
-Iso14443_3bError iso14443_3b_poller_activate(Iso14443_3bPoller* instance, Iso14443_3bData* data);
+Iso14443_3bError iso14443_3b_poller_activate(Iso14443_3bPoller *instance, Iso14443_3bData *data);
 
 /**
  * @brief Send HALT command to the card.
@@ -82,7 +80,7 @@ Iso14443_3bError iso14443_3b_poller_activate(Iso14443_3bPoller* instance, Iso144
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return Iso14443_3bErrorNone on success, an error code on failure.
  */
-Iso14443_3bError iso14443_3b_poller_halt(Iso14443_3bPoller* instance);
+Iso14443_3bError iso14443_3b_poller_halt(Iso14443_3bPoller *instance);
 
 #ifdef __cplusplus
 }

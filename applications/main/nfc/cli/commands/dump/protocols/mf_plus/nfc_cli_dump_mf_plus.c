@@ -3,27 +3,28 @@
 
 #define TAG "MFPLUS"
 
-NfcCommand nfc_cli_dump_poller_callback_mf_plus(NfcGenericEvent event, void* context) {
+NfcCommand nfc_cli_dump_poller_callback_mf_plus(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.protocol == NfcProtocolMfPlus);
     furi_assert(event.event_data);
 
-    NfcCliDumpContext* instance = context;
-    const MfPlusPollerEvent* mf_plus_event = event.event_data;
+    NfcCliDumpContext *instance = context;
+    const MfPlusPollerEvent *mf_plus_event = event.event_data;
 
     NfcCommand command = NfcCommandContinue;
 
-    if(mf_plus_event->type == MfPlusPollerEventTypeReadSuccess) {
-        nfc_device_set_data(
-            instance->nfc_device, NfcProtocolMfPlus, nfc_poller_get_data(instance->poller));
+    if (mf_plus_event->type == MfPlusPollerEventTypeReadSuccess) {
+        nfc_device_set_data(instance->nfc_device, NfcProtocolMfPlus,
+                            nfc_poller_get_data(instance->poller));
         instance->result = NfcCliDumpErrorNone;
         command = NfcCommandStop;
-    } else if(mf_plus_event->type == MfPlusPollerEventTypeReadFailed) {
+    } else if (mf_plus_event->type == MfPlusPollerEventTypeReadFailed) {
         instance->result = NfcCliDumpErrorFailedToRead;
         command = NfcCommandReset;
     }
 
-    if(command == NfcCommandStop) {
+    if (command == NfcCommandStop) {
         furi_semaphore_release(instance->sem_done);
     }
 

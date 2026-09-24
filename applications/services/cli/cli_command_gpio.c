@@ -6,7 +6,8 @@
 #include <toolbox/pipe.h>
 #include <toolbox/cli/cli_command.h>
 
-void cli_command_gpio_print_usage(void) {
+void cli_command_gpio_print_usage(void)
+{
     printf("Usage:\r\n");
     printf("gpio <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
@@ -15,11 +16,12 @@ void cli_command_gpio_print_usage(void) {
     printf("\tread <pin_name>\t - Read gpio value\r\n");
 }
 
-static bool pin_name_to_int(FuriString* pin_name, size_t* result) {
+static bool pin_name_to_int(FuriString *pin_name, size_t *result)
+{
     bool is_debug_mode = furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug);
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(furi_string_equal(pin_name, gpio_pins[i].name)) {
-            if(!gpio_pins[i].debug || is_debug_mode) {
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (furi_string_equal(pin_name, gpio_pins[i].name)) {
+            if (!gpio_pins[i].debug || is_debug_mode) {
                 *result = i;
                 return true;
             }
@@ -29,11 +31,12 @@ static bool pin_name_to_int(FuriString* pin_name, size_t* result) {
     return false;
 }
 
-static void gpio_print_pins(void) {
+static void gpio_print_pins(void)
+{
     printf("Wrong pin name. Available pins: ");
     bool is_debug_mode = furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug);
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(!gpio_pins[i].debug || is_debug_mode) {
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (!gpio_pins[i].debug || is_debug_mode) {
             printf("%s ", gpio_pins[i].name);
         }
     }
@@ -46,33 +49,35 @@ typedef enum {
     GpioParseReturnValueError
 } GpioParseReturn;
 
-static GpioParseReturn gpio_command_parse(FuriString* args, size_t* pin_num, uint8_t* value) {
+static GpioParseReturn gpio_command_parse(FuriString *args, size_t *pin_num, uint8_t *value)
+{
     GpioParseReturn ret = GpioParseReturnOk;
-    FuriString* pin_name = furi_string_alloc();
+    FuriString *pin_name = furi_string_alloc();
 
     do {
-        if(!args_read_string_and_trim(args, pin_name)) {
+        if (!args_read_string_and_trim(args, pin_name)) {
             ret = GpioParseReturnCmdSyntaxError;
             break;
-        } else if(!pin_name_to_int(pin_name, pin_num)) {
+        } else if (!pin_name_to_int(pin_name, pin_num)) {
             ret = GpioParseReturnPinError;
             break;
         }
 
         int pin_mode; //-V779
-        if(!args_read_int_and_trim(args, &pin_mode) || pin_mode < 0 || pin_mode > 1) {
+        if (!args_read_int_and_trim(args, &pin_mode) || pin_mode < 0 || pin_mode > 1) {
             ret = GpioParseReturnValueError;
             break;
         }
 
         *value = pin_mode;
-    } while(false);
+    } while (false);
 
     furi_string_free(pin_name);
     return ret;
 }
 
-void cli_command_gpio_mode(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_gpio_mode(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(context);
 
@@ -81,28 +86,28 @@ void cli_command_gpio_mode(PipeSide* pipe, FuriString* args, void* context) {
 
     GpioParseReturn err = gpio_command_parse(args, &num, &value);
 
-    if(err == GpioParseReturnCmdSyntaxError) {
+    if (err == GpioParseReturnCmdSyntaxError) {
         cli_print_usage("gpio mode", "<pin_name> <0|1>", furi_string_get_cstr(args));
         return;
-    } else if(err == GpioParseReturnPinError) { //-V547
+    } else if (err == GpioParseReturnPinError) { //-V547
         gpio_print_pins();
         return;
-    } else if(err == GpioParseReturnValueError) {
+    } else if (err == GpioParseReturnValueError) {
         printf("Value is invalid. Enter 1 for input or 0 for output");
         return;
     }
 
-    if(gpio_pins[num].debug) { //-V779
-        printf(
-            "Changing this pin mode may damage hardware. Are you sure you want to continue? (y/n)?\r\n");
+    if (gpio_pins[num].debug) { //-V779
+        printf("Changing this pin mode may damage hardware. Are you sure you want to continue? "
+               "(y/n)?\r\n");
         char c = getchar();
-        if(c != 'y' && c != 'Y') {
+        if (c != 'y' && c != 'Y') {
             printf("Cancelled.\r\n");
             return;
         }
     }
 
-    if(value == 1) { // output
+    if (value == 1) { // output
         furi_hal_gpio_write(gpio_pins[num].pin, false);
         furi_hal_gpio_init_simple(gpio_pins[num].pin, GpioModeOutputPushPull);
         printf("Pin %s is now an output (low)", gpio_pins[num].name);
@@ -112,18 +117,19 @@ void cli_command_gpio_mode(PipeSide* pipe, FuriString* args, void* context) {
     }
 }
 
-void cli_command_gpio_read(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_gpio_read(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(context);
 
     size_t num = 0;
-    if(!pin_name_to_int(args, &num)) {
+    if (!pin_name_to_int(args, &num)) {
         gpio_print_pins();
         return;
     }
 
-    if(LL_GPIO_MODE_INPUT != //-V779
-       LL_GPIO_GetPinMode(gpio_pins[num].pin->port, gpio_pins[num].pin->pin)) {
+    if (LL_GPIO_MODE_INPUT != //-V779
+        LL_GPIO_GetPinMode(gpio_pins[num].pin->port, gpio_pins[num].pin->pin)) {
         printf("Err: pin %s is not set as an input.", gpio_pins[num].name);
         return;
     }
@@ -133,7 +139,8 @@ void cli_command_gpio_read(PipeSide* pipe, FuriString* args, void* context) {
     printf("Pin %s <= %u", gpio_pins[num].name, val);
 }
 
-void cli_command_gpio_set(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_gpio_set(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(context);
 
@@ -141,29 +148,29 @@ void cli_command_gpio_set(PipeSide* pipe, FuriString* args, void* context) {
     uint8_t value = 0;
     GpioParseReturn err = gpio_command_parse(args, &num, &value);
 
-    if(err == GpioParseReturnCmdSyntaxError) {
+    if (err == GpioParseReturnCmdSyntaxError) {
         cli_print_usage("gpio set", "<pin_name> <0|1>", furi_string_get_cstr(args));
         return;
-    } else if(err == GpioParseReturnPinError) { //-V547
+    } else if (err == GpioParseReturnPinError) { //-V547
         gpio_print_pins();
         return;
-    } else if(err == GpioParseReturnValueError) {
+    } else if (err == GpioParseReturnValueError) {
         printf("Value is invalid. Enter 1 for high or 0 for low");
         return;
     }
 
-    if(LL_GPIO_MODE_OUTPUT != //-V779
-       LL_GPIO_GetPinMode(gpio_pins[num].pin->port, gpio_pins[num].pin->pin)) {
+    if (LL_GPIO_MODE_OUTPUT != //-V779
+        LL_GPIO_GetPinMode(gpio_pins[num].pin->port, gpio_pins[num].pin->pin)) {
         printf("Err: pin %s is not set as an output.", gpio_pins[num].name);
         return;
     }
 
     // Extra check if debug pins used
-    if(gpio_pins[num].debug) {
+    if (gpio_pins[num].debug) {
         printf(
             "Setting this pin may damage hardware. Are you sure you want to continue? (y/n)?\r\n");
         char c = getchar();
-        if(c != 'y' && c != 'Y') {
+        if (c != 'y' && c != 'Y') {
             printf("Cancelled.\r\n");
             return;
         }
@@ -173,33 +180,34 @@ void cli_command_gpio_set(PipeSide* pipe, FuriString* args, void* context) {
     printf("Pin %s => %u", gpio_pins[num].name, !!value);
 }
 
-void cli_command_gpio(PipeSide* pipe, FuriString* args, void* context) {
-    FuriString* cmd;
+void cli_command_gpio(PipeSide *pipe, FuriString *args, void *context)
+{
+    FuriString *cmd;
     cmd = furi_string_alloc();
 
     do {
-        if(!args_read_string_and_trim(args, cmd)) {
+        if (!args_read_string_and_trim(args, cmd)) {
             cli_command_gpio_print_usage();
             break;
         }
 
-        if(furi_string_cmp_str(cmd, "mode") == 0) {
+        if (furi_string_cmp_str(cmd, "mode") == 0) {
             cli_command_gpio_mode(pipe, args, context);
             break;
         }
 
-        if(furi_string_cmp_str(cmd, "set") == 0) {
+        if (furi_string_cmp_str(cmd, "set") == 0) {
             cli_command_gpio_set(pipe, args, context);
             break;
         }
 
-        if(furi_string_cmp_str(cmd, "read") == 0) {
+        if (furi_string_cmp_str(cmd, "read") == 0) {
             cli_command_gpio_read(pipe, args, context);
             break;
         }
 
         cli_command_gpio_print_usage();
-    } while(false);
+    } while (false);
 
     furi_string_free(cmd);
 }

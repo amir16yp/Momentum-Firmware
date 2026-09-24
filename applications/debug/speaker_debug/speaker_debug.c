@@ -19,44 +19,47 @@ typedef struct {
 } SpeakerDebugAppMessage;
 
 typedef struct {
-    MusicWorker* music_worker;
-    FuriMessageQueue* message_queue;
-    CliRegistry* cli_registry;
+    MusicWorker *music_worker;
+    FuriMessageQueue *message_queue;
+    CliRegistry *cli_registry;
 } SpeakerDebugApp;
 
-static SpeakerDebugApp* speaker_app_alloc(void) {
-    SpeakerDebugApp* app = (SpeakerDebugApp*)malloc(sizeof(SpeakerDebugApp));
+static SpeakerDebugApp *speaker_app_alloc(void)
+{
+    SpeakerDebugApp *app = (SpeakerDebugApp *)malloc(sizeof(SpeakerDebugApp));
     app->music_worker = music_worker_alloc();
     app->message_queue = furi_message_queue_alloc(8, sizeof(SpeakerDebugAppMessage));
     app->cli_registry = furi_record_open(RECORD_CLI);
     return app;
 }
 
-static void speaker_app_free(SpeakerDebugApp* app) {
+static void speaker_app_free(SpeakerDebugApp *app)
+{
     music_worker_free(app->music_worker);
     furi_message_queue_free(app->message_queue);
     furi_record_close(RECORD_CLI);
     free(app);
 }
 
-static void speaker_app_cli(PipeSide* pipe, FuriString* args, void* context) {
+static void speaker_app_cli(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
 
-    SpeakerDebugApp* app = (SpeakerDebugApp*)context;
+    SpeakerDebugApp *app = (SpeakerDebugApp *)context;
     SpeakerDebugAppMessage message;
-    FuriString* cmd = furi_string_alloc();
+    FuriString *cmd = furi_string_alloc();
 
-    if(!args_read_string_and_trim(args, cmd)) {
+    if (!args_read_string_and_trim(args, cmd)) {
         furi_string_free(cmd);
         printf("Usage:\r\n");
         printf("\t" CLI_COMMAND " stop\r\n");
         return;
     }
 
-    if(furi_string_cmp(cmd, "stop") == 0) {
+    if (furi_string_cmp(cmd, "stop") == 0) {
         message.type = SpeakerDebugAppMessageTypeStop;
         FuriStatus status = furi_message_queue_put(app->message_queue, &message, 100);
-        if(status != FuriStatusOk) {
+        if (status != FuriStatusOk) {
             printf("Failed to send message\r\n");
         } else {
             printf("Stopping\r\n");
@@ -69,12 +72,13 @@ static void speaker_app_cli(PipeSide* pipe, FuriString* args, void* context) {
     furi_string_free(cmd);
 }
 
-static bool speaker_app_music_play(SpeakerDebugApp* app, const char* rtttl) {
-    if(music_worker_is_playing(app->music_worker)) {
+static bool speaker_app_music_play(SpeakerDebugApp *app, const char *rtttl)
+{
+    if (music_worker_is_playing(app->music_worker)) {
         music_worker_stop(app->music_worker);
     }
 
-    if(!music_worker_load_rtttl_from_string(app->music_worker, rtttl)) {
+    if (!music_worker_load_rtttl_from_string(app->music_worker, rtttl)) {
         FURI_LOG_E(TAG, "Failed to load RTTTL");
         return false;
     }
@@ -85,28 +89,30 @@ static bool speaker_app_music_play(SpeakerDebugApp* app, const char* rtttl) {
     return true;
 }
 
-static void speaker_app_music_stop(SpeakerDebugApp* app) {
-    if(music_worker_is_playing(app->music_worker)) {
+static void speaker_app_music_stop(SpeakerDebugApp *app)
+{
+    if (music_worker_is_playing(app->music_worker)) {
         music_worker_stop(app->music_worker);
     }
 }
 
-static void speaker_app_run(SpeakerDebugApp* app, const char* arg) {
-    if(!arg || !speaker_app_music_play(app, arg)) {
+static void speaker_app_run(SpeakerDebugApp *app, const char *arg)
+{
+    if (!arg || !speaker_app_music_play(app, arg)) {
         FURI_LOG_E(TAG, "Provided RTTTL is invalid");
         return;
     }
 
-    cli_registry_add_command(
-        app->cli_registry, CLI_COMMAND, CliCommandFlagParallelSafe, speaker_app_cli, app);
+    cli_registry_add_command(app->cli_registry, CLI_COMMAND, CliCommandFlagParallelSafe,
+                             speaker_app_cli, app);
 
     SpeakerDebugAppMessage message;
     FuriStatus status;
-    while(true) {
+    while (true) {
         status = furi_message_queue_get(app->message_queue, &message, FuriWaitForever);
 
-        if(status == FuriStatusOk) {
-            if(message.type == SpeakerDebugAppMessageTypeStop) {
+        if (status == FuriStatusOk) {
+            if (message.type == SpeakerDebugAppMessageTypeStop) {
                 speaker_app_music_stop(app);
                 break;
             }
@@ -116,8 +122,9 @@ static void speaker_app_run(SpeakerDebugApp* app, const char* arg) {
     cli_registry_delete_command(app->cli_registry, CLI_COMMAND);
 }
 
-int32_t speaker_debug_app(void* arg) {
-    SpeakerDebugApp* app = speaker_app_alloc();
+int32_t speaker_debug_app(void *arg)
+{
+    SpeakerDebugApp *app = speaker_app_alloc();
     speaker_app_run(app, arg);
     speaker_app_free(app);
     return 0;

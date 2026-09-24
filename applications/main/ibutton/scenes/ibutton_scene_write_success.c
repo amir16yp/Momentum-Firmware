@@ -1,14 +1,16 @@
 #include "../ibutton_i.h"
 
-static void ibutton_scene_write_success_popup_callback(void* context) {
-    iButton* ibutton = context;
+static void ibutton_scene_write_success_popup_callback(void *context)
+{
+    iButton *ibutton = context;
     view_dispatcher_send_custom_event(ibutton->view_dispatcher, iButtonCustomEventBack);
     ibutton_notification_message(ibutton, iButtonNotificationMessageGreenOff);
 }
 
-void ibutton_scene_write_success_on_enter(void* context) {
-    iButton* ibutton = context;
-    Popup* popup = ibutton->popup;
+void ibutton_scene_write_success_on_enter(void *context)
+{
+    iButton *ibutton = context;
+    Popup *popup = ibutton->popup;
 
     popup_set_icon(popup, 0, 9, &I_iButtonDolphinVerySuccess_92x55);
     popup_set_text(popup, "Successfully written!", 40, 12, AlignLeft, AlignBottom);
@@ -23,13 +25,14 @@ void ibutton_scene_write_success_on_enter(void* context) {
     ibutton_notification_message(ibutton, iButtonNotificationMessageGreenOn);
 }
 
-bool ibutton_scene_write_success_on_event(void* context, SceneManagerEvent event) {
-    iButton* ibutton = context;
+bool ibutton_scene_write_success_on_event(void *context, SceneManagerEvent event)
+{
+    iButton *ibutton = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == iButtonCustomEventBack) {
+        if (event.event == iButtonCustomEventBack) {
             const uint32_t possible_scenes[] = {iButtonSceneReadKeyMenu, iButtonSceneStart};
             scene_manager_search_and_switch_to_previous_scene_one_of(
                 ibutton->scene_manager, possible_scenes, COUNT_OF(possible_scenes));
@@ -39,9 +42,10 @@ bool ibutton_scene_write_success_on_event(void* context, SceneManagerEvent event
     return consumed;
 }
 
-void ibutton_scene_write_success_on_exit(void* context) {
-    iButton* ibutton = context;
-    Popup* popup = ibutton->popup;
+void ibutton_scene_write_success_on_exit(void *context)
+{
+    iButton *ibutton = context;
+    Popup *popup = ibutton->popup;
 
     popup_reset(popup);
 }

@@ -4,10 +4,10 @@
 #define TAG "InfraredTest"
 
 #define CARRIER_FREQ_HZ (38000UL)
-#define CARRIER_DUTY    (0.33f)
+#define CARRIER_DUTY (0.33f)
 
 #define BURST_DURATION_US (600UL)
-#define BURST_COUNT       (50UL)
+#define BURST_COUNT (50UL)
 
 typedef struct {
     bool level;
@@ -15,12 +15,13 @@ typedef struct {
 } InfraredTestApp;
 
 static FuriHalInfraredTxGetDataState
-    infrared_test_app_tx_data_callback(void* context, uint32_t* duration, bool* level) {
+infrared_test_app_tx_data_callback(void *context, uint32_t *duration, bool *level)
+{
     furi_assert(context);
     furi_assert(duration);
     furi_assert(level);
 
-    InfraredTestApp* app = context;
+    InfraredTestApp *app = context;
 
     *duration = BURST_DURATION_US;
     *level = app->level;
@@ -28,14 +29,15 @@ static FuriHalInfraredTxGetDataState
     app->level = !app->level;
     app->count += 1;
 
-    if(app->count < BURST_COUNT * 2) {
+    if (app->count < BURST_COUNT * 2) {
         return FuriHalInfraredTxGetDataStateOk;
     } else {
         return FuriHalInfraredTxGetDataStateLastDone;
     }
 }
 
-int32_t infrared_test_app(void* arg) {
+int32_t infrared_test_app(void *arg)
+{
     UNUSED(arg);
 
     InfraredTestApp app = {
@@ -51,11 +53,8 @@ int32_t infrared_test_app(void* arg) {
     furi_hal_infrared_set_tx_output(FuriHalInfraredTxPinInternal);
 
     FURI_LOG_I(TAG, "Test signal end");
-    FURI_LOG_I(
-        TAG,
-        "The measured signal should be %luus +-%.1fus",
-        (app.count - 1) * BURST_DURATION_US,
-        (double)1000000.0 / CARRIER_FREQ_HZ);
+    FURI_LOG_I(TAG, "The measured signal should be %luus +-%.1fus",
+               (app.count - 1) * BURST_DURATION_US, (double)1000000.0 / CARRIER_FREQ_HZ);
 
     return 0;
 }

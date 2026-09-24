@@ -51,22 +51,24 @@ extern "C" {
 
 /** Factory provisioned keys slot range. All of them are exactly same on all flippers. */
 #define FURI_HAL_CRYPTO_ENCLAVE_FACTORY_KEY_SLOT_START (1u)
-#define FURI_HAL_CRYPTO_ENCLAVE_FACTORY_KEY_SLOT_END   (10u)
+#define FURI_HAL_CRYPTO_ENCLAVE_FACTORY_KEY_SLOT_END (10u)
 
-/** Device unique key slot. This key generated on first use or provisioned by user. Use furi_hal_crypto_enclave_ensure_key before using this slot. */
+/** Device unique key slot. This key generated on first use or provisioned by user. Use
+ * furi_hal_crypto_enclave_ensure_key before using this slot. */
 #define FURI_HAL_CRYPTO_ENCLAVE_UNIQUE_KEY_SLOT (11u)
 
-/** User key slot range. This slots can be used for your needs, but never use them in public apps. */
+/** User key slot range. This slots can be used for your needs, but never use them in public apps.
+ */
 #define FURI_HAL_CRYPTO_ENCLAVE_USER_KEY_SLOT_START (12u)
-#define FURI_HAL_CRYPTO_ENCLAVE_USER_KEY_SLOT_END   (100u)
+#define FURI_HAL_CRYPTO_ENCLAVE_USER_KEY_SLOT_END (100u)
 
 /** [Deprecated] Indicates availability of advanced crypto functions, will be dropped before v1.0 */
 #define FURI_HAL_CRYPTO_ADVANCED_AVAIL 1
 
 /** FuriHalCryptoKey Type */
 typedef enum {
-    FuriHalCryptoKeyTypeMaster, /**< Master key */
-    FuriHalCryptoKeyTypeSimple, /**< Simple unencrypted key */
+    FuriHalCryptoKeyTypeMaster,    /**< Master key */
+    FuriHalCryptoKeyTypeSimple,    /**< Simple unencrypted key */
     FuriHalCryptoKeyTypeEncrypted, /**< Encrypted with Master key */
 } FuriHalCryptoKeyType;
 
@@ -80,13 +82,13 @@ typedef enum {
 typedef struct {
     FuriHalCryptoKeyType type;
     FuriHalCryptoKeySize size;
-    uint8_t* data;
+    uint8_t *data;
 } FuriHalCryptoKey;
 
 /** FuriHalCryptoGCMState Result of a GCM operation */
 typedef enum {
-    FuriHalCryptoGCMStateOk, /**< operation successful */
-    FuriHalCryptoGCMStateError, /**< error during encryption/decryption */
+    FuriHalCryptoGCMStateOk,          /**< operation successful */
+    FuriHalCryptoGCMStateError,       /**< error during encryption/decryption */
     FuriHalCryptoGCMStateAuthFailure, /**< tags do not match, auth failed */
 } FuriHalCryptoGCMState;
 
@@ -100,7 +102,7 @@ void furi_hal_crypto_init(void);
  *
  * @return     true if all enclave keys are intact, false otherwise
  */
-bool furi_hal_crypto_enclave_verify(uint8_t* keys_nb, uint8_t* valid_keys_nb);
+bool furi_hal_crypto_enclave_verify(uint8_t *keys_nb, uint8_t *valid_keys_nb);
 
 /** Ensure that requested slot and slots before this slot contains keys.
  *
@@ -125,7 +127,7 @@ bool furi_hal_crypto_enclave_ensure_key(uint8_t key_slot);
  *
  * @return     true on success
  */
-bool furi_hal_crypto_enclave_store_key(FuriHalCryptoKey* key, uint8_t* slot);
+bool furi_hal_crypto_enclave_store_key(FuriHalCryptoKey *key, uint8_t *slot);
 
 /** Init AES engine and load key from crypto enclave
  *
@@ -136,7 +138,7 @@ bool furi_hal_crypto_enclave_store_key(FuriHalCryptoKey* key, uint8_t* slot);
  *
  * @return     true on success
  */
-bool furi_hal_crypto_enclave_load_key(uint8_t slot, const uint8_t* iv);
+bool furi_hal_crypto_enclave_load_key(uint8_t slot, const uint8_t *iv);
 
 /** Unload key and deinit AES engine
  *
@@ -157,7 +159,7 @@ bool furi_hal_crypto_enclave_unload_key(uint8_t slot);
  *
  * @return     true on success
  */
-bool furi_hal_crypto_load_key(const uint8_t* key, const uint8_t* iv);
+bool furi_hal_crypto_load_key(const uint8_t *key, const uint8_t *iv);
 
 /** Unload key and de-init AES engine
  *
@@ -175,7 +177,7 @@ bool furi_hal_crypto_unload_key(void);
  *
  * @return     true on success
  */
-bool furi_hal_crypto_encrypt(const uint8_t* input, uint8_t* output, size_t size);
+bool furi_hal_crypto_encrypt(const uint8_t *input, uint8_t *output, size_t size);
 
 /** Decrypt data
  *
@@ -185,7 +187,7 @@ bool furi_hal_crypto_encrypt(const uint8_t* input, uint8_t* output, size_t size)
  *
  * @return     true on success
  */
-bool furi_hal_crypto_decrypt(const uint8_t* input, uint8_t* output, size_t size);
+bool furi_hal_crypto_decrypt(const uint8_t *input, uint8_t *output, size_t size);
 
 /** Encrypt the input using AES-CTR
  *
@@ -200,12 +202,8 @@ bool furi_hal_crypto_decrypt(const uint8_t* input, uint8_t* output, size_t size)
  *
  * @return     true on success
  */
-bool furi_hal_crypto_ctr(
-    const uint8_t* key,
-    const uint8_t* iv,
-    const uint8_t* input,
-    uint8_t* output,
-    size_t length);
+bool furi_hal_crypto_ctr(const uint8_t *key, const uint8_t *iv, const uint8_t *input,
+                         uint8_t *output, size_t length);
 
 /** Encrypt/decrypt the input using AES-GCM
  *
@@ -226,16 +224,9 @@ bool furi_hal_crypto_ctr(
  *
  * @return     true on success
  */
-bool furi_hal_crypto_gcm(
-    const uint8_t* key,
-    const uint8_t* iv,
-    const uint8_t* aad,
-    size_t aad_length,
-    const uint8_t* input,
-    uint8_t* output,
-    size_t length,
-    uint8_t* tag,
-    bool decrypt);
+bool furi_hal_crypto_gcm(const uint8_t *key, const uint8_t *iv, const uint8_t *aad,
+                         size_t aad_length, const uint8_t *input, uint8_t *output, size_t length,
+                         uint8_t *tag, bool decrypt);
 
 /** Encrypt the input using AES-GCM and generate a tag
  *
@@ -253,15 +244,10 @@ bool furi_hal_crypto_gcm(
  * @return     FuriHalCryptoGCMStateOk on success, FuriHalCryptoGCMStateError on
  *             failure
  */
-FuriHalCryptoGCMState furi_hal_crypto_gcm_encrypt_and_tag(
-    const uint8_t* key,
-    const uint8_t* iv,
-    const uint8_t* aad,
-    size_t aad_length,
-    const uint8_t* input,
-    uint8_t* output,
-    size_t length,
-    uint8_t* tag);
+FuriHalCryptoGCMState furi_hal_crypto_gcm_encrypt_and_tag(const uint8_t *key, const uint8_t *iv,
+                                                          const uint8_t *aad, size_t aad_length,
+                                                          const uint8_t *input, uint8_t *output,
+                                                          size_t length, uint8_t *tag);
 
 /** Decrypt the input using AES-GCM and verify the provided tag
  *
@@ -280,15 +266,10 @@ FuriHalCryptoGCMState furi_hal_crypto_gcm_encrypt_and_tag(
  *             failure, FuriHalCryptoGCMStateAuthFailure if the tag does not
  *             match
  */
-FuriHalCryptoGCMState furi_hal_crypto_gcm_decrypt_and_verify(
-    const uint8_t* key,
-    const uint8_t* iv,
-    const uint8_t* aad,
-    size_t aad_length,
-    const uint8_t* input,
-    uint8_t* output,
-    size_t length,
-    const uint8_t* tag);
+FuriHalCryptoGCMState furi_hal_crypto_gcm_decrypt_and_verify(const uint8_t *key, const uint8_t *iv,
+                                                             const uint8_t *aad, size_t aad_length,
+                                                             const uint8_t *input, uint8_t *output,
+                                                             size_t length, const uint8_t *tag);
 
 #ifdef __cplusplus
 }

@@ -1,9 +1,10 @@
 #include "../lfrfid_i.h"
 
-void lfrfid_scene_select_raw_key_on_enter(void* context) {
-    LfRfid* app = context;
+void lfrfid_scene_select_raw_key_on_enter(void *context)
+{
+    LfRfid *app = context;
 
-    if(lfrfid_load_raw_key_from_file_select(app)) {
+    if (lfrfid_load_raw_key_from_file_select(app)) {
         scene_manager_next_scene(app->scene_manager, LfRfidSceneRawEmulate);
 
     } else {
@@ -11,13 +12,15 @@ void lfrfid_scene_select_raw_key_on_enter(void* context) {
     }
 }
 
-bool lfrfid_scene_select_raw_key_on_event(void* context, SceneManagerEvent event) {
+bool lfrfid_scene_select_raw_key_on_event(void *context, SceneManagerEvent event)
+{
     UNUSED(context);
     UNUSED(event);
     bool consumed = false;
     return consumed;
 }
 
-void lfrfid_scene_select_raw_key_on_exit(void* context) {
+void lfrfid_scene_select_raw_key_on_exit(void *context)
+{
     UNUSED(context);
 }

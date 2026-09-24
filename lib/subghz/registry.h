@@ -12,7 +12,7 @@ typedef struct SubGhzProtocolRegistry SubGhzProtocolRegistry;
 typedef struct SubGhzProtocol SubGhzProtocol;
 
 struct SubGhzProtocolRegistry {
-    const SubGhzProtocol* const* items;
+    const SubGhzProtocol *const *items;
     const size_t size;
 };
 
@@ -22,9 +22,9 @@ struct SubGhzProtocolRegistry {
  * @param name Protocol name
  * @return SubGhzProtocol* pointer to a SubGhzProtocol instance
  */
-const SubGhzProtocol* subghz_protocol_registry_get_by_name(
-    const SubGhzProtocolRegistry* protocol_registry,
-    const char* name);
+const SubGhzProtocol *
+subghz_protocol_registry_get_by_name(const SubGhzProtocolRegistry *protocol_registry,
+                                     const char *name);
 
 /**
  * Registration protocol by index in array SubGhzProtocol.
@@ -32,16 +32,16 @@ const SubGhzProtocol* subghz_protocol_registry_get_by_name(
  * @param index Protocol by index in array
  * @return SubGhzProtocol* pointer to a SubGhzProtocol instance
  */
-const SubGhzProtocol* subghz_protocol_registry_get_by_index(
-    const SubGhzProtocolRegistry* protocol_registry,
-    size_t index);
+const SubGhzProtocol *
+subghz_protocol_registry_get_by_index(const SubGhzProtocolRegistry *protocol_registry,
+                                      size_t index);
 
 /**
  * Getting the number of registered protocols.
  * @param protocol_registry SubGhzProtocolRegistry
  * @return Number of protocols
  */
-size_t subghz_protocol_registry_count(const SubGhzProtocolRegistry* protocol_registry);
+size_t subghz_protocol_registry_count(const SubGhzProtocolRegistry *protocol_registry);
 
 #ifdef __cplusplus
 }

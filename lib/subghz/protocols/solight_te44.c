@@ -17,7 +17,8 @@
  *
  * Rated -50 C to 70 C, frequency 433,92 MHz, three selectable channels.
  *
- * Encoding (see in applications/debug/unit_tests/resources/unit_tests/subghz/solight_te44_raw.sub for example)
+ * Encoding (see in applications/debug/unit_tests/resources/unit_tests/subghz/solight_te44_raw.sub
+ * for example)
  * - Data begins with     500 -3890
  * - A zero is encoded    500 -960
  * - A one is encoded     500 -1940
@@ -35,11 +36,11 @@
  *        12 bit signed int temp(C) scale 10 at 12----/               /
  *        8 bit checksum --------------------------------------------/
  *
- * If you're looking at this and thinking: this looks a lot like the Auriol HG06061A data structure. You're not alone,
- * this is almost identical except for the last checksum, which is not only absent in the Auriol structure, but
- * the same bits encode the humidity value. So maybe this explains older results of some random weather stations with
- * implausible humidity values. By adding this before Auriol and expecting the weird data sync we avoid conflicts
- * with its decoder.
+ * If you're looking at this and thinking: this looks a lot like the Auriol HG06061A data structure.
+ * You're not alone, this is almost identical except for the last checksum, which is not only absent
+ * in the Auriol structure, but the same bits encode the humidity value. So maybe this explains
+ * older results of some random weather stations with implausible humidity values. By adding this
+ * before Auriol and expecting the weird data sync we avoid conflicts with its decoder.
  *
  * @m7i-org - because I want less BinRAW in my life
  *
@@ -107,36 +108,40 @@ typedef enum {
     SolightTE44DecoderStepCheckDuration,
 } SolightTE44DecoderStep;
 
-void* ws_protocol_decoder_solight_te44_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_solight_te44_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderSolightTE44* instance = malloc(sizeof(WSProtocolDecoderSolightTE44));
+    WSProtocolDecoderSolightTE44 *instance = malloc(sizeof(WSProtocolDecoderSolightTE44));
     instance->base.protocol = &ws_protocol_solight_te44;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_solight_te44_free(void* context) {
+void ws_protocol_decoder_solight_te44_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_solight_te44_reset(void* context) {
+void ws_protocol_decoder_solight_te44_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
     instance->decoder.parser_step = SolightTE44DecoderStepReset;
 }
 
-static bool ws_protocol_solight_te44_check(WSProtocolDecoderSolightTE44* instance) {
-    if(!instance->decoder.decode_data) return false;
-    if(((instance->decoder.decode_data >> 8) & 0x0f) != 0x0f) return false; // const not 1111
+static bool ws_protocol_solight_te44_check(WSProtocolDecoderSolightTE44 *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
+    if (((instance->decoder.decode_data >> 8) & 0x0f) != 0x0f)
+        return false; // const not 1111
 
     // Rubicson CRC check
     uint8_t msg_rubicson_crc[] = {
-        instance->decoder.decode_data >> 28,
-        instance->decoder.decode_data >> 20,
-        instance->decoder.decode_data >> 12,
-        0xf0,
+        instance->decoder.decode_data >> 28, instance->decoder.decode_data >> 20,
+        instance->decoder.decode_data >> 12, 0xf0,
         (instance->decoder.decode_data & 0xf0) | (instance->decoder.decode_data & 0x0f)};
 
     uint8_t rubicson_crc = subghz_protocol_blocks_crc8(msg_rubicson_crc, 5, 0x31, 0x6c);
@@ -148,14 +153,15 @@ static bool ws_protocol_solight_te44_check(WSProtocolDecoderSolightTE44* instanc
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_solight_te44_extract_data(WSBlockGeneric* instance) {
+static void ws_protocol_solight_te44_extract_data(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 28) & 0xff;
     instance->battery_low = !(instance->data >> 27) & 0x01;
     instance->channel = ((instance->data >> 24) & 0x03) + 1;
 
     int16_t temp = (instance->data >> 12) & 0x0fff;
     /* Handle signed data */
-    if(temp & 0x0800) {
+    if (temp & 0x0800) {
         temp |= 0xf000;
     }
     instance->temp = (float)temp / 10.0;
@@ -164,13 +170,14 @@ static void ws_protocol_solight_te44_extract_data(WSBlockGeneric* instance) {
     instance->humidity = WS_NO_HUMIDITY;
 }
 
-void ws_protocol_decoder_solight_te44_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_solight_te44_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case SolightTE44DecoderStepReset:
-        if((!level) && duration >= ws_protocol_solight_te44_const.te_long) {
+        if ((!level) && duration >= ws_protocol_solight_te44_const.te_long) {
             instance->decoder.parser_step = SolightTE44DecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -178,7 +185,7 @@ void ws_protocol_decoder_solight_te44_feed(void* context, bool level, uint32_t d
         break;
 
     case SolightTE44DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = SolightTE44DecoderStepCheckDuration;
         } else {
@@ -187,33 +194,32 @@ void ws_protocol_decoder_solight_te44_feed(void* context, bool level, uint32_t d
         break;
 
     case SolightTE44DecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short) <
-               ws_protocol_solight_te44_const.te_delta) {
-                if(instance->decoder.decode_count_bit ==
-                       ws_protocol_solight_te44_const.min_count_bit_for_found &&
-                   ws_protocol_solight_te44_check(instance)) {
+        if (!level) {
+            if (DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short) <
+                ws_protocol_solight_te44_const.te_delta) {
+                if (instance->decoder.decode_count_bit ==
+                        ws_protocol_solight_te44_const.min_count_bit_for_found &&
+                    ws_protocol_solight_te44_check(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_solight_te44_extract_data(&instance->generic);
 
-                    if(instance->base.callback) {
+                    if (instance->base.callback) {
                         instance->base.callback(&instance->base, instance->base.context);
                     }
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = SolightTE44DecoderStepReset;
-            } else if(
-                DURATION_DIFF(instance->decoder.te_last, ws_protocol_solight_te44_const.te_short) <
-                ws_protocol_solight_te44_const.te_delta) {
-                if(DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short * 2) <
-                   ws_protocol_solight_te44_const.te_delta) {
+            } else if (DURATION_DIFF(instance->decoder.te_last,
+                                     ws_protocol_solight_te44_const.te_short) <
+                       ws_protocol_solight_te44_const.te_delta) {
+                if (DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short * 2) <
+                    ws_protocol_solight_te44_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = SolightTE44DecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short * 4) <
-                    ws_protocol_solight_te44_const.te_delta) {
+                } else if (DURATION_DIFF(duration, ws_protocol_solight_te44_const.te_short * 4) <
+                           ws_protocol_solight_te44_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = SolightTE44DecoderStepSaveDuration;
                 } else
@@ -226,34 +232,35 @@ void ws_protocol_decoder_solight_te44_feed(void* context, bool level, uint32_t d
     }
 }
 
-uint32_t ws_protocol_decoder_solight_te44_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_solight_te44_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderSolightTE44 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_solight_te44_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_solight_te44_serialize(void *context,
+                                                                FlipperFormat *flipper_format,
+                                                                SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_solight_te44_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_solight_te44_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
-        ws_protocol_solight_te44_const.min_count_bit_for_found);
+        &instance->generic, flipper_format, ws_protocol_solight_te44_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_solight_te44_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_solight_te44_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderSolightTE44* instance = context;
+    WSProtocolDecoderSolightTE44 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

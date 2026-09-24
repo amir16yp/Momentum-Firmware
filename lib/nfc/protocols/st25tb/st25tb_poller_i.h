@@ -36,11 +36,11 @@ typedef union {
 } St25tbPollerContext;
 
 struct St25tbPoller {
-    Nfc* nfc;
+    Nfc *nfc;
     St25tbPollerState state;
-    St25tbData* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    St25tbData *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
 
     St25tbPollerContext poller_ctx;
 
@@ -48,10 +48,10 @@ struct St25tbPoller {
     St25tbPollerEvent st25tb_event;
     St25tbPollerEventData st25tb_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
-const St25tbData* st25tb_poller_get_data(St25tbPoller* instance);
+const St25tbData *st25tb_poller_get_data(St25tbPoller *instance);
 
 #ifdef __cplusplus
 }

@@ -13,12 +13,14 @@
 #include <flipper_application/flipper_application.h>
 #include <furi.h>
 
-static void advanced_plugin2_method1(int arg1) {
+static void advanced_plugin2_method1(int arg1)
+{
     /* This function is implemented inside host application */
     app_api_accumulator_mul(arg1);
 }
 
-static void advanced_plugin2_method2(void) {
+static void advanced_plugin2_method2(void)
+{
     /* Accumulator value is stored inside host application */
     FURI_LOG_I("TEST", "Plugin 2, accumulator: %lu", app_api_accumulator_get());
 }
@@ -38,6 +40,7 @@ static const FlipperAppPluginDescriptor advanced_plugin2_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor */
-const FlipperAppPluginDescriptor* advanced_plugin2_ep(void) {
+const FlipperAppPluginDescriptor *advanced_plugin2_ep(void)
+{
     return &advanced_plugin2_descriptor;
 }

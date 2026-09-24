@@ -24,19 +24,20 @@ typedef struct {
 void furi_hal_region_init(void);
 
 /** Get Region Data.
- * 
+ *
  * Region data may be allocated in Flash or in RAM.
  * Keep in mind that we don't do memory management on our side.
  *
- * @return     pointer to FuriHalRegion instance (in RAM or Flash, check before freeing on region update)
+ * @return     pointer to FuriHalRegion instance (in RAM or Flash, check before freeing on region
+ * update)
  */
-const FuriHalRegion* furi_hal_region_get(void);
+const FuriHalRegion *furi_hal_region_get(void);
 
 /** Set device region data
  *
  * @param      region  pointer to the FuriHalRegion
  */
-void furi_hal_region_set(FuriHalRegion* region);
+void furi_hal_region_set(FuriHalRegion *region);
 
 /** Check if region data provisioned
  *
@@ -45,7 +46,7 @@ void furi_hal_region_set(FuriHalRegion* region);
 bool furi_hal_region_is_provisioned(void);
 
 /** Get region name
- * 
+ *
  * 2 letter Region code according to iso 3166 standard
  * There are 2 extra values that we use in special cases:
  * - "00" - developer edition, unlocked
@@ -54,7 +55,7 @@ bool furi_hal_region_is_provisioned(void);
  *
  * @return     Pointer to string
  */
-const char* furi_hal_region_get_name(void);
+const char *furi_hal_region_get_name(void);
 
 /** Сheck if transmission is allowed on this frequency for your flipper region
  *
@@ -66,14 +67,14 @@ const char* furi_hal_region_get_name(void);
 bool furi_hal_region_is_frequency_allowed(uint32_t frequency);
 
 /** Get band data for frequency
- * 
- * 
+ *
+ *
  *
  * @param[in]  frequency  The frequency
  *
  * @return     { description_of_the_return_value }
  */
-const FuriHalRegionBand* furi_hal_region_get_band(uint32_t frequency);
+const FuriHalRegionBand *furi_hal_region_get_band(uint32_t frequency);
 
 #ifdef __cplusplus
 }

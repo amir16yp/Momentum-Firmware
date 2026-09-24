@@ -15,7 +15,8 @@ typedef enum {
     SonicareHeadUnkown,
 } SonicareHead;
 
-static SonicareHead sonicare_get_head_type(const MfUltralightData* data) {
+static SonicareHead sonicare_get_head_type(const MfUltralightData *data)
+{
     // data.page[34].data got 4 bytes
     // 31:32:31:34 for black (not sure)
     // 31:31:31:31 for white (not sure)
@@ -23,14 +24,15 @@ static SonicareHead sonicare_get_head_type(const MfUltralightData* data) {
     // page 34 byte 0 is always 0x30 for the white brushes i have, so i guess thats white
     // TODO: Get a black brush and test this
 
-    if(data->page[34].data[0] == 0x30) {
+    if (data->page[34].data[0] == 0x30) {
         return SonicareHeadWhite;
     } else {
         return SonicareHeadUnkown;
     }
 }
 
-static uint32_t sonicare_get_seconds_brushed(const MfUltralightData* data) {
+static uint32_t sonicare_get_seconds_brushed(const MfUltralightData *data)
+{
     uint32_t seconds_brushed = 0;
 
     seconds_brushed += data->page[36].data[0];
@@ -39,19 +41,20 @@ static uint32_t sonicare_get_seconds_brushed(const MfUltralightData* data) {
     return seconds_brushed;
 }
 
-static bool sonicare_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool sonicare_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
 
-    const MfUltralightData* data = nfc_device_get_data(device, NfcProtocolMfUltralight);
+    const MfUltralightData *data = nfc_device_get_data(device, NfcProtocolMfUltralight);
 
     bool parsed = false;
 
     do {
         // Check for NDEF link match
-        const char* test = "philips.com/nfcbrushheadtap";
+        const char *test = "philips.com/nfcbrushheadtap";
         // Data is a array of arrays, cast to char array and compare
-        if(strncmp(test, (const char*)&data->page[5].data[3], strlen(test)) != 0) {
+        if (strncmp(test, (const char *)&data->page[5].data[3], strlen(test)) != 0) {
             FURI_LOG_D(TAG, "Not a Philips Sonicare head");
             break;
         }
@@ -59,9 +62,9 @@ static bool sonicare_parse(const NfcDevice* device, FuriString* parsed_data) {
         const SonicareHead head_type = sonicare_get_head_type(data);
         const uint32_t seconds_brushed = sonicare_get_seconds_brushed(data);
 
-        const char* head_type_str;
+        const char *head_type_str;
 
-        switch(head_type) {
+        switch (head_type) {
         case SonicareHeadWhite:
             head_type_str = "White";
             break;
@@ -75,15 +78,12 @@ static bool sonicare_parse(const NfcDevice* device, FuriString* parsed_data) {
         }
 
         furi_string_printf(
-            parsed_data,
-            "\e#Philips Sonicare head\nColor: %s\nTime brushed: %02lu:%02lu:%02lu\n",
-            head_type_str,
-            (unsigned long)(seconds_brushed / 3600),
-            (unsigned long)((seconds_brushed / 60) % 60),
-            (unsigned long)(seconds_brushed % 60));
+            parsed_data, "\e#Philips Sonicare head\nColor: %s\nTime brushed: %02lu:%02lu:%02lu\n",
+            head_type_str, (unsigned long)(seconds_brushed / 3600),
+            (unsigned long)((seconds_brushed / 60) % 60), (unsigned long)(seconds_brushed % 60));
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -104,6 +104,7 @@ static const FlipperAppPluginDescriptor sonicare_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* sonicare_plugin_ep(void) {
+const FlipperAppPluginDescriptor *sonicare_plugin_ep(void)
+{
     return &sonicare_plugin_descriptor;
 }

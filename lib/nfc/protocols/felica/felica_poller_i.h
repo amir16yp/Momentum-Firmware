@@ -11,7 +11,7 @@ extern "C" {
 
 #define FELICA_POLLER_POLLING_FWT (200000U)
 
-#define FELICA_POLLER_CMD_POLLING_REQ_CODE  (0x00U)
+#define FELICA_POLLER_CMD_POLLING_REQ_CODE (0x00U)
 #define FELICA_POLLER_CMD_POLLING_RESP_CODE (0x01U)
 
 typedef enum {
@@ -31,13 +31,13 @@ typedef enum {
 } FelicaPollerState;
 
 struct FelicaPoller {
-    Nfc* nfc;
+    Nfc *nfc;
     FelicaPollerState state;
     FelicaAuthentication auth;
 
-    FelicaData* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    FelicaData *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
 
     NfcGenericEvent general_event;
     FelicaPollerEvent felica_event;
@@ -46,7 +46,7 @@ struct FelicaPoller {
     uint8_t block_index;
     uint8_t systems_read;
     uint8_t systems_total;
-    void* context;
+    void *context;
 };
 
 typedef struct {
@@ -62,40 +62,35 @@ typedef struct {
 } FelicaPollerPollingResponse;
 
 typedef union {
-    FelicaData* data;
+    FelicaData *data;
 } FelicaPollerContextData;
 
-const FelicaData* felica_poller_get_data(FelicaPoller* instance);
+const FelicaData *felica_poller_get_data(FelicaPoller *instance);
 
 /**
  * @brief Performs felica polling operation as part of the activation process
- * 
+ *
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @param[in] cmd Pointer to polling command structure
  * @param[out] resp Pointer to the response structure
  * @return FelicaErrorNone on success, an error code on failure
-*/
-FelicaError felica_poller_polling(
-    FelicaPoller* instance,
-    const FelicaPollerPollingCommand* cmd,
-    FelicaPollerPollingResponse* resp);
+ */
+FelicaError felica_poller_polling(FelicaPoller *instance, const FelicaPollerPollingCommand *cmd,
+                                  FelicaPollerPollingResponse *resp);
 
 /**
  * @brief Performs felica write operation with data provided as parameters
- * 
+ *
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @param[in] block_count Amount of blocks involved in writing procedure
  * @param[in] block_numbers Array with block indexes according to felica docs
  * @param[in] data Data of blocks provided in block_numbers
  * @param[out] response_ptr Pointer to the response structure
  * @return FelicaErrorNone on success, an error code on failure.
-*/
-FelicaError felica_poller_write_blocks(
-    const FelicaPoller* instance,
-    const uint8_t block_count,
-    const uint8_t* const block_numbers,
-    const uint8_t* data,
-    FelicaPollerWriteCommandResponse** const response_ptr);
+ */
+FelicaError felica_poller_write_blocks(const FelicaPoller *instance, const uint8_t block_count,
+                                       const uint8_t *const block_numbers, const uint8_t *data,
+                                       FelicaPollerWriteCommandResponse **const response_ptr);
 
 /**
  * @brief Perform frame exchange procedure.
@@ -109,20 +104,14 @@ FelicaError felica_poller_write_blocks(
  * @param[in] fwt timeout window
  * @return FelicaErrorNone on success, an error code on failure.
  */
-FelicaError felica_poller_frame_exchange(
-    const FelicaPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+FelicaError felica_poller_frame_exchange(const FelicaPoller *instance, const BitBuffer *tx_buffer,
+                                         BitBuffer *rx_buffer, uint32_t fwt);
 
-FelicaError felica_poller_list_service_by_cursor(
-    FelicaPoller* instance,
-    uint16_t cursor,
-    FelicaListServiceCommandResponse** response_ptr);
+FelicaError felica_poller_list_service_by_cursor(FelicaPoller *instance, uint16_t cursor,
+                                                 FelicaListServiceCommandResponse **response_ptr);
 
-FelicaError felica_poller_list_system_code(
-    FelicaPoller* instance,
-    FelicaListSystemCodeCommandResponse** response_ptr);
+FelicaError felica_poller_list_system_code(FelicaPoller *instance,
+                                           FelicaListSystemCodeCommandResponse **response_ptr);
 
 #ifdef __cplusplus
 }

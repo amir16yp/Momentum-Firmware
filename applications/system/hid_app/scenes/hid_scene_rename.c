@@ -7,30 +7,28 @@ enum HidSceneRenameEvent {
     HidSceneRenameEventPopup,
 };
 
-static void hid_scene_rename_text_input_callback(void* context) {
-    Hid* app = context;
+static void hid_scene_rename_text_input_callback(void *context)
+{
+    Hid *app = context;
 
     view_dispatcher_send_custom_event(app->view_dispatcher, HidSceneRenameEventTextInput);
 }
 
-void hid_scene_rename_popup_callback(void* context) {
-    Hid* app = context;
+void hid_scene_rename_popup_callback(void *context)
+{
+    Hid *app = context;
 
     view_dispatcher_send_custom_event(app->view_dispatcher, HidSceneRenameEventPopup);
 }
 
-void hid_scene_rename_on_enter(void* context) {
-    Hid* app = context;
+void hid_scene_rename_on_enter(void *context)
+{
+    Hid *app = context;
 
     // Rename text input view
     text_input_reset(app->text_input);
-    text_input_set_result_callback(
-        app->text_input,
-        hid_scene_rename_text_input_callback,
-        app,
-        app->ble_hid_cfg.name,
-        sizeof(app->ble_hid_cfg.name),
-        true);
+    text_input_set_result_callback(app->text_input, hid_scene_rename_text_input_callback, app,
+                                   app->ble_hid_cfg.name, sizeof(app->ble_hid_cfg.name), true);
     text_input_set_header_text(app->text_input, "Bluetooth Name");
 
     // Rename success popup view
@@ -44,13 +42,14 @@ void hid_scene_rename_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, HidViewTextInput);
 }
 
-bool hid_scene_rename_on_event(void* context, SceneManagerEvent event) {
-    Hid* app = context;
+bool hid_scene_rename_on_event(void *context, SceneManagerEvent event)
+{
+    Hid *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == HidSceneRenameEventTextInput) {
+        if (event.event == HidSceneRenameEventTextInput) {
 #ifdef HID_TRANSPORT_BLE
             furi_hal_bt_stop_advertising();
 
@@ -66,7 +65,7 @@ bool hid_scene_rename_on_event(void* context, SceneManagerEvent event) {
             // Show popup
             view_dispatcher_switch_to_view(app->view_dispatcher, HidViewPopup);
 
-        } else if(event.event == HidSceneRenameEventPopup) {
+        } else if (event.event == HidSceneRenameEventPopup) {
             scene_manager_previous_scene(app->scene_manager);
         }
     }
@@ -74,8 +73,9 @@ bool hid_scene_rename_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void hid_scene_rename_on_exit(void* context) {
-    Hid* app = context;
+void hid_scene_rename_on_exit(void *context)
+{
+    Hid *app = context;
 
     text_input_reset(app->text_input);
     popup_reset(app->popup);

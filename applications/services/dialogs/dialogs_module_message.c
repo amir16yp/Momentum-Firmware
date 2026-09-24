@@ -10,35 +10,37 @@ typedef struct {
 } DialogsAppMessageContext;
 
 struct DialogMessage {
-    const char* header_text;
+    const char *header_text;
     uint8_t header_text_x;
     uint8_t header_text_y;
     Align header_horizontal;
     Align header_vertical;
-    const char* dialog_text;
+    const char *dialog_text;
     uint8_t dialog_text_x;
     uint8_t dialog_text_y;
     Align dialog_text_horizontal;
     Align dialog_text_vertical;
-    const Icon* icon;
+    const Icon *icon;
     uint8_t icon_x;
     uint8_t icon_y;
-    const char* left_button_text;
-    const char* center_button_text;
-    const char* right_button_text;
+    const char *left_button_text;
+    const char *center_button_text;
+    const char *right_button_text;
 };
 
-static void dialogs_app_message_back_callback(void* context) {
+static void dialogs_app_message_back_callback(void *context)
+{
     furi_assert(context);
-    DialogsAppMessageContext* message_context = context;
+    DialogsAppMessageContext *message_context = context;
     message_context->result = DialogMessageButtonBack;
     api_lock_unlock(message_context->lock);
 }
 
-static void dialogs_app_message_callback(DialogExResult result, void* context) {
+static void dialogs_app_message_callback(DialogExResult result, void *context)
+{
     furi_assert(context);
-    DialogsAppMessageContext* message_context = context;
-    switch(result) {
+    DialogsAppMessageContext *message_context = context;
+    switch (result) {
     case DialogExResultLeft:
         message_context->result = DialogMessageButtonLeft;
         break;
@@ -54,34 +56,27 @@ static void dialogs_app_message_callback(DialogExResult result, void* context) {
     api_lock_unlock(message_context->lock);
 }
 
-DialogMessageButton dialogs_app_process_module_message(const DialogsAppMessageDataDialog* data) {
+DialogMessageButton dialogs_app_process_module_message(const DialogsAppMessageDataDialog *data)
+{
     DialogMessageButton ret = DialogMessageButtonBack;
-    Gui* gui = furi_record_open(RECORD_GUI);
-    const DialogMessage* message = data->message;
-    DialogsAppMessageContext* message_context = malloc(sizeof(DialogsAppMessageContext));
+    Gui *gui = furi_record_open(RECORD_GUI);
+    const DialogMessage *message = data->message;
+    DialogsAppMessageContext *message_context = malloc(sizeof(DialogsAppMessageContext));
     message_context->lock = api_lock_alloc_locked();
 
-    ViewHolder* view_holder = view_holder_alloc();
+    ViewHolder *view_holder = view_holder_alloc();
     view_holder_attach_to_gui(view_holder, gui);
     view_holder_set_back_callback(view_holder, dialogs_app_message_back_callback, message_context);
 
-    DialogEx* dialog_ex = dialog_ex_alloc();
+    DialogEx *dialog_ex = dialog_ex_alloc();
     dialog_ex_set_result_callback(dialog_ex, dialogs_app_message_callback);
     dialog_ex_set_context(dialog_ex, message_context);
-    dialog_ex_set_header(
-        dialog_ex,
-        message->header_text,
-        message->header_text_x,
-        message->header_text_y,
-        message->header_horizontal,
-        message->header_vertical);
-    dialog_ex_set_text(
-        dialog_ex,
-        message->dialog_text,
-        message->dialog_text_x,
-        message->dialog_text_y,
-        message->dialog_text_horizontal,
-        message->dialog_text_vertical);
+    dialog_ex_set_header(dialog_ex, message->header_text, message->header_text_x,
+                         message->header_text_y, message->header_horizontal,
+                         message->header_vertical);
+    dialog_ex_set_text(dialog_ex, message->dialog_text, message->dialog_text_x,
+                       message->dialog_text_y, message->dialog_text_horizontal,
+                       message->dialog_text_vertical);
     dialog_ex_set_icon(dialog_ex, message->icon_x, message->icon_y, message->icon);
     dialog_ex_set_left_button_text(dialog_ex, message->left_button_text);
     dialog_ex_set_center_button_text(dialog_ex, message->center_button_text);
@@ -102,23 +97,21 @@ DialogMessageButton dialogs_app_process_module_message(const DialogsAppMessageDa
     return ret;
 }
 
-DialogMessage* dialog_message_alloc(void) {
-    DialogMessage* message = malloc(sizeof(DialogMessage));
+DialogMessage *dialog_message_alloc(void)
+{
+    DialogMessage *message = malloc(sizeof(DialogMessage));
     return message;
 }
 
-void dialog_message_free(DialogMessage* message) {
+void dialog_message_free(DialogMessage *message)
+{
     furi_check(message);
     free(message);
 }
 
-void dialog_message_set_text(
-    DialogMessage* message,
-    const char* text,
-    uint8_t x,
-    uint8_t y,
-    Align horizontal,
-    Align vertical) {
+void dialog_message_set_text(DialogMessage *message, const char *text, uint8_t x, uint8_t y,
+                             Align horizontal, Align vertical)
+{
     furi_check(message);
 
     message->dialog_text = text;
@@ -128,13 +121,9 @@ void dialog_message_set_text(
     message->dialog_text_vertical = vertical;
 }
 
-void dialog_message_set_header(
-    DialogMessage* message,
-    const char* text,
-    uint8_t x,
-    uint8_t y,
-    Align horizontal,
-    Align vertical) {
+void dialog_message_set_header(DialogMessage *message, const char *text, uint8_t x, uint8_t y,
+                               Align horizontal, Align vertical)
+{
     furi_check(message);
 
     message->header_text = text;
@@ -144,7 +133,8 @@ void dialog_message_set_header(
     message->header_vertical = vertical;
 }
 
-void dialog_message_set_icon(DialogMessage* message, const Icon* icon, uint8_t x, uint8_t y) {
+void dialog_message_set_icon(DialogMessage *message, const Icon *icon, uint8_t x, uint8_t y)
+{
     furi_check(message);
 
     message->icon = icon;
@@ -152,11 +142,9 @@ void dialog_message_set_icon(DialogMessage* message, const Icon* icon, uint8_t x
     message->icon_y = y;
 }
 
-void dialog_message_set_buttons(
-    DialogMessage* message,
-    const char* left,
-    const char* center,
-    const char* right) {
+void dialog_message_set_buttons(DialogMessage *message, const char *left, const char *center,
+                                const char *right)
+{
     furi_check(message);
 
     message->left_button_text = left;

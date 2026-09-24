@@ -8,9 +8,10 @@ enum SubmenuIndex {
     SubmenuIndexAdd,
 };
 
-void ibutton_scene_start_on_enter(void* context) {
-    iButton* ibutton = context;
-    Submenu* submenu = ibutton->submenu;
+void ibutton_scene_start_on_enter(void *context)
+{
+    iButton *ibutton = context;
+    Submenu *submenu = ibutton->submenu;
 
     ibutton_reset_key(ibutton);
 
@@ -24,19 +25,20 @@ void ibutton_scene_start_on_enter(void* context) {
     view_dispatcher_switch_to_view(ibutton->view_dispatcher, iButtonViewSubmenu);
 }
 
-bool ibutton_scene_start_on_event(void* context, SceneManagerEvent event) {
-    iButton* ibutton = context;
+bool ibutton_scene_start_on_event(void *context, SceneManagerEvent event)
+{
+    iButton *ibutton = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         scene_manager_set_scene_state(ibutton->scene_manager, iButtonSceneStart, event.event);
         consumed = true;
-        if(event.event == SubmenuIndexRead) {
+        if (event.event == SubmenuIndexRead) {
             scene_manager_next_scene(ibutton->scene_manager, iButtonSceneRead);
             dolphin_deed(DolphinDeedIbuttonRead);
-        } else if(event.event == SubmenuIndexSaved) {
+        } else if (event.event == SubmenuIndexSaved) {
             scene_manager_next_scene(ibutton->scene_manager, iButtonSceneSelectKey);
-        } else if(event.event == SubmenuIndexAdd) {
+        } else if (event.event == SubmenuIndexAdd) {
             scene_manager_next_scene(ibutton->scene_manager, iButtonSceneAddType);
         }
     }
@@ -44,7 +46,8 @@ bool ibutton_scene_start_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void ibutton_scene_start_on_exit(void* context) {
-    iButton* ibutton = context;
+void ibutton_scene_start_on_exit(void *context)
+{
+    iButton *ibutton = context;
     submenu_reset(ibutton->submenu);
 }

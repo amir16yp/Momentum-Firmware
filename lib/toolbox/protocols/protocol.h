@@ -5,18 +5,18 @@
 #include <lib/toolbox/level_duration.h>
 #include <furi.h>
 
-typedef void* (*ProtocolAlloc)(void);
-typedef void (*ProtocolFree)(void* protocol);
-typedef uint8_t* (*ProtocolGetData)(void* protocol);
+typedef void *(*ProtocolAlloc)(void);
+typedef void (*ProtocolFree)(void *protocol);
+typedef uint8_t *(*ProtocolGetData)(void *protocol);
 
-typedef void (*ProtocolDecoderStart)(void* protocol);
-typedef bool (*ProtocolDecoderFeed)(void* protocol, bool level, uint32_t duration);
+typedef void (*ProtocolDecoderStart)(void *protocol);
+typedef bool (*ProtocolDecoderFeed)(void *protocol, bool level, uint32_t duration);
 
-typedef bool (*ProtocolEncoderStart)(void* protocol);
-typedef LevelDuration (*ProtocolEncoderYield)(void* protocol);
+typedef bool (*ProtocolEncoderStart)(void *protocol);
+typedef LevelDuration (*ProtocolEncoderYield)(void *protocol);
 
-typedef void (*ProtocolRenderData)(void* protocol, FuriString* result);
-typedef bool (*ProtocolWriteData)(void* protocol, void* data);
+typedef void (*ProtocolRenderData)(void *protocol, FuriString *result);
+typedef bool (*ProtocolWriteData)(void *protocol, void *data);
 
 typedef struct {
     ProtocolDecoderStart start;
@@ -30,8 +30,8 @@ typedef struct {
 
 typedef struct {
     const size_t data_size;
-    const char* name;
-    const char* manufacturer;
+    const char *name;
+    const char *manufacturer;
     const uint32_t features;
     const uint8_t validate_count;
 

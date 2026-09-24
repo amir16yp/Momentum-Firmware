@@ -29,28 +29,28 @@ typedef enum {
 } MfDesfirePollerSessionState;
 
 struct MfDesfirePoller {
-    Iso14443_4aPoller* iso14443_4a_poller;
+    Iso14443_4aPoller *iso14443_4a_poller;
     NxpNativeCommandMode command_mode;
     MfDesfirePollerSessionState session_state;
     MfDesfirePollerState state;
     MfDesfireError error;
-    MfDesfireData* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
-    BitBuffer* input_buffer;
-    BitBuffer* result_buffer;
+    MfDesfireData *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
+    BitBuffer *input_buffer;
+    BitBuffer *result_buffer;
     MfDesfirePollerEventData mf_desfire_event_data;
     MfDesfirePollerEvent mf_desfire_event;
     NfcGenericEvent general_event;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 MfDesfireError mf_desfire_process_error(Iso14443_4aError error);
 
 MfDesfireError mf_desfire_process_status_code(uint8_t status_code);
 
-const MfDesfireData* mf_desfire_poller_get_data(MfDesfirePoller* instance);
+const MfDesfireData *mf_desfire_poller_get_data(MfDesfirePoller *instance);
 
 #ifdef __cplusplus
 }

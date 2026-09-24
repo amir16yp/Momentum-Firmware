@@ -17,7 +17,7 @@ typedef enum {
     GuiButtonTypeRight,
 } GuiButtonType;
 
-typedef void (*ButtonCallback)(GuiButtonType result, InputType type, void* context);
+typedef void (*ButtonCallback)(GuiButtonType result, InputType type, void *context);
 
 #ifdef __cplusplus
 }

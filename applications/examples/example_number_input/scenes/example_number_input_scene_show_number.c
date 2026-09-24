@@ -1,15 +1,16 @@
 #include "../example_number_input.h"
 
-static void
-    example_number_input_scene_confirm_dialog_callback(DialogExResult result, void* context) {
-    ExampleNumberInput* app = context;
+static void example_number_input_scene_confirm_dialog_callback(DialogExResult result, void *context)
+{
+    ExampleNumberInput *app = context;
 
     view_dispatcher_send_custom_event(app->view_dispatcher, result);
 }
 
-static void example_number_input_scene_update_view(void* context) {
-    ExampleNumberInput* app = context;
-    DialogEx* dialog_ex = app->dialog_ex;
+static void example_number_input_scene_update_view(void *context)
+{
+    ExampleNumberInput *app = context;
+    DialogEx *dialog_ex = app->dialog_ex;
 
     dialog_ex_set_header(dialog_ex, "The number is", 64, 0, AlignCenter, AlignTop);
 
@@ -25,21 +26,23 @@ static void example_number_input_scene_update_view(void* context) {
     dialog_ex_set_context(dialog_ex, app);
 }
 
-void example_number_input_scene_show_number_on_enter(void* context) {
+void example_number_input_scene_show_number_on_enter(void *context)
+{
     furi_assert(context);
-    ExampleNumberInput* app = context;
+    ExampleNumberInput *app = context;
 
     example_number_input_scene_update_view(app);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, ExampleNumberInputViewIdShowNumber);
 }
 
-bool example_number_input_scene_show_number_on_event(void* context, SceneManagerEvent event) {
-    ExampleNumberInput* app = context;
+bool example_number_input_scene_show_number_on_event(void *context, SceneManagerEvent event)
+{
+    ExampleNumberInput *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        switch(event.event) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        switch (event.event) {
         case DialogExResultCenter:
             scene_manager_next_scene(app->scene_manager, ExampleNumberInputSceneInputNumber);
             consumed = true;
@@ -60,6 +63,7 @@ bool example_number_input_scene_show_number_on_event(void* context, SceneManager
     return consumed;
 }
 
-void example_number_input_scene_show_number_on_exit(void* context) {
+void example_number_input_scene_show_number_on_exit(void *context)
+{
     UNUSED(context);
 }

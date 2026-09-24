@@ -46,9 +46,9 @@ extern "C" {
 
 /* Memory buffer descriptor */
 struct mbuf {
-  char *buf;   /* Buffer pointer */
-  size_t len;  /* Data length. Data is located between offset 0 and len. */
-  size_t size; /* Buffer size allocated by realloc(1). Must be >= len */
+    char *buf;   /* Buffer pointer */
+    size_t len;  /* Data length. Data is located between offset 0 and len. */
+    size_t size; /* Buffer size allocated by realloc(1). Must be >= len */
 };
 
 /*

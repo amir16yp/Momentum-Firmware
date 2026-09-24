@@ -6,34 +6,24 @@ enum SubmenuIndex {
     SubmenuIndexDelete,
 };
 
-void subghz_scene_more_raw_submenu_callback(void* context, uint32_t index) {
-    SubGhz* subghz = context;
+void subghz_scene_more_raw_submenu_callback(void *context, uint32_t index)
+{
+    SubGhz *subghz = context;
     view_dispatcher_send_custom_event(subghz->view_dispatcher, index);
 }
 
-void subghz_scene_more_raw_on_enter(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_more_raw_on_enter(void *context)
+{
+    SubGhz *subghz = context;
 
-    submenu_add_item(
-        subghz->submenu,
-        "Decode",
-        SubmenuIndexDecode,
-        subghz_scene_more_raw_submenu_callback,
-        subghz);
+    submenu_add_item(subghz->submenu, "Decode", SubmenuIndexDecode,
+                     subghz_scene_more_raw_submenu_callback, subghz);
 
-    submenu_add_item(
-        subghz->submenu,
-        "Rename",
-        SubmenuIndexEdit,
-        subghz_scene_more_raw_submenu_callback,
-        subghz);
+    submenu_add_item(subghz->submenu, "Rename", SubmenuIndexEdit,
+                     subghz_scene_more_raw_submenu_callback, subghz);
 
-    submenu_add_item(
-        subghz->submenu,
-        "Delete",
-        SubmenuIndexDelete,
-        subghz_scene_more_raw_submenu_callback,
-        subghz);
+    submenu_add_item(subghz->submenu, "Delete", SubmenuIndexDelete,
+                     subghz_scene_more_raw_submenu_callback, subghz);
 
     submenu_set_selected_item(
         subghz->submenu, scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneMoreRAW));
@@ -41,29 +31,30 @@ void subghz_scene_more_raw_on_enter(void* context) {
     view_dispatcher_switch_to_view(subghz->view_dispatcher, SubGhzViewIdMenu);
 }
 
-bool subghz_scene_more_raw_on_event(void* context, SceneManagerEvent event) {
-    SubGhz* subghz = context;
+bool subghz_scene_more_raw_on_event(void *context, SceneManagerEvent event)
+{
+    SubGhz *subghz = context;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(!subghz_file_available(subghz)) {
-            if(!scene_manager_search_and_switch_to_previous_scene(
-                   subghz->scene_manager, SubGhzSceneStart)) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (!subghz_file_available(subghz)) {
+            if (!scene_manager_search_and_switch_to_previous_scene(subghz->scene_manager,
+                                                                   SubGhzSceneStart)) {
                 scene_manager_stop(subghz->scene_manager);
                 view_dispatcher_stop(subghz->view_dispatcher);
             }
             return true;
         }
         scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneMoreRAW, event.event);
-        if(event.event == SubmenuIndexDelete) {
-            scene_manager_set_scene_state(
-                subghz->scene_manager, SubGhzSceneReadRAW, SubGhzCustomEventManagerNoSet);
+        if (event.event == SubmenuIndexDelete) {
+            scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneReadRAW,
+                                          SubGhzCustomEventManagerNoSet);
             scene_manager_next_scene(subghz->scene_manager, SubGhzSceneDeleteRAW);
             return true;
-        } else if(event.event == SubmenuIndexEdit) {
+        } else if (event.event == SubmenuIndexEdit) {
             furi_string_reset(subghz->file_path_tmp);
             scene_manager_next_scene(subghz->scene_manager, SubGhzSceneSaveName);
             return true;
-        } else if(event.event == SubmenuIndexDecode) {
+        } else if (event.event == SubmenuIndexDecode) {
             scene_manager_next_scene(subghz->scene_manager, SubGhzSceneDecodeRAW);
             return true;
         }
@@ -71,7 +62,8 @@ bool subghz_scene_more_raw_on_event(void* context, SceneManagerEvent event) {
     return false;
 }
 
-void subghz_scene_more_raw_on_exit(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_more_raw_on_exit(void *context)
+{
+    SubGhz *subghz = context;
     submenu_reset(subghz->submenu);
 }

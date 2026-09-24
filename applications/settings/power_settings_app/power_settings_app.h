@@ -18,15 +18,15 @@
 
 typedef struct {
     PowerSettings settings;
-    Power* power;
-    Gui* gui;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
-    BatteryInfo* battery_info;
-    Submenu* submenu;
-    DialogEx* dialog;
+    Power *power;
+    Gui *gui;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
+    BatteryInfo *battery_info;
+    Submenu *submenu;
+    DialogEx *dialog;
     PowerInfo info;
-    VariableItemList* variable_item_list;
+    VariableItemList *variable_item_list;
 
     bool about_battery;
 } PowerSettingsApp;
@@ -38,7 +38,4 @@ typedef enum {
     PowerSettingsAppViewVariableItemList
 } PowerSettingsAppView;
 
-typedef enum {
-    RebootTypeDFU,
-    RebootTypeNormal
-} RebootType;
+typedef enum { RebootTypeDFU, RebootTypeNormal } RebootType;

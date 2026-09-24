@@ -16,12 +16,12 @@ typedef enum {
 } SlixListenerEventType;
 
 typedef struct {
-    BitBuffer* buffer;
+    BitBuffer *buffer;
 } SlixListenerEventData;
 
 typedef struct {
     SlixListenerEventType type;
-    SlixListenerEventData* data;
+    SlixListenerEventData *data;
 } SlixListenerEvent;
 
 #ifdef __cplusplus

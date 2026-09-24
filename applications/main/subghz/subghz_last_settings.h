@@ -6,11 +6,11 @@
 #include <storage/storage.h>
 #include <lib/subghz/types.h>
 
-#define SUBGHZ_LAST_SETTING_FREQUENCY_ANALYZER_TRIGGER        (-93.0f)
+#define SUBGHZ_LAST_SETTING_FREQUENCY_ANALYZER_TRIGGER (-93.0f)
 // 1 = "AM650"
 // "AM270", "AM650", "FM238", "FM12K", "FM476",
-#define SUBGHZ_LAST_SETTING_DEFAULT_PRESET                    1
-#define SUBGHZ_LAST_SETTING_DEFAULT_FREQUENCY                 433920000
+#define SUBGHZ_LAST_SETTING_DEFAULT_PRESET 1
+#define SUBGHZ_LAST_SETTING_DEFAULT_FREQUENCY 433920000
 #define SUBGHZ_LAST_SETTING_FREQUENCY_ANALYZER_FEEDBACK_LEVEL 2
 
 typedef struct {
@@ -34,10 +34,10 @@ typedef struct {
     uint8_t tx_power;
 } SubGhzLastSettings;
 
-SubGhzLastSettings* subghz_last_settings_alloc(void);
+SubGhzLastSettings *subghz_last_settings_alloc(void);
 
-void subghz_last_settings_free(SubGhzLastSettings* instance);
+void subghz_last_settings_free(SubGhzLastSettings *instance);
 
-void subghz_last_settings_load(SubGhzLastSettings* instance, size_t preset_count);
+void subghz_last_settings_load(SubGhzLastSettings *instance, size_t preset_count);
 
-bool subghz_last_settings_save(SubGhzLastSettings* instance);
+bool subghz_last_settings_save(SubGhzLastSettings *instance);

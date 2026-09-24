@@ -24,7 +24,7 @@
 #include "protocol_noralsy.h"
 #include "protocol_insta_fob.h"
 
-const ProtocolBase* const lfrfid_protocols[] = {
+const ProtocolBase *const lfrfid_protocols[] = {
     [LFRFIDProtocolEM4100] = &protocol_em4100,
     [LFRFIDProtocolEM410032] = &protocol_em4100_32,
     [LFRFIDProtocolEM410016] = &protocol_em4100_16,

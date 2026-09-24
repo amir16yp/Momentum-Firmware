@@ -23,14 +23,16 @@ typedef enum {
 } FuriHalInfraredTxPin;
 
 typedef enum {
-    FuriHalInfraredTxGetDataStateOk, /**< New data obtained */
-    FuriHalInfraredTxGetDataStateDone, /**< New data obtained, and this is end of package */
-    FuriHalInfraredTxGetDataStateLastDone, /**< New data obtained, and this is end of package and no more data available */
+    FuriHalInfraredTxGetDataStateOk,       /**< New data obtained */
+    FuriHalInfraredTxGetDataStateDone,     /**< New data obtained, and this is end of package */
+    FuriHalInfraredTxGetDataStateLastDone, /**< New data obtained, and this is end of package and no
+                                              more data available */
 } FuriHalInfraredTxGetDataState;
 
 /** Callback type for providing data to INFRARED DMA TX system. It is called every tim */
-typedef FuriHalInfraredTxGetDataState (
-    *FuriHalInfraredTxGetDataISRCallback)(void* context, uint32_t* duration, bool* level);
+typedef FuriHalInfraredTxGetDataState (*FuriHalInfraredTxGetDataISRCallback)(void *context,
+                                                                             uint32_t *duration,
+                                                                             bool *level);
 
 /** Callback type called every time signal is sent by DMA to Timer.
  *
@@ -38,7 +40,7 @@ typedef FuriHalInfraredTxGetDataState (
  * almost end. Don't use this callback to stop transmission, as far as there are
  * next signal is charged for transmission by DMA.
  */
-typedef void (*FuriHalInfraredTxSignalSentISRCallback)(void* context);
+typedef void (*FuriHalInfraredTxSignalSentISRCallback)(void *context);
 
 /** Signature of callback function for receiving continuous INFRARED rx signal.
  *
@@ -46,13 +48,13 @@ typedef void (*FuriHalInfraredTxSignalSentISRCallback)(void* context);
  * @param[in] level     level of input INFRARED rx signal
  * @param[in] duration  duration of continuous rx signal level in us
  */
-typedef void (*FuriHalInfraredRxCaptureCallback)(void* ctx, bool level, uint32_t duration);
+typedef void (*FuriHalInfraredRxCaptureCallback)(void *ctx, bool level, uint32_t duration);
 
 /** Signature of callback function for reaching silence timeout on INFRARED port.
  *
  * @param[in] ctx  context to pass to callback
  */
-typedef void (*FuriHalInfraredRxTimeoutCallback)(void* ctx);
+typedef void (*FuriHalInfraredRxTimeoutCallback)(void *ctx);
 
 /** Initialize INFRARED RX timer to receive interrupts.
  *
@@ -78,9 +80,8 @@ void furi_hal_infrared_async_rx_set_timeout(uint32_t timeout_us);
  * @param[in]  callback  callback to call when RX signal edge changing occurs
  * @param[in]  ctx       context for callback
  */
-void furi_hal_infrared_async_rx_set_capture_isr_callback(
-    FuriHalInfraredRxCaptureCallback callback,
-    void* ctx);
+void furi_hal_infrared_async_rx_set_capture_isr_callback(FuriHalInfraredRxCaptureCallback callback,
+                                                         void *ctx);
 
 /** Setup callback for reaching silence timeout on INFRARED port.
  *
@@ -89,9 +90,8 @@ void furi_hal_infrared_async_rx_set_capture_isr_callback(
  * @param[in]  callback  callback for silence timeout
  * @param[in]  ctx       context to pass to callback
  */
-void furi_hal_infrared_async_rx_set_timeout_isr_callback(
-    FuriHalInfraredRxTimeoutCallback callback,
-    void* ctx);
+void furi_hal_infrared_async_rx_set_timeout_isr_callback(FuriHalInfraredRxTimeoutCallback callback,
+                                                         void *ctx);
 
 /** Check if INFRARED is in use now.
  *
@@ -106,9 +106,8 @@ bool furi_hal_infrared_is_busy(void);
  * @param[in]  callback  function to provide new data
  * @param[in]  context   context for callback
  */
-void furi_hal_infrared_async_tx_set_data_isr_callback(
-    FuriHalInfraredTxGetDataISRCallback callback,
-    void* context);
+void furi_hal_infrared_async_tx_set_data_isr_callback(FuriHalInfraredTxGetDataISRCallback callback,
+                                                      void *context);
 
 /** Start IR asynchronous transmission.
  *
@@ -146,8 +145,7 @@ void furi_hal_infrared_async_tx_wait_termination(void);
  * @param[in]  context   context for callback
  */
 void furi_hal_infrared_async_tx_set_signal_sent_isr_callback(
-    FuriHalInfraredTxSignalSentISRCallback callback,
-    void* context);
+    FuriHalInfraredTxSignalSentISRCallback callback, void *context);
 
 /** Detect which pin has an external IR module connected.
  *

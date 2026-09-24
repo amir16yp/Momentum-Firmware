@@ -28,13 +28,13 @@ typedef enum {
  *
  * @return     TextBox instance
  */
-TextBox* text_box_alloc(void);
+TextBox *text_box_alloc(void);
 
 /** Deinitialize and free text_box
  *
  * @param      text_box  text_box instance
  */
-void text_box_free(TextBox* text_box);
+void text_box_free(TextBox *text_box);
 
 /** Get text_box view
  *
@@ -42,27 +42,27 @@ void text_box_free(TextBox* text_box);
  *
  * @return     View instance that can be used for embedding
  */
-View* text_box_get_view(TextBox* text_box);
+View *text_box_get_view(TextBox *text_box);
 
 /** Clean text_box
  *
  * @param      text_box  TextBox instance
  */
-void text_box_reset(TextBox* text_box);
+void text_box_reset(TextBox *text_box);
 
 /** Set text for text_box
  *
  * @param      text_box  TextBox instance
  * @param      text      text to set
  */
-void text_box_set_text(TextBox* text_box, const char* text);
+void text_box_set_text(TextBox *text_box, const char *text);
 
 /** Set TextBox font
  *
  * @param      text_box  TextBox instance
  * @param      font      TextBoxFont instance
  */
-void text_box_set_font(TextBox* text_box, TextBoxFont font);
+void text_box_set_font(TextBox *text_box, TextBoxFont font);
 
 /** Set TextBox focus
  * @note Use to display from start or from end
@@ -70,7 +70,7 @@ void text_box_set_font(TextBox* text_box, TextBoxFont font);
  * @param      text_box  TextBox instance
  * @param      focus     TextBoxFocus instance
  */
-void text_box_set_focus(TextBox* text_box, TextBoxFocus focus);
+void text_box_set_focus(TextBox *text_box, TextBoxFocus focus);
 
 #ifdef __cplusplus
 }

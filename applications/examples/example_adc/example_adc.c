@@ -18,7 +18,8 @@ const uint8_t font[] =
     "\315\364\71\346(\0/\14\315\364\221\60\13\263\60\13C\0\60\13\315\264\245Jb)E:\12\61\12\315"
     "\364\201Ll\333A\0\62\12\315\264\245bV\33r\20\63\13\315\264\245Z\232D\221\216\2\64\14\315\364"
     "\201LJ\242!\313v\20\65\14\315t\207$\134\223(\322Q\0\66\13\315\264\245p\252D\221\216\2\67"
-    "\12\315t\207\60+\326a\0\70\13\315\264\245\222T\211\42\35\5\71\13\315\264\245J\24\215\221\216\2:"
+    "\12\315t\207\60+"
+    "\326a\0\70\13\315\264\245\222T\211\42\35\5\71\13\315\264\245J\24\215\221\216\2:"
     "\11\315\364i\71!G\1;\12\315\364I\71!\314B\0<\11\315\364\341\254Z\7\1=\12\315\364)"
     "C<\344$\0>\11\315\364\301\264V\207\1\77\12\315\264\245Z\35\312a\0@\14\315\264\245J\242$"
     "J\272\203\0A\15\315\264\245J\224\14I\224D\71\10B\13\315t\247\312T\211\222\35\5C\12\315\264"
@@ -31,7 +32,8 @@ const uint8_t font[] =
     "D\221\216\2T\10\315\264\267\260;\12U\16\315t\243$J\242$J\242HG\1V\15\315t\243$"
     "J\242$Jj\71\14W\17\315t\243$J\242dH\206$\312A\0X\15\315t\243$\212\64\251\22"
     "\345 \0Y\13\315t\243$Jja\35\6Z\12\315t\207\60k\34r\20[\10\315\264\264\260G\31"
-    "\134\12\315\264\303\64L\303\64\14]\10\315t\304\276\351\0^\11\315\364\201,\311\271\1_\7\315\364y"
+    "\134\12\315\264\303\64L\303\64\14]\10\315t\304\276\351\0^\11\315\364\201,\311\271\1_"
+    "\7\315\364y"
     "\35\4`\10\315t\322\234'\0a\14\315\364IK\224$R\222\203\0b\13\315t\303p\252D\311\216"
     "\2c\12\315\364IR%\335A\0d\14\315\364\221\60Z\242$\212v\20e\12\315\364I\322\220\244;"
     "\10f\12\315\364\221,\333\302:\12g\14\315\364IK\224D\321\30I\0h\14\315t\303p\252DI"
@@ -46,70 +48,68 @@ const uint8_t font[] =
 
 #define FONT_HEIGHT (8u)
 
-typedef float (*ValueConverter)(FuriHalAdcHandle* handle, uint16_t value);
+typedef float (*ValueConverter)(FuriHalAdcHandle *handle, uint16_t value);
 
 typedef struct {
-    const GpioPinRecord* pin;
+    const GpioPinRecord *pin;
     float value;
     ValueConverter converter;
-    const char* suffix;
+    const char *suffix;
 } DataItem;
 
 typedef struct {
     size_t count;
-    DataItem* items;
+    DataItem *items;
 } Data;
 
 const GpioPinRecord item_vref = {.name = "VREF", .channel = FuriHalAdcChannelVREFINT};
 const GpioPinRecord item_temp = {.name = "TEMP", .channel = FuriHalAdcChannelTEMPSENSOR};
 const GpioPinRecord item_vbat = {.name = "VBAT", .channel = FuriHalAdcChannelVBAT};
 
-static void app_draw_callback(Canvas* canvas, void* ctx) {
+static void app_draw_callback(Canvas *canvas, void *ctx)
+{
     furi_assert(ctx);
-    Data* data = ctx;
+    Data *data = ctx;
 
     canvas_set_custom_u8g2_font(canvas, font);
     char buffer[64];
     int32_t x = 0, y = FONT_HEIGHT;
-    for(size_t i = 0; i < data->count; i++) {
-        if(i == canvas_height(canvas) / FONT_HEIGHT) {
+    for (size_t i = 0; i < data->count; i++) {
+        if (i == canvas_height(canvas) / FONT_HEIGHT) {
             x = 64;
             y = FONT_HEIGHT;
         }
 
-        snprintf(
-            buffer,
-            sizeof(buffer),
-            "%4s: %4.0f%s\n",
-            data->items[i].pin->name,
-            (double)data->items[i].value,
-            data->items[i].suffix);
+        snprintf(buffer, sizeof(buffer), "%4s: %4.0f%s\n", data->items[i].pin->name,
+                 (double)data->items[i].value, data->items[i].suffix);
         canvas_draw_str(canvas, x, y, buffer);
         y += FONT_HEIGHT;
     }
 }
 
-static void app_input_callback(InputEvent* input_event, void* ctx) {
+static void app_input_callback(InputEvent *input_event, void *ctx)
+{
     furi_assert(ctx);
-    FuriMessageQueue* event_queue = ctx;
+    FuriMessageQueue *event_queue = ctx;
     furi_message_queue_put(event_queue, input_event, FuriWaitForever);
 }
 
-int32_t example_adc_main(void* p) {
+int32_t example_adc_main(void *p)
+{
     UNUSED(p);
 
     // Data
     Data data = {};
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(gpio_pins[i].channel != FuriHalAdcChannelNone) {
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (gpio_pins[i].channel != FuriHalAdcChannelNone) {
             data.count++;
         }
     }
     data.count += 3; // Special channels
     data.items = malloc(data.count * sizeof(DataItem));
     size_t item_pos = 0;
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(gpio_pins[i].channel != FuriHalAdcChannelNone) {
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (gpio_pins[i].channel != FuriHalAdcChannelNone) {
             furi_hal_gpio_init(gpio_pins[i].pin, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
             data.items[item_pos].pin = &gpio_pins[i];
             data.items[item_pos].converter = furi_hal_adc_convert_to_voltage;
@@ -132,31 +132,31 @@ int32_t example_adc_main(void* p) {
     furi_assert(item_pos == data.count);
 
     // Alloc message queue
-    FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
+    FuriMessageQueue *event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     // Configure view port
-    ViewPort* view_port = view_port_alloc();
+    ViewPort *view_port = view_port_alloc();
     view_port_draw_callback_set(view_port, app_draw_callback, &data);
     view_port_input_callback_set(view_port, app_input_callback, event_queue);
 
     // Register view port in GUI
-    Gui* gui = furi_record_open(RECORD_GUI);
+    Gui *gui = furi_record_open(RECORD_GUI);
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
 
     // Initialize ADC
-    FuriHalAdcHandle* adc_handle = furi_hal_adc_acquire();
+    FuriHalAdcHandle *adc_handle = furi_hal_adc_acquire();
     furi_hal_adc_configure(adc_handle);
 
     // Process events
     InputEvent event;
     bool running = true;
-    while(running) {
-        if(furi_message_queue_get(event_queue, &event, 100) == FuriStatusOk) {
-            if(event.type == InputTypePress && event.key == InputKeyBack) {
+    while (running) {
+        if (furi_message_queue_get(event_queue, &event, 100) == FuriStatusOk) {
+            if (event.type == InputTypePress && event.key == InputKeyBack) {
                 running = false;
             }
         } else {
-            for(size_t i = 0; i < data.count; i++) {
+            for (size_t i = 0; i < data.count; i++) {
                 data.items[i].value = data.items[i].converter(
                     adc_handle, furi_hal_adc_read(adc_handle, data.items[i].pin->channel));
             }

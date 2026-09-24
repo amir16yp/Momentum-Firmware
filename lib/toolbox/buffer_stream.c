@@ -4,24 +4,25 @@
 struct Buffer {
     volatile bool occupied;
     volatile size_t size;
-    uint8_t* data;
+    uint8_t *data;
     size_t max_data_size;
 };
 
 struct BufferStream {
     size_t stream_overrun_count;
-    FuriStreamBuffer* stream;
+    FuriStreamBuffer *stream;
 
     size_t index;
     size_t max_buffers_count;
     Buffer buffers[];
 };
 
-bool buffer_write(Buffer* buffer, const uint8_t* data, size_t size) {
-    if(buffer->occupied) {
+bool buffer_write(Buffer *buffer, const uint8_t *data, size_t size)
+{
+    if (buffer->occupied) {
         return false;
     }
-    if(size > buffer->max_data_size - buffer->size) {
+    if (size > buffer->max_data_size - buffer->size) {
         return false;
     }
     memcpy(buffer->data + buffer->size, data, size);
@@ -29,58 +30,63 @@ bool buffer_write(Buffer* buffer, const uint8_t* data, size_t size) {
     return true;
 }
 
-uint8_t* buffer_get_data(Buffer* buffer) {
+uint8_t *buffer_get_data(Buffer *buffer)
+{
     return buffer->data;
 }
 
-size_t buffer_get_size(Buffer* buffer) {
+size_t buffer_get_size(Buffer *buffer)
+{
     return buffer->size;
 }
 
-void buffer_reset(Buffer* buffer) {
+void buffer_reset(Buffer *buffer)
+{
     buffer->size = 0;
     buffer->occupied = false;
 }
 
-BufferStream* buffer_stream_alloc(size_t buffer_size, size_t buffers_count) {
+BufferStream *buffer_stream_alloc(size_t buffer_size, size_t buffers_count)
+{
     furi_assert(buffer_size > 0);
     furi_assert(buffers_count > 0);
     const size_t alignment = _Alignof(max_align_t);
     furi_check(buffer_size <= SIZE_MAX - (alignment - 1));
     const size_t stride = (buffer_size + alignment - 1) / alignment * alignment;
     furi_check(stride <= SIZE_MAX - sizeof(Buffer));
-    furi_check(
-        buffers_count <=
-        (SIZE_MAX - sizeof(BufferStream) - (alignment - 1)) / (sizeof(Buffer) + stride));
+    furi_check(buffers_count <=
+               (SIZE_MAX - sizeof(BufferStream) - (alignment - 1)) / (sizeof(Buffer) + stride));
     const size_t header_size =
         (sizeof(BufferStream) + sizeof(Buffer) * buffers_count + alignment - 1) / alignment *
         alignment;
-    BufferStream* buffer_stream = malloc(header_size + stride * buffers_count);
-    uint8_t* data = (uint8_t*)buffer_stream + header_size;
+    BufferStream *buffer_stream = malloc(header_size + stride * buffers_count);
+    uint8_t *data = (uint8_t *)buffer_stream + header_size;
     buffer_stream->max_buffers_count = buffers_count;
-    for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
+    for (size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
         buffer_stream->buffers[i].occupied = false;
         buffer_stream->buffers[i].size = 0;
         buffer_stream->buffers[i].data = data + i * stride;
         buffer_stream->buffers[i].max_data_size = buffer_size;
     }
     buffer_stream->stream = furi_stream_buffer_alloc(
-        sizeof(BufferStream*) * buffer_stream->max_buffers_count, sizeof(BufferStream*));
+        sizeof(BufferStream *) * buffer_stream->max_buffers_count, sizeof(BufferStream *));
     buffer_stream->stream_overrun_count = 0;
     buffer_stream->index = 0;
 
     return buffer_stream;
 }
 
-void buffer_stream_free(BufferStream* buffer_stream) {
+void buffer_stream_free(BufferStream *buffer_stream)
+{
     furi_stream_buffer_free(buffer_stream->stream);
     free(buffer_stream);
 }
 
-static inline size_t buffer_stream_get_free_buffer(BufferStream* buffer_stream) {
+static inline size_t buffer_stream_get_free_buffer(BufferStream *buffer_stream)
+{
     size_t id = buffer_stream->max_buffers_count;
-    for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
-        if(buffer_stream->buffers[i].occupied == false) {
+    for (size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
+        if (buffer_stream->buffers[i].occupied == false) {
             id = i;
             break;
         }
@@ -89,24 +95,26 @@ static inline size_t buffer_stream_get_free_buffer(BufferStream* buffer_stream) 
     return id;
 }
 
-bool buffer_stream_send_from_isr(BufferStream* buffer_stream, const uint8_t* data, size_t size) {
-    Buffer* buffer = &buffer_stream->buffers[buffer_stream->index];
-    if(size > buffer->max_data_size) return false;
+bool buffer_stream_send_from_isr(BufferStream *buffer_stream, const uint8_t *data, size_t size)
+{
+    Buffer *buffer = &buffer_stream->buffers[buffer_stream->index];
+    if (size > buffer->max_data_size)
+        return false;
 
     // write to buffer
-    if(!buffer_write(buffer, data, size)) {
+    if (!buffer_write(buffer, data, size)) {
         // An occupied buffer was already queued before an overrun.
-        if(!buffer->occupied) {
+        if (!buffer->occupied) {
             buffer->occupied = true;
             // Each buffer is queued at most once, so the stream has space.
-            furi_stream_buffer_send(buffer_stream->stream, &buffer, sizeof(Buffer*), 0);
+            furi_stream_buffer_send(buffer_stream->stream, &buffer, sizeof(Buffer *), 0);
         }
 
         // get new buffer from the pool
         size_t index = buffer_stream_get_free_buffer(buffer_stream);
 
         // check that we have valid buffer
-        if(index == buffer_stream->max_buffers_count) {
+        if (index == buffer_stream->max_buffers_count) {
             // no free buffer
             buffer_stream->stream_overrun_count++;
             return false;
@@ -121,28 +129,31 @@ bool buffer_stream_send_from_isr(BufferStream* buffer_stream, const uint8_t* dat
     return true;
 }
 
-Buffer* buffer_stream_receive(BufferStream* buffer_stream, uint32_t timeout) {
-    Buffer* buffer;
+Buffer *buffer_stream_receive(BufferStream *buffer_stream, uint32_t timeout)
+{
+    Buffer *buffer;
     size_t size =
-        furi_stream_buffer_receive(buffer_stream->stream, &buffer, sizeof(Buffer*), timeout);
+        furi_stream_buffer_receive(buffer_stream->stream, &buffer, sizeof(Buffer *), timeout);
 
-    if(size == sizeof(Buffer*)) {
+    if (size == sizeof(Buffer *)) {
         return buffer;
     } else {
         return NULL;
     }
 }
 
-size_t buffer_stream_get_overrun_count(BufferStream* buffer_stream) {
+size_t buffer_stream_get_overrun_count(BufferStream *buffer_stream)
+{
     return buffer_stream->stream_overrun_count;
 }
 
-void buffer_stream_reset(BufferStream* buffer_stream) {
+void buffer_stream_reset(BufferStream *buffer_stream)
+{
     FURI_CRITICAL_ENTER();
     furi_stream_buffer_reset(buffer_stream->stream);
 
     buffer_stream->stream_overrun_count = 0;
-    for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
+    for (size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
         buffer_reset(&buffer_stream->buffers[i]);
     }
     FURI_CRITICAL_EXIT();

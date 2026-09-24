@@ -21,13 +21,10 @@ typedef struct {
 } FuriHalUsbCcidConfig;
 
 typedef struct {
-    void (*icc_power_on_callback)(uint8_t* dataBlock, uint32_t* dataBlockLen, void* context);
-    void (*xfr_datablock_callback)(
-        const uint8_t* pcToReaderDataBlock,
-        uint32_t pcToReaderDataBlockLen,
-        uint8_t* readerToPcDataBlock,
-        uint32_t* readerToPcDataBlockLen,
-        void* context);
+    void (*icc_power_on_callback)(uint8_t *dataBlock, uint32_t *dataBlockLen, void *context);
+    void (*xfr_datablock_callback)(const uint8_t *pcToReaderDataBlock,
+                                   uint32_t pcToReaderDataBlockLen, uint8_t *readerToPcDataBlock,
+                                   uint32_t *readerToPcDataBlockLen, void *context);
 } CcidCallbacks;
 
 /** Set CCID callbacks
@@ -35,7 +32,7 @@ typedef struct {
  * @param      cb       CcidCallbacks instance
  * @param      context  The context for callbacks
  */
-void furi_hal_usb_ccid_set_callbacks(CcidCallbacks* cb, void* context);
+void furi_hal_usb_ccid_set_callbacks(CcidCallbacks *cb, void *context);
 
 /** Insert Smart Card */
 void furi_hal_usb_ccid_insert_smartcard(void);

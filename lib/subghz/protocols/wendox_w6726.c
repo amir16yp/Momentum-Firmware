@@ -4,28 +4,28 @@
 
 /*
  * Wendox W6726
- *   
+ *
  *  Temperature -50C to +70C
  *    _     _     _          __   _
  *  _| |___| |___| |___ ... |  |_| |__...._______________
  *    preamble                data           guard time
- * 
+ *
  *  3 reps every 3 minutes
  *  in the first message 11 bytes of the preamble in the rest by 7
- *  
+ *
  *  bit 0: 1955-hi, 5865-lo
  *  bit 1: 5865-hi, 1955-lo
- *  guard time: 12*1955+(lo last bit) 
+ *  guard time: 12*1955+(lo last bit)
  *  data: 29 bit
- * 
+ *
  *  IIIII | ZTTTTTTTTT | uuuuuuuBuu | CCCC
- * 
+ *
  *  I: identification;
  *  Z: temperature sign;
  *  T: temperature sign dependent +12C;
  *  B: battery low; flag to indicate low battery voltage;
  *  C: CRC4 (polynomial = 0x9, start_data = 0xD);
- *  u: unknown; 
+ *  u: unknown;
  */
 
 static const SubGhzBlockConst ws_protocol_wendox_w6726_const = {
@@ -95,33 +95,35 @@ const SubGhzProtocol ws_protocol_wendox_w6726 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_wendox_w6726_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_wendox_w6726_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderWendoxW6726* instance = malloc(sizeof(WSProtocolDecoderWendoxW6726));
+    WSProtocolDecoderWendoxW6726 *instance = malloc(sizeof(WSProtocolDecoderWendoxW6726));
     instance->base.protocol = &ws_protocol_wendox_w6726;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_wendox_w6726_free(void* context) {
+void ws_protocol_decoder_wendox_w6726_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_wendox_w6726_reset(void* context) {
+void ws_protocol_decoder_wendox_w6726_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
     instance->decoder.parser_step = WendoxW6726DecoderStepReset;
 }
 
-static bool ws_protocol_wendox_w6726_check(WSProtocolDecoderWendoxW6726* instance) {
-    if(!instance->decoder.decode_data) return false;
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 28,
-        instance->decoder.decode_data >> 20,
-        instance->decoder.decode_data >> 12,
-        instance->decoder.decode_data >> 4};
+static bool ws_protocol_wendox_w6726_check(WSProtocolDecoderWendoxW6726 *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
+    uint8_t msg[] = {instance->decoder.decode_data >> 28, instance->decoder.decode_data >> 20,
+                     instance->decoder.decode_data >> 12, instance->decoder.decode_data >> 4};
 
     uint8_t crc = subghz_protocol_blocks_crc4(msg, 4, 0x9, 0xD);
     return (crc == (instance->decoder.decode_data & 0x0F));
@@ -131,20 +133,21 @@ static bool ws_protocol_wendox_w6726_check(WSProtocolDecoderWendoxW6726* instanc
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_wendox_w6726_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_wendox_w6726_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 24) & 0xFF;
     instance->battery_low = (instance->data >> 6) & 1;
     instance->channel = WS_NO_CHANNEL;
 
-    if(((instance->data >> 23) & 1)) {
+    if (((instance->data >> 23) & 1)) {
         instance->temp = (float)(((instance->data >> 14) & 0x1FF) + 12) / 10.0f;
     } else {
         instance->temp = (float)((~(instance->data >> 14) & 0x1FF) + 1 - 12) / -10.0f;
     }
 
-    if(instance->temp < -50.0f) {
+    if (instance->temp < -50.0f) {
         instance->temp = -50.0f;
-    } else if(instance->temp > 70.0f) {
+    } else if (instance->temp > 70.0f) {
         instance->temp = 70.0f;
     }
 
@@ -152,14 +155,15 @@ static void ws_protocol_wendox_w6726_remote_controller(WSBlockGeneric* instance)
     instance->humidity = WS_NO_HUMIDITY;
 }
 
-void ws_protocol_decoder_wendox_w6726_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_wendox_w6726_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case WendoxW6726DecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
-                       ws_protocol_wendox_w6726_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
+                        ws_protocol_wendox_w6726_const.te_delta)) {
             instance->decoder.parser_step = WendoxW6726DecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -167,20 +171,20 @@ void ws_protocol_decoder_wendox_w6726_feed(void* context, bool level, uint32_t d
         break;
 
     case WendoxW6726DecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_short) <
-                ws_protocol_wendox_w6726_const.te_delta * 1) &&
-               (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_long) <
-                ws_protocol_wendox_w6726_const.te_delta * 2)) {
+            if ((DURATION_DIFF(instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_short) <
+                 ws_protocol_wendox_w6726_const.te_delta * 1) &&
+                (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_long) <
+                 ws_protocol_wendox_w6726_const.te_delta * 2)) {
                 instance->header_count++;
-            } else if((instance->header_count > 4) && (instance->header_count < 12)) {
-                if((DURATION_DIFF(
-                        instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_long) <
-                    ws_protocol_wendox_w6726_const.te_delta * 2) &&
-                   (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
-                    ws_protocol_wendox_w6726_const.te_delta)) {
+            } else if ((instance->header_count > 4) && (instance->header_count < 12)) {
+                if ((DURATION_DIFF(instance->decoder.te_last,
+                                   ws_protocol_wendox_w6726_const.te_long) <
+                     ws_protocol_wendox_w6726_const.te_delta * 2) &&
+                    (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
+                     ws_protocol_wendox_w6726_const.te_delta)) {
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
@@ -196,7 +200,7 @@ void ws_protocol_decoder_wendox_w6726_feed(void* context, bool level, uint32_t d
         break;
 
     case WendoxW6726DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = WendoxW6726DecoderStepCheckDuration;
         } else {
@@ -205,46 +209,45 @@ void ws_protocol_decoder_wendox_w6726_feed(void* context, bool level, uint32_t d
         break;
 
     case WendoxW6726DecoderStepCheckDuration:
-        if(!level) {
-            if(duration >
-               ws_protocol_wendox_w6726_const.te_short + ws_protocol_wendox_w6726_const.te_long) {
-                if(DURATION_DIFF(
-                       instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_short) <
-                   ws_protocol_wendox_w6726_const.te_delta) {
+        if (!level) {
+            if (duration >
+                ws_protocol_wendox_w6726_const.te_short + ws_protocol_wendox_w6726_const.te_long) {
+                if (DURATION_DIFF(instance->decoder.te_last,
+                                  ws_protocol_wendox_w6726_const.te_short) <
+                    ws_protocol_wendox_w6726_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = WendoxW6726DecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(
-                        instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_long) <
-                    ws_protocol_wendox_w6726_const.te_delta * 2) {
+                } else if (DURATION_DIFF(instance->decoder.te_last,
+                                         ws_protocol_wendox_w6726_const.te_long) <
+                           ws_protocol_wendox_w6726_const.te_delta * 2) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = WendoxW6726DecoderStepSaveDuration;
                 } else {
                     instance->decoder.parser_step = WendoxW6726DecoderStepReset;
                 }
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_wendox_w6726_const.min_count_bit_for_found) &&
-                   ws_protocol_wendox_w6726_check(instance)) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_wendox_w6726_const.min_count_bit_for_found) &&
+                    ws_protocol_wendox_w6726_check(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_wendox_w6726_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
 
                 instance->decoder.parser_step = WendoxW6726DecoderStepReset;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_short) <
-                 ws_protocol_wendox_w6726_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_long) <
-                 ws_protocol_wendox_w6726_const.te_delta * 3)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_wendox_w6726_const.te_short) <
+                        ws_protocol_wendox_w6726_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_long) <
+                        ws_protocol_wendox_w6726_const.te_delta * 3)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = WendoxW6726DecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_wendox_w6726_const.te_long) <
-                 ws_protocol_wendox_w6726_const.te_delta * 2) &&
-                (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
-                 ws_protocol_wendox_w6726_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_wendox_w6726_const.te_long) <
+                        ws_protocol_wendox_w6726_const.te_delta * 2) &&
+                       (DURATION_DIFF(duration, ws_protocol_wendox_w6726_const.te_short) <
+                        ws_protocol_wendox_w6726_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = WendoxW6726DecoderStepSaveDuration;
             } else {
@@ -257,34 +260,35 @@ void ws_protocol_decoder_wendox_w6726_feed(void* context, bool level, uint32_t d
     }
 }
 
-uint32_t ws_protocol_decoder_wendox_w6726_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_wendox_w6726_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderWendoxW6726 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_wendox_w6726_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_wendox_w6726_serialize(void *context,
+                                                                FlipperFormat *flipper_format,
+                                                                SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_wendox_w6726_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_wendox_w6726_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
-        ws_protocol_wendox_w6726_const.min_count_bit_for_found);
+        &instance->generic, flipper_format, ws_protocol_wendox_w6726_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_wendox_w6726_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_wendox_w6726_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderWendoxW6726* instance = context;
+    WSProtocolDecoderWendoxW6726 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

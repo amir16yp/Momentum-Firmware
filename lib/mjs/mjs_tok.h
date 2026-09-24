@@ -15,22 +15,22 @@ extern "C" {
 struct tok {
     int tok;
     int len;
-    const char* ptr;
+    const char *ptr;
 };
 
 struct pstate {
-    const char* file_name; /* Source code file name */
-    const char* buf; /* Nul-terminated source code buffer */
-    const char* pos; /* Current position */
-    int line_no; /* Line number */
+    const char *file_name; /* Source code file name */
+    const char *buf;       /* Nul-terminated source code buffer */
+    const char *pos;       /* Current position */
+    int line_no;           /* Line number */
     int last_emitted_line_no;
     struct mbuf offset_lineno_map;
-    int prev_tok; /* Previous token, for prefix increment / decrement */
+    int prev_tok;   /* Previous token, for prefix increment / decrement */
     struct tok tok; /* Parsed token */
-    struct mjs* mjs;
+    struct mjs *mjs;
     int start_bcode_idx; /* Index in mjs->bcode at which parsing was started */
-    int cur_idx; /* Index in mjs->bcode at which newly generated code is inserted
-                  */
+    int cur_idx;         /* Index in mjs->bcode at which newly generated code is inserted
+                          */
     int depth;
 };
 
@@ -130,8 +130,8 @@ enum {
     TOK_MAX
 };
 
-MJS_PRIVATE void pinit(const char* file_name, const char* buf, struct pstate*);
-MJS_PRIVATE int pnext(struct pstate*);
+MJS_PRIVATE void pinit(const char *file_name, const char *buf, struct pstate *);
+MJS_PRIVATE int pnext(struct pstate *);
 MJS_PRIVATE int mjs_is_ident(int c);
 MJS_PRIVATE int mjs_is_digit(int c);
 

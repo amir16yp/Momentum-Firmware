@@ -12,11 +12,11 @@
 #include "views/bt_packet_test.h"
 
 typedef struct {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    Submenu* submenu;
-    BtCarrierTest* bt_carrier_test;
-    BtPacketTest* bt_packet_test;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    Submenu *submenu;
+    BtCarrierTest *bt_carrier_test;
+    BtPacketTest *bt_packet_test;
 } BtDebugApp;
 
 typedef enum {

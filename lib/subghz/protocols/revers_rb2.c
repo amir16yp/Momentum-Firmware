@@ -72,9 +72,10 @@ const SubGhzProtocol subghz_protocol_revers_rb2 = {
     .filter = SubGhzProtocolFilter_ReversRB2,
 };
 
-void* subghz_protocol_encoder_revers_rb2_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_revers_rb2_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderRevers_RB2* instance = malloc(sizeof(SubGhzProtocolEncoderRevers_RB2));
+    SubGhzProtocolEncoderRevers_RB2 *instance = malloc(sizeof(SubGhzProtocolEncoderRevers_RB2));
 
     instance->base.protocol = &subghz_protocol_revers_rb2;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -86,17 +87,19 @@ void* subghz_protocol_encoder_revers_rb2_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void subghz_protocol_encoder_revers_rb2_free(void* context) {
+void subghz_protocol_encoder_revers_rb2_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderRevers_RB2* instance = context;
+    SubGhzProtocolEncoderRevers_RB2 *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
 
 static LevelDuration
-    subghz_protocol_encoder_revers_rb2_add_duration_to_upload(ManchesterEncoderResult result) {
+subghz_protocol_encoder_revers_rb2_add_duration_to_upload(ManchesterEncoderResult result)
+{
     LevelDuration data = {.duration = 0, .level = 0};
-    switch(result) {
+    switch (result) {
     case ManchesterEncoderResultShortLow:
         data.duration = subghz_protocol_revers_rb2_const.te_short;
         data.level = false;
@@ -125,8 +128,8 @@ static LevelDuration
  * Generating an upload from data.
  * @param instance Pointer to a SubGhzProtocolEncoderRevers_RB2 instance
  */
-static void
-    subghz_protocol_encoder_revers_rb2_get_upload(SubGhzProtocolEncoderRevers_RB2* instance) {
+static void subghz_protocol_encoder_revers_rb2_get_upload(SubGhzProtocolEncoderRevers_RB2 *instance)
+{
     furi_assert(instance);
     size_t index = 0;
 
@@ -134,123 +137,128 @@ static void
     manchester_encoder_reset(&enc_state);
     ManchesterEncoderResult result;
 
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(!manchester_encoder_advance(
-               &enc_state, bit_read(instance->generic.data, i - 1), &result)) {
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (!manchester_encoder_advance(&enc_state, bit_read(instance->generic.data, i - 1),
+                                        &result)) {
             instance->encoder.upload[index++] =
                 subghz_protocol_encoder_revers_rb2_add_duration_to_upload(result);
-            manchester_encoder_advance(
-                &enc_state, bit_read(instance->generic.data, i - 1), &result);
+            manchester_encoder_advance(&enc_state, bit_read(instance->generic.data, i - 1),
+                                       &result);
         }
         instance->encoder.upload[index++] =
             subghz_protocol_encoder_revers_rb2_add_duration_to_upload(result);
     }
     instance->encoder.upload[index] = subghz_protocol_encoder_revers_rb2_add_duration_to_upload(
         manchester_encoder_finish(&enc_state));
-    if(level_duration_get_level(instance->encoder.upload[index])) {
+    if (level_duration_get_level(instance->encoder.upload[index])) {
         index++;
     }
     instance->encoder.upload[index++] = level_duration_make(false, (uint32_t)320);
     instance->encoder.size_upload = index;
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzBlockGeneric* instance
  */
-static void subghz_protocol_revers_rb2_remote_controller(SubGhzBlockGeneric* instance) {
+static void subghz_protocol_revers_rb2_remote_controller(SubGhzBlockGeneric *instance)
+{
     // Revers RB2 / RB2M Decoder
     // 02.2025 - @xMasterX (MMX)
     instance->serial = (((instance->data << 16) >> 16) >> 10);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_encoder_revers_rb2_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_encoder_revers_rb2_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderRevers_RB2* instance = context;
+    SubGhzProtocolEncoderRevers_RB2 *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
+            &instance->generic, flipper_format,
             subghz_protocol_revers_rb2_const.min_count_bit_for_found);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
         // Optional value
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 1);
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   1);
 
         subghz_protocol_revers_rb2_remote_controller(&instance->generic);
         subghz_protocol_encoder_revers_rb2_get_upload(instance);
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-void subghz_protocol_encoder_revers_rb2_stop(void* context) {
-    SubGhzProtocolEncoderRevers_RB2* instance = context;
+void subghz_protocol_encoder_revers_rb2_stop(void *context)
+{
+    SubGhzProtocolEncoderRevers_RB2 *instance = context;
     instance->encoder.is_running = false;
 }
 
-LevelDuration subghz_protocol_encoder_revers_rb2_yield(void* context) {
-    SubGhzProtocolEncoderRevers_RB2* instance = context;
+LevelDuration subghz_protocol_encoder_revers_rb2_yield(void *context)
+{
+    SubGhzProtocolEncoderRevers_RB2 *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
-        if(!subghz_block_generic_global.endless_tx) instance->encoder.repeat--;
+    if (++instance->encoder.front == instance->encoder.size_upload) {
+        if (!subghz_block_generic_global.endless_tx)
+            instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
 
     return ret;
 }
 
-void* subghz_protocol_decoder_revers_rb2_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_revers_rb2_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderRevers_RB2* instance = malloc(sizeof(SubGhzProtocolDecoderRevers_RB2));
+    SubGhzProtocolDecoderRevers_RB2 *instance = malloc(sizeof(SubGhzProtocolDecoderRevers_RB2));
     instance->base.protocol = &subghz_protocol_revers_rb2;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void subghz_protocol_decoder_revers_rb2_free(void* context) {
+void subghz_protocol_decoder_revers_rb2_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_revers_rb2_reset(void* context) {
+void subghz_protocol_decoder_revers_rb2_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     instance->decoder.parser_step = Revers_RB2DecoderStepReset;
     instance->header_count = 0;
-    manchester_advance(
-        instance->manchester_saved_state,
-        ManchesterEventReset,
-        &instance->manchester_saved_state,
-        NULL);
+    manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                       &instance->manchester_saved_state, NULL);
 }
 
-void subghz_protocol_decoder_revers_rb2_addbit(void* context, bool data) {
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+void subghz_protocol_decoder_revers_rb2_addbit(void *context, bool data)
+{
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     instance->decoder.decode_data = (instance->decoder.decode_data << 1) | data;
     instance->decoder.decode_count_bit++;
 
-    if(instance->decoder.decode_count_bit >= 65) {
+    if (instance->decoder.decode_count_bit >= 65) {
         instance->decoder.decode_data = 0;
         instance->decoder.decode_count_bit = 0;
         return;
     }
 
-    if(instance->decoder.decode_count_bit <
-       subghz_protocol_revers_rb2_const.min_count_bit_for_found) {
+    if (instance->decoder.decode_count_bit <
+        subghz_protocol_revers_rb2_const.min_count_bit_for_found) {
         return;
     }
 
@@ -260,48 +268,43 @@ void subghz_protocol_decoder_revers_rb2_addbit(void* context, bool data) {
     uint16_t preamble = (instance->decoder.decode_data >> 48) & 0xFF;
     uint16_t stop_code = (instance->decoder.decode_data & 0x3FF);
 
-    if(preamble == 0xFF && stop_code == 0x200) {
-        //Found header and stop code
+    if (preamble == 0xFF && stop_code == 0x200) {
+        // Found header and stop code
         instance->generic.data = instance->decoder.decode_data;
         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
 
-        if(instance->base.callback)
+        if (instance->base.callback)
             instance->base.callback(&instance->base, instance->base.context);
 
         instance->decoder.decode_data = 0;
         instance->decoder.decode_count_bit = 0;
-        manchester_advance(
-            instance->manchester_saved_state,
-            ManchesterEventReset,
-            &instance->manchester_saved_state,
-            NULL);
+        manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                           &instance->manchester_saved_state, NULL);
     }
 }
 
-void subghz_protocol_decoder_revers_rb2_feed(void* context, bool level, volatile uint32_t duration) {
+void subghz_protocol_decoder_revers_rb2_feed(void *context, bool level, volatile uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     ManchesterEvent event = ManchesterEventReset;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Revers_RB2DecoderStepReset:
-        if((!level) &&
-           (DURATION_DIFF(duration, 600) < subghz_protocol_revers_rb2_const.te_delta)) {
+        if ((!level) &&
+            (DURATION_DIFF(duration, 600) < subghz_protocol_revers_rb2_const.te_delta)) {
             instance->decoder.parser_step = Revers_RB2DecoderStepHeader;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
-            manchester_advance(
-                instance->manchester_saved_state,
-                ManchesterEventReset,
-                &instance->manchester_saved_state,
-                NULL);
+            manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                               &instance->manchester_saved_state, NULL);
         }
         break;
     case Revers_RB2DecoderStepHeader:
-        if(!level) {
-            if(DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
-               subghz_protocol_revers_rb2_const.te_delta) {
-                if(instance->decoder.te_last == 1) {
+        if (!level) {
+            if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
+                subghz_protocol_revers_rb2_const.te_delta) {
+                if (instance->decoder.te_last == 1) {
                     instance->header_count++;
                 }
                 instance->decoder.te_last = level;
@@ -311,9 +314,9 @@ void subghz_protocol_decoder_revers_rb2_feed(void* context, bool level, volatile
                 instance->decoder.parser_step = Revers_RB2DecoderStepReset;
             }
         } else {
-            if(DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
-               subghz_protocol_revers_rb2_const.te_delta) {
-                if(instance->decoder.te_last == 0) {
+            if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
+                subghz_protocol_revers_rb2_const.te_delta) {
+                if (instance->decoder.te_last == 0) {
                     instance->header_count++;
                 }
                 instance->decoder.te_last = level;
@@ -324,7 +327,7 @@ void subghz_protocol_decoder_revers_rb2_feed(void* context, bool level, volatile
             }
         }
 
-        if(instance->header_count == 4) {
+        if (instance->header_count == 4) {
             instance->header_count = 0;
             instance->decoder.decode_data = 0xF;
             instance->decoder.decode_count_bit = 4;
@@ -332,35 +335,33 @@ void subghz_protocol_decoder_revers_rb2_feed(void* context, bool level, volatile
         }
         break;
     case Revers_RB2DecoderStepDecoderData:
-        if(!level) {
-            if(DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
-               subghz_protocol_revers_rb2_const.te_delta) {
-                event = ManchesterEventShortLow;
-            } else if(
-                DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_long) <
+        if (!level) {
+            if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
                 subghz_protocol_revers_rb2_const.te_delta) {
+                event = ManchesterEventShortLow;
+            } else if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_long) <
+                       subghz_protocol_revers_rb2_const.te_delta) {
                 event = ManchesterEventLongLow;
             } else {
                 instance->decoder.parser_step = Revers_RB2DecoderStepReset;
             }
         } else {
-            if(DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
-               subghz_protocol_revers_rb2_const.te_delta) {
-                event = ManchesterEventShortHigh;
-            } else if(
-                DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_long) <
+            if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_short) <
                 subghz_protocol_revers_rb2_const.te_delta) {
+                event = ManchesterEventShortHigh;
+            } else if (DURATION_DIFF(duration, subghz_protocol_revers_rb2_const.te_long) <
+                       subghz_protocol_revers_rb2_const.te_delta) {
                 event = ManchesterEventLongHigh;
             } else {
                 instance->decoder.parser_step = Revers_RB2DecoderStepReset;
             }
         }
-        if(event != ManchesterEventReset) {
+        if (event != ManchesterEventReset) {
             bool data;
-            bool data_ok = manchester_advance(
-                instance->manchester_saved_state, event, &instance->manchester_saved_state, &data);
+            bool data_ok = manchester_advance(instance->manchester_saved_state, event,
+                                              &instance->manchester_saved_state, &data);
 
-            if(data_ok) {
+            if (data_ok) {
                 subghz_protocol_decoder_revers_rb2_addbit(instance, data);
             }
         }
@@ -368,45 +369,45 @@ void subghz_protocol_decoder_revers_rb2_feed(void* context, bool level, volatile
     }
 }
 
-uint8_t subghz_protocol_decoder_revers_rb2_get_hash_data(void* context) {
+uint8_t subghz_protocol_decoder_revers_rb2_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
-    return subghz_protocol_blocks_get_hash_data(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
+    return subghz_protocol_blocks_get_hash_data(&instance->decoder,
+                                                (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_revers_rb2_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_revers_rb2_serialize(void *context,
+                                                                  FlipperFormat *flipper_format,
+                                                                  SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_revers_rb2_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_revers_rb2_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         subghz_protocol_revers_rb2_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_revers_rb2_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_revers_rb2_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderRevers_RB2* instance = context;
+    SubGhzProtocolDecoderRevers_RB2 *instance = context;
     subghz_protocol_revers_rb2_remote_controller(&instance->generic);
 
-    furi_string_cat_printf(
-        output,
-        "%s %db\r\n"
-        "Key:%lX%08lX\r\n"
-        "Sn:0x%08lX \r\n",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint32_t)(instance->generic.data >> 32),
-        (uint32_t)(instance->generic.data & 0xFFFFFFFF),
-        instance->generic.serial);
+    furi_string_cat_printf(output,
+                           "%s %db\r\n"
+                           "Key:%lX%08lX\r\n"
+                           "Sn:0x%08lX \r\n",
+                           instance->generic.protocol_name, instance->generic.data_count_bit,
+                           (uint32_t)(instance->generic.data >> 32),
+                           (uint32_t)(instance->generic.data & 0xFFFFFFFF),
+                           instance->generic.serial);
 }

@@ -27,16 +27,14 @@ typedef enum {
  *  If plugin uses private application's API, use CompoundApiInterface
  * @return new PluginManager instance
  */
-PluginManager* plugin_manager_alloc(
-    const char* application_id,
-    uint32_t api_version,
-    const ElfApiInterface* api_interface);
+PluginManager *plugin_manager_alloc(const char *application_id, uint32_t api_version,
+                                    const ElfApiInterface *api_interface);
 
 /**
  * @brief Frees PluginManager
  * @param manager PluginManager instance
  */
-void plugin_manager_free(PluginManager* manager);
+void plugin_manager_free(PluginManager *manager);
 
 /**
  * @brief Loads single plugin by full path
@@ -44,7 +42,7 @@ void plugin_manager_free(PluginManager* manager);
  * @param path Path to plugin
  * @return Error code
  */
-PluginManagerError plugin_manager_load_single(PluginManager* manager, const char* path);
+PluginManagerError plugin_manager_load_single(PluginManager *manager, const char *path);
 
 /**
  * @brief Loads all plugins from specified directory
@@ -52,14 +50,14 @@ PluginManagerError plugin_manager_load_single(PluginManager* manager, const char
  * @param path Path to directory
  * @return Error code
  */
-PluginManagerError plugin_manager_load_all(PluginManager* manager, const char* path);
+PluginManagerError plugin_manager_load_all(PluginManager *manager, const char *path);
 
 /**
  * @brief Returns number of loaded plugins
  * @param manager PluginManager instance
  * @return Number of loaded plugins
  */
-uint32_t plugin_manager_get_count(PluginManager* manager);
+uint32_t plugin_manager_get_count(PluginManager *manager);
 
 /**
  * @brief Returns plugin descriptor by index
@@ -67,7 +65,7 @@ uint32_t plugin_manager_get_count(PluginManager* manager);
  * @param index Plugin index
  * @return Plugin descriptor
  */
-const FlipperAppPluginDescriptor* plugin_manager_get(PluginManager* manager, uint32_t index);
+const FlipperAppPluginDescriptor *plugin_manager_get(PluginManager *manager, uint32_t index);
 
 /**
  * @brief Returns plugin entry point by index
@@ -75,7 +73,7 @@ const FlipperAppPluginDescriptor* plugin_manager_get(PluginManager* manager, uin
  * @param index Plugin index
  * @return Plugin entry point
  */
-const void* plugin_manager_get_ep(PluginManager* manager, uint32_t index);
+const void *plugin_manager_get_ep(PluginManager *manager, uint32_t index);
 
 #ifdef __cplusplus
 }

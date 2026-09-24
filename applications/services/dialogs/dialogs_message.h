@@ -8,22 +8,22 @@ extern "C" {
 #endif
 
 typedef struct {
-    const char* extension;
+    const char *extension;
     bool skip_assets;
     bool hide_ext;
     bool hide_dot_files;
-    const Icon* file_icon;
-    FuriString* result_path;
-    FuriString* preselected_filename;
+    const Icon *file_icon;
+    FuriString *result_path;
+    FuriString *preselected_filename;
     FileBrowserLoadItemCallback item_callback;
-    void* item_callback_context;
-    const char* base_path;
+    void *item_callback_context;
+    const char *base_path;
 
     bool select_right;
 } DialogsAppMessageDataFileBrowser;
 
 typedef struct {
-    const DialogMessage* message;
+    const DialogMessage *message;
 } DialogsAppMessageDataDialog;
 
 typedef union {
@@ -44,8 +44,8 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     DialogsAppCommand command;
-    DialogsAppData* data;
-    DialogsAppReturn* return_data;
+    DialogsAppData *data;
+    DialogsAppReturn *return_data;
 } DialogsAppMessage;
 
 #ifdef __cplusplus

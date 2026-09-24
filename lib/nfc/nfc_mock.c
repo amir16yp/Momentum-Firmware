@@ -16,8 +16,8 @@ typedef enum {
     NfcTransportLogLevelInfo,
 } NfcTransportLogLevel;
 
-FuriMessageQueue* poller_queue = NULL;
-FuriMessageQueue* listener_queue = NULL;
+FuriMessageQueue *poller_queue = NULL;
+FuriMessageQueue *listener_queue = NULL;
 
 typedef enum {
     NfcMessageTypeTx,
@@ -81,25 +81,23 @@ struct Nfc {
     bool software_col_res_required;
 
     NfcEventCallback callback;
-    void* context;
+    void *context;
 
     NfcMode mode;
 
-    FuriThread* worker_thread;
+    FuriThread *worker_thread;
 };
 
-static void nfc_test_print(
-    NfcTransportLogLevel log_level,
-    const char* message,
-    uint8_t* buffer,
-    uint16_t bits) {
-    FuriString* str = furi_string_alloc();
+static void nfc_test_print(NfcTransportLogLevel log_level, const char *message, uint8_t *buffer,
+                           uint16_t bits)
+{
+    FuriString *str = furi_string_alloc();
     size_t bytes = (bits + 7) / 8;
 
-    for(size_t i = 0; i < bytes; i++) {
+    for (size_t i = 0; i < bytes; i++) {
         furi_string_cat_printf(str, " %02X", buffer[i]);
     }
-    if(log_level == NfcTransportLogLevelWarning) {
+    if (log_level == NfcTransportLogLevelWarning) {
         FURI_LOG_W(message, "%s", furi_string_get_cstr(str));
     } else {
         FURI_LOG_I(message, "%s", furi_string_get_cstr(str));
@@ -108,19 +106,16 @@ static void nfc_test_print(
     furi_string_free(str);
 }
 
-static void nfc_prepare_col_res_data(
-    Nfc* instance,
-    uint8_t* uid,
-    uint8_t uid_len,
-    uint8_t* atqa,
-    uint8_t sak) {
+static void nfc_prepare_col_res_data(Nfc *instance, uint8_t *uid, uint8_t uid_len, uint8_t *atqa,
+                                     uint8_t sak)
+{
     memcpy(instance->col_res_data.sens_resp.sens_resp, atqa, 2);
 
-    if(uid_len == 7) {
+    if (uid_len == 7) {
         instance->col_res_data.sdd_resp[0].nfcid[0] = 0x88;
         memcpy(&instance->col_res_data.sdd_resp[0].nfcid[1], uid, 3);
         uint8_t bss = 0;
-        for(size_t i = 0; i < 4; i++) {
+        for (size_t i = 0; i < 4; i++) {
             bss ^= instance->col_res_data.sdd_resp[0].nfcid[i];
         }
         instance->col_res_data.sdd_resp[0].bss = bss;
@@ -128,7 +123,7 @@ static void nfc_prepare_col_res_data(
 
         memcpy(instance->col_res_data.sdd_resp[1].nfcid, &uid[3], 4);
         bss = 0;
-        for(size_t i = 0; i < 4; i++) {
+        for (size_t i = 0; i < 4; i++) {
             bss ^= instance->col_res_data.sdd_resp[1].nfcid[i];
         }
         instance->col_res_data.sdd_resp[1].bss = bss;
@@ -139,56 +134,61 @@ static void nfc_prepare_col_res_data(
     }
 }
 
-Nfc* nfc_alloc(void) {
-    Nfc* instance = malloc(sizeof(Nfc));
+Nfc *nfc_alloc(void)
+{
+    Nfc *instance = malloc(sizeof(Nfc));
 
     return instance;
 }
 
-void nfc_free(Nfc* instance) {
+void nfc_free(Nfc *instance)
+{
     furi_check(instance);
 
     free(instance);
 }
 
-void nfc_config(Nfc* instance, NfcMode mode, NfcTech tech) {
+void nfc_config(Nfc *instance, NfcMode mode, NfcTech tech)
+{
     UNUSED(instance);
     UNUSED(tech);
 
     instance->mode = mode;
 }
 
-void nfc_set_fdt_poll_fc(Nfc* instance, uint32_t fdt_poll_fc) {
+void nfc_set_fdt_poll_fc(Nfc *instance, uint32_t fdt_poll_fc)
+{
     UNUSED(instance);
     UNUSED(fdt_poll_fc);
 }
 
-void nfc_set_fdt_listen_fc(Nfc* instance, uint32_t fdt_listen_fc) {
+void nfc_set_fdt_listen_fc(Nfc *instance, uint32_t fdt_listen_fc)
+{
     UNUSED(instance);
     UNUSED(fdt_listen_fc);
 }
 
-void nfc_set_mask_receive_time_fc(Nfc* instance, uint32_t mask_rx_time_fc) {
+void nfc_set_mask_receive_time_fc(Nfc *instance, uint32_t mask_rx_time_fc)
+{
     UNUSED(instance);
     UNUSED(mask_rx_time_fc);
 }
 
-void nfc_set_fdt_poll_poll_us(Nfc* instance, uint32_t fdt_poll_poll_us) {
+void nfc_set_fdt_poll_poll_us(Nfc *instance, uint32_t fdt_poll_poll_us)
+{
     UNUSED(instance);
     UNUSED(fdt_poll_poll_us);
 }
 
-void nfc_set_guard_time_us(Nfc* instance, uint32_t guard_time_us) {
+void nfc_set_guard_time_us(Nfc *instance, uint32_t guard_time_us)
+{
     UNUSED(instance);
     UNUSED(guard_time_us);
 }
 
-NfcError nfc_iso14443a_listener_set_col_res_data(
-    Nfc* instance,
-    uint8_t* uid,
-    uint8_t uid_len,
-    uint8_t* atqa,
-    uint8_t sak) {
+NfcError nfc_iso14443a_listener_set_col_res_data(Nfc *instance, uint8_t *uid, uint8_t uid_len,
+                                                 uint8_t *atqa, uint8_t sak)
+{
     furi_check(instance);
     furi_check(uid);
     furi_check(atqa);
@@ -199,18 +199,19 @@ NfcError nfc_iso14443a_listener_set_col_res_data(
     return NfcErrorNone;
 }
 
-static int32_t nfc_worker_poller(void* context) {
-    Nfc* instance = context;
+static int32_t nfc_worker_poller(void *context)
+{
+    Nfc *instance = context;
     furi_check(instance->callback);
 
     instance->state = NfcStateReady;
     NfcCommand command = NfcCommandContinue;
     NfcEvent event = {};
 
-    while(true) {
+    while (true) {
         event.type = NfcEventTypePollerReady;
         command = instance->callback(event, instance->context);
-        if(command == NfcCommandStop) {
+        if (command == NfcCommandStop) {
             break;
         }
     }
@@ -220,44 +221,39 @@ static int32_t nfc_worker_poller(void* context) {
     return 0;
 }
 
-static void nfc_worker_listener_pass_col_res(Nfc* instance, uint8_t* rx_data, uint16_t rx_bits) {
+static void nfc_worker_listener_pass_col_res(Nfc *instance, uint8_t *rx_data, uint16_t rx_bits)
+{
     furi_check(instance->col_res_status != Iso14443_3aColResStatusDone);
-    BitBuffer* tx_buffer = bit_buffer_alloc(NFC_MAX_BUFFER_SIZE);
+    BitBuffer *tx_buffer = bit_buffer_alloc(NFC_MAX_BUFFER_SIZE);
 
     bool processed = false;
 
-    if((rx_bits == 7) && (rx_data[0] == 0x52)) {
+    if ((rx_bits == 7) && (rx_data[0] == 0x52)) {
         instance->col_res_status = Iso14443_3aColResStatusInProgress;
-        bit_buffer_copy_bytes(
-            tx_buffer,
-            instance->col_res_data.sens_resp.sens_resp,
-            sizeof(instance->col_res_data.sens_resp.sens_resp));
+        bit_buffer_copy_bytes(tx_buffer, instance->col_res_data.sens_resp.sens_resp,
+                              sizeof(instance->col_res_data.sens_resp.sens_resp));
         nfc_listener_tx(instance, tx_buffer);
         processed = true;
-    } else if(rx_bits == 2 * 8) {
-        if((rx_data[0] == 0x93) && (rx_data[1] == 0x20)) {
-            bit_buffer_copy_bytes(
-                tx_buffer,
-                (const uint8_t*)&instance->col_res_data.sdd_resp[0],
-                sizeof(Iso14443_3aSddResp));
+    } else if (rx_bits == 2 * 8) {
+        if ((rx_data[0] == 0x93) && (rx_data[1] == 0x20)) {
+            bit_buffer_copy_bytes(tx_buffer, (const uint8_t *)&instance->col_res_data.sdd_resp[0],
+                                  sizeof(Iso14443_3aSddResp));
             nfc_listener_tx(instance, tx_buffer);
             processed = true;
-        } else if((rx_data[0] == 0x95) && (rx_data[1] == 0x20)) {
-            bit_buffer_copy_bytes(
-                tx_buffer,
-                (const uint8_t*)&instance->col_res_data.sdd_resp[1],
-                sizeof(Iso14443_3aSddResp));
+        } else if ((rx_data[0] == 0x95) && (rx_data[1] == 0x20)) {
+            bit_buffer_copy_bytes(tx_buffer, (const uint8_t *)&instance->col_res_data.sdd_resp[1],
+                                  sizeof(Iso14443_3aSddResp));
             nfc_listener_tx(instance, tx_buffer);
             processed = true;
         }
-    } else if(rx_bits == 9 * 8) {
-        if((rx_data[0] == 0x93) && (rx_data[1] == 0x70)) {
+    } else if (rx_bits == 9 * 8) {
+        if ((rx_data[0] == 0x93) && (rx_data[1] == 0x70)) {
             bit_buffer_set_size_bytes(tx_buffer, 1);
             bit_buffer_set_byte(tx_buffer, 0, instance->col_res_data.sel_resp[0].sak);
             iso14443_crc_append(Iso14443CrcTypeA, tx_buffer);
             nfc_listener_tx(instance, tx_buffer);
             processed = true;
-        } else if((rx_data[0] == 0x95) && (rx_data[1] == 0x70)) {
+        } else if ((rx_data[0] == 0x95) && (rx_data[1] == 0x70)) {
             bit_buffer_set_size_bytes(tx_buffer, 1);
             bit_buffer_set_byte(tx_buffer, 0, instance->col_res_data.sel_resp[1].sak);
             iso14443_crc_append(Iso14443CrcTypeA, tx_buffer);
@@ -268,15 +264,15 @@ static void nfc_worker_listener_pass_col_res(Nfc* instance, uint8_t* rx_data, ui
 
             processed = true;
         }
-    } else if(rx_bits == 8 * 8) {
-        FelicaPollingRequest* request = (FelicaPollingRequest*)rx_data;
-        if(request->system_code == 0xFFFF ||
-           request->system_code == instance->pt_memory.system_code) {
+    } else if (rx_bits == 8 * 8) {
+        FelicaPollingRequest *request = (FelicaPollingRequest *)rx_data;
+        if (request->system_code == 0xFFFF ||
+            request->system_code == instance->pt_memory.system_code) {
             uint8_t response_size = sizeof(FelicaSensfResData) + 1;
             bit_buffer_reset(tx_buffer);
             bit_buffer_append_byte(tx_buffer, response_size);
-            bit_buffer_append_bytes(
-                tx_buffer, (uint8_t*)&instance->pt_memory.sens_res, sizeof(FelicaSensfResData));
+            bit_buffer_append_bytes(tx_buffer, (uint8_t *)&instance->pt_memory.sens_res,
+                                    sizeof(FelicaSensfResData));
             felica_crc_append(tx_buffer);
             nfc_listener_tx(instance, tx_buffer);
             instance->col_res_status = Iso14443_3aColResStatusDone;
@@ -286,7 +282,7 @@ static void nfc_worker_listener_pass_col_res(Nfc* instance, uint8_t* rx_data, ui
         }
     }
 
-    if(!processed) {
+    if (!processed) {
         NfcMessage message = {.type = NfcMessageTypeTimeout};
         furi_message_queue_put(poller_queue, &message, FuriWaitForever);
     }
@@ -294,8 +290,9 @@ static void nfc_worker_listener_pass_col_res(Nfc* instance, uint8_t* rx_data, ui
     bit_buffer_free(tx_buffer);
 }
 
-static int32_t nfc_worker_listener(void* context) {
-    Nfc* instance = context;
+static int32_t nfc_worker_listener(void *context)
+{
+    Nfc *instance = context;
     furi_check(instance->callback);
 
     NfcMessage message = {};
@@ -304,22 +301,22 @@ static int32_t nfc_worker_listener(void* context) {
     event_data.buffer = bit_buffer_alloc(NFC_MAX_BUFFER_SIZE);
     NfcEvent nfc_event = {.data = event_data};
 
-    while(true) {
+    while (true) {
         furi_message_queue_get(listener_queue, &message, FuriWaitForever);
         bit_buffer_copy_bits(event_data.buffer, message.data.data, message.data.data_bits);
-        if((message.data.data[0] == 0x52) && (message.data.data_bits == 7)) {
+        if ((message.data.data[0] == 0x52) && (message.data.data_bits == 7)) {
             instance->col_res_status = Iso14443_3aColResStatusIdle;
         }
 
-        if(message.type == NfcMessageTypeAbort) {
+        if (message.type == NfcMessageTypeAbort) {
             break;
-        } else if(message.type == NfcMessageTypeTx) {
-            nfc_test_print(
-                NfcTransportLogLevelInfo, "RDR", message.data.data, message.data.data_bits);
-            if(instance->software_col_res_required &&
-               (instance->col_res_status != Iso14443_3aColResStatusDone)) {
-                nfc_worker_listener_pass_col_res(
-                    instance, message.data.data, message.data.data_bits);
+        } else if (message.type == NfcMessageTypeTx) {
+            nfc_test_print(NfcTransportLogLevelInfo, "RDR", message.data.data,
+                           message.data.data_bits);
+            if (instance->software_col_res_required &&
+                (instance->col_res_status != Iso14443_3aColResStatusDone)) {
+                nfc_worker_listener_pass_col_res(instance, message.data.data,
+                                                 message.data.data_bits);
             } else {
                 instance->state = NfcStateReady;
                 nfc_event.type = NfcEventTypeRxEnd;
@@ -336,11 +333,12 @@ static int32_t nfc_worker_listener(void* context) {
     return 0;
 }
 
-void nfc_start(Nfc* instance, NfcEventCallback callback, void* context) {
+void nfc_start(Nfc *instance, NfcEventCallback callback, void *context)
+{
     furi_check(instance);
     furi_check(instance->worker_thread == NULL);
 
-    if(instance->mode == NfcModeListener) {
+    if (instance->mode == NfcModeListener) {
         furi_check(listener_queue == NULL);
         // Check that poller didn't start
         furi_check(poller_queue == NULL);
@@ -353,7 +351,7 @@ void nfc_start(Nfc* instance, NfcEventCallback callback, void* context) {
     instance->callback = callback;
     instance->context = context;
 
-    if(instance->mode == NfcModeListener) {
+    if (instance->mode == NfcModeListener) {
         listener_queue = furi_message_queue_alloc(4, sizeof(NfcMessage));
     } else {
         poller_queue = furi_message_queue_alloc(4, sizeof(NfcMessage));
@@ -364,7 +362,7 @@ void nfc_start(Nfc* instance, NfcEventCallback callback, void* context) {
     furi_thread_set_priority(instance->worker_thread, FuriThreadPriorityHigh);
     furi_thread_set_stack_size(instance->worker_thread, 8 * 1024);
 
-    if(instance->mode == NfcModeListener) {
+    if (instance->mode == NfcModeListener) {
         furi_thread_set_name(instance->worker_thread, "NfcWorkerListener");
         furi_thread_set_callback(instance->worker_thread, nfc_worker_listener);
     } else {
@@ -375,11 +373,12 @@ void nfc_start(Nfc* instance, NfcEventCallback callback, void* context) {
     furi_thread_start(instance->worker_thread);
 }
 
-void nfc_stop(Nfc* instance) {
+void nfc_stop(Nfc *instance)
+{
     furi_check(instance);
     furi_check(instance->worker_thread);
 
-    if(instance->mode == NfcModeListener) {
+    if (instance->mode == NfcModeListener) {
         NfcMessage message = {.type = NfcMessageTypeAbort};
         furi_message_queue_put(listener_queue, &message, FuriWaitForever);
         furi_thread_join(instance->worker_thread);
@@ -402,7 +401,8 @@ void nfc_stop(Nfc* instance) {
 
 // Called from worker thread
 
-NfcError nfc_listener_tx(Nfc* instance, const BitBuffer* tx_buffer) {
+NfcError nfc_listener_tx(Nfc *instance, const BitBuffer *tx_buffer)
+{
     furi_check(instance);
     furi_check(poller_queue);
     furi_check(listener_queue);
@@ -418,12 +418,14 @@ NfcError nfc_listener_tx(Nfc* instance, const BitBuffer* tx_buffer) {
     return NfcErrorNone;
 }
 
-NfcError nfc_iso14443a_listener_tx_custom_parity(Nfc* instance, const BitBuffer* tx_buffer) {
+NfcError nfc_iso14443a_listener_tx_custom_parity(Nfc *instance, const BitBuffer *tx_buffer)
+{
     return nfc_listener_tx(instance, tx_buffer);
 }
 
-NfcError
-    nfc_poller_trx(Nfc* instance, const BitBuffer* tx_buffer, BitBuffer* rx_buffer, uint32_t fwt) {
+NfcError nfc_poller_trx(Nfc *instance, const BitBuffer *tx_buffer, BitBuffer *rx_buffer,
+                        uint32_t fwt)
+{
     furi_check(instance);
     furi_check(tx_buffer);
     furi_check(rx_buffer);
@@ -442,37 +444,33 @@ NfcError
     // Rx
     FuriStatus status = furi_message_queue_get(poller_queue, &message, 50);
 
-    if(status == FuriStatusErrorTimeout) {
+    if (status == FuriStatusErrorTimeout) {
         error = NfcErrorTimeout;
-    } else if(message.type == NfcMessageTypeTx) {
+    } else if (message.type == NfcMessageTypeTx) {
         bit_buffer_copy_bits(rx_buffer, message.data.data, message.data.data_bits);
-        nfc_test_print(
-            NfcTransportLogLevelWarning, "TAG", message.data.data, message.data.data_bits);
-    } else if(message.type == NfcMessageTypeTimeout) {
+        nfc_test_print(NfcTransportLogLevelWarning, "TAG", message.data.data,
+                       message.data.data_bits);
+    } else if (message.type == NfcMessageTypeTimeout) {
         error = NfcErrorTimeout;
     }
 
     return error;
 }
 
-NfcError nfc_iso14443a_poller_trx_custom_parity(
-    Nfc* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt) {
+NfcError nfc_iso14443a_poller_trx_custom_parity(Nfc *instance, const BitBuffer *tx_buffer,
+                                                BitBuffer *rx_buffer, uint32_t fwt)
+{
     return nfc_poller_trx(instance, tx_buffer, rx_buffer, fwt);
 }
 
 // Technology specific API
 
-NfcError nfc_iso14443a_poller_trx_short_frame(
-    Nfc* instance,
-    NfcIso14443aShortFrame frame,
-    BitBuffer* rx_buffer,
-    uint32_t fwt) {
+NfcError nfc_iso14443a_poller_trx_short_frame(Nfc *instance, NfcIso14443aShortFrame frame,
+                                              BitBuffer *rx_buffer, uint32_t fwt)
+{
     UNUSED(frame);
 
-    BitBuffer* tx_buffer = bit_buffer_alloc(32);
+    BitBuffer *tx_buffer = bit_buffer_alloc(32);
     bit_buffer_set_size(tx_buffer, 7);
     bit_buffer_set_byte(tx_buffer, 0, 0x52);
 
@@ -483,27 +481,23 @@ NfcError nfc_iso14443a_poller_trx_short_frame(
     return error;
 }
 
-NfcError nfc_iso14443a_poller_trx_sdd_frame(
-    Nfc* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt) {
+NfcError nfc_iso14443a_poller_trx_sdd_frame(Nfc *instance, const BitBuffer *tx_buffer,
+                                            BitBuffer *rx_buffer, uint32_t fwt)
+{
     return nfc_poller_trx(instance, tx_buffer, rx_buffer, fwt);
 }
 
-NfcError nfc_iso15693_listener_tx_sof(Nfc* instance) {
+NfcError nfc_iso15693_listener_tx_sof(Nfc *instance)
+{
     UNUSED(instance);
 
     return NfcErrorNone;
 }
 
-NfcError nfc_felica_listener_set_sensf_res_data(
-    Nfc* instance,
-    const uint8_t* idm,
-    const uint8_t idm_len,
-    const uint8_t* pmm,
-    const uint8_t pmm_len,
-    const uint16_t sys_code) {
+NfcError nfc_felica_listener_set_sensf_res_data(Nfc *instance, const uint8_t *idm,
+                                                const uint8_t idm_len, const uint8_t *pmm,
+                                                const uint8_t pmm_len, const uint16_t sys_code)
+{
     furi_assert(instance);
     furi_assert(idm);
     furi_assert(pmm);
@@ -518,13 +512,15 @@ NfcError nfc_felica_listener_set_sensf_res_data(
     return NfcErrorNone;
 }
 
-void nfc_felica_listener_timer_anticol_start(Nfc* instance, uint8_t target_time_slot) {
+void nfc_felica_listener_timer_anticol_start(Nfc *instance, uint8_t target_time_slot)
+{
     furi_check(instance);
 
     UNUSED(target_time_slot);
 }
 
-void nfc_felica_listener_timer_anticol_stop(Nfc* instance) {
+void nfc_felica_listener_timer_anticol_stop(Nfc *instance)
+{
     furi_check(instance);
 }
 

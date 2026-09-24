@@ -47,20 +47,16 @@ void furi_hal_rfid_tim_read_continue(void);
  */
 void furi_hal_rfid_tim_read_stop(void);
 
-typedef void (*FuriHalRfidReadCaptureCallback)(bool level, uint32_t duration, void* context);
+typedef void (*FuriHalRfidReadCaptureCallback)(bool level, uint32_t duration, void *context);
 
-void furi_hal_rfid_tim_read_capture_start(FuriHalRfidReadCaptureCallback callback, void* context);
+void furi_hal_rfid_tim_read_capture_start(FuriHalRfidReadCaptureCallback callback, void *context);
 
 void furi_hal_rfid_tim_read_capture_stop(void);
 
-typedef void (*FuriHalRfidDMACallback)(bool half, void* context);
+typedef void (*FuriHalRfidDMACallback)(bool half, void *context);
 
-void furi_hal_rfid_tim_emulate_dma_start(
-    uint32_t* duration,
-    uint32_t* pulse,
-    size_t length,
-    FuriHalRfidDMACallback callback,
-    void* context);
+void furi_hal_rfid_tim_emulate_dma_start(uint32_t *duration, uint32_t *pulse, size_t length,
+                                         FuriHalRfidDMACallback callback, void *context);
 
 void furi_hal_rfid_tim_emulate_dma_stop(void);
 
@@ -82,10 +78,10 @@ void furi_hal_rfid_comp_start(void);
 /** Stop/Disable comparator */
 void furi_hal_rfid_comp_stop(void);
 
-typedef void (*FuriHalRfidCompCallback)(bool level, void* context);
+typedef void (*FuriHalRfidCompCallback)(bool level, void *context);
 
 /** Set comparator callback */
-void furi_hal_rfid_comp_set_callback(FuriHalRfidCompCallback callback, void* context);
+void furi_hal_rfid_comp_set_callback(FuriHalRfidCompCallback callback, void *context);
 
 /** Start/Enable Field Presence detect */
 void furi_hal_rfid_field_detect_start(void);
@@ -99,7 +95,7 @@ void furi_hal_rfid_field_detect_stop(void);
  *
  * @return     true if field is present, false if not
  */
-bool furi_hal_rfid_field_is_present(uint32_t* frequency);
+bool furi_hal_rfid_field_is_present(uint32_t *frequency);
 
 #ifdef __cplusplus
 }

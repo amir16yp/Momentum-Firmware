@@ -101,33 +101,39 @@ const SubGhzProtocol ws_protocol_tx_8300 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_tx_8300_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_tx_8300_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderTX_8300* instance = malloc(sizeof(WSProtocolDecoderTX_8300));
+    WSProtocolDecoderTX_8300 *instance = malloc(sizeof(WSProtocolDecoderTX_8300));
     instance->base.protocol = &ws_protocol_tx_8300;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_tx_8300_free(void* context) {
+void ws_protocol_decoder_tx_8300_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_tx_8300_reset(void* context) {
+void ws_protocol_decoder_tx_8300_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
     instance->decoder.parser_step = TX_8300DecoderStepReset;
 }
 
-static bool ws_protocol_tx_8300_check_crc(WSProtocolDecoderTX_8300* instance) {
-    if(!instance->package_2) return false;
-    if(instance->package_1 != ~instance->package_2) return false;
+static bool ws_protocol_tx_8300_check_crc(WSProtocolDecoderTX_8300 *instance)
+{
+    if (!instance->package_2)
+        return false;
+    if (instance->package_1 != ~instance->package_2)
+        return false;
 
     uint16_t x = 0;
     uint16_t y = 0;
-    for(int i = 0; i < 32; i += 4) {
+    for (int i = 0; i < 32; i += 4) {
         x += (instance->package_1 >> i) & 0x0F;
         y += (instance->package_1 >> i) & 0x05;
     }
@@ -139,10 +145,11 @@ static bool ws_protocol_tx_8300_check_crc(WSProtocolDecoderTX_8300* instance) {
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_tx_8300_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_tx_8300_remote_controller(WSBlockGeneric *instance)
+{
     instance->humidity = (((instance->data >> 28) & 0x0F) * 10) + ((instance->data >> 24) & 0x0F);
     instance->btn = WS_NO_BTN;
-    if(!((instance->data >> 22) & 0x03))
+    if (!((instance->data >> 22) & 0x03))
         instance->battery_low = 0;
     else
         instance->battery_low = 1;
@@ -151,30 +158,31 @@ static void ws_protocol_tx_8300_remote_controller(WSBlockGeneric* instance) {
 
     float temp_raw = ((instance->data >> 8) & 0x0F) * 10.0f + ((instance->data >> 4) & 0x0F) +
                      (instance->data & 0x0F) * 0.1f;
-    if(!((instance->data >> 19) & 1)) {
+    if (!((instance->data >> 19) & 1)) {
         instance->temp = temp_raw;
     } else {
         instance->temp = -temp_raw;
     }
 }
 
-void ws_protocol_decoder_tx_8300_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_tx_8300_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case TX_8300DecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 2) <
-                       ws_protocol_tx_8300_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 2) <
+                        ws_protocol_tx_8300_const.te_delta)) {
             instance->decoder.parser_step = TX_8300DecoderStepCheckPreambule;
         }
         break;
 
     case TX_8300DecoderStepCheckPreambule:
-        if((!level) && ((DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 2) <
-                         ws_protocol_tx_8300_const.te_delta) ||
-                        (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 3) <
-                         ws_protocol_tx_8300_const.te_delta))) {
+        if ((!level) && ((DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 2) <
+                          ws_protocol_tx_8300_const.te_delta) ||
+                         (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short * 3) <
+                          ws_protocol_tx_8300_const.te_delta))) {
             instance->decoder.parser_step = TX_8300DecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 1;
@@ -186,7 +194,7 @@ void ws_protocol_decoder_tx_8300_feed(void* context, bool level, uint32_t durati
         break;
 
     case TX_8300DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = TX_8300DecoderStepCheckDuration;
         } else {
@@ -195,44 +203,44 @@ void ws_protocol_decoder_tx_8300_feed(void* context, bool level, uint32_t durati
         break;
 
     case TX_8300DecoderStepCheckDuration:
-        if(!level) {
-            if(duration >= ((uint32_t)ws_protocol_tx_8300_const.te_short * 5)) {
-                //Found syncPostfix
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_tx_8300_const.min_count_bit_for_found) &&
-                   ws_protocol_tx_8300_check_crc(instance)) {
+        if (!level) {
+            if (duration >= ((uint32_t)ws_protocol_tx_8300_const.te_short * 5)) {
+                // Found syncPostfix
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_tx_8300_const.min_count_bit_for_found) &&
+                    ws_protocol_tx_8300_check_crc(instance)) {
                     instance->generic.data = instance->package_1;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_tx_8300_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 1;
                 instance->decoder.parser_step = TX_8300DecoderStepReset;
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_tx_8300_const.te_short) <
-                 ws_protocol_tx_8300_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_long) <
-                 ws_protocol_tx_8300_const.te_delta * 2)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_tx_8300_const.te_short) <
+                        ws_protocol_tx_8300_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_long) <
+                        ws_protocol_tx_8300_const.te_delta * 2)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = TX_8300DecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_tx_8300_const.te_short) <
-                 ws_protocol_tx_8300_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short) <
-                 ws_protocol_tx_8300_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_tx_8300_const.te_short) <
+                        ws_protocol_tx_8300_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_tx_8300_const.te_short) <
+                        ws_protocol_tx_8300_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = TX_8300DecoderStepSaveDuration;
             } else {
                 instance->decoder.parser_step = TX_8300DecoderStepReset;
             }
 
-            if(instance->decoder.decode_count_bit == TX_8300_PACKAGE_SIZE) {
+            if (instance->decoder.decode_count_bit == TX_8300_PACKAGE_SIZE) {
                 instance->package_1 = instance->decoder.decode_data;
                 instance->decoder.decode_data = 0;
-            } else if(instance->decoder.decode_count_bit == TX_8300_PACKAGE_SIZE * 2) {
+            } else if (instance->decoder.decode_count_bit == TX_8300_PACKAGE_SIZE * 2) {
                 instance->package_2 = instance->decoder.decode_data;
                 instance->decoder.decode_data = 0;
             }
@@ -244,32 +252,35 @@ void ws_protocol_decoder_tx_8300_feed(void* context, bool level, uint32_t durati
     }
 }
 
-uint32_t ws_protocol_decoder_tx_8300_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_tx_8300_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderTX_8300 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_tx_8300_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_tx_8300_serialize(void *context,
+                                                           FlipperFormat *flipper_format,
+                                                           SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_tx_8300_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_tx_8300_deserialize(void *context,
+                                                             FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_tx_8300_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_tx_8300_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_tx_8300_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderTX_8300* instance = context;
+    WSProtocolDecoderTX_8300 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

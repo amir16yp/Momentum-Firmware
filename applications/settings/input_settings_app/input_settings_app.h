@@ -13,10 +13,10 @@
 
 // input_settings_app stucture
 typedef struct {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    VariableItemList* variable_item_list;
-    InputSettings* settings;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    VariableItemList *variable_item_list;
+    InputSettings *settings;
 } InputSettingsApp;
 
 // list of menu views for view dispatcher

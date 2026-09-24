@@ -44,19 +44,19 @@ extern "C" {
  */
 typedef enum {
     ExpansionFrameTypeHeartbeat = 1, /**< Heartbeat frame. */
-    ExpansionFrameTypeStatus = 2, /**< Status report frame. */
-    ExpansionFrameTypeBaudRate = 3, /**< Baud rate negotiation frame. */
-    ExpansionFrameTypeControl = 4, /**< Control frame. */
-    ExpansionFrameTypeData = 5, /**< Data frame. */
-    ExpansionFrameTypeReserved, /**< Special value. */
+    ExpansionFrameTypeStatus = 2,    /**< Status report frame. */
+    ExpansionFrameTypeBaudRate = 3,  /**< Baud rate negotiation frame. */
+    ExpansionFrameTypeControl = 4,   /**< Control frame. */
+    ExpansionFrameTypeData = 5,      /**< Data frame. */
+    ExpansionFrameTypeReserved,      /**< Special value. */
 } ExpansionFrameType;
 
 /**
  * @brief Enumeration of possible error types.
  */
 typedef enum {
-    ExpansionFrameErrorNone = 0x00, /**< No error occurred. */
-    ExpansionFrameErrorUnknown = 0x01, /**< An unknown error has occurred (generic response). */
+    ExpansionFrameErrorNone = 0x00,     /**< No error occurred. */
+    ExpansionFrameErrorUnknown = 0x01,  /**< An unknown error has occurred (generic response). */
     ExpansionFrameErrorBaudRate = 0x02, /**< Requested baud rate is not supported. */
 } ExpansionFrameError;
 
@@ -70,21 +70,21 @@ typedef enum {
      */
     ExpansionFrameControlCommandStartRpc = 0x00,
     /** @brief Stop an open RPC session.
-      *
-      * Must only be used while the RPC session IS active.
-      */
+     *
+     * Must only be used while the RPC session IS active.
+     */
     ExpansionFrameControlCommandStopRpc = 0x01,
     /** @brief Enable OTG (5V) on external GPIO.
-      *
-      * Must only be used while the RPC session is NOT active,
-      * otherwise OTG is to be controlled via RPC messages.
-      */
+     *
+     * Must only be used while the RPC session is NOT active,
+     * otherwise OTG is to be controlled via RPC messages.
+     */
     ExpansionFrameControlCommandEnableOtg = 0x02,
     /** @brief Disable OTG (5V) on external GPIO.
-      *
-      * Must only be used while the RPC session is NOT active,
-      * otherwise OTG is to be controlled via RPC messages.
-      */
+     *
+     * Must only be used while the RPC session is NOT active,
+     * otherwise OTG is to be controlled via RPC messages.
+     */
     ExpansionFrameControlCommandDisableOtg = 0x03,
 } ExpansionFrameControlCommand;
 
@@ -142,11 +142,11 @@ typedef struct {
     ExpansionFrameHeader header; /**< Header of the frame. Required. */
     union {
         ExpansionFrameHeartbeat heartbeat; /**< Heartbeat frame contents. */
-        ExpansionFrameStatus status; /**< Status frame contents. */
-        ExpansionFrameBaudRate baud_rate; /**< Baud rate frame contents. */
-        ExpansionFrameControl control; /**< Control frame contents. */
-        ExpansionFrameData data; /**< Data frame contents. */
-    } content; /**< Contents of the frame. */
+        ExpansionFrameStatus status;       /**< Status frame contents. */
+        ExpansionFrameBaudRate baud_rate;  /**< Baud rate frame contents. */
+        ExpansionFrameControl control;     /**< Control frame contents. */
+        ExpansionFrameData data;           /**< Data frame contents. */
+    } content;                             /**< Contents of the frame. */
 } ExpansionFrame;
 
 #pragma pack(pop)
@@ -166,7 +166,7 @@ typedef uint8_t ExpansionFrameChecksum;
  * @param[in,out] context pointer to a user-defined context object.
  * @returns number of bytes written into the output buffer.
  */
-typedef size_t (*ExpansionFrameReceiveCallback)(uint8_t* data, size_t data_size, void* context);
+typedef size_t (*ExpansionFrameReceiveCallback)(uint8_t *data, size_t data_size, void *context);
 
 /**
  * @brief Send function type declaration.
@@ -178,7 +178,7 @@ typedef size_t (*ExpansionFrameReceiveCallback)(uint8_t* data, size_t data_size,
  * @param[in,out] context pointer to a user-defined context object.
  * @returns number of bytes actually sent.
  */
-typedef size_t (*ExpansionFrameSendCallback)(const uint8_t* data, size_t data_size, void* context);
+typedef size_t (*ExpansionFrameSendCallback)(const uint8_t *data, size_t data_size, void *context);
 
 /**
  * @brief Get encoded frame size.
@@ -188,8 +188,9 @@ typedef size_t (*ExpansionFrameSendCallback)(const uint8_t* data, size_t data_si
  * @param[in] frame pointer to the frame to be evaluated.
  * @returns encoded frame size, in bytes.
  */
-static inline size_t expansion_frame_get_encoded_size(const ExpansionFrame* frame) {
-    switch(frame->header.type) {
+static inline size_t expansion_frame_get_encoded_size(const ExpansionFrame *frame)
+{
+    switch (frame->header.type) {
     case ExpansionFrameTypeHeartbeat:
         return sizeof(frame->header);
     case ExpansionFrameTypeStatus:
@@ -213,14 +214,14 @@ static inline size_t expansion_frame_get_encoded_size(const ExpansionFrame* fram
  *
  * @param[in] frame pointer to the frame to be evaluated.
  * @param[in] received_size number of bytes currently availabe for evaluation.
- * @param[out] remaining_size pointer to the variable to contain the number of bytes needed for a complete frame.
+ * @param[out] remaining_size pointer to the variable to contain the number of bytes needed for a
+ * complete frame.
  * @returns true if the remaining size could be calculated, false on error.
  */
-static inline bool expansion_frame_get_remaining_size(
-    const ExpansionFrame* frame,
-    size_t received_size,
-    size_t* remaining_size) {
-    if(received_size < sizeof(ExpansionFrameHeader)) {
+static inline bool expansion_frame_get_remaining_size(const ExpansionFrame *frame,
+                                                      size_t received_size, size_t *remaining_size)
+{
+    if (received_size < sizeof(ExpansionFrameHeader)) {
         // Frame type is unknown as of now
         *remaining_size = sizeof(ExpansionFrameHeader);
         return true;
@@ -229,7 +230,7 @@ static inline bool expansion_frame_get_remaining_size(
     const size_t received_content_size = received_size - sizeof(ExpansionFrameHeader);
     size_t content_size;
 
-    switch(frame->header.type) {
+    switch (frame->header.type) {
     case ExpansionFrameTypeHeartbeat:
         content_size = 0;
         break;
@@ -243,10 +244,10 @@ static inline bool expansion_frame_get_remaining_size(
         content_size = sizeof(frame->content.control);
         break;
     case ExpansionFrameTypeData:
-        if(received_content_size < sizeof(frame->content.data.size)) {
+        if (received_content_size < sizeof(frame->content.data.size)) {
             // Data size is unknown as of now
             content_size = sizeof(frame->content.data.size);
-        } else if(frame->content.data.size > sizeof(frame->content.data.bytes)) {
+        } else if (frame->content.data.size > sizeof(frame->content.data.bytes)) {
             // Malformed frame or garbage input
             return false;
         } else {
@@ -257,7 +258,7 @@ static inline bool expansion_frame_get_remaining_size(
         return false;
     }
 
-    if(content_size > received_content_size) {
+    if (content_size > received_content_size) {
         *remaining_size = content_size - received_content_size;
     } else {
         *remaining_size = 0;
@@ -270,9 +271,9 @@ static inline bool expansion_frame_get_remaining_size(
  * @brief Enumeration of protocol parser statuses.
  */
 typedef enum {
-    ExpansionProtocolStatusOk, /**< No error has occurred. */
-    ExpansionProtocolStatusErrorFormat, /**< Invalid frame type. */
-    ExpansionProtocolStatusErrorChecksum, /**< Checksum mismatch. */
+    ExpansionProtocolStatusOk,                 /**< No error has occurred. */
+    ExpansionProtocolStatusErrorFormat,        /**< Invalid frame type. */
+    ExpansionProtocolStatusErrorChecksum,      /**< Checksum mismatch. */
     ExpansionProtocolStatusErrorCommunication, /**< Input/output error. */
 } ExpansionProtocolStatus;
 
@@ -285,10 +286,11 @@ typedef enum {
  * @param[in] data_size size of the data buffer.
  * @returns checksum byte of the frame.
  */
-static inline ExpansionFrameChecksum
-    expansion_protocol_get_checksum(const uint8_t* data, size_t data_size) {
+static inline ExpansionFrameChecksum expansion_protocol_get_checksum(const uint8_t *data,
+                                                                     size_t data_size)
+{
     ExpansionFrameChecksum checksum = 0;
-    for(size_t i = 0; i < data_size; ++i) {
+    for (size_t i = 0; i < data_size; ++i) {
         checksum ^= data[i];
     }
     return checksum;
@@ -301,27 +303,28 @@ static inline ExpansionFrameChecksum
  *
  * @param[out] frame pointer to the frame to contain decoded data.
  * @param[in] receive pointer to the function used to receive data.
- * @param[in,out] context pointer to a user-defined context object. Will be passed to the receive callback function.
+ * @param[in,out] context pointer to a user-defined context object. Will be passed to the receive
+ * callback function.
  * @returns ExpansionProtocolStatusOk on success, any other error code on failure.
  */
-static inline ExpansionProtocolStatus expansion_protocol_decode(
-    ExpansionFrame* frame,
-    ExpansionFrameReceiveCallback receive,
-    void* context) {
+static inline ExpansionProtocolStatus
+expansion_protocol_decode(ExpansionFrame *frame, ExpansionFrameReceiveCallback receive,
+                          void *context)
+{
     size_t total_size = 0;
     size_t remaining_size;
 
-    while(true) {
-        if(!expansion_frame_get_remaining_size(frame, total_size, &remaining_size)) {
+    while (true) {
+        if (!expansion_frame_get_remaining_size(frame, total_size, &remaining_size)) {
             return ExpansionProtocolStatusErrorFormat;
-        } else if(remaining_size == 0) {
+        } else if (remaining_size == 0) {
             break;
         }
 
         const size_t received_size =
-            receive((uint8_t*)frame + total_size, remaining_size, context);
+            receive((uint8_t *)frame + total_size, remaining_size, context);
 
-        if(received_size == 0) {
+        if (received_size == 0) {
             return ExpansionProtocolStatusErrorCommunication;
         }
 
@@ -331,9 +334,9 @@ static inline ExpansionProtocolStatus expansion_protocol_decode(
     ExpansionFrameChecksum checksum;
     const size_t received_size = receive(&checksum, sizeof(checksum), context);
 
-    if(received_size != sizeof(checksum)) {
+    if (received_size != sizeof(checksum)) {
         return ExpansionProtocolStatusErrorCommunication;
-    } else if(checksum != expansion_protocol_get_checksum((const uint8_t*)frame, total_size)) {
+    } else if (checksum != expansion_protocol_get_checksum((const uint8_t *)frame, total_size)) {
         return ExpansionProtocolStatusErrorChecksum;
     } else {
         return ExpansionProtocolStatusOk;
@@ -345,23 +348,24 @@ static inline ExpansionProtocolStatus expansion_protocol_decode(
  *
  * @param[in] frame pointer to the frame to be encoded and sent.
  * @param[in] send pointer to the function used to send data.
- * @param[in,out] context pointer to a user-defined context object. Will be passed to the send callback function.
+ * @param[in,out] context pointer to a user-defined context object. Will be passed to the send
+ * callback function.
  * @returns ExpansionProtocolStatusOk on success, any other error code on failure.
  */
-static inline ExpansionProtocolStatus expansion_protocol_encode(
-    const ExpansionFrame* frame,
-    ExpansionFrameSendCallback send,
-    void* context) {
+static inline ExpansionProtocolStatus expansion_protocol_encode(const ExpansionFrame *frame,
+                                                                ExpansionFrameSendCallback send,
+                                                                void *context)
+{
     const size_t encoded_size = expansion_frame_get_encoded_size(frame);
-    if(encoded_size == 0) {
+    if (encoded_size == 0) {
         return ExpansionProtocolStatusErrorFormat;
     }
 
     const ExpansionFrameChecksum checksum =
-        expansion_protocol_get_checksum((const uint8_t*)frame, encoded_size);
+        expansion_protocol_get_checksum((const uint8_t *)frame, encoded_size);
 
-    if((send((const uint8_t*)frame, encoded_size, context) != encoded_size) ||
-       (send(&checksum, sizeof(checksum), context) != sizeof(checksum))) {
+    if ((send((const uint8_t *)frame, encoded_size, context) != encoded_size) ||
+        (send(&checksum, sizeof(checksum), context) != sizeof(checksum))) {
         return ExpansionProtocolStatusErrorCommunication;
     } else {
         return ExpansionProtocolStatusOk;

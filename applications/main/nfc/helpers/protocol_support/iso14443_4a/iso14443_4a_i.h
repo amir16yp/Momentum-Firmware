@@ -4,4 +4,4 @@
 
 #include "iso14443_4a.h"
 
-NfcCommand nfc_scene_emulate_listener_callback_iso14443_4a(NfcGenericEvent event, void* context);
+NfcCommand nfc_scene_emulate_listener_callback_iso14443_4a(NfcGenericEvent event, void *context);

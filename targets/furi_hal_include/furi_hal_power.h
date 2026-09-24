@@ -25,18 +25,18 @@ typedef enum {
 void furi_hal_power_init(void);
 
 /** Check if gauge is ok
- * 
+ *
  * Verifies that:
  * - gauge is alive
  * - correct profile loaded
  * - self diagnostic status is good
- * 
+ *
  * @return true if gauge is ok
  */
 bool furi_hal_power_gauge_is_ok(void);
 
 /** Check if gauge requests system shutdown
- * 
+ *
  * @return true if system shutdown requested
  */
 bool furi_hal_power_is_shutdown_requested(void);
@@ -105,13 +105,13 @@ void furi_hal_power_off(void);
 FURI_NORETURN void furi_hal_power_reset(void);
 
 /** OTG enable
- * 
+ *
  * @warning this is low level control, use power service instead
  */
 bool furi_hal_power_enable_otg(void);
 
 /** OTG disable
- * 
+ *
  * @warning this is low level control, use power service instead
  */
 void furi_hal_power_disable_otg(void);
@@ -216,14 +216,14 @@ void furi_hal_power_suppress_charge_exit(void);
  * @param[in]  sep          category separator character
  * @param[in]  context      context to pass to callback
  */
-void furi_hal_power_info_get(PropertyValueCallback callback, char sep, void* context);
+void furi_hal_power_info_get(PropertyValueCallback callback, char sep, void *context);
 
 /** Get power debug information
  *
  * @param[in]  callback     callback to provide with new data
  * @param[in]  context      context to pass to callback
  */
-void furi_hal_power_debug_get(PropertyValueCallback callback, void* context);
+void furi_hal_power_debug_get(PropertyValueCallback callback, void *context);
 
 #ifdef __cplusplus
 }

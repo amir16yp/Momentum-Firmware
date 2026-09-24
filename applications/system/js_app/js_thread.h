@@ -13,11 +13,11 @@ typedef enum {
     JsThreadEventErrorTrace,
 } JsThreadEvent;
 
-typedef void (*JsThreadCallback)(JsThreadEvent event, const char* msg, void* context);
+typedef void (*JsThreadCallback)(JsThreadEvent event, const char *msg, void *context);
 
-JsThread* js_thread_run(const char* script_path, JsThreadCallback callback, void* context);
+JsThread *js_thread_run(const char *script_path, JsThreadCallback callback, void *context);
 
-void js_thread_stop(JsThread* worker);
+void js_thread_stop(JsThread *worker);
 
 #ifdef __cplusplus
 }

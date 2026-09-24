@@ -43,42 +43,42 @@ typedef struct {
 } DesktopClock;
 
 struct Desktop {
-    FuriThread* scene_thread;
+    FuriThread *scene_thread;
 
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
 
-    Popup* popup;
-    DesktopLockMenuView* lock_menu;
-    DesktopDebugView* _debug_view; // Unused, kept for compatibility
-    DesktopViewLocked* locked_view;
-    DesktopMainView* main_view;
-    DesktopViewPinTimeout* pin_timeout_view;
-    DesktopSlideshowView* slideshow_view;
-    DesktopViewPinInput* pin_input_view;
+    Popup *popup;
+    DesktopLockMenuView *lock_menu;
+    DesktopDebugView *_debug_view; // Unused, kept for compatibility
+    DesktopViewLocked *locked_view;
+    DesktopMainView *main_view;
+    DesktopViewPinTimeout *pin_timeout_view;
+    DesktopSlideshowView *slideshow_view;
+    DesktopViewPinInput *pin_input_view;
 
-    ViewStack* main_view_stack;
-    ViewStack* locked_view_stack;
+    ViewStack *main_view_stack;
+    ViewStack *locked_view_stack;
 
-    ViewPort* lock_icon_viewport;
-    ViewPort* _dummy_mode_icon_viewport; // Unused, kept for compatibility
-    ViewPort* clock_viewport;
-    ViewPort* stealth_mode_icon_viewport;
+    ViewPort *lock_icon_viewport;
+    ViewPort *_dummy_mode_icon_viewport; // Unused, kept for compatibility
+    ViewPort *clock_viewport;
+    ViewPort *stealth_mode_icon_viewport;
 
-    Loader* loader;
-    Storage* storage;
-    NotificationApp* notification;
+    Loader *loader;
+    Storage *storage;
+    NotificationApp *notification;
 
-    FuriPubSub* status_pubsub;
-    FuriPubSub* input_events_pubsub;
-    FuriPubSubSubscription* input_events_subscription;
+    FuriPubSub *status_pubsub;
+    FuriPubSub *input_events_pubsub;
+    FuriPubSubSubscription *input_events_subscription;
 
-    FuriTimer* auto_lock_timer;
-    FuriTimer* update_clock_timer;
+    FuriTimer *auto_lock_timer;
+    FuriTimer *update_clock_timer;
 
-    AnimationManager* animation_manager;
-    FuriSemaphore* animation_semaphore;
+    AnimationManager *animation_manager;
+    FuriSemaphore *animation_semaphore;
 
     DesktopClock clock;
     DesktopSettings settings;
@@ -87,14 +87,14 @@ struct Desktop {
     bool app_running;
     bool locked;
 
-    FuriPubSub* ascii_events_pubsub;
-    FuriPubSubSubscription* ascii_events_subscription;
+    FuriPubSub *ascii_events_pubsub;
+    FuriPubSubSubscription *ascii_events_subscription;
 
-    FuriString* archive_dir;
+    FuriString *archive_dir;
 };
 
-void desktop_lock(Desktop* desktop, bool pin_lock);
-void desktop_unlock(Desktop* desktop);
-int32_t desktop_shutdown(void* context);
-void desktop_set_stealth_mode_state(Desktop* desktop, bool enabled);
-void desktop_launch_archive(Desktop* desktop, const char* open_dir);
+void desktop_lock(Desktop *desktop, bool pin_lock);
+void desktop_unlock(Desktop *desktop);
+int32_t desktop_shutdown(void *context);
+void desktop_set_stealth_mode_state(Desktop *desktop, bool enabled);
+void desktop_launch_archive(Desktop *desktop, const char *open_dir);

@@ -10,22 +10,23 @@
 #define TAG "RpcSystem"
 
 typedef struct {
-    RpcSession* session;
-    PB_Main* response;
+    RpcSession *session;
+    PB_Main *response;
 } RpcSystemContext;
 
-static void rpc_system_system_ping_process(const PB_Main* request, void* context) {
+static void rpc_system_system_ping_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_ping_request_tag);
 
     FURI_LOG_D(TAG, "Ping");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    if(request->has_next) {
-        rpc_send_and_release_empty(
-            session, request->command_id, PB_CommandStatus_ERROR_INVALID_PARAMETERS);
+    if (request->has_next) {
+        rpc_send_and_release_empty(session, request->command_id,
+                                   PB_CommandStatus_ERROR_INVALID_PARAMETERS);
         return;
     }
 
@@ -35,9 +36,9 @@ static void rpc_system_system_ping_process(const PB_Main* request, void* context
     response.command_id = request->command_id;
     response.which_content = PB_Main_system_ping_response_tag;
 
-    const PB_System_PingRequest* ping_request = &request->content.system_ping_request;
-    PB_System_PingResponse* ping_response = &response.content.system_ping_response;
-    if(ping_request->data && (ping_request->data->size > 0)) {
+    const PB_System_PingRequest *ping_request = &request->content.system_ping_request;
+    PB_System_PingResponse *ping_response = &response.content.system_ping_response;
+    if (ping_request->data && (ping_request->data->size > 0)) {
         ping_response->data = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(ping_request->data->size));
         memcpy(ping_response->data->bytes, ping_request->data->bytes, ping_request->data->size);
         ping_response->data->size = ping_request->data->size;
@@ -46,46 +47,45 @@ static void rpc_system_system_ping_process(const PB_Main* request, void* context
     rpc_send_and_release(session, &response);
 }
 
-static void rpc_system_system_reboot_process(const PB_Main* request, void* context) {
+static void rpc_system_system_reboot_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_reboot_request_tag);
 
     FURI_LOG_D(TAG, "Reboot");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     const int mode = request->content.system_reboot_request.mode;
 
-    if(mode == PB_System_RebootRequest_RebootMode_OS) {
+    if (mode == PB_System_RebootRequest_RebootMode_OS) {
         power_reboot(power, PowerBootModeNormal);
-    } else if(mode == PB_System_RebootRequest_RebootMode_DFU) {
+    } else if (mode == PB_System_RebootRequest_RebootMode_DFU) {
         power_reboot(power, PowerBootModeDfu);
-    } else if(mode == PB_System_RebootRequest_RebootMode_UPDATE) {
+    } else if (mode == PB_System_RebootRequest_RebootMode_UPDATE) {
         power_reboot(power, PowerBootModeUpdateStart);
     } else {
-        rpc_send_and_release_empty(
-            session, request->command_id, PB_CommandStatus_ERROR_INVALID_PARAMETERS);
+        rpc_send_and_release_empty(session, request->command_id,
+                                   PB_CommandStatus_ERROR_INVALID_PARAMETERS);
     }
 
     furi_record_close(RECORD_POWER);
 }
 
-static void rpc_system_system_device_info_callback(
-    const char* key,
-    const char* value,
-    bool last,
-    void* context) {
+static void rpc_system_system_device_info_callback(const char *key, const char *value, bool last,
+                                                   void *context)
+{
     furi_assert(key);
     furi_assert(value);
-    RpcSystemContext* ctx = context;
+    RpcSystemContext *ctx = context;
     furi_assert(ctx);
 
     furi_assert(key);
     furi_assert(value);
-    char* str_key = strdup(key);
-    char* str_value = strdup(value);
+    char *str_key = strdup(key);
+    char *str_value = strdup(value);
 
     ctx->response->has_next = !last;
     ctx->response->content.system_device_info_response.key = str_key;
@@ -94,16 +94,17 @@ static void rpc_system_system_device_info_callback(
     rpc_send_and_release(ctx->session, ctx->response);
 }
 
-static void rpc_system_system_device_info_process(const PB_Main* request, void* context) {
+static void rpc_system_system_device_info_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_device_info_request_tag);
 
     FURI_LOG_D(TAG, "DeviceInfo");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    PB_Main* response = malloc(sizeof(PB_Main));
+    PB_Main *response = malloc(sizeof(PB_Main));
     response->command_id = request->command_id;
     response->which_content = PB_Main_system_device_info_response_tag;
     response->command_status = PB_CommandStatus_OK;
@@ -117,19 +118,20 @@ static void rpc_system_system_device_info_process(const PB_Main* request, void* 
     free(response);
 }
 
-static void rpc_system_system_get_datetime_process(const PB_Main* request, void* context) {
+static void rpc_system_system_get_datetime_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_get_datetime_request_tag);
 
     FURI_LOG_D(TAG, "GetDatetime");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
     DateTime datetime;
     furi_hal_rtc_get_datetime(&datetime);
 
-    PB_Main* response = malloc(sizeof(PB_Main));
+    PB_Main *response = malloc(sizeof(PB_Main));
     response->command_id = request->command_id;
     response->which_content = PB_Main_system_get_datetime_response_tag;
     response->command_status = PB_CommandStatus_OK;
@@ -146,18 +148,19 @@ static void rpc_system_system_get_datetime_process(const PB_Main* request, void*
     free(response);
 }
 
-static void rpc_system_system_set_datetime_process(const PB_Main* request, void* context) {
+static void rpc_system_system_set_datetime_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_set_datetime_request_tag);
 
     FURI_LOG_D(TAG, "SetDatetime");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    if(!request->content.system_set_datetime_request.has_datetime) {
-        rpc_send_and_release_empty(
-            session, request->command_id, PB_CommandStatus_ERROR_INVALID_PARAMETERS);
+    if (!request->content.system_set_datetime_request.has_datetime) {
+        rpc_send_and_release_empty(session, request->command_id,
+                                   PB_CommandStatus_ERROR_INVALID_PARAMETERS);
         return;
     }
 
@@ -174,49 +177,51 @@ static void rpc_system_system_set_datetime_process(const PB_Main* request, void*
     rpc_send_and_release_empty(session, request->command_id, PB_CommandStatus_OK);
 }
 
-static void rpc_system_system_factory_reset_process(const PB_Main* request, void* context) {
+static void rpc_system_system_factory_reset_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_factory_reset_request_tag);
 
     FURI_LOG_D(TAG, "Reset");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
     furi_hal_rtc_reset_registers();
     furi_hal_rtc_set_flag(FuriHalRtcFlagStorageFormatInternal);
 
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     power_reboot(power, PowerBootModeNormal);
 }
 
-static void
-    rpc_system_system_play_audiovisual_alert_process(const PB_Main* request, void* context) {
+static void rpc_system_system_play_audiovisual_alert_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_play_audiovisual_alert_request_tag);
 
     FURI_LOG_D(TAG, "Alert");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    NotificationApp* notification = furi_record_open(RECORD_NOTIFICATION);
+    NotificationApp *notification = furi_record_open(RECORD_NOTIFICATION);
     notification_message(notification, &sequence_audiovisual_alert);
     furi_record_close(RECORD_NOTIFICATION);
 
     rpc_send_and_release_empty(session, request->command_id, PB_CommandStatus_OK);
 }
 
-static void rpc_system_system_protobuf_version_process(const PB_Main* request, void* context) {
+static void rpc_system_system_protobuf_version_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_protobuf_version_request_tag);
 
     FURI_LOG_D(TAG, "ProtobufVersion");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    PB_Main* response = malloc(sizeof(PB_Main));
+    PB_Main *response = malloc(sizeof(PB_Main));
     response->command_id = request->command_id;
     response->has_next = false;
     response->command_status = PB_CommandStatus_OK;
@@ -230,20 +235,18 @@ static void rpc_system_system_protobuf_version_process(const PB_Main* request, v
     free(response);
 }
 
-static void rpc_system_system_power_info_callback(
-    const char* key,
-    const char* value,
-    bool last,
-    void* context) {
+static void rpc_system_system_power_info_callback(const char *key, const char *value, bool last,
+                                                  void *context)
+{
     furi_assert(key);
     furi_assert(value);
-    RpcSystemContext* ctx = context;
+    RpcSystemContext *ctx = context;
     furi_assert(ctx);
 
     furi_assert(key);
     furi_assert(value);
-    char* str_key = strdup(key);
-    char* str_value = strdup(value);
+    char *str_key = strdup(key);
+    char *str_value = strdup(value);
 
     ctx->response->has_next = !last;
     ctx->response->content.system_device_info_response.key = str_key;
@@ -252,16 +255,17 @@ static void rpc_system_system_power_info_callback(
     rpc_send_and_release(ctx->session, ctx->response);
 }
 
-static void rpc_system_system_get_power_info_process(const PB_Main* request, void* context) {
+static void rpc_system_system_get_power_info_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_power_info_request_tag);
 
     FURI_LOG_D(TAG, "GetPowerInfo");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
-    PB_Main* response = malloc(sizeof(PB_Main));
+    PB_Main *response = malloc(sizeof(PB_Main));
     response->command_id = request->command_id;
     response->which_content = PB_Main_system_power_info_response_tag;
     response->command_status = PB_CommandStatus_OK;
@@ -276,24 +280,25 @@ static void rpc_system_system_get_power_info_process(const PB_Main* request, voi
 }
 
 #ifdef APP_UPDATER
-static void rpc_system_system_update_request_process(const PB_Main* request, void* context) {
+static void rpc_system_system_update_request_process(const PB_Main *request, void *context)
+{
     furi_assert(request);
     furi_assert(request->which_content == PB_Main_system_update_request_tag);
 
     FURI_LOG_D(TAG, "SystemUpdate");
 
-    RpcSession* session = (RpcSession*)context;
+    RpcSession *session = (RpcSession *)context;
     furi_assert(session);
 
     UpdatePrepareResult update_prepare_result =
         update_operation_prepare(request->content.system_update_request.update_manifest);
 
-    PB_Main* response = malloc(sizeof(PB_Main));
+    PB_Main *response = malloc(sizeof(PB_Main));
     response->command_id = request->command_id;
     response->has_next = false;
-    response->command_status = (update_prepare_result == UpdatePrepareResultOK) ?
-                                   PB_CommandStatus_OK :
-                                   PB_CommandStatus_ERROR_INVALID_PARAMETERS;
+    response->command_status = (update_prepare_result == UpdatePrepareResultOK)
+                                   ? PB_CommandStatus_OK
+                                   : PB_CommandStatus_ERROR_INVALID_PARAMETERS;
     response->which_content = PB_Main_system_update_response_tag;
     response->content.system_update_response.code =
         (PB_System_UpdateResponse_UpdateResultCode)update_prepare_result;
@@ -302,7 +307,8 @@ static void rpc_system_system_update_request_process(const PB_Main* request, voi
 }
 #endif
 
-void* rpc_system_system_alloc(RpcSession* session) {
+void *rpc_system_system_alloc(RpcSession *session)
+{
     furi_assert(session);
 
     RpcHandler rpc_handler = {

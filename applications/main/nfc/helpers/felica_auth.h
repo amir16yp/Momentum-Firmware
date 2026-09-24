@@ -6,11 +6,11 @@
 extern "C" {
 #endif
 
-FelicaAuthenticationContext* felica_auth_alloc();
+FelicaAuthenticationContext *felica_auth_alloc();
 
-void felica_auth_free(FelicaAuthenticationContext* instance);
+void felica_auth_free(FelicaAuthenticationContext *instance);
 
-void felica_auth_reset(FelicaAuthenticationContext* instance);
+void felica_auth_reset(FelicaAuthenticationContext *instance);
 
 #ifdef __cplusplus
 }

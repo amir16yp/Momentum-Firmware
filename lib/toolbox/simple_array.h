@@ -29,15 +29,15 @@ typedef struct SimpleArray SimpleArray;
 typedef void SimpleArrayData;
 typedef void SimpleArrayElement;
 
-typedef void (*SimpleArrayInit)(SimpleArrayElement* elem);
-typedef void (*SimpleArrayReset)(SimpleArrayElement* elem);
-typedef void (*SimpleArrayCopy)(SimpleArrayElement* elem, const SimpleArrayElement* other);
+typedef void (*SimpleArrayInit)(SimpleArrayElement *elem);
+typedef void (*SimpleArrayReset)(SimpleArrayElement *elem);
+typedef void (*SimpleArrayCopy)(SimpleArrayElement *elem, const SimpleArrayElement *other);
 
 /** Simple Array configuration structure. Defined per type. */
 typedef struct {
-    SimpleArrayInit init; /**< Initialisation (in-place constructor) method. */
+    SimpleArrayInit init;   /**< Initialisation (in-place constructor) method. */
     SimpleArrayReset reset; /**< Reset (custom destructor) method. */
-    SimpleArrayCopy copy; /**< Copy (custom copy-constructor) method. */
+    SimpleArrayCopy copy;   /**< Copy (custom copy-constructor) method. */
     const size_t type_size; /** Type size, in bytes. */
 } SimpleArrayConfig;
 
@@ -47,14 +47,14 @@ typedef struct {
  * @param [in] config Pointer to the type-specific configuration
  * @return Pointer to the allocated SimpleArray instance
  */
-SimpleArray* simple_array_alloc(const SimpleArrayConfig* config);
+SimpleArray *simple_array_alloc(const SimpleArrayConfig *config);
 
 /**
  * Free a SimpleArray instance and release its contents.
  *
  * @param [in] instance Pointer to the SimpleArray instance to be freed
  */
-void simple_array_free(SimpleArray* instance);
+void simple_array_free(SimpleArray *instance);
 
 /**
  * Initialise a SimpleArray instance by allocating additional space to contain
@@ -65,7 +65,7 @@ void simple_array_free(SimpleArray* instance);
  * @param [in] instance Pointer to the SimpleArray instance to be init'd
  * @param [in] count Number of elements to be allocated and init'd
  */
-void simple_array_init(SimpleArray* instance, uint32_t count);
+void simple_array_init(SimpleArray *instance, uint32_t count);
 
 /**
  * Reset a SimpleArray instance and delete all of its elements.
@@ -74,7 +74,7 @@ void simple_array_init(SimpleArray* instance, uint32_t count);
  *
  * @param [in] instance Pointer to the SimpleArray instance to be reset
  */
-void simple_array_reset(SimpleArray* instance);
+void simple_array_reset(SimpleArray *instance);
 
 /**
  * Copy (duplicate) another SimpleArray instance to this one.
@@ -84,7 +84,7 @@ void simple_array_reset(SimpleArray* instance);
  * @param [in] instance Pointer to the SimpleArray instance to copy to
  * @param [in] other Pointer to the SimpleArray instance to copy from
  */
-void simple_array_copy(SimpleArray* instance, const SimpleArray* other);
+void simple_array_copy(SimpleArray *instance, const SimpleArray *other);
 
 /**
  * Check if another SimpleArray instance is equal (the same object or holds the
@@ -94,7 +94,7 @@ void simple_array_copy(SimpleArray* instance, const SimpleArray* other);
  * @param [in] other Pointer to the SimpleArray instance to be compared
  * @return True if instances are considered equal, false otherwise
  */
-bool simple_array_is_equal(const SimpleArray* instance, const SimpleArray* other);
+bool simple_array_is_equal(const SimpleArray *instance, const SimpleArray *other);
 
 /**
  * Get the count of elements currently contained in a SimpleArray instance.
@@ -102,7 +102,7 @@ bool simple_array_is_equal(const SimpleArray* instance, const SimpleArray* other
  * @param [in] instance Pointer to the SimpleArray instance to query the count from
  * @return Count of elements contained in the instance
  */
-uint32_t simple_array_get_count(const SimpleArray* instance);
+uint32_t simple_array_get_count(const SimpleArray *instance);
 
 /**
  * Get a pointer to an element contained in a SimpleArray instance.
@@ -111,7 +111,7 @@ uint32_t simple_array_get_count(const SimpleArray* instance);
  * @param [in] index Index of the element in question. MUST be less than total element count
  * @return Pointer to the element specified by index
  */
-SimpleArrayElement* simple_array_get(SimpleArray* instance, uint32_t index);
+SimpleArrayElement *simple_array_get(SimpleArray *instance, uint32_t index);
 
 /**
  * Get a const pointer to an element contained in a SimpleArray instance.
@@ -120,7 +120,7 @@ SimpleArrayElement* simple_array_get(SimpleArray* instance, uint32_t index);
  * @param [in] index Index of the element in question. MUST be less than total element count
  * @return Const pointer to the element specified by index
  */
-const SimpleArrayElement* simple_array_cget(const SimpleArray* instance, uint32_t index);
+const SimpleArrayElement *simple_array_cget(const SimpleArray *instance, uint32_t index);
 
 /**
  * Get a pointer to the internal data of a SimpleArray instance.
@@ -128,7 +128,7 @@ const SimpleArrayElement* simple_array_cget(const SimpleArray* instance, uint32_
  * @param [in] instance Pointer to the SimpleArray instance to get the data of
  * @return Pointer to the instance's internal data
  */
-SimpleArrayData* simple_array_get_data(SimpleArray* instance);
+SimpleArrayData *simple_array_get_data(SimpleArray *instance);
 
 /**
  * Get a constant pointer to the internal data of a SimpleArray instance.
@@ -136,7 +136,7 @@ SimpleArrayData* simple_array_get_data(SimpleArray* instance);
  * @param [in] instance Pointer to the SimpleArray instance to get the data of
  * @return Constant pointer to the instance's internal data
  */
-const SimpleArrayData* simple_array_cget_data(const SimpleArray* instance);
+const SimpleArrayData *simple_array_cget_data(const SimpleArray *instance);
 
 // Standard preset configurations
 

@@ -16,7 +16,7 @@ extern "C" {
  * Perform garbage collection.
  * Pass true to full in order to reclaim unused heap back to the OS.
  */
-void mjs_gc(struct mjs* mjs, int full);
+void mjs_gc(struct mjs *mjs, int full);
 
 #if defined(__cplusplus)
 }

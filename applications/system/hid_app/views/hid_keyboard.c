@@ -8,8 +8,8 @@
 #define TAG "HidKeyboard"
 
 struct HidKeyboard {
-    View* view;
-    Hid* hid;
+    View *view;
+    Hid *hid;
 };
 
 typedef struct {
@@ -29,9 +29,9 @@ typedef struct {
     uint8_t width;
     char key;
     char shift_key;
-    const Icon* icon;
-    const Icon* icon_shift;
-    const Icon* icon_toggled;
+    const Icon *icon;
+    const Icon *icon_shift;
+    const Icon *icon_toggled;
     uint8_t value;
 } HidKeyboardKey;
 
@@ -40,12 +40,12 @@ typedef struct {
     int8_t y;
 } HidKeyboardPoint;
 // 4 BY 12
-#define MARGIN_TOP   0
-#define MARGIN_LEFT  3
-#define KEY_WIDTH    11
-#define KEY_HEIGHT   13
-#define KEY_PADDING  -1
-#define ROW_COUNT    7
+#define MARGIN_TOP 0
+#define MARGIN_LEFT 3
+#define KEY_WIDTH 11
+#define KEY_HEIGHT 13
+#define KEY_PADDING -1
+#define ROW_COUNT 7
 #define COLUMN_COUNT 12
 
 // 0 width items are not drawn, but their value is used
@@ -192,45 +192,36 @@ const HidKeyboardKey hid_keyboard_keyset[ROW_COUNT][COLUMN_COUNT] = {
     },
 };
 
-static void hid_keyboard_draw_key(
-    Canvas* canvas,
-    HidKeyboardModel* model,
-    uint8_t x,
-    uint8_t y,
-    HidKeyboardKey key,
-    bool selected) {
-    if(!key.width) return;
+static void hid_keyboard_draw_key(Canvas *canvas, HidKeyboardModel *model, uint8_t x, uint8_t y,
+                                  HidKeyboardKey key, bool selected)
+{
+    if (!key.width)
+        return;
 
     canvas_set_color(canvas, ColorBlack);
     uint8_t keyWidth = KEY_WIDTH * key.width + KEY_PADDING * (key.width - 1);
-    if(selected) {
+    if (selected) {
         // Draw a filled box
-        elements_slightly_rounded_box(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING),
-            keyWidth,
-            KEY_HEIGHT);
+        elements_slightly_rounded_box(canvas, MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
+                                      MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING), keyWidth,
+                                      KEY_HEIGHT);
         canvas_set_color(canvas, ColorWhite);
     } else {
         // Draw a framed box
-        elements_slightly_rounded_frame(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING),
-            keyWidth,
-            KEY_HEIGHT);
+        elements_slightly_rounded_frame(canvas, MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING),
+                                        MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING), keyWidth,
+                                        KEY_HEIGHT);
     }
 
-    if(model->shift && key.icon_shift != NULL) {
+    if (model->shift && key.icon_shift != NULL) {
         // Icon and shift
-        const Icon* key_icon = key.icon_shift;
+        const Icon *key_icon = key.icon_shift;
 
-        if((model->ctrl && key.value == HID_KEYBOARD_L_CTRL) ||
-           (model->alt && key.value == HID_KEYBOARD_L_ALT) ||
-           (key.value == HID_KEYBOARD_L_SHIFT) ||
-           (model->gui && key.value == HID_KEYBOARD_L_GUI)) {
-            if(key.icon_toggled) {
+        if ((model->ctrl && key.value == HID_KEYBOARD_L_CTRL) ||
+            (model->alt && key.value == HID_KEYBOARD_L_ALT) ||
+            (key.value == HID_KEYBOARD_L_SHIFT) ||
+            (model->gui && key.value == HID_KEYBOARD_L_GUI)) {
+            if (key.icon_toggled) {
                 key_icon = key.icon_toggled;
             }
         }
@@ -243,30 +234,27 @@ static void hid_keyboard_draw_key(
 
         return;
     }
-    if(model->shift && key.shift_key != 0) {
+    if (model->shift && key.shift_key != 0) {
         // Text and shift
         char key_str[2] = {key.shift_key, '\0'};
 
-        canvas_draw_str_aligned(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + KEY_HEIGHT / 2 + 1,
-            AlignCenter,
-            AlignCenter,
-            key_str);
+        canvas_draw_str_aligned(canvas,
+                                MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
+                                MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + KEY_HEIGHT / 2 + 1,
+                                AlignCenter, AlignCenter, key_str);
 
         return;
     }
 
-    if(key.icon != NULL) {
+    if (key.icon != NULL) {
         // Icon with no shift
-        const Icon* key_icon = key.icon;
+        const Icon *key_icon = key.icon;
 
-        if((model->ctrl && key.value == HID_KEYBOARD_L_CTRL) ||
-           (model->alt && key.value == HID_KEYBOARD_L_ALT) ||
-           (model->shift && key.value == HID_KEYBOARD_L_SHIFT) ||
-           (model->gui && key.value == HID_KEYBOARD_L_GUI)) {
-            if(key.icon_toggled) {
+        if ((model->ctrl && key.value == HID_KEYBOARD_L_CTRL) ||
+            (model->alt && key.value == HID_KEYBOARD_L_ALT) ||
+            (model->shift && key.value == HID_KEYBOARD_L_SHIFT) ||
+            (model->gui && key.value == HID_KEYBOARD_L_GUI)) {
+            if (key.icon_toggled) {
                 key_icon = key.icon_toggled;
             }
         }
@@ -280,35 +268,33 @@ static void hid_keyboard_draw_key(
         return;
     }
 
-    if(key.key != 0) {
+    if (key.key != 0) {
         // Text with no shift
         char key_str[2] = {key.key, '\0'};
         uint8_t key_offset = 0;
 
         // Special case for numbers, draw them one pixel lower
-        if(key.value >= HID_KEYBOARD_1 && key.value <= HID_KEYBOARD_0) {
+        if (key.value >= HID_KEYBOARD_1 && key.value <= HID_KEYBOARD_0) {
             key_offset = 1;
         }
 
         canvas_draw_str_aligned(
-            canvas,
-            MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
-            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + KEY_HEIGHT / 2 + key_offset,
-            AlignCenter,
-            AlignCenter,
-            key_str);
+            canvas, MARGIN_LEFT + x * (KEY_WIDTH + KEY_PADDING) + keyWidth / 2 + 1,
+            MARGIN_TOP + y * (KEY_HEIGHT + KEY_PADDING) + KEY_HEIGHT / 2 + key_offset, AlignCenter,
+            AlignCenter, key_str);
 
         return;
     }
 }
 
-static void hid_keyboard_draw_callback(Canvas* canvas, void* context) {
+static void hid_keyboard_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
-    HidKeyboardModel* model = context;
+    HidKeyboardModel *model = context;
 
     // Header
 #ifdef HID_TRANSPORT_BLE
-    if(!model->connected) {
+    if (!model->connected) {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
         canvas_set_font(canvas, FontPrimary);
         elements_multiline_text_aligned(canvas, 17, 3, AlignLeft, AlignTop, "Keyboard");
@@ -317,8 +303,8 @@ static void hid_keyboard_draw_callback(Canvas* canvas, void* context) {
         canvas_set_font(canvas, FontSecondary);
         elements_multiline_text_aligned(canvas, 127, 4, AlignRight, AlignTop, "Hold to exit");
 
-        elements_multiline_text_aligned(
-            canvas, 4, 60, AlignLeft, AlignBottom, "Waiting for Connection...");
+        elements_multiline_text_aligned(canvas, 4, 60, AlignLeft, AlignBottom,
+                                        "Waiting for Connection...");
         return; // Dont render the keyboard if we are not yet connected
     }
 #endif
@@ -327,16 +313,16 @@ static void hid_keyboard_draw_callback(Canvas* canvas, void* context) {
     // Start shifting the all keys up if on the next row (Scrolling)
     uint8_t initY = model->y == 0 ? 0 : 1;
 
-    if(model->y > 5) {
+    if (model->y > 5) {
         initY = model->y - 4;
     }
 
     elements_scrollbar(canvas, initY, 3);
 
-    for(uint8_t y = initY; y < ROW_COUNT; y++) {
-        const HidKeyboardKey* keyboardKeyRow = hid_keyboard_keyset[y];
+    for (uint8_t y = initY; y < ROW_COUNT; y++) {
+        const HidKeyboardKey *keyboardKeyRow = hid_keyboard_keyset[y];
         uint8_t x = 0;
-        for(uint8_t i = 0; i < COLUMN_COUNT; i++) {
+        for (uint8_t i = 0; i < COLUMN_COUNT; i++) {
             HidKeyboardKey key = keyboardKeyRow[i];
             // Select when the button is hovered
             // Select if the button is hovered within its width
@@ -344,99 +330,97 @@ static void hid_keyboard_draw_callback(Canvas* canvas, void* context) {
             // Deselect when the button clicked or not hovered
             bool keySelected = (x <= model->x && model->x < (x + key.width)) && y == model->y;
             bool backSelected = model->back_pressed && key.value == HID_KEYBOARD_DELETE;
-            hid_keyboard_draw_key(
-                canvas,
-                model,
-                x,
-                y - initY,
-                key,
-                (!model->ok_pressed && keySelected) || backSelected);
+            hid_keyboard_draw_key(canvas, model, x, y - initY, key,
+                                  (!model->ok_pressed && keySelected) || backSelected);
             x += key.width;
         }
     }
 }
 
-static uint8_t hid_keyboard_get_selected_key(HidKeyboardModel* model) {
+static uint8_t hid_keyboard_get_selected_key(HidKeyboardModel *model)
+{
     HidKeyboardKey key = hid_keyboard_keyset[model->y][model->x];
     return key.value;
 }
 
-static void hid_keyboard_get_select_key(HidKeyboardModel* model, HidKeyboardPoint delta) {
+static void hid_keyboard_get_select_key(HidKeyboardModel *model, HidKeyboardPoint delta)
+{
     // Keep going until a valid spot is found, this allows for nulls and zero width keys in the map
     do {
         const int delta_sum = model->y + delta.y;
         model->y = delta_sum < 0 ? ROW_COUNT - 1 : delta_sum % ROW_COUNT;
-    } while(delta.y != 0 && hid_keyboard_keyset[model->y][model->x].value == 0);
+    } while (delta.y != 0 && hid_keyboard_keyset[model->y][model->x].value == 0);
 
     do {
         const int delta_sum = model->x + delta.x;
         model->x = delta_sum < 0 ? COLUMN_COUNT - 1 : delta_sum % COLUMN_COUNT;
-    } while(delta.x != 0 && hid_keyboard_keyset[model->y][model->x].width ==
-                                0); // Skip zero width keys, pretend they are one key
+    } while (delta.x != 0 && hid_keyboard_keyset[model->y][model->x].width ==
+                                 0); // Skip zero width keys, pretend they are one key
 }
 
-static void hid_keyboard_modifier_set(Hid* hid, uint16_t keycode, bool is_pressed) {
-    if(is_pressed) {
+static void hid_keyboard_modifier_set(Hid *hid, uint16_t keycode, bool is_pressed)
+{
+    if (is_pressed) {
         hid_hal_keyboard_press(hid, keycode);
     } else {
         hid_hal_keyboard_release(hid, keycode);
     }
 }
 
-static void hid_keyboard_process(HidKeyboard* hid_keyboard, InputEvent* event) {
+static void hid_keyboard_process(HidKeyboard *hid_keyboard, InputEvent *event)
+{
     with_view_model(
-        hid_keyboard->view,
-        HidKeyboardModel * model,
+        hid_keyboard->view, HidKeyboardModel * model,
         {
-            if(event->key == InputKeyOk) {
-                if(event->type == InputTypePress) {
+            if (event->key == InputKeyOk) {
+                if (event->type == InputTypePress) {
                     model->ok_pressed = true;
-                } else if(event->type == InputTypeLong || event->type == InputTypeShort) {
+                } else if (event->type == InputTypeLong || event->type == InputTypeShort) {
                     model->last_key_code = hid_keyboard_get_selected_key(model);
 
                     // Toggle the modifier key when clicked, and click the key
-                    if(model->last_key_code == HID_KEYBOARD_L_SHIFT) {
+                    if (model->last_key_code == HID_KEYBOARD_L_SHIFT) {
                         model->shift = !model->shift;
-                        hid_keyboard_modifier_set(
-                            hid_keyboard->hid, KEY_MOD_LEFT_SHIFT, model->shift);
-                    } else if(model->last_key_code == HID_KEYBOARD_L_ALT) {
+                        hid_keyboard_modifier_set(hid_keyboard->hid, KEY_MOD_LEFT_SHIFT,
+                                                  model->shift);
+                    } else if (model->last_key_code == HID_KEYBOARD_L_ALT) {
                         model->alt = !model->alt;
                         hid_keyboard_modifier_set(hid_keyboard->hid, KEY_MOD_LEFT_ALT, model->alt);
-                    } else if(model->last_key_code == HID_KEYBOARD_L_CTRL) {
+                    } else if (model->last_key_code == HID_KEYBOARD_L_CTRL) {
                         model->ctrl = !model->ctrl;
-                        hid_keyboard_modifier_set(
-                            hid_keyboard->hid, KEY_MOD_LEFT_CTRL, model->ctrl);
-                    } else if(model->last_key_code == HID_KEYBOARD_L_GUI) {
+                        hid_keyboard_modifier_set(hid_keyboard->hid, KEY_MOD_LEFT_CTRL,
+                                                  model->ctrl);
+                    } else if (model->last_key_code == HID_KEYBOARD_L_GUI) {
                         model->gui = !model->gui;
                         hid_keyboard_modifier_set(hid_keyboard->hid, KEY_MOD_LEFT_GUI, model->gui);
                     } else {
                         hid_hal_keyboard_press(hid_keyboard->hid, model->last_key_code);
                     }
 
-                } else if(event->type == InputTypeRelease) {
+                } else if (event->type == InputTypeRelease) {
                     // Release happens after short and long presses
                     hid_hal_keyboard_release(hid_keyboard->hid, model->last_key_code);
                     model->ok_pressed = false;
                 }
-            } else if(event->key == InputKeyBack) {
+            } else if (event->key == InputKeyBack) {
                 // If back is pressed for a short time, backspace
-                if(event->type == InputTypePress) {
+                if (event->type == InputTypePress) {
                     model->back_pressed = true;
-                } else if(event->type == InputTypeShort) {
+                } else if (event->type == InputTypeShort) {
                     hid_hal_keyboard_press(hid_keyboard->hid, HID_KEYBOARD_DELETE);
                     hid_hal_keyboard_release(hid_keyboard->hid, HID_KEYBOARD_DELETE);
-                } else if(event->type == InputTypeRelease) {
+                } else if (event->type == InputTypeRelease) {
                     model->back_pressed = false;
                 }
-            } else if(event->type == InputTypePress || event->type == InputTypeRepeat) {
+            } else if (event->type == InputTypePress || event->type == InputTypeRepeat) {
                 // Cycle the selected keys
-                if(event->key == InputKeyUp) {
+                if (event->key == InputKeyUp) {
                     hid_keyboard_get_select_key(model, (HidKeyboardPoint){.x = 0, .y = -1});
-                } else if(event->key == InputKeyDown) {
+                } else if (event->key == InputKeyDown) {
                     hid_keyboard_get_select_key(model, (HidKeyboardPoint){.x = 0, .y = 1});
-                } else if(event->key == InputKeyLeft) {
+                } else if (event->key == InputKeyLeft) {
                     hid_keyboard_get_select_key(model, (HidKeyboardPoint){.x = -1, .y = 0});
-                } else if(event->key == InputKeyRight) {
+                } else if (event->key == InputKeyRight) {
                     hid_keyboard_get_select_key(model, (HidKeyboardPoint){.x = 1, .y = 0});
                 }
             }
@@ -444,16 +428,16 @@ static void hid_keyboard_process(HidKeyboard* hid_keyboard, InputEvent* event) {
         true);
 }
 
-static bool hid_keyboard_input_callback(InputEvent* event, void* context) {
+static bool hid_keyboard_input_callback(InputEvent *event, void *context)
+{
     furi_assert(context);
-    HidKeyboard* hid_keyboard = context;
+    HidKeyboard *hid_keyboard = context;
     bool consumed = false;
 
-    if(event->type == InputTypeLong && event->key == InputKeyBack) {
+    if (event->type == InputTypeLong && event->key == InputKeyBack) {
         hid_hal_keyboard_release_all(hid_keyboard->hid);
         with_view_model(
-            hid_keyboard->view,
-            HidKeyboardModel * model,
+            hid_keyboard->view, HidKeyboardModel * model,
             {
                 model->shift = false;
                 model->alt = false;
@@ -469,8 +453,9 @@ static bool hid_keyboard_input_callback(InputEvent* event, void* context) {
     return consumed;
 }
 
-HidKeyboard* hid_keyboard_alloc(Hid* bt_hid) {
-    HidKeyboard* hid_keyboard = malloc(sizeof(HidKeyboard));
+HidKeyboard *hid_keyboard_alloc(Hid *bt_hid)
+{
+    HidKeyboard *hid_keyboard = malloc(sizeof(HidKeyboard));
     hid_keyboard->view = view_alloc();
     hid_keyboard->hid = bt_hid;
     view_set_context(hid_keyboard->view, hid_keyboard);
@@ -483,18 +468,21 @@ HidKeyboard* hid_keyboard_alloc(Hid* bt_hid) {
     return hid_keyboard;
 }
 
-void hid_keyboard_free(HidKeyboard* hid_keyboard) {
+void hid_keyboard_free(HidKeyboard *hid_keyboard)
+{
     furi_assert(hid_keyboard);
     view_free(hid_keyboard->view);
     free(hid_keyboard);
 }
 
-View* hid_keyboard_get_view(HidKeyboard* hid_keyboard) {
+View *hid_keyboard_get_view(HidKeyboard *hid_keyboard)
+{
     furi_assert(hid_keyboard);
     return hid_keyboard->view;
 }
 
-void hid_keyboard_set_connected_status(HidKeyboard* hid_keyboard, bool connected) {
+void hid_keyboard_set_connected_status(HidKeyboard *hid_keyboard, bool connected)
+{
     furi_assert(hid_keyboard);
     with_view_model(
         hid_keyboard->view, HidKeyboardModel * model, { model->connected = connected; }, true);

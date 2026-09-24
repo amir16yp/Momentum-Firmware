@@ -10,9 +10,9 @@
 #define MAXIMUM_CLICK_RATE 100
 
 struct HidMouseClicker {
-    View* view;
-    Hid* hid;
-    FuriTimer* timer;
+    View *view;
+    Hid *hid;
+    FuriTimer *timer;
 };
 
 typedef struct {
@@ -22,33 +22,33 @@ typedef struct {
     enum HidMouseButtons btn;
 } HidMouseClickerModel;
 
-static void hid_mouse_clicker_start_or_restart_timer(void* context) {
+static void hid_mouse_clicker_start_or_restart_timer(void *context)
+{
     furi_assert(context);
-    HidMouseClicker* hid_mouse_clicker = context;
+    HidMouseClicker *hid_mouse_clicker = context;
 
-    if(furi_timer_is_running(hid_mouse_clicker->timer)) {
+    if (furi_timer_is_running(hid_mouse_clicker->timer)) {
         furi_timer_stop(hid_mouse_clicker->timer);
     }
 
     with_view_model(
-        hid_mouse_clicker->view,
-        HidMouseClickerModel * model,
+        hid_mouse_clicker->view, HidMouseClickerModel * model,
         {
-            furi_timer_start(
-                hid_mouse_clicker->timer,
-                furi_kernel_get_tick_frequency() /
-                    ((model->rate) ? model->rate : MAXIMUM_CLICK_RATE));
+            furi_timer_start(hid_mouse_clicker->timer,
+                             furi_kernel_get_tick_frequency() /
+                                 ((model->rate) ? model->rate : MAXIMUM_CLICK_RATE));
         },
         true);
 }
 
-static void hid_mouse_clicker_draw_callback(Canvas* canvas, void* context) {
+static void hid_mouse_clicker_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
-    HidMouseClickerModel* model = context;
+    HidMouseClickerModel *model = context;
 
     // Header
 #ifdef HID_TRANSPORT_BLE
-    if(model->connected) {
+    if (model->connected) {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_connected_15x15);
     } else {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
@@ -65,8 +65,8 @@ static void hid_mouse_clicker_draw_callback(Canvas* canvas, void* context) {
     canvas_draw_icon(canvas, 61, 50, &I_ButtonLeft_4x7);
     canvas_draw_icon(canvas, 117, 50, &I_ButtonRight_4x7);
 
-    const char* btn_label;
-    switch(model->btn) {
+    const char *btn_label;
+    switch (model->btn) {
     case HID_MOUSE_BTN_LEFT:
         btn_label = "Left";
         break;
@@ -82,14 +82,14 @@ static void hid_mouse_clicker_draw_callback(Canvas* canvas, void* context) {
 
     elements_multiline_text_aligned(canvas, 89, 57, AlignCenter, AlignBottom, btn_label);
 
-    if(model->running) {
+    if (model->running) {
         elements_slightly_rounded_box(canvas, 61, 27, 60, 13);
         canvas_set_color(canvas, ColorWhite);
     }
 
     canvas_draw_icon(canvas, 69, 29, &I_Ok_btn_9x9);
 
-    if(model->running) {
+    if (model->running) {
         elements_multiline_text_aligned(canvas, 86, 37, AlignLeft, AlignBottom, "Stop");
     } else {
         elements_multiline_text_aligned(canvas, 86, 37, AlignLeft, AlignBottom, "Start");
@@ -98,7 +98,7 @@ static void hid_mouse_clicker_draw_callback(Canvas* canvas, void* context) {
 
     // Clicks/s
     char label[20];
-    if(model->rate) {
+    if (model->rate) {
         snprintf(label, sizeof(label), "%d clicks/s", model->rate);
     } else {
         snprintf(label, sizeof(label), "max clicks/s");
@@ -113,14 +113,14 @@ static void hid_mouse_clicker_draw_callback(Canvas* canvas, void* context) {
     elements_multiline_text_aligned(canvas, 13, 62, AlignLeft, AlignBottom, "Exit");
 }
 
-static void hid_mouse_clicker_timer_callback(void* context) {
+static void hid_mouse_clicker_timer_callback(void *context)
+{
     furi_assert(context);
-    HidMouseClicker* hid_mouse_clicker = context;
+    HidMouseClicker *hid_mouse_clicker = context;
     with_view_model(
-        hid_mouse_clicker->view,
-        HidMouseClickerModel * model,
+        hid_mouse_clicker->view, HidMouseClickerModel * model,
         {
-            if(model->running) {
+            if (model->running) {
                 hid_hal_mouse_press(hid_mouse_clicker->hid, model->btn);
                 hid_hal_mouse_release(hid_mouse_clicker->hid, model->btn);
             }
@@ -128,45 +128,47 @@ static void hid_mouse_clicker_timer_callback(void* context) {
         false);
 }
 
-static void hid_mouse_clicker_enter_callback(void* context) {
+static void hid_mouse_clicker_enter_callback(void *context)
+{
     hid_mouse_clicker_start_or_restart_timer(context);
 }
 
-static void hid_mouse_clicker_exit_callback(void* context) {
+static void hid_mouse_clicker_exit_callback(void *context)
+{
     furi_assert(context);
-    HidMouseClicker* hid_mouse_clicker = context;
+    HidMouseClicker *hid_mouse_clicker = context;
     furi_timer_stop(hid_mouse_clicker->timer);
 }
 
-static bool hid_mouse_clicker_input_callback(InputEvent* event, void* context) {
+static bool hid_mouse_clicker_input_callback(InputEvent *event, void *context)
+{
     furi_assert(context);
-    HidMouseClicker* hid_mouse_clicker = context;
+    HidMouseClicker *hid_mouse_clicker = context;
 
     bool consumed = false;
     bool rate_changed = false;
 
-    if(event->type == InputTypePress || event->type == InputTypeRelease) {
+    if (event->type == InputTypePress || event->type == InputTypeRelease) {
         return false;
     }
 
     with_view_model(
-        hid_mouse_clicker->view,
-        HidMouseClickerModel * model,
+        hid_mouse_clicker->view, HidMouseClickerModel * model,
         {
-            switch(event->key) {
+            switch (event->key) {
             case InputKeyOk:
                 model->running = !model->running;
                 consumed = true;
                 break;
             case InputKeyUp:
-                if(model->rate < MAXIMUM_CLICK_RATE) {
+                if (model->rate < MAXIMUM_CLICK_RATE) {
                     model->rate++;
                 }
                 rate_changed = true;
                 consumed = true;
                 break;
             case InputKeyDown:
-                if(model->rate > 0) {
+                if (model->rate > 0) {
                     model->rate--;
                 }
                 rate_changed = true;
@@ -176,7 +178,7 @@ static bool hid_mouse_clicker_input_callback(InputEvent* event, void* context) {
                 model->running = false;
                 break;
             case InputKeyLeft:
-                switch(model->btn) {
+                switch (model->btn) {
                 case HID_MOUSE_BTN_LEFT:
                     model->btn = HID_MOUSE_BTN_RIGHT;
                     break;
@@ -190,7 +192,7 @@ static bool hid_mouse_clicker_input_callback(InputEvent* event, void* context) {
                 consumed = true;
                 break;
             case InputKeyRight:
-                switch(model->btn) {
+                switch (model->btn) {
                 case HID_MOUSE_BTN_LEFT:
                     model->btn = HID_MOUSE_BTN_WHEEL;
                     break;
@@ -210,20 +212,21 @@ static bool hid_mouse_clicker_input_callback(InputEvent* event, void* context) {
         },
         true);
 
-    if(rate_changed) {
+    if (rate_changed) {
         hid_mouse_clicker_start_or_restart_timer(context);
     }
 
     return consumed;
 }
 
-HidMouseClicker* hid_mouse_clicker_alloc(Hid* hid) {
-    HidMouseClicker* hid_mouse_clicker = malloc(sizeof(HidMouseClicker));
+HidMouseClicker *hid_mouse_clicker_alloc(Hid *hid)
+{
+    HidMouseClicker *hid_mouse_clicker = malloc(sizeof(HidMouseClicker));
 
     hid_mouse_clicker->view = view_alloc();
     view_set_context(hid_mouse_clicker->view, hid_mouse_clicker);
-    view_allocate_model(
-        hid_mouse_clicker->view, ViewModelTypeLocking, sizeof(HidMouseClickerModel));
+    view_allocate_model(hid_mouse_clicker->view, ViewModelTypeLocking,
+                        sizeof(HidMouseClickerModel));
     view_set_draw_callback(hid_mouse_clicker->view, hid_mouse_clicker_draw_callback);
     view_set_input_callback(hid_mouse_clicker->view, hid_mouse_clicker_input_callback);
     view_set_enter_callback(hid_mouse_clicker->view, hid_mouse_clicker_enter_callback);
@@ -231,12 +234,11 @@ HidMouseClicker* hid_mouse_clicker_alloc(Hid* hid) {
 
     hid_mouse_clicker->hid = hid;
 
-    hid_mouse_clicker->timer = furi_timer_alloc(
-        hid_mouse_clicker_timer_callback, FuriTimerTypePeriodic, hid_mouse_clicker);
+    hid_mouse_clicker->timer = furi_timer_alloc(hid_mouse_clicker_timer_callback,
+                                                FuriTimerTypePeriodic, hid_mouse_clicker);
 
     with_view_model(
-        hid_mouse_clicker->view,
-        HidMouseClickerModel * model,
+        hid_mouse_clicker->view, HidMouseClickerModel * model,
         {
             model->rate = DEFAULT_CLICK_RATE;
             model->btn = HID_MOUSE_BTN_LEFT;
@@ -246,7 +248,8 @@ HidMouseClicker* hid_mouse_clicker_alloc(Hid* hid) {
     return hid_mouse_clicker;
 }
 
-void hid_mouse_clicker_free(HidMouseClicker* hid_mouse_clicker) {
+void hid_mouse_clicker_free(HidMouseClicker *hid_mouse_clicker)
+{
     furi_assert(hid_mouse_clicker);
 
     furi_timer_stop(hid_mouse_clicker->timer);
@@ -257,16 +260,16 @@ void hid_mouse_clicker_free(HidMouseClicker* hid_mouse_clicker) {
     free(hid_mouse_clicker);
 }
 
-View* hid_mouse_clicker_get_view(HidMouseClicker* hid_mouse_clicker) {
+View *hid_mouse_clicker_get_view(HidMouseClicker *hid_mouse_clicker)
+{
     furi_assert(hid_mouse_clicker);
     return hid_mouse_clicker->view;
 }
 
-void hid_mouse_clicker_set_connected_status(HidMouseClicker* hid_mouse_clicker, bool connected) {
+void hid_mouse_clicker_set_connected_status(HidMouseClicker *hid_mouse_clicker, bool connected)
+{
     furi_assert(hid_mouse_clicker);
     with_view_model(
-        hid_mouse_clicker->view,
-        HidMouseClickerModel * model,
-        { model->connected = connected; },
+        hid_mouse_clicker->view, HidMouseClickerModel * model, { model->connected = connected; },
         true);
 }

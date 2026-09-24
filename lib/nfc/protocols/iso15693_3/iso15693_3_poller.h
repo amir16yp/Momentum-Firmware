@@ -19,7 +19,7 @@ typedef struct Iso15693_3Poller Iso15693_3Poller;
  * @param[in] instance pointer to the Iso15693_3Poller instance.
  * @return pointer to the Iso15693_3Data structure filled during activation.
  */
-const Iso15693_3Data* iso15693_3_poller_get_data(Iso15693_3Poller* instance);
+const Iso15693_3Data *iso15693_3_poller_get_data(Iso15693_3Poller *instance);
 
 /**
  * @brief Enumeration of possible Iso15693_3 poller event types.
@@ -42,8 +42,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    Iso15693_3PollerEventType type; /**< Type of emmitted event. */
-    Iso15693_3PollerEventData* data; /**< Pointer to event specific data. */
+    Iso15693_3PollerEventType type;  /**< Type of emmitted event. */
+    Iso15693_3PollerEventData *data; /**< Pointer to event specific data. */
 } Iso15693_3PollerEvent;
 
 /**
@@ -60,11 +60,8 @@ typedef struct {
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_send_frame(
-    Iso15693_3Poller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt);
+Iso15693_3Error iso15693_3_poller_send_frame(Iso15693_3Poller *instance, const BitBuffer *tx_buffer,
+                                             BitBuffer *rx_buffer, uint32_t fwt);
 
 /**
  * @brief Perform activation procedure.
@@ -78,7 +75,7 @@ Iso15693_3Error iso15693_3_poller_send_frame(
  * @param[out] data pointer to the Iso15693_3 data structure to be filled.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_activate(Iso15693_3Poller* instance, Iso15693_3Data* data);
+Iso15693_3Error iso15693_3_poller_activate(Iso15693_3Poller *instance, Iso15693_3Data *data);
 
 /**
  * @brief Send invertory command and parse response.
@@ -89,7 +86,7 @@ Iso15693_3Error iso15693_3_poller_activate(Iso15693_3Poller* instance, Iso15693_
  * @param[out] uid pointer to the buffer to be filled with the UID.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_inventory(Iso15693_3Poller* instance, uint8_t* uid);
+Iso15693_3Error iso15693_3_poller_inventory(Iso15693_3Poller *instance, uint8_t *uid);
 
 /**
  * @brief Send get system info command and parse response.
@@ -100,8 +97,8 @@ Iso15693_3Error iso15693_3_poller_inventory(Iso15693_3Poller* instance, uint8_t*
  * @param[out] data pointer to the Iso15693_3SystemInfo structure to be filled.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error
-    iso15693_3_poller_get_system_info(Iso15693_3Poller* instance, Iso15693_3SystemInfo* data);
+Iso15693_3Error iso15693_3_poller_get_system_info(Iso15693_3Poller *instance,
+                                                  Iso15693_3SystemInfo *data);
 
 /**
  * @brief Read Iso15693_3 block.
@@ -114,11 +111,8 @@ Iso15693_3Error
  * @param[in] block_size size of the block to be read.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_read_block(
-    Iso15693_3Poller* instance,
-    uint8_t* data,
-    uint8_t block_number,
-    uint8_t block_size);
+Iso15693_3Error iso15693_3_poller_read_block(Iso15693_3Poller *instance, uint8_t *data,
+                                             uint8_t block_number, uint8_t block_size);
 
 /**
  * @brief Read multiple Iso15693_3 blocks.
@@ -131,11 +125,8 @@ Iso15693_3Error iso15693_3_poller_read_block(
  * @param[in] block_size size of the blocks to be read.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_read_blocks(
-    Iso15693_3Poller* instance,
-    uint8_t* data,
-    uint16_t block_count,
-    uint8_t block_size);
+Iso15693_3Error iso15693_3_poller_read_blocks(Iso15693_3Poller *instance, uint8_t *data,
+                                              uint16_t block_count, uint8_t block_size);
 
 /**
  * @brief Get Iso15693_3 block security status.
@@ -147,10 +138,8 @@ Iso15693_3Error iso15693_3_poller_read_blocks(
  * @param[in] block_count block security number to be read.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_get_blocks_security(
-    Iso15693_3Poller* instance,
-    uint8_t* data,
-    uint16_t block_count);
+Iso15693_3Error iso15693_3_poller_get_blocks_security(Iso15693_3Poller *instance, uint8_t *data,
+                                                      uint16_t block_count);
 
 /**
  * @brief Write a single Iso15693_3 block.
@@ -163,11 +152,8 @@ Iso15693_3Error iso15693_3_poller_get_blocks_security(
  * @param[in] block_size size of the block in bytes.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_write_block(
-    Iso15693_3Poller* instance,
-    const uint8_t* data,
-    uint8_t block_number,
-    uint8_t block_size);
+Iso15693_3Error iso15693_3_poller_write_block(Iso15693_3Poller *instance, const uint8_t *data,
+                                              uint8_t block_number, uint8_t block_size);
 
 /**
  * @brief Write multiple consecutive Iso15693_3 blocks.
@@ -180,11 +166,8 @@ Iso15693_3Error iso15693_3_poller_write_block(
  * @param[in] block_size size of each block in bytes.
  * @return Iso15693_3ErrorNone on success, an error code on failure.
  */
-Iso15693_3Error iso15693_3_poller_write_blocks(
-    Iso15693_3Poller* instance,
-    const uint8_t* data,
-    uint16_t block_count,
-    uint8_t block_size);
+Iso15693_3Error iso15693_3_poller_write_blocks(Iso15693_3Poller *instance, const uint8_t *data,
+                                               uint16_t block_count, uint8_t block_size);
 
 #ifdef __cplusplus
 }

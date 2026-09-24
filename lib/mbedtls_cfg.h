@@ -1,14 +1,14 @@
 #pragma once
 
 /**
-* A subset of the mbedTLS configuration options that are relevant to the
-* Flipper Zero firmware and apps. They are built to "mbedtls" library you can 
-* link your apps with.
-* 
-* If you need more features, either bring the full mbedtls library into your
-* app using "fap_private_libs" or open an issue on GitHub to add them to the
-* default configuration.
-**/
+ * A subset of the mbedTLS configuration options that are relevant to the
+ * Flipper Zero firmware and apps. They are built to "mbedtls" library you can
+ * link your apps with.
+ *
+ * If you need more features, either bring the full mbedtls library into your
+ * app using "fap_private_libs" or open an issue on GitHub to add them to the
+ * default configuration.
+ **/
 
 #define MBEDTLS_HAVE_ASM
 

@@ -10,7 +10,7 @@
 
 #define TAG "Amusement IC"
 
-#define N_TABLES      8
+#define N_TABLES 8
 #define ITERATION_ADD 5
 
 static const uint8_t s_box[9][256] = {
@@ -442,62 +442,61 @@ static const uint8_t access_code_table_1[5][10][100] = {
 };
 
 static const uint8_t access_code_table_2[10][10] = {
-    {4, 7, 8, 0, 9, 1, 3, 6, 2, 5},
-    {5, 0, 4, 1, 3, 8, 9, 7, 6, 2},
-    {0, 2, 7, 8, 9, 1, 6, 3, 5, 4},
-    {5, 9, 8, 4, 1, 7, 0, 2, 3, 6},
-    {7, 3, 0, 1, 8, 9, 6, 5, 2, 4},
-    {7, 2, 4, 0, 1, 9, 6, 3, 5, 8},
-    {4, 1, 6, 3, 5, 8, 0, 7, 2, 9},
-    {6, 8, 4, 1, 5, 3, 7, 2, 9, 0},
-    {4, 1, 8, 3, 7, 2, 0, 6, 5, 9},
+    {4, 7, 8, 0, 9, 1, 3, 6, 2, 5}, {5, 0, 4, 1, 3, 8, 9, 7, 6, 2}, {0, 2, 7, 8, 9, 1, 6, 3, 5, 4},
+    {5, 9, 8, 4, 1, 7, 0, 2, 3, 6}, {7, 3, 0, 1, 8, 9, 6, 5, 2, 4}, {7, 2, 4, 0, 1, 9, 6, 3, 5, 8},
+    {4, 1, 6, 3, 5, 8, 0, 7, 2, 9}, {6, 8, 4, 1, 5, 3, 7, 2, 9, 0}, {4, 1, 8, 3, 7, 2, 0, 6, 5, 9},
     {7, 4, 5, 6, 2, 3, 9, 1, 8, 0}};
 
-static void rotate_right(uint8_t* data, int n_bytes, int n_bits) {
+static void rotate_right(uint8_t *data, int n_bytes, int n_bits)
+{
     uint8_t prior = data[n_bytes - 1];
-    for(int i = 0; i < n_bytes; i++) {
+    for (int i = 0; i < n_bytes; i++) {
         uint8_t tmp = data[i];
         data[i] = (data[i] >> n_bits) | ((prior & ((1 << n_bits) - 1)) << (8 - n_bits));
         prior = tmp;
     }
 }
 
-static void decrypt_spad_0(const uint8_t* spad, uint8_t* decrypted) {
-    for(int i = 0; i < 16; i++) {
+static void decrypt_spad_0(const uint8_t *spad, uint8_t *decrypted)
+{
+    for (int i = 0; i < 16; i++) {
         decrypted[i] = s_box[N_TABLES][spad[i]];
     }
 
     int count = (decrypted[15] >> 4) + 7;
     int table = decrypted[15] + ITERATION_ADD * count;
 
-    for(int iter = 0; iter < count; iter++) {
+    for (int iter = 0; iter < count; iter++) {
         table -= ITERATION_ADD;
         rotate_right(decrypted, 15, 5); // only the first 15 bytes
-        for(int i = 0; i < 15; i++) {
+        for (int i = 0; i < 15; i++) {
             decrypted[i] = s_box[table % N_TABLES][decrypted[i]];
         }
     }
 }
 
-static uint16_t crc16(uint64_t data, int bits, uint16_t init, uint16_t poly) {
+static uint16_t crc16(uint64_t data, int bits, uint16_t init, uint16_t poly)
+{
     uint16_t v = init;
-    for(int i = 0; i < bits; ++i) {
+    for (int i = 0; i < bits; ++i) {
         v = (v >> 1) ^ (((v ^ data) & 1ULL) ? poly : 0);
         data >>= 1;
     }
     return v;
 }
 
-static bool
-    check_access_code_crc(const uint8_t ac[3], const uint8_t body[6], const uint8_t crc[5]) {
+static bool check_access_code_crc(const uint8_t ac[3], const uint8_t body[6], const uint8_t crc[5])
+{
     uint64_t msg = 0;
-    for(int i = 0; i < 3; ++i) {
-        if(ac[i] > 0xF) return false;
+    for (int i = 0; i < 3; ++i) {
+        if (ac[i] > 0xF)
+            return false;
         msg = (msg << 4) | ac[i];
     }
-    for(int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; ++i) {
         uint8_t v = body[i];
-        if(v > 99) return false;
+        if (v > 99)
+            return false;
         msg = (msg << 4) | (v / 10);
         msg = (msg << 4) | (v % 10);
     }
@@ -506,85 +505,81 @@ static bool
     return (calculated_crc == expected_crc);
 }
 
-static void parse_access_code(const uint8_t* access_code, FuriString* parsed_data) {
+static void parse_access_code(const uint8_t *access_code, FuriString *parsed_data)
+{
     furi_assert(access_code);
     furi_assert(parsed_data);
 
     uint8_t decrypted[6];
     // decrypted contains the decoded serial bytes (as 6 BCD bytes)
-    for(int i = 0, j = 3; i < 6; ++i, j += 2) {
+    for (int i = 0, j = 3; i < 6; ++i, j += 2) {
         decrypted[i] = (access_code[j]) * 10 + (access_code[j + 1]);
     }
 
     uint8_t crc[5] = {0};
     memcpy(crc, access_code + 15, 5);
 
-    int boxes1[6] = {
-        (crc[3] + crc[2]) % 10, crc[2], crc[3], crc[4], (crc[4] + crc[0]) % 10, crc[1]};
+    int boxes1[6] = {(crc[3] + crc[2]) % 10, crc[2], crc[3], crc[4],
+                     (crc[4] + crc[0]) % 10, crc[1]};
 
-    for(int n = 0; n < 6; ++n) {
+    for (int n = 0; n < 6; ++n) {
         decrypted[n] = access_code_table_1[4][boxes1[n]][decrypted[n]];
     }
 
     int rv = decrypted[0] / 10;
 
-    int boxes2[6] = {
-        (crc[1] + crc[0]) % 10, crc[1], crc[2], crc[3], crc[4], (crc[4] + crc[1]) % 10};
-    for(int n = 0; n < 6; ++n) {
-        if(n == 0) {
-            decrypted[n] = (decrypted[n] & 0xF0) |
-                           access_code_table_2[boxes2[n]][decrypted[n] & 0x0F];
+    int boxes2[6] = {(crc[1] + crc[0]) % 10, crc[1], crc[2], crc[3], crc[4],
+                     (crc[4] + crc[1]) % 10};
+    for (int n = 0; n < 6; ++n) {
+        if (n == 0) {
+            decrypted[n] =
+                (decrypted[n] & 0xF0) | access_code_table_2[boxes2[n]][decrypted[n] & 0x0F];
         } else {
             decrypted[n] = access_code_table_1[rv][boxes2[n]][decrypted[n]];
         }
     }
 
-    furi_string_cat_printf(
-        parsed_data,
-        "Decrypted serial number:\n%02d%02d%02d%02d%02d%02d\n",
-        decrypted[0],
-        decrypted[1],
-        decrypted[2],
-        decrypted[3],
-        decrypted[4],
-        decrypted[5]);
+    furi_string_cat_printf(parsed_data, "Decrypted serial number:\n%02d%02d%02d%02d%02d%02d\n",
+                           decrypted[0], decrypted[1], decrypted[2], decrypted[3], decrypted[4],
+                           decrypted[5]);
 
-    furi_string_cat_printf(
-        parsed_data,
-        "CRC check: %s\n",
-        check_access_code_crc(access_code, decrypted, crc) ? "Passed" : "Invalid");
+    furi_string_cat_printf(parsed_data, "CRC check: %s\n",
+                           check_access_code_crc(access_code, decrypted, crc) ? "Passed"
+                                                                              : "Invalid");
 }
 
-bool aic_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool aic_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
     bool parsed = false;
 
-    if(nfc_device_get_protocol(device) != NfcProtocolFelica) return false;
+    if (nfc_device_get_protocol(device) != NfcProtocolFelica)
+        return false;
 
-    const FelicaData* data = nfc_device_get_data(device, NfcProtocolFelica);
+    const FelicaData *data = nfc_device_get_data(device, NfcProtocolFelica);
 
     const uint8_t ic_type = data->pmm.data[1];
-    if(ic_type != 0xF0 && ic_type != 0xF1) {
+    if (ic_type != 0xF0 && ic_type != 0xF1) {
         // Must be Felica Lite (0xF0) or Lite-S (0xF1) to parse
         return false;
     }
 
     const uint8_t data_format_code_1 = data->data.fs.id.data[8];
-    if(data_format_code_1 != 0) {
+    if (data_format_code_1 != 0) {
         // We only know Data Format Code {0x00, 0xXX}
         return false;
     }
 
     parsed = true;
     furi_string_printf(parsed_data, "\e#Amusement IC Card\n");
-    furi_string_cat_str(
-        parsed_data, "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    furi_string_cat_str(parsed_data,
+                        "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
     furi_string_cat_str(parsed_data, "\nType:\n");
 
     // Determine card brand and type
     const uint8_t data_format_code_2 = data->data.fs.id.data[9];
-    switch(data_format_code_2) {
+    switch (data_format_code_2) {
     case 0x2A:
         furi_string_cat_str(parsed_data, "Bandai Namco Passport\n");
         break;
@@ -604,8 +599,8 @@ bool aic_parse(const NfcDevice* device, FuriString* parsed_data) {
         parsed = false;
         return parsed; // Unknown vendor
     }
-    furi_string_cat_str(
-        parsed_data, "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    furi_string_cat_str(parsed_data,
+                        "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 
     // decrypt_spad_0 S-PAD 0
     uint8_t decrypted[16] = {0};
@@ -613,46 +608,47 @@ bool aic_parse(const NfcDevice* device, FuriString* parsed_data) {
 
     // Get Access Code
     uint8_t access_code[20] = {0};
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         access_code[i * 2] = (decrypted[i + 6] & 0xF0) >> 4; // Get upper nibble
-        access_code[i * 2 + 1] = decrypted[i + 6] & 0x0F; // Get lower nibble
+        access_code[i * 2 + 1] = decrypted[i + 6] & 0x0F;    // Get lower nibble
     }
     furi_string_cat_str(parsed_data, "\nAccess Code:\n");
     bool access_code_is_bcd = true;
-    for(int i = 0; i < 20; i++) {
+    for (int i = 0; i < 20; i++) {
         furi_string_cat_printf(parsed_data, "%d", access_code[i]);
-        if(i % 4 == 3) {
+        if (i % 4 == 3) {
             furi_string_cat_str(parsed_data, " ");
         }
-        if(access_code[i] > 9) access_code_is_bcd = false;
+        if (access_code[i] > 9)
+            access_code_is_bcd = false;
     }
     furi_string_cat_str(parsed_data, "\n");
 
     furi_string_cat_printf(parsed_data, "BCD valid: %s\n", access_code_is_bcd ? "Yes" : "No");
-    furi_string_cat_str(
-        parsed_data, "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    furi_string_cat_str(parsed_data,
+                        "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 
     // Parse Access Code
-    if(access_code_is_bcd && access_code[0] == 5) {
+    if (access_code_is_bcd && access_code[0] == 5) {
         furi_string_cat_str(parsed_data, "\n");
         parse_access_code(access_code, parsed_data);
     } else {
-        furi_string_cat_printf(
-            parsed_data, "\nAccess code preamble wrong: expected 5, got %d\n", access_code[0]);
+        furi_string_cat_printf(parsed_data, "\nAccess code preamble wrong: expected 5, got %d\n",
+                               access_code[0]);
     }
 
-    furi_string_cat_str(
-        parsed_data, "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    furi_string_cat_str(parsed_data,
+                        "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
     furi_string_cat_str(parsed_data, "\nDecrypted S-PAD 0:\n");
-    for(int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++) {
         furi_string_cat_printf(parsed_data, "%02X ", decrypted[i]);
-        if(i == 7) {
+        if (i == 7) {
             furi_string_cat_str(parsed_data, "\n");
         }
     }
     furi_string_cat_str(parsed_data, "\n");
-    furi_string_cat_str(
-        parsed_data, "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    furi_string_cat_str(parsed_data,
+                        "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
 
     return parsed;
 }
@@ -673,6 +669,7 @@ static const FlipperAppPluginDescriptor aic_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* aic_plugin_ep(void) {
+const FlipperAppPluginDescriptor *aic_plugin_ep(void)
+{
     return &aic_plugin_descriptor;
 }

@@ -15,22 +15,22 @@
 PLACE_IN_SECTION("MB_MEM1") ALIGN(4) static TL_CmdPacket_t ble_app_cmd_buffer;
 PLACE_IN_SECTION("MB_MEM2") ALIGN(4) static uint32_t ble_app_nvm[BLE_NVM_SRAM_SIZE];
 
-_Static_assert(
-    sizeof(SHCI_C2_Ble_Init_Cmd_Packet_t) == 58,
-    "Ble stack config structure size mismatch (check new config options - last updated for v.1.17.3)");
+_Static_assert(sizeof(SHCI_C2_Ble_Init_Cmd_Packet_t) == 58,
+               "Ble stack config structure size mismatch (check new config options - last updated "
+               "for v.1.17.3)");
 
 typedef struct {
-    FuriMutex* hci_mtx;
-    FuriSemaphore* hci_sem;
+    FuriMutex *hci_mtx;
+    FuriSemaphore *hci_sem;
 } BleApp;
 
-static BleApp* ble_app = NULL;
+static BleApp *ble_app = NULL;
 
-static void ble_app_hci_event_handler(void* pPayload);
+static void ble_app_hci_event_handler(void *pPayload);
 static void ble_app_hci_status_not_handler(HCI_TL_CmdStatus_t status);
 
 static const HCI_TL_HciInitConf_t hci_tl_config = {
-    .p_cmdbuffer = (uint8_t*)&ble_app_cmd_buffer,
+    .p_cmdbuffer = (uint8_t *)&ble_app_cmd_buffer,
     .StatusNotCallBack = ble_app_hci_status_not_handler,
 };
 
@@ -45,7 +45,7 @@ static const SHCI_C2_Ble_Init_Cmd_Packet_t ble_init_cmd_packet = {
     .Header = {{0, 0, 0}}, // Header unused
     .Param = {
         .pBleBufferAddress = 0, // pBleBufferAddress not used
-        .BleBufferSize = 0, // BleBufferSize not used
+        .BleBufferSize = 0,     // BleBufferSize not used
         .NumAttrRecord = CFG_BLE_NUM_GATT_ATTRIBUTES,
         .NumAttrServ = CFG_BLE_NUM_GATT_SERVICES,
         .AttrValueArrSize = CFG_BLE_ATT_VALUE_ARRAY_SIZE,
@@ -67,17 +67,18 @@ static const SHCI_C2_Ble_Init_Cmd_Packet_t ble_init_cmd_packet = {
         .max_tx_power = 0,
         .rx_model_config = 1,
         /* New stack (13.3->15.0) */
-        .max_adv_set_nbr = 1, // Only used if SHCI_C2_BLE_INIT_OPTIONS_EXT_ADV is set
+        .max_adv_set_nbr = 1,     // Only used if SHCI_C2_BLE_INIT_OPTIONS_EXT_ADV is set
         .max_adv_data_len = 1650, // Only used if SHCI_C2_BLE_INIT_OPTIONS_EXT_ADV is set
-        .tx_path_compens = 0, // RF TX Path Compensation, * 0.1 dB
-        .rx_path_compens = 0, // RF RX Path Compensation, * 0.1 dB
+        .tx_path_compens = 0,     // RF TX Path Compensation, * 0.1 dB
+        .rx_path_compens = 0,     // RF RX Path Compensation, * 0.1 dB
         .ble_core_version = SHCI_C2_BLE_INIT_BLE_CORE_5_4,
         /*15.0->17.0*/
         .Options_extension = SHCI_C2_BLE_INIT_OPTIONS_ENHANCED_ATT_NOTSUPPORTED |
                              SHCI_C2_BLE_INIT_OPTIONS_APPEARANCE_READONLY,
     }};
 
-bool ble_app_init(void) {
+bool ble_app_init(void)
+{
     SHCI_CmdStatus_t status;
     ble_app = malloc(sizeof(BleApp));
     // Allocate semafore and mutex for ble command buffer access
@@ -85,36 +86,38 @@ bool ble_app_init(void) {
     ble_app->hci_sem = furi_semaphore_alloc(1, 0);
 
     // Initialize Ble Transport Layer
-    hci_init(ble_app_hci_event_handler, (void*)&hci_tl_config);
+    hci_init(ble_app_hci_event_handler, (void *)&hci_tl_config);
 
     do {
         // Configure NVM store for pairing data
-        if((status = SHCI_C2_Config((SHCI_C2_CONFIG_Cmd_Param_t*)&config_param))) {
+        if ((status = SHCI_C2_Config((SHCI_C2_CONFIG_Cmd_Param_t *)&config_param))) {
             FURI_LOG_E(TAG, "Failed to configure 2nd core: %d", status);
             break;
         }
 
         // Start ble stack on 2nd core
-        if((status = SHCI_C2_BLE_Init((SHCI_C2_Ble_Init_Cmd_Packet_t*)&ble_init_cmd_packet))) {
+        if ((status = SHCI_C2_BLE_Init((SHCI_C2_Ble_Init_Cmd_Packet_t *)&ble_init_cmd_packet))) {
             FURI_LOG_E(TAG, "Failed to start ble stack: %d", status);
             break;
         }
 
-        if((status = SHCI_C2_SetFlashActivityControl(FLASH_ACTIVITY_CONTROL_SEM7))) {
+        if ((status = SHCI_C2_SetFlashActivityControl(FLASH_ACTIVITY_CONTROL_SEM7))) {
             FURI_LOG_E(TAG, "Failed to set flash activity control: %d", status);
             break;
         }
-    } while(false);
+    } while (false);
 
     return status == SHCI_Success;
 }
 
-void ble_app_get_key_storage_buff(uint8_t** addr, uint16_t* size) {
-    *addr = (uint8_t*)ble_app_nvm;
+void ble_app_get_key_storage_buff(uint8_t **addr, uint16_t *size)
+{
+    *addr = (uint8_t *)ble_app_nvm;
     *size = sizeof(ble_app_nvm);
 }
 
-void ble_app_deinit(void) {
+void ble_app_deinit(void)
+{
     furi_check(ble_app);
 
     furi_mutex_free(ble_app->hci_mtx);
@@ -127,43 +130,48 @@ void ble_app_deinit(void) {
 ///////////////////////////////////////////////////////////////////////////////
 // AN5289, 4.9
 
-void hci_cmd_resp_release(uint32_t flag) {
+void hci_cmd_resp_release(uint32_t flag)
+{
     UNUSED(flag);
     furi_check(ble_app);
     furi_check(furi_semaphore_release(ble_app->hci_sem) == FuriStatusOk);
 }
 
-void hci_cmd_resp_wait(uint32_t timeout) {
+void hci_cmd_resp_wait(uint32_t timeout)
+{
     furi_check(ble_app);
     furi_check(furi_semaphore_acquire(ble_app->hci_sem, timeout) == FuriStatusOk);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static void ble_app_hci_event_handler(void* pPayload) {
+static void ble_app_hci_event_handler(void *pPayload)
+{
     furi_check(ble_app);
 
-    tHCI_UserEvtRxParam* pParam = (tHCI_UserEvtRxParam*)pPayload;
+    tHCI_UserEvtRxParam *pParam = (tHCI_UserEvtRxParam *)pPayload;
     BleEventFlowStatus event_flow_status =
-        ble_event_dispatcher_process_event((void*)&(pParam->pckt->evtserial));
+        ble_event_dispatcher_process_event((void *)&(pParam->pckt->evtserial));
 
-    if(event_flow_status != BleEventFlowDisable) {
+    if (event_flow_status != BleEventFlowDisable) {
         pParam->status = HCI_TL_UserEventFlow_Enable;
     } else {
         pParam->status = HCI_TL_UserEventFlow_Disable;
     }
 }
 
-static void ble_app_hci_status_not_handler(HCI_TL_CmdStatus_t status) {
-    if(status == HCI_TL_CmdBusy) {
+static void ble_app_hci_status_not_handler(HCI_TL_CmdStatus_t status)
+{
+    if (status == HCI_TL_CmdBusy) {
         furi_hal_power_insomnia_enter();
         furi_mutex_acquire(ble_app->hci_mtx, FuriWaitForever);
-    } else if(status == HCI_TL_CmdAvailable) {
+    } else if (status == HCI_TL_CmdAvailable) {
         furi_mutex_release(ble_app->hci_mtx);
         furi_hal_power_insomnia_exit();
     }
 }
 
-void SVCCTL_ResumeUserEventFlow(void) {
+void SVCCTL_ResumeUserEventFlow(void)
+{
     hci_resume_flow();
 }

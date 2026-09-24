@@ -12,12 +12,12 @@ typedef struct {
     bool locked;
 } DesktopStatus;
 
-bool desktop_api_is_locked(Desktop* instance);
+bool desktop_api_is_locked(Desktop *instance);
 
-void desktop_api_unlock(Desktop* instance);
+void desktop_api_unlock(Desktop *instance);
 
-FuriPubSub* desktop_api_get_status_pubsub(Desktop* instance);
+FuriPubSub *desktop_api_get_status_pubsub(Desktop *instance);
 
-void desktop_api_get_settings(Desktop* instance, DesktopSettings* settings);
+void desktop_api_get_settings(Desktop *instance, DesktopSettings *settings);
 
-void desktop_api_set_settings(Desktop* instance, const DesktopSettings* settings);
+void desktop_api_set_settings(Desktop *instance, const DesktopSettings *settings);

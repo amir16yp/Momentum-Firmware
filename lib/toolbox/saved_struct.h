@@ -1,7 +1,7 @@
 /**
  * @file saved_struct.h
  * @brief SavedStruct - data serialization/de-serialization
- * 
+ *
  */
 #pragma once
 
@@ -23,7 +23,7 @@ extern "C" {
  *
  * @return     true on success, false otherwise
  */
-bool saved_struct_load(const char* path, void* data, size_t size, uint8_t magic, uint8_t version);
+bool saved_struct_load(const char *path, void *data, size_t size, uint8_t magic, uint8_t version);
 
 /** Save data in saved structure format
  *
@@ -35,12 +35,8 @@ bool saved_struct_load(const char* path, void* data, size_t size, uint8_t magic,
  *
  * @return     true on success, false otherwise
  */
-bool saved_struct_save(
-    const char* path,
-    const void* data,
-    size_t size,
-    uint8_t magic,
-    uint8_t version);
+bool saved_struct_save(const char *path, const void *data, size_t size, uint8_t magic,
+                       uint8_t version);
 
 /** Get SavedStructure file metadata
  *
@@ -53,11 +49,8 @@ bool saved_struct_save(
  *
  * @return     true on success, false otherwise
  */
-bool saved_struct_get_metadata(
-    const char* path,
-    uint8_t* magic,
-    uint8_t* version,
-    size_t* payload_size);
+bool saved_struct_get_metadata(const char *path, uint8_t *magic, uint8_t *version,
+                               size_t *payload_size);
 
 #ifdef __cplusplus
 }

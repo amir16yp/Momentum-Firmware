@@ -8,9 +8,9 @@
 #include <gui/modules/variable_item_list.h>
 
 typedef struct {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    VariableItemList* var_item_list;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    VariableItemList *var_item_list;
 } SystemSettings;
 
 typedef enum {

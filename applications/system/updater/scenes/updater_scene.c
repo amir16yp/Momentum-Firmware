@@ -2,21 +2,21 @@
 
 // Generate scene on_enter handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_enter,
-void (*const updater_on_enter_handlers[])(void*) = {
+void (*const updater_on_enter_handlers[])(void *) = {
 #include "updater_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_event handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_event,
-bool (*const updater_on_event_handlers[])(void* context, SceneManagerEvent event) = {
+bool (*const updater_on_event_handlers[])(void *context, SceneManagerEvent event) = {
 #include "updater_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_exit handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_exit,
-void (*const updater_on_exit_handlers[])(void* context) = {
+void (*const updater_on_exit_handlers[])(void *context) = {
 #include "updater_scene_config.h"
 };
 #undef ADD_SCENE

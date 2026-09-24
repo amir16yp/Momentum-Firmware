@@ -19,7 +19,7 @@ typedef struct MfPlusPoller MfPlusPoller;
 
 typedef enum {
     MfPlusPollerEventTypeReadSuccess, /**< Card was read successfully. */
-    MfPlusPollerEventTypeReadFailed, /**< Poller failed to read the card. */
+    MfPlusPollerEventTypeReadFailed,  /**< Poller failed to read the card. */
 } MfPlusPollerEventType;
 
 /**
@@ -35,8 +35,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    MfPlusPollerEventType type; /**< Type of emitted event. */
-    MfPlusPollerEventData* data; /**< Pointer to event specific data. */
+    MfPlusPollerEventType type;  /**< Type of emitted event. */
+    MfPlusPollerEventData *data; /**< Pointer to event specific data. */
 } MfPlusPollerEvent;
 
 /**
@@ -48,7 +48,7 @@ typedef struct {
  * @param[out] data pointer to the MfPlusVersion structure to be filled with version data.
  * @return MfPlusErrorNone on success, an error code on failure.
  */
-MfPlusError mf_plus_poller_read_version(MfPlusPoller* instance, MfPlusVersion* data);
+MfPlusError mf_plus_poller_read_version(MfPlusPoller *instance, MfPlusVersion *data);
 
 #ifdef __cplusplus
 }

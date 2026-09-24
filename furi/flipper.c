@@ -14,21 +14,18 @@
 
 #define HEAP_CANARY_VALUE 0x8BADF00D
 
-static void flipper_print_version(const char* target, const Version* version) {
-    if(version) {
-        FURI_LOG_I(
-            TAG,
-            "\r\n\t%s version:\t%s\r\n"
-            "\tBuild date:\t\t%s\r\n"
-            "\tGit Commit:\t\t%s (%s)%s\r\n"
-            "\tGit Branch:\t\t%s",
-            target,
-            version_get_version(version),
-            version_get_builddate(version),
-            version_get_githash(version),
-            version_get_gitbranchnum(version),
-            version_get_dirty_flag(version) ? " (dirty)" : "",
-            version_get_gitbranch(version));
+static void flipper_print_version(const char *target, const Version *version)
+{
+    if (version) {
+        FURI_LOG_I(TAG,
+                   "\r\n\t%s version:\t%s\r\n"
+                   "\tBuild date:\t\t%s\r\n"
+                   "\tGit Commit:\t\t%s (%s)%s\r\n"
+                   "\tGit Branch:\t\t%s",
+                   target, version_get_version(version), version_get_builddate(version),
+                   version_get_githash(version), version_get_gitbranchnum(version),
+                   version_get_dirty_flag(version) ? " (dirty)" : "",
+                   version_get_gitbranch(version));
     } else {
         FURI_LOG_I(TAG, "No build info for %s", target);
     }
@@ -55,8 +52,9 @@ static void flipper_print_version(const char* target, const Version* version) {
 #include <applications/main/infrared/infrared_settings.h>
 #include <applications/main/u2f/u2f_data.h>
 
-void flipper_migrate_files() {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+void flipper_migrate_files()
+{
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     // Revert cringe
     FURI_LOG_I(TAG, "Migrate: Remove unused files");
@@ -66,8 +64,8 @@ void flipper_migrate_files() {
     FURI_LOG_I(TAG, "Migrate: Rename old paths");
     // If multiple have same destination, first match that exists is kept and others deleted
     static const struct {
-        const char* src;
-        const char* dst;
+        const char *src;
+        const char *dst;
     } renames[] = {
         // Renames on Ext
         {EXT_PATH(".config/favorites.txt"), ARCHIVE_FAV_PATH}, // Adapt to OFW/UL
@@ -86,10 +84,10 @@ void flipper_migrate_files() {
         {EXT_PATH(".config/notification.settings"), NOTIFICATION_SETTINGS_PATH},
         {EXT_PATH(".config/power.settings"), POWER_SETTINGS_PATH},
         {EXT_PATH(".config/rgb_backlight.settings"), RGB_BACKLIGHT_SETTINGS_PATH},
-        {EXT_PATH("dolphin/name.txt"), NAMESPOOF_PATH}, // Adapt to UL
+        {EXT_PATH("dolphin/name.txt"), NAMESPOOF_PATH},                    // Adapt to UL
         {EXT_PATH("infrared/.infrared.settings"), INFRARED_SETTINGS_PATH}, // Adapt to OFW
     };
-    for(size_t i = 0; i < COUNT_OF(renames); ++i) {
+    for (size_t i = 0; i < COUNT_OF(renames); ++i) {
         // Use copy+remove to not overwrite dst but still delete src
         storage_common_copy(storage, renames[i].src, renames[i].dst);
         storage_common_remove(storage, renames[i].src);
@@ -97,19 +95,19 @@ void flipper_migrate_files() {
 
     // Int -> Ext for U2F
     FURI_LOG_I(TAG, "Migrate: U2F");
-    if(storage_common_exists(storage, INT_PATH(".cnt.u2f"))) {
-        const char* cnt_dst = storage_common_exists(storage, U2F_CNT_FILE) ? U2F_CNT_FILE ".old" :
-                                                                             U2F_CNT_FILE;
+    if (storage_common_exists(storage, INT_PATH(".cnt.u2f"))) {
+        const char *cnt_dst =
+            storage_common_exists(storage, U2F_CNT_FILE) ? U2F_CNT_FILE ".old" : U2F_CNT_FILE;
         storage_common_rename(storage, INT_PATH(".cnt.u2f"), cnt_dst);
     }
-    if(storage_common_exists(storage, INT_PATH(".key.u2f"))) {
-        const char* key_dst = storage_common_exists(storage, U2F_KEY_FILE) ? U2F_KEY_FILE ".old" :
-                                                                             U2F_KEY_FILE;
+    if (storage_common_exists(storage, INT_PATH(".key.u2f"))) {
+        const char *key_dst =
+            storage_common_exists(storage, U2F_KEY_FILE) ? U2F_KEY_FILE ".old" : U2F_KEY_FILE;
         storage_common_rename(storage, INT_PATH(".key.u2f"), key_dst);
     }
 
     // Remove obsolete .config folder after migration
-    if(!storage_simply_remove(storage, EXT_PATH(".config"))) {
+    if (!storage_simply_remove(storage, EXT_PATH(".config"))) {
         FURI_LOG_W(TAG, "Can't remove /ext/.config/, probably not empty");
     }
 
@@ -128,13 +126,14 @@ void flipper_migrate_files() {
 // So instead storage runs this function in background thread and then
 // dispatches the pubsub event to everyone else
 bool skip_double_mount = false;
-void flipper_mount_callback(const void* message, void* context) {
+void flipper_mount_callback(const void *message, void *context)
+{
     UNUSED(context);
-    const StorageEvent* event = message;
+    const StorageEvent *event = message;
 
-    if(event->type == StorageEventTypeCardMount) {
+    if (event->type == StorageEventTypeCardMount) {
         // Workaround to avoid double load on boot but also have animated boot screen
-        if(skip_double_mount) {
+        if (skip_double_mount) {
             skip_double_mount = false;
             return;
         }
@@ -156,25 +155,27 @@ void flipper_mount_callback(const void* message, void* context) {
 }
 #endif
 
-void flipper_start_service(const FlipperInternalApplication* service) {
+void flipper_start_service(const FlipperInternalApplication *service)
+{
     FURI_LOG_D(TAG, "Starting service %s", service->name);
 
-    FuriThread* thread =
+    FuriThread *thread =
         furi_thread_alloc_service(service->name, service->stack_size, service->app, NULL);
     furi_thread_set_appid(thread, service->appid);
 
     furi_thread_start(thread);
 }
 
-void flipper_init(void) {
+void flipper_init(void)
+{
     furi_hal_light_sequence("rgb WB");
     flipper_print_version("Firmware", furi_hal_version_get_firmware_version());
     FURI_LOG_I(TAG, "Boot mode %d", furi_hal_rtc_get_boot_mode());
 
 #ifndef FURI_RAM_EXEC
-    Canvas* canvas = canvas_init();
+    Canvas *canvas = canvas_init();
     canvas_draw_icon(canvas, 33, 16, &I_Updating_Logo_62x15);
-    if(furi_hal_is_normal_boot()) {
+    if (furi_hal_is_normal_boot()) {
         canvas_draw_icon(canvas, 19, 44, &I_SDcardMounted_11x8);
     }
     canvas_commit(canvas);
@@ -184,10 +185,10 @@ void flipper_init(void) {
     flipper_start_service(&FLIPPER_SERVICES[0]);
 
 #ifndef FURI_RAM_EXEC
-    if(furi_hal_is_normal_boot()) {
+    if (furi_hal_is_normal_boot()) {
         // Wait for storage record
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        if(storage_sd_status(storage) != FSE_OK) {
+        Storage *storage = furi_record_open(RECORD_STORAGE);
+        if (storage_sd_status(storage) != FSE_OK) {
             FURI_LOG_D(TAG, "SD Card not ready, skipping early init");
             // Init on SD insert done by storage using flipper_mount_callback()
         } else {
@@ -218,7 +219,7 @@ void flipper_init(void) {
 #endif
 
     // Everything else
-    for(size_t i = 1; i < FLIPPER_SERVICES_COUNT; i++) {
+    for (size_t i = 1; i < FLIPPER_SERVICES_COUNT; i++) {
         flipper_start_service(&FLIPPER_SERVICES[i]);
     }
 
@@ -229,24 +230,23 @@ void flipper_init(void) {
     FURI_LOG_I(TAG, "Startup complete");
 }
 
-void vApplicationGetIdleTaskMemory(
-    StaticTask_t** tcb_ptr,
-    StackType_t** stack_ptr,
-    uint32_t* stack_size) {
+void vApplicationGetIdleTaskMemory(StaticTask_t **tcb_ptr, StackType_t **stack_ptr,
+                                   uint32_t *stack_size)
+{
     *tcb_ptr = memmgr_alloc_from_pool(sizeof(StaticTask_t));
     *stack_ptr = memmgr_alloc_from_pool(sizeof(StackType_t) * configIDLE_TASK_STACK_DEPTH);
     *stack_size = configIDLE_TASK_STACK_DEPTH;
 }
 
-void vApplicationGetTimerTaskMemory(
-    StaticTask_t** tcb_ptr,
-    StackType_t** stack_ptr,
-    uint32_t* stack_size) {
+void vApplicationGetTimerTaskMemory(StaticTask_t **tcb_ptr, StackType_t **stack_ptr,
+                                    uint32_t *stack_size)
+{
     *tcb_ptr = memmgr_alloc_from_pool(sizeof(StaticTask_t));
     *stack_ptr = memmgr_alloc_from_pool(sizeof(StackType_t) * configTIMER_TASK_STACK_DEPTH);
     *stack_size = configTIMER_TASK_STACK_DEPTH;
 }
 
-void vApplicationGetRandomHeapCanary(portPOINTER_SIZE_TYPE* pxHeapCanary) {
+void vApplicationGetRandomHeapCanary(portPOINTER_SIZE_TYPE *pxHeapCanary)
+{
     *pxHeapCanary = HEAP_CANARY_VALUE;
 }

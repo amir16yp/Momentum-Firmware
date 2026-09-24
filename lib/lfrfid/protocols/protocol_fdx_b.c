@@ -7,22 +7,22 @@
 #include <furi_hal_rtc.h>
 #include <tools/iso_3166.h>
 
-#define FDX_B_ENCODED_BIT_SIZE       (128)
-#define FDX_B_ENCODED_BYTE_SIZE      (((FDX_B_ENCODED_BIT_SIZE) / 8))
-#define FDX_B_PREAMBLE_BIT_SIZE      (11)
-#define FDX_B_PREAMBLE_BYTE_SIZE     (2)
+#define FDX_B_ENCODED_BIT_SIZE (128)
+#define FDX_B_ENCODED_BYTE_SIZE (((FDX_B_ENCODED_BIT_SIZE) / 8))
+#define FDX_B_PREAMBLE_BIT_SIZE (11)
+#define FDX_B_PREAMBLE_BYTE_SIZE (2)
 #define FDX_B_ENCODED_BYTE_FULL_SIZE (FDX_B_ENCODED_BYTE_SIZE + FDX_B_PREAMBLE_BYTE_SIZE)
 
 #define FDXB_DECODED_DATA_SIZE (11)
 
-#define FDX_B_SHORT_TIME  (128)
-#define FDX_B_LONG_TIME   (256)
+#define FDX_B_SHORT_TIME (128)
+#define FDX_B_LONG_TIME (256)
 #define FDX_B_JITTER_TIME (60)
 
-#define FDX_B_SHORT_TIME_LOW  (FDX_B_SHORT_TIME - FDX_B_JITTER_TIME)
+#define FDX_B_SHORT_TIME_LOW (FDX_B_SHORT_TIME - FDX_B_JITTER_TIME)
 #define FDX_B_SHORT_TIME_HIGH (FDX_B_SHORT_TIME + FDX_B_JITTER_TIME)
-#define FDX_B_LONG_TIME_LOW   (FDX_B_LONG_TIME - FDX_B_JITTER_TIME)
-#define FDX_B_LONG_TIME_HIGH  (FDX_B_LONG_TIME + FDX_B_JITTER_TIME)
+#define FDX_B_LONG_TIME_LOW (FDX_B_LONG_TIME - FDX_B_JITTER_TIME)
+#define FDX_B_LONG_TIME_HIGH (FDX_B_LONG_TIME + FDX_B_JITTER_TIME)
 
 typedef struct {
     bool last_short;
@@ -32,80 +32,90 @@ typedef struct {
     uint8_t data[FDXB_DECODED_DATA_SIZE];
 } ProtocolFDXB;
 
-ProtocolFDXB* protocol_fdx_b_alloc(void) {
-    ProtocolFDXB* protocol = malloc(sizeof(ProtocolFDXB));
+ProtocolFDXB *protocol_fdx_b_alloc(void)
+{
+    ProtocolFDXB *protocol = malloc(sizeof(ProtocolFDXB));
     return protocol;
 }
 
-void protocol_fdx_b_free(ProtocolFDXB* protocol) {
+void protocol_fdx_b_free(ProtocolFDXB *protocol)
+{
     free(protocol);
 }
 
-uint8_t* protocol_fdx_b_get_data(ProtocolFDXB* proto) {
+uint8_t *protocol_fdx_b_get_data(ProtocolFDXB *proto)
+{
     return proto->data;
 }
 
-void protocol_fdx_b_decoder_start(ProtocolFDXB* protocol) {
+void protocol_fdx_b_decoder_start(ProtocolFDXB *protocol)
+{
     memset(protocol->encoded_data, 0, FDX_B_ENCODED_BYTE_FULL_SIZE);
     protocol->last_short = false;
 }
 
-static bool protocol_fdx_b_can_be_decoded(ProtocolFDXB* protocol) {
+static bool protocol_fdx_b_can_be_decoded(ProtocolFDXB *protocol)
+{
     bool result = false;
 
     /*
     msb		lsb
     0   10000000000	  Header pattern. 11 bits.
-    11    1nnnnnnnn	
+    11    1nnnnnnnn
     20    1nnnnnnnn	  38 bit (12 digit) National code.
     29    1nnnnnnnn	  eg. 000000001008 (decimal).
-    38    1nnnnnnnn	
+    38    1nnnnnnnn
     47    1nnnnnncc	  10 bit (3 digit) Country code.
     56    1cccccccc	  eg. 999 (decimal).
     65    1s-------	  1 bit data block status flag.
     74    1-------a	  1 bit animal application indicator.
     83    1xxxxxxxx	  16 bit checksum.
-    92    1xxxxxxxx	
+    92    1xxxxxxxx
     101   1eeeeeeee	  24 bits of extra data if present.
     110   1eeeeeeee	  eg. $123456.
-    119   1eeeeeeee	
+    119   1eeeeeeee
     */
 
     do {
         // check 11 bits preamble
-        if(bit_lib_get_bits_16(protocol->encoded_data, 0, 11) != 0b10000000000) break;
+        if (bit_lib_get_bits_16(protocol->encoded_data, 0, 11) != 0b10000000000)
+            break;
         // check next 11 bits preamble
-        if(bit_lib_get_bits_16(protocol->encoded_data, 128, 11) != 0b10000000000) break;
+        if (bit_lib_get_bits_16(protocol->encoded_data, 128, 11) != 0b10000000000)
+            break;
         // check control bits
-        if(!bit_lib_test_parity(protocol->encoded_data, 3, 13 * 9, BitLibParityAlways1, 9)) break;
+        if (!bit_lib_test_parity(protocol->encoded_data, 3, 13 * 9, BitLibParityAlways1, 9))
+            break;
 
         // compute checksum
         uint8_t crc_data[8];
-        for(size_t i = 0; i < 8; i++) {
+        for (size_t i = 0; i < 8; i++) {
             bit_lib_copy_bits(crc_data, i * 8, 8, protocol->encoded_data, 12 + 9 * i);
         }
         uint16_t crc_res = bit_lib_crc16(crc_data, 8, 0x1021, 0x0000, false, false, 0x0000);
 
         // read checksum
         uint16_t crc_ex = 0;
-        bit_lib_copy_bits((uint8_t*)&crc_ex, 8, 8, protocol->encoded_data, 84);
-        bit_lib_copy_bits((uint8_t*)&crc_ex, 0, 8, protocol->encoded_data, 93);
+        bit_lib_copy_bits((uint8_t *)&crc_ex, 8, 8, protocol->encoded_data, 84);
+        bit_lib_copy_bits((uint8_t *)&crc_ex, 0, 8, protocol->encoded_data, 93);
 
         // compare checksum
-        if(crc_res != crc_ex) break;
+        if (crc_res != crc_ex)
+            break;
 
         result = true;
-    } while(false);
+    } while (false);
 
     return result;
 }
 
-void protocol_fdx_b_decode(ProtocolFDXB* protocol) {
+void protocol_fdx_b_decode(ProtocolFDXB *protocol)
+{
     // remove parity
     bit_lib_remove_bit_every_nth(protocol->encoded_data, 3, 14 * 9, 9);
 
     // remove header pattern
-    for(size_t i = 0; i < 11; i++)
+    for (size_t i = 0; i < 11; i++)
         bit_lib_push_bit(protocol->encoded_data, FDX_B_ENCODED_BYTE_FULL_SIZE, 0);
 
     // 0  nnnnnnnn
@@ -146,23 +156,24 @@ void protocol_fdx_b_decode(ProtocolFDXB* protocol) {
     // bit_lib_print_regions(regions_decoded, 4, protocol->data, FDXB_DECODED_DATA_SIZE * 8);
 }
 
-bool protocol_fdx_b_decoder_feed(ProtocolFDXB* protocol, bool level, uint32_t duration) {
+bool protocol_fdx_b_decoder_feed(ProtocolFDXB *protocol, bool level, uint32_t duration)
+{
     bool result = false;
     UNUSED(level);
 
     bool pushed = false;
 
     // Bi-Phase Manchester decoding
-    if(duration >= FDX_B_SHORT_TIME_LOW && duration <= FDX_B_SHORT_TIME_HIGH) {
-        if(protocol->last_short == false) {
+    if (duration >= FDX_B_SHORT_TIME_LOW && duration <= FDX_B_SHORT_TIME_HIGH) {
+        if (protocol->last_short == false) {
             protocol->last_short = true;
         } else {
             pushed = true;
             bit_lib_push_bit(protocol->encoded_data, FDX_B_ENCODED_BYTE_FULL_SIZE, false);
             protocol->last_short = false;
         }
-    } else if(duration >= FDX_B_LONG_TIME_LOW && duration <= FDX_B_LONG_TIME_HIGH) {
-        if(protocol->last_short == false) {
+    } else if (duration >= FDX_B_LONG_TIME_LOW && duration <= FDX_B_LONG_TIME_HIGH) {
+        if (protocol->last_short == false) {
             pushed = true;
             bit_lib_push_bit(protocol->encoded_data, FDX_B_ENCODED_BYTE_FULL_SIZE, true);
         } else {
@@ -174,7 +185,7 @@ bool protocol_fdx_b_decoder_feed(ProtocolFDXB* protocol, bool level, uint32_t du
         protocol->last_short = false;
     }
 
-    if(pushed && protocol_fdx_b_can_be_decoded(protocol)) {
+    if (pushed && protocol_fdx_b_can_be_decoded(protocol)) {
         protocol_fdx_b_decode(protocol);
         result = true;
     }
@@ -182,14 +193,16 @@ bool protocol_fdx_b_decoder_feed(ProtocolFDXB* protocol, bool level, uint32_t du
     return result;
 }
 
-bool protocol_fdx_b_encoder_start(ProtocolFDXB* protocol) {
+bool protocol_fdx_b_encoder_start(ProtocolFDXB *protocol)
+{
     memset(protocol->encoded_data, 0, FDX_B_ENCODED_BYTE_FULL_SIZE);
     bit_lib_set_bit(protocol->encoded_data, 0, 1);
-    for(size_t i = 0; i < 13; i++) {
+    for (size_t i = 0; i < 13; i++) {
         bit_lib_set_bit(protocol->encoded_data, 11 + 9 * i, 1);
-        if(i == 8 || i == 9) continue;
+        if (i == 8 || i == 9)
+            continue;
 
-        if(i < 8) {
+        if (i < 8) {
             bit_lib_copy_bits(protocol->encoded_data, 12 + 9 * i, 8, protocol->data, i * 8);
         } else {
             bit_lib_copy_bits(protocol->encoded_data, 12 + 9 * i, 8, protocol->data, (i - 2) * 8);
@@ -197,8 +210,8 @@ bool protocol_fdx_b_encoder_start(ProtocolFDXB* protocol) {
     }
 
     uint16_t crc_res = bit_lib_crc16(protocol->data, 8, 0x1021, 0x0000, false, false, 0x0000);
-    bit_lib_copy_bits(protocol->encoded_data, 84, 8, (uint8_t*)&crc_res, 8);
-    bit_lib_copy_bits(protocol->encoded_data, 93, 8, (uint8_t*)&crc_res, 0);
+    bit_lib_copy_bits(protocol->encoded_data, 84, 8, (uint8_t *)&crc_res, 8);
+    bit_lib_copy_bits(protocol->encoded_data, 93, 8, (uint8_t *)&crc_res, 0);
 
     protocol->encoded_index = 0;
     protocol->last_short = false;
@@ -206,21 +219,22 @@ bool protocol_fdx_b_encoder_start(ProtocolFDXB* protocol) {
     return true;
 }
 
-LevelDuration protocol_fdx_b_encoder_yield(ProtocolFDXB* protocol) {
+LevelDuration protocol_fdx_b_encoder_yield(ProtocolFDXB *protocol)
+{
     uint32_t duration;
     protocol->last_level = !protocol->last_level;
 
     bool bit = bit_lib_get_bit(protocol->encoded_data, protocol->encoded_index);
 
     // Bi-Phase Manchester encoder
-    if(bit) {
+    if (bit) {
         // one long pulse for 1
         duration = FDX_B_LONG_TIME / 8;
         bit_lib_increment_index(protocol->encoded_index, FDX_B_ENCODED_BIT_SIZE);
     } else {
         // two short pulses for 0
         duration = FDX_B_SHORT_TIME / 8;
-        if(protocol->last_short) {
+        if (protocol->last_short) {
             bit_lib_increment_index(protocol->encoded_index, FDX_B_ENCODED_BIT_SIZE);
             protocol->last_short = false;
         } else {
@@ -243,30 +257,33 @@ LevelDuration protocol_fdx_b_encoder_yield(ProtocolFDXB* protocol) {
 // 72 eeeeeeee	  eg. $123456.
 // 80 eeeeeeee
 
-static uint64_t protocol_fdx_b_get_national_code(const uint8_t* data) {
+static uint64_t protocol_fdx_b_get_national_code(const uint8_t *data)
+{
     uint64_t national_code = bit_lib_get_bits_32(data, 0, 32);
     national_code = national_code << 32;
     national_code |= (uint64_t)bit_lib_get_bits_32(data, 32, 6) << (32 - 6);
-    bit_lib_reverse_bits((uint8_t*)&national_code, 0, 64);
+    bit_lib_reverse_bits((uint8_t *)&national_code, 0, 64);
     return national_code;
 }
 
-static uint16_t protocol_fdx_b_get_country_code(const uint8_t* data) {
+static uint16_t protocol_fdx_b_get_country_code(const uint8_t *data)
+{
     uint16_t country_code = bit_lib_get_bits_16(data, 38, 10) << 6;
-    bit_lib_reverse_bits((uint8_t*)&country_code, 0, 16);
+    bit_lib_reverse_bits((uint8_t *)&country_code, 0, 16);
     return country_code;
 }
 
-static bool protocol_fdx_b_get_temp(const uint8_t* data, float* temp) {
+static bool protocol_fdx_b_get_temp(const uint8_t *data, float *temp)
+{
     uint32_t extended = bit_lib_get_bits_32(data, 64, 24) << 8;
-    bit_lib_reverse_bits((uint8_t*)&extended, 0, 32);
+    bit_lib_reverse_bits((uint8_t *)&extended, 0, 32);
 
     uint8_t ex_parity = (extended & 0x100) >> 8;
     uint8_t ex_temperature = extended & 0xff;
     uint8_t ex_calc_parity = bit_lib_test_parity_32(ex_temperature, BitLibParityOdd);
     bool ex_temperature_present = (ex_calc_parity == ex_parity) && !(extended & 0xe00);
 
-    if(ex_temperature_present) {
+    if (ex_temperature_present) {
         float temperature_f = 74 + ex_temperature * 0.2;
         *temp = temperature_f;
         return true;
@@ -275,7 +292,8 @@ static bool protocol_fdx_b_get_temp(const uint8_t* data, float* temp) {
     }
 }
 
-void protocol_fdx_b_render_data(ProtocolFDXB* protocol, FuriString* result) {
+void protocol_fdx_b_render_data(ProtocolFDXB *protocol, FuriString *result)
+{
     // 38 bits of national code
     uint64_t national_code = protocol_fdx_b_get_national_code(protocol->data);
 
@@ -291,25 +309,22 @@ void protocol_fdx_b_render_data(ProtocolFDXB* protocol, FuriString* result) {
     uint8_t replacement_number =
         bit_lib_reverse_8_fast(bit_lib_get_bits(protocol->data, 60, 3) << 5);
     bool animal_flag = bit_lib_get_bit(protocol->data, 63);
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FuriString* country_full_name = furi_string_alloc();
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FuriString *country_full_name = furi_string_alloc();
     bool country_found = iso_3166_get_full_name(storage, country_code, country_full_name);
     furi_record_close(RECORD_STORAGE);
 
-    furi_string_printf(
-        result,
-        "ID: %03hu-%012llu\n"
-        "Country Code: %hu\n"
-        "Country: %s\n"
-        "Temperature: ",
-        country_code,
-        national_code,
-        country_code,
-        (country_found) ? furi_string_get_cstr(country_full_name) : "Unknown");
+    furi_string_printf(result,
+                       "ID: %03hu-%012llu\n"
+                       "Country Code: %hu\n"
+                       "Country: %s\n"
+                       "Temperature: ",
+                       country_code, national_code, country_code,
+                       (country_found) ? furi_string_get_cstr(country_full_name) : "Unknown");
 
     float temperature;
-    if(protocol_fdx_b_get_temp(protocol->data, &temperature)) {
-        if(furi_hal_rtc_get_locale_units() == FuriHalRtcLocaleUnitsMetric) {
+    if (protocol_fdx_b_get_temp(protocol->data, &temperature)) {
+        if (furi_hal_rtc_get_locale_units() == FuriHalRtcLocaleUnitsMetric) {
             float temperature_c = (temperature - 32.0f) / 1.8f;
             furi_string_cat_printf(result, "%.2fC", (double)temperature_c);
         } else {
@@ -319,49 +334,42 @@ void protocol_fdx_b_render_data(ProtocolFDXB* protocol, FuriString* result) {
         furi_string_cat(result, "---");
     }
 
-    furi_string_cat_printf(
-        result,
-        "\n"
-        "Animal: %s\n"
-        "Visual Start Digit: %hu\n"
-        "Replacement Number: %hu\n"
-        "User Info: %hhX\n"
-        "Data Block: %s\n"
-        "RUDI Bit: %s\n"
-        "RFU: %hhX\n",
-        animal_flag ? "Yes" : "No",
-        visual_start_digit,
-        replacement_number,
-        user_info,
-        block_status ? "Present" : "Absent",
-        rudi_bit ? "Yes" : "No",
-        reserved);
+    furi_string_cat_printf(result,
+                           "\n"
+                           "Animal: %s\n"
+                           "Visual Start Digit: %hu\n"
+                           "Replacement Number: %hu\n"
+                           "User Info: %hhX\n"
+                           "Data Block: %s\n"
+                           "RUDI Bit: %s\n"
+                           "RFU: %hhX\n",
+                           animal_flag ? "Yes" : "No", visual_start_digit, replacement_number,
+                           user_info, block_status ? "Present" : "Absent", rudi_bit ? "Yes" : "No",
+                           reserved);
 
     furi_string_free(country_full_name);
 }
 
-void protocol_fdx_b_render_brief_data(ProtocolFDXB* protocol, FuriString* result) {
+void protocol_fdx_b_render_brief_data(ProtocolFDXB *protocol, FuriString *result)
+{
     // 38 bits of national code
     uint64_t national_code = protocol_fdx_b_get_national_code(protocol->data);
 
     // 10 bit of country code
     uint16_t country_code = protocol_fdx_b_get_country_code(protocol->data);
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FuriString* country_two_letter = furi_string_alloc();
+    Storage *storage = furi_record_open(RECORD_STORAGE);
+    FuriString *country_two_letter = furi_string_alloc();
     bool country_found = iso_3166_get_two_letter(storage, country_code, country_two_letter);
     furi_record_close(RECORD_STORAGE);
-    furi_string_printf(
-        result,
-        "ID: %03hu-%012llu\n"
-        "Country: %hu %s; Temp.: ",
-        country_code,
-        national_code,
-        country_code,
-        (country_found) ? furi_string_get_cstr(country_two_letter) : "Unknown");
+    furi_string_printf(result,
+                       "ID: %03hu-%012llu\n"
+                       "Country: %hu %s; Temp.: ",
+                       country_code, national_code, country_code,
+                       (country_found) ? furi_string_get_cstr(country_two_letter) : "Unknown");
 
     float temperature;
-    if(protocol_fdx_b_get_temp(protocol->data, &temperature)) {
-        if(furi_hal_rtc_get_locale_units() == FuriHalRtcLocaleUnitsMetric) {
+    if (protocol_fdx_b_get_temp(protocol->data, &temperature)) {
+        if (furi_hal_rtc_get_locale_units() == FuriHalRtcLocaleUnitsMetric) {
             float temperature_c = (temperature - 32.0f) / 1.8f;
             furi_string_cat_printf(result, "%.2fC", (double)temperature_c);
         } else {
@@ -374,8 +382,9 @@ void protocol_fdx_b_render_brief_data(ProtocolFDXB* protocol, FuriString* result
     furi_string_free(country_two_letter);
 }
 
-bool protocol_fdx_b_write_data(ProtocolFDXB* protocol, void* data) {
-    LFRFIDWriteRequest* request = (LFRFIDWriteRequest*)data;
+bool protocol_fdx_b_write_data(ProtocolFDXB *protocol, void *data)
+{
+    LFRFIDWriteRequest *request = (LFRFIDWriteRequest *)data;
     bool result = false;
 
     // Correct protocol data by redecoding
@@ -384,7 +393,7 @@ bool protocol_fdx_b_write_data(ProtocolFDXB* protocol, void* data) {
 
     protocol_fdx_b_encoder_start(protocol);
 
-    if(request->write_type == LFRFIDWriteTypeT5577) {
+    if (request->write_type == LFRFIDWriteTypeT5577) {
         request->t5577.block[0] = LFRFID_T5577_MODULATION_DIPHASE | LFRFID_T5577_BITRATE_RF_32 |
                                   (4 << LFRFID_T5577_MAXBLOCK_SHIFT);
         request->t5577.block[1] = bit_lib_get_bits_32(protocol->encoded_data, 0, 32);
@@ -393,11 +402,11 @@ bool protocol_fdx_b_write_data(ProtocolFDXB* protocol, void* data) {
         request->t5577.block[4] = bit_lib_get_bits_32(protocol->encoded_data, 96, 32);
         request->t5577.blocks_to_write = 5;
         result = true;
-    } else if(request->write_type == LFRFIDWriteTypeEM4305) {
+    } else if (request->write_type == LFRFIDWriteTypeEM4305) {
         request->em4305.word[4] =
             (EM4x05_MODULATION_BIPHASE | EM4x05_SET_BITRATE(32) | (8 << EM4x05_MAXBLOCK_SHIFT));
         uint32_t encoded_data_reversed[4] = {0};
-        for(uint8_t i = 0; i < 128; i++) {
+        for (uint8_t i = 0; i < 128; i++) {
             encoded_data_reversed[i / 32] =
                 (encoded_data_reversed[i / 32] << 1) |
                 (bit_lib_get_bit(protocol->encoded_data, (127 - i)) & 1);

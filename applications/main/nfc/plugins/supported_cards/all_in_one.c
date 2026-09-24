@@ -15,7 +15,8 @@ typedef enum {
     AllInOneLayoutTypeUnknown,
 } AllInOneLayoutType;
 
-static AllInOneLayoutType all_in_one_get_layout(const MfUltralightData* data) {
+static AllInOneLayoutType all_in_one_get_layout(const MfUltralightData *data)
+{
     // Switch on the second half of the third byte of page 5
     const uint8_t layout_byte = data->page[5].data[2];
     const uint8_t layout_half_byte = data->page[5].data[2] & 0x0F;
@@ -23,7 +24,7 @@ static AllInOneLayoutType all_in_one_get_layout(const MfUltralightData* data) {
     FURI_LOG_D(TAG, "Layout byte: %02x", layout_byte);
     FURI_LOG_D(TAG, "Layout half-byte: %02x", layout_half_byte);
 
-    switch(layout_half_byte) {
+    switch (layout_half_byte) {
     // If it is A, the layout type is a type A layout
     case 0x0A:
         return AllInOneLayoutTypeA;
@@ -37,16 +38,17 @@ static AllInOneLayoutType all_in_one_get_layout(const MfUltralightData* data) {
     }
 }
 
-static bool all_in_one_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool all_in_one_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
 
-    const MfUltralightData* data = nfc_device_get_data(device, NfcProtocolMfUltralight);
+    const MfUltralightData *data = nfc_device_get_data(device, NfcProtocolMfUltralight);
 
     bool parsed = false;
 
     do {
-        if(data->page[4].data[0] != 0x45 || data->page[4].data[1] != 0xD9) {
+        if (data->page[4].data[0] != 0x45 || data->page[4].data[1] != 0xD9) {
             FURI_LOG_E(TAG, "Pass not verified");
             break;
         }
@@ -56,10 +58,10 @@ static bool all_in_one_parse(const NfcDevice* device, FuriString* parsed_data) {
 
         const AllInOneLayoutType layout_type = all_in_one_get_layout(data);
 
-        if(layout_type == AllInOneLayoutTypeA) {
+        if (layout_type == AllInOneLayoutTypeA) {
             // If the layout is A then the ride count is stored in the first byte of page 8
             ride_count = data->page[8].data[0];
-        } else if(layout_type == AllInOneLayoutTypeD) {
+        } else if (layout_type == AllInOneLayoutTypeD) {
             // If the layout is D, the ride count is stored in the second byte of page 9
             ride_count = data->page[9].data[1];
         } else {
@@ -68,20 +70,21 @@ static bool all_in_one_parse(const NfcDevice* device, FuriString* parsed_data) {
         }
 
         // // The number starts at the second half of the third byte on page 4, and is 32 bits long
-        // // So we get the second half of the third byte, then bytes 4-6, and then the first half of the 7th byte
+        // // So we get the second half of the third byte, then bytes 4-6, and then the first half
+        // of the 7th byte
         // // B8 17 A2 A4 BD becomes 81 7A 2A 4B
-        const uint8_t* serial_data_lo = data->page[4].data;
-        const uint8_t* serial_data_hi = data->page[5].data;
+        const uint8_t *serial_data_lo = data->page[4].data;
+        const uint8_t *serial_data_hi = data->page[5].data;
 
         serial = (serial_data_lo[2] & 0x0F) << 28 | serial_data_lo[3] << 20 |
                  serial_data_hi[0] << 12 | serial_data_hi[1] << 4 | serial_data_hi[2] >> 4;
 
         // Format string for rides count
-        furi_string_printf(
-            parsed_data, "\e#All-In-One\nNumber: %lu\nRides left: %u", serial, ride_count);
+        furi_string_printf(parsed_data, "\e#All-In-One\nNumber: %lu\nRides left: %u", serial,
+                           ride_count);
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -102,6 +105,7 @@ static const FlipperAppPluginDescriptor all_in_one_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* all_in_one_plugin_ep(void) {
+const FlipperAppPluginDescriptor *all_in_one_plugin_ep(void)
+{
     return &all_in_one_plugin_descriptor;
 }

@@ -2,25 +2,27 @@
 #include "furi_hal_random.h"
 #include <float.h>
 
-#define JS_MATH_PI      ((double)M_PI)
-#define JS_MATH_E       ((double)M_E)
+#define JS_MATH_PI ((double)M_PI)
+#define JS_MATH_E ((double)M_E)
 #define JS_MATH_EPSILON ((double)DBL_EPSILON)
 
 #define TAG "JsMath"
 
-static void ret_bad_args(struct mjs* mjs, const char* error) {
+static void ret_bad_args(struct mjs *mjs, const char *error)
+{
     mjs_prepend_errorf(mjs, MJS_BAD_ARGS_ERROR, "%s", error);
     mjs_return(mjs, MJS_UNDEFINED);
 }
 
-static bool check_args(struct mjs* mjs, size_t count) {
+static bool check_args(struct mjs *mjs, size_t count)
+{
     size_t num_args = mjs_nargs(mjs);
-    if(num_args != count) {
+    if (num_args != count) {
         ret_bad_args(mjs, "Wrong argument count");
         return false;
     }
-    for(size_t i = 0; i < count; i++) {
-        if(!mjs_is_number(mjs_arg(mjs, i))) {
+    for (size_t i = 0; i < count; i++) {
+        if (!mjs_is_number(mjs_arg(mjs, i))) {
             ret_bad_args(mjs, "Wrong argument type");
             return false;
         }
@@ -28,8 +30,9 @@ static bool check_args(struct mjs* mjs, size_t count) {
     return true;
 }
 
-void js_math_is_equal(struct mjs* mjs) {
-    if(!check_args(mjs, 3)) {
+void js_math_is_equal(struct mjs *mjs)
+{
+    if (!check_args(mjs, 3)) {
         return;
     }
 
@@ -41,8 +44,9 @@ void js_math_is_equal(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_boolean(mjs, (f <= e)));
 }
 
-void js_math_abs(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_abs(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -51,13 +55,14 @@ void js_math_abs(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, fabs(x)));
 }
 
-void js_math_acos(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_acos(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
-    if(x < (double)-1. || x > (double)1.) {
+    if (x < (double)-1. || x > (double)1.) {
         ret_bad_args(mjs, "Invalid input value for math.acos");
         return;
     }
@@ -65,13 +70,14 @@ void js_math_acos(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, acos(x)));
 }
 
-void js_math_acosh(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_acosh(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
-    if(x < (double)1.) {
+    if (x < (double)1.) {
         ret_bad_args(mjs, "Invalid input value for math.acosh");
         return;
     }
@@ -79,8 +85,9 @@ void js_math_acosh(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, log(x + sqrt(x * x - (double)1.))));
 }
 
-void js_math_asin(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_asin(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -89,8 +96,9 @@ void js_math_asin(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, asin(x)));
 }
 
-void js_math_asinh(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_asinh(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -99,8 +107,9 @@ void js_math_asinh(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, log(x + sqrt(x * x + (double)1.))));
 }
 
-void js_math_atan(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_atan(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -109,8 +118,9 @@ void js_math_atan(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, atan(x)));
 }
 
-void js_math_atan2(struct mjs* mjs) {
-    if(!check_args(mjs, 2)) {
+void js_math_atan2(struct mjs *mjs)
+{
+    if (!check_args(mjs, 2)) {
         return;
     }
 
@@ -120,13 +130,14 @@ void js_math_atan2(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, atan2(y, x)));
 }
 
-void js_math_atanh(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_atanh(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
-    if(x < (double)-1. || x > (double)1.) {
+    if (x < (double)-1. || x > (double)1.) {
         ret_bad_args(mjs, "Invalid input value for math.atanh");
         return;
     }
@@ -134,8 +145,9 @@ void js_math_atanh(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, (double)0.5 * log(((double)1. + x) / ((double)1. - x))));
 }
 
-void js_math_cbrt(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_cbrt(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -144,8 +156,9 @@ void js_math_cbrt(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, cbrt(x)));
 }
 
-void js_math_ceil(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_ceil(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -153,14 +166,15 @@ void js_math_ceil(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, ceil(x)));
 }
 
-void js_math_clz32(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_clz32(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     unsigned int x = (unsigned int)mjs_get_int(mjs, mjs_arg(mjs, 0));
     int count = 0;
-    while(x) {
+    while (x) {
         x >>= 1;
         count++;
     }
@@ -168,8 +182,9 @@ void js_math_clz32(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, 32 - count));
 }
 
-void js_math_cos(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_cos(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -178,8 +193,9 @@ void js_math_cos(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, cos(x)));
 }
 
-void js_math_exp(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_exp(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -188,8 +204,9 @@ void js_math_exp(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, exp(x)));
 }
 
-void js_math_floor(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_floor(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -198,13 +215,14 @@ void js_math_floor(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, floor(x)));
 }
 
-void js_math_log(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_log(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
-    if(x <= 0) {
+    if (x <= 0) {
         ret_bad_args(mjs, "Invalid input value for math.log");
         return;
     }
@@ -212,8 +230,9 @@ void js_math_log(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, log(x)));
 }
 
-void js_math_max(struct mjs* mjs) {
-    if(!check_args(mjs, 2)) {
+void js_math_max(struct mjs *mjs)
+{
+    if (!check_args(mjs, 2)) {
         return;
     }
 
@@ -223,8 +242,9 @@ void js_math_max(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, x > y ? x : y));
 }
 
-void js_math_min(struct mjs* mjs) {
-    if(!check_args(mjs, 2)) {
+void js_math_min(struct mjs *mjs)
+{
+    if (!check_args(mjs, 2)) {
         return;
     }
 
@@ -234,8 +254,9 @@ void js_math_min(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, x < y ? x : y));
 }
 
-void js_math_pow(struct mjs* mjs) {
-    if(!check_args(mjs, 2)) {
+void js_math_pow(struct mjs *mjs)
+{
+    if (!check_args(mjs, 2)) {
         return;
     }
 
@@ -245,8 +266,9 @@ void js_math_pow(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, pow(base, exponent)));
 }
 
-void js_math_random(struct mjs* mjs) {
-    if(!check_args(mjs, 0)) {
+void js_math_random(struct mjs *mjs)
+{
+    if (!check_args(mjs, 0)) {
         return;
     }
 
@@ -258,21 +280,22 @@ void js_math_random(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, rnd));
 }
 
-void js_math_sign(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_sign(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
 
-    mjs_return(
-        mjs,
-        mjs_mk_number(
-            mjs, fabs(x) <= JS_MATH_EPSILON ? 0 : (x < (double)0. ? (double)-1.0 : (double)1.0)));
+    mjs_return(mjs, mjs_mk_number(mjs, fabs(x) <= JS_MATH_EPSILON
+                                           ? 0
+                                           : (x < (double)0. ? (double)-1.0 : (double)1.0)));
 }
 
-void js_math_sin(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_sin(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -281,13 +304,14 @@ void js_math_sin(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, sin(x)));
 }
 
-void js_math_sqrt(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_sqrt(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
     double x = mjs_get_double(mjs, mjs_arg(mjs, 0));
-    if(x < (double)0.) {
+    if (x < (double)0.) {
         ret_bad_args(mjs, "Invalid input value for math.sqrt");
         return;
     }
@@ -295,8 +319,9 @@ void js_math_sqrt(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, sqrt(x)));
 }
 
-void js_math_trunc(struct mjs* mjs) {
-    if(!check_args(mjs, 1)) {
+void js_math_trunc(struct mjs *mjs)
+{
+    if (!check_args(mjs, 1)) {
         return;
     }
 
@@ -305,7 +330,8 @@ void js_math_trunc(struct mjs* mjs) {
     mjs_return(mjs, mjs_mk_number(mjs, x < (double)0. ? ceil(x) : floor(x)));
 }
 
-static void* js_math_create(struct mjs* mjs, mjs_val_t* object, JsModules* modules) {
+static void *js_math_create(struct mjs *mjs, mjs_val_t *object, JsModules *modules)
+{
     UNUSED(modules);
     mjs_val_t math_obj = mjs_mk_object(mjs);
     mjs_set(mjs, math_obj, "isEqual", ~0, MJS_MK_FN(js_math_is_equal));
@@ -336,7 +362,7 @@ static void* js_math_create(struct mjs* mjs, mjs_val_t* object, JsModules* modul
     mjs_set(mjs, math_obj, "E", ~0, mjs_mk_number(mjs, JS_MATH_E));
     mjs_set(mjs, math_obj, "EPSILON", ~0, mjs_mk_number(mjs, JS_MATH_EPSILON));
     *object = math_obj;
-    return (void*)1;
+    return (void *)1;
 }
 
 static const JsModuleDescriptor js_math_desc = {
@@ -352,6 +378,7 @@ static const FlipperAppPluginDescriptor plugin_descriptor = {
     .entry_point = &js_math_desc,
 };
 
-const FlipperAppPluginDescriptor* js_math_ep(void) {
+const FlipperAppPluginDescriptor *js_math_ep(void)
+{
     return &plugin_descriptor;
 }

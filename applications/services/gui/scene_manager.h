@@ -28,21 +28,21 @@ typedef struct {
 } SceneManagerEvent;
 
 /** Prototype for Scene on_enter handler */
-typedef void (*AppSceneOnEnterCallback)(void* context);
+typedef void (*AppSceneOnEnterCallback)(void *context);
 
 /** Prototype for Scene on_event handler */
-typedef bool (*AppSceneOnEventCallback)(void* context, SceneManagerEvent event);
+typedef bool (*AppSceneOnEventCallback)(void *context, SceneManagerEvent event);
 
 /** Prototype for Scene on_exit handler */
-typedef void (*AppSceneOnExitCallback)(void* context);
+typedef void (*AppSceneOnExitCallback)(void *context);
 
 /** Scene Manager configuration structure
  * Contains array of Scene handlers
  */
 typedef struct {
-    const AppSceneOnEnterCallback* on_enter_handlers;
-    const AppSceneOnEventCallback* on_event_handlers;
-    const AppSceneOnExitCallback* on_exit_handlers;
+    const AppSceneOnEnterCallback *on_enter_handlers;
+    const AppSceneOnEventCallback *on_event_handlers;
+    const AppSceneOnExitCallback *on_exit_handlers;
     const uint32_t scene_num;
 } SceneManagerHandlers;
 
@@ -54,7 +54,7 @@ typedef struct SceneManager SceneManager;
  * @param      scene_id       Scene ID
  * @param      state          Scene new state
  */
-void scene_manager_set_scene_state(SceneManager* scene_manager, uint32_t scene_id, uint32_t state);
+void scene_manager_set_scene_state(SceneManager *scene_manager, uint32_t scene_id, uint32_t state);
 
 /** Get Scene state
  *
@@ -63,7 +63,7 @@ void scene_manager_set_scene_state(SceneManager* scene_manager, uint32_t scene_i
  *
  * @return     Scene state
  */
-uint32_t scene_manager_get_scene_state(const SceneManager* scene_manager, uint32_t scene_id);
+uint32_t scene_manager_get_scene_state(const SceneManager *scene_manager, uint32_t scene_id);
 
 /** Scene Manager allocation and configuration
  *
@@ -74,13 +74,13 @@ uint32_t scene_manager_get_scene_state(const SceneManager* scene_manager, uint32
  *
  * @return     SceneManager instance
  */
-SceneManager* scene_manager_alloc(const SceneManagerHandlers* app_scene_handlers, void* context);
+SceneManager *scene_manager_alloc(const SceneManagerHandlers *app_scene_handlers, void *context);
 
 /** Free Scene Manager with allocated Scenes
  *
  * @param      scene_manager  SceneManager instance
  */
-void scene_manager_free(SceneManager* scene_manager);
+void scene_manager_free(SceneManager *scene_manager);
 
 /** Custom event handler
  *
@@ -91,7 +91,7 @@ void scene_manager_free(SceneManager* scene_manager);
  *
  * @return     true if event was consumed, false otherwise
  */
-bool scene_manager_handle_custom_event(SceneManager* scene_manager, uint32_t custom_event);
+bool scene_manager_handle_custom_event(SceneManager *scene_manager, uint32_t custom_event);
 
 /** Back event handler
  *
@@ -101,7 +101,7 @@ bool scene_manager_handle_custom_event(SceneManager* scene_manager, uint32_t cus
  *
  * @return     true if event was consumed, false otherwise
  */
-bool scene_manager_handle_back_event(SceneManager* scene_manager);
+bool scene_manager_handle_back_event(SceneManager *scene_manager);
 
 /** Tick event handler
  *
@@ -109,14 +109,14 @@ bool scene_manager_handle_back_event(SceneManager* scene_manager);
  *
  * @param      scene_manager  SceneManager instance
  */
-void scene_manager_handle_tick_event(SceneManager* scene_manager);
+void scene_manager_handle_tick_event(SceneManager *scene_manager);
 
 /** Add and run next Scene
  *
  * @param      scene_manager  SceneManager instance
  * @param      next_scene_id  next Scene ID
  */
-void scene_manager_next_scene(SceneManager* scene_manager, uint32_t next_scene_id);
+void scene_manager_next_scene(SceneManager *scene_manager, uint32_t next_scene_id);
 
 /** Run previous Scene
  *
@@ -124,7 +124,7 @@ void scene_manager_next_scene(SceneManager* scene_manager, uint32_t next_scene_i
  *
  * @return     true if previous scene was found, false otherwise
  */
-bool scene_manager_previous_scene(SceneManager* scene_manager);
+bool scene_manager_previous_scene(SceneManager *scene_manager);
 
 /** Search previous Scene
  *
@@ -133,7 +133,7 @@ bool scene_manager_previous_scene(SceneManager* scene_manager);
  *
  * @return     true if previous scene was found, false otherwise
  */
-bool scene_manager_has_previous_scene(const SceneManager* scene_manager, uint32_t scene_id);
+bool scene_manager_has_previous_scene(const SceneManager *scene_manager, uint32_t scene_id);
 
 /** Search and switch to previous Scene
  *
@@ -142,9 +142,8 @@ bool scene_manager_has_previous_scene(const SceneManager* scene_manager, uint32_
  *
  * @return     true if previous scene was found, false otherwise
  */
-bool scene_manager_search_and_switch_to_previous_scene(
-    SceneManager* scene_manager,
-    uint32_t scene_id);
+bool scene_manager_search_and_switch_to_previous_scene(SceneManager *scene_manager,
+                                                       uint32_t scene_id);
 
 /** Search and switch to previous Scene, multiple choice
  *
@@ -154,10 +153,9 @@ bool scene_manager_search_and_switch_to_previous_scene(
  *
  * @return     true if one of previous scenes was found, false otherwise
  */
-bool scene_manager_search_and_switch_to_previous_scene_one_of(
-    SceneManager* scene_manager,
-    const uint32_t* scene_ids,
-    size_t scene_ids_size);
+bool scene_manager_search_and_switch_to_previous_scene_one_of(SceneManager *scene_manager,
+                                                              const uint32_t *scene_ids,
+                                                              size_t scene_ids_size);
 
 /** Clear Scene stack and switch to another Scene
  *
@@ -166,23 +164,22 @@ bool scene_manager_search_and_switch_to_previous_scene_one_of(
  *
  * @return     true if previous scene was found, false otherwise
  */
-bool scene_manager_search_and_switch_to_another_scene(
-    SceneManager* scene_manager,
-    uint32_t scene_id);
+bool scene_manager_search_and_switch_to_another_scene(SceneManager *scene_manager,
+                                                      uint32_t scene_id);
 
 /** Get id of current scene
- * 
+ *
  * @param      scene_manager  SceneManager instance
- * 
+ *
  * @return                    Scene ID
  */
-uint32_t scene_manager_get_current_scene(SceneManager* scene_manager);
+uint32_t scene_manager_get_current_scene(SceneManager *scene_manager);
 
 /** Exit from current scene
  *
  * @param      scene_manager  SceneManager instance
  */
-void scene_manager_stop(SceneManager* scene_manager);
+void scene_manager_stop(SceneManager *scene_manager);
 
 #ifdef __cplusplus
 }

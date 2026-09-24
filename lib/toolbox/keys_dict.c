@@ -9,18 +9,19 @@
 #define TAG "KeysDict"
 
 struct KeysDict {
-    Stream* stream;
+    Stream *stream;
     size_t key_size;
     size_t key_size_symbols;
     size_t total_keys;
 };
 
-static inline void keys_dict_add_ending_new_line(KeysDict* instance) {
-    if(stream_seek(instance->stream, -1, StreamOffsetFromEnd)) {
+static inline void keys_dict_add_ending_new_line(KeysDict *instance)
+{
+    if (stream_seek(instance->stream, -1, StreamOffsetFromEnd)) {
         uint8_t last_char = 0;
 
         // Check if the last char is new line or add a new line
-        if(stream_read(instance->stream, &last_char, 1) == 1 && last_char != '\n') {
+        if (stream_read(instance->stream, &last_char, 1) == 1 && last_char != '\n') {
             FURI_LOG_D(TAG, "Adding new line ending");
             stream_write_char(instance->stream, '\n');
         }
@@ -31,25 +32,27 @@ static inline void keys_dict_add_ending_new_line(KeysDict* instance) {
 
 // Keep only the key prefix, but consume the entire line so the next read starts
 // at the following entry. Long comments and suffixes must not grow the string.
-static bool keys_dict_read_line(Stream* stream, FuriString* line, size_t max_length) {
+static bool keys_dict_read_line(Stream *stream, FuriString *line, size_t max_length)
+{
     furi_string_reset(line);
     uint8_t buffer[32];
     size_t length = 0;
 
-    while(true) {
+    while (true) {
         const size_t bytes_read = stream_read(stream, buffer, sizeof(buffer));
-        if(bytes_read == 0) return length != 0;
+        if (bytes_read == 0)
+            return length != 0;
 
-        for(size_t i = 0; i < bytes_read; i++) {
-            if(buffer[i] == '\n') {
+        for (size_t i = 0; i < bytes_read; i++) {
+            if (buffer[i] == '\n') {
                 const int32_t unread = (int32_t)bytes_read - (int32_t)i - 1;
-                if(unread && !stream_seek(stream, -unread, StreamOffsetFromCurrent)) {
+                if (unread && !stream_seek(stream, -unread, StreamOffsetFromCurrent)) {
                     furi_string_reset(line);
                     return false;
                 }
                 return true;
             }
-            if(buffer[i] != '\r' && length < max_length) {
+            if (buffer[i] != '\r' && length < max_length) {
                 furi_string_push_back(line, buffer[i]);
                 length++;
             }
@@ -57,27 +60,27 @@ static bool keys_dict_read_line(Stream* stream, FuriString* line, size_t max_len
     }
 }
 
-static bool keys_dict_read_key_line(KeysDict* instance, FuriString* line, bool* is_endfile) {
-    if(keys_dict_read_line(instance->stream, line, instance->key_size_symbols - 1) == false) {
+static bool keys_dict_read_key_line(KeysDict *instance, FuriString *line, bool *is_endfile)
+{
+    if (keys_dict_read_line(instance->stream, line, instance->key_size_symbols - 1) == false) {
         *is_endfile = true;
     }
 
     else {
-        FURI_LOG_T(
-            TAG, "Read line: %s, len: %zu", furi_string_get_cstr(line), furi_string_size(line));
+        FURI_LOG_T(TAG, "Read line: %s, len: %zu", furi_string_get_cstr(line),
+                   furi_string_size(line));
 
         bool is_comment = furi_string_size(line) != 0 && furi_string_get_char(line, 0) == '#';
 
         bool is_correct_size = furi_string_size(line) == instance->key_size_symbols - 1;
 
-        if(is_comment || !is_correct_size) return false;
+        if (is_comment || !is_correct_size)
+            return false;
 
-        for(size_t i = 0; i < instance->key_size; i++) {
+        for (size_t i = 0; i < instance->key_size; i++) {
             uint8_t byte;
-            if(!args_char_to_hex(
-                   furi_string_get_char(line, i * 2),
-                   furi_string_get_char(line, i * 2 + 1),
-                   &byte)) {
+            if (!args_char_to_hex(furi_string_get_char(line, i * 2),
+                                  furi_string_get_char(line, i * 2 + 1), &byte)) {
                 return false;
             }
         }
@@ -87,10 +90,11 @@ static bool keys_dict_read_key_line(KeysDict* instance, FuriString* line, bool* 
     return false;
 }
 
-bool keys_dict_check_presence(const char* path) {
+bool keys_dict_check_presence(const char *path)
+{
     furi_check(path);
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     bool dict_present = storage_common_stat(storage, path, NULL) == FSE_OK;
 
@@ -99,18 +103,19 @@ bool keys_dict_check_presence(const char* path) {
     return dict_present;
 }
 
-KeysDict* keys_dict_alloc(const char* path, KeysDictMode mode, size_t key_size) {
+KeysDict *keys_dict_alloc(const char *path, KeysDictMode mode, size_t key_size)
+{
     furi_check(path);
     furi_check(key_size > 0);
     furi_check(key_size <= (SIZE_MAX - 1) / 2);
 
-    KeysDict* instance = malloc(sizeof(KeysDict));
+    KeysDict *instance = malloc(sizeof(KeysDict));
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
     instance->stream = buffered_file_stream_alloc(storage);
 
-    FS_OpenMode open_mode = (mode == KeysDictModeOpenAlways) ? FSOM_OPEN_ALWAYS :
-                                                               FSOM_OPEN_EXISTING;
+    FS_OpenMode open_mode =
+        (mode == KeysDictModeOpenAlways) ? FSOM_OPEN_ALWAYS : FSOM_OPEN_EXISTING;
 
     // Byte = 2 symbols + 1 end of line
     instance->key_size = key_size;
@@ -121,22 +126,22 @@ KeysDict* keys_dict_alloc(const char* path, KeysDictMode mode, size_t key_size) 
     bool file_exists =
         buffered_file_stream_open(instance->stream, path, FSAM_READ_WRITE, open_mode);
 
-    if(!file_exists) {
+    if (!file_exists) {
         buffered_file_stream_close(instance->stream);
     } else {
         // Eventually add new line character in the last line to avoid skipping keys
         keys_dict_add_ending_new_line(instance);
     }
 
-    FuriString* line = furi_string_alloc();
+    FuriString *line = furi_string_alloc();
 
     bool is_endfile = false;
 
     // In this loop we only count the entries in the file
     // We prefer not to load the whole file in memory for space reasons
-    while(file_exists && !is_endfile) {
+    while (file_exists && !is_endfile) {
         bool read_key = keys_dict_read_key_line(instance, line, &is_endfile);
-        if(read_key) {
+        if (read_key) {
             instance->total_keys++;
         }
     }
@@ -148,7 +153,8 @@ KeysDict* keys_dict_alloc(const char* path, KeysDictMode mode, size_t key_size) 
     return instance;
 }
 
-void keys_dict_free(KeysDict* instance) {
+void keys_dict_free(KeysDict *instance)
+{
     furi_check(instance);
     furi_check(instance->stream);
 
@@ -159,18 +165,20 @@ void keys_dict_free(KeysDict* instance) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void keys_dict_int_to_str(KeysDict* instance, const uint8_t* key_int, FuriString* key_str) {
+static void keys_dict_int_to_str(KeysDict *instance, const uint8_t *key_int, FuriString *key_str)
+{
     furi_assert(instance);
     furi_assert(key_str);
     furi_assert(key_int);
 
     furi_string_reset(key_str);
 
-    for(size_t i = 0; i < instance->key_size; i++)
+    for (size_t i = 0; i < instance->key_size; i++)
         furi_string_cat_printf(key_str, "%02X", key_int[i]);
 }
 
-static void keys_dict_str_to_int(KeysDict* instance, FuriString* key_str, uint8_t* key_out) {
+static void keys_dict_str_to_int(KeysDict *instance, FuriString *key_str, uint8_t *key_out)
+{
     furi_assert(instance);
     furi_assert(key_str);
     furi_assert(key_out);
@@ -179,7 +187,7 @@ static void keys_dict_str_to_int(KeysDict* instance, FuriString* key_str, uint8_
     char h, l;
 
     // Process two hex characters at a time to create each byte
-    for(size_t i = 0; i < instance->key_size_symbols - 1; i += 2) {
+    for (size_t i = 0; i < instance->key_size_symbols - 1; i += 2) {
         h = furi_string_get_char(key_str, i);
         l = furi_string_get_char(key_str, i + 1);
 
@@ -188,20 +196,23 @@ static void keys_dict_str_to_int(KeysDict* instance, FuriString* key_str, uint8_
     }
 }
 
-size_t keys_dict_get_total_keys(KeysDict* instance) {
+size_t keys_dict_get_total_keys(KeysDict *instance)
+{
     furi_check(instance);
 
     return instance->total_keys;
 }
 
-bool keys_dict_rewind(KeysDict* instance) {
+bool keys_dict_rewind(KeysDict *instance)
+{
     furi_check(instance);
     furi_check(instance->stream);
 
     return stream_rewind(instance->stream);
 }
 
-static bool keys_dict_get_next_key_str(KeysDict* instance, FuriString* key) {
+static bool keys_dict_get_next_key_str(KeysDict *instance, FuriString *key)
+{
     furi_assert(instance);
     furi_assert(instance->stream);
     furi_assert(key);
@@ -211,23 +222,24 @@ static bool keys_dict_get_next_key_str(KeysDict* instance, FuriString* key) {
 
     furi_string_reset(key);
 
-    while(!key_read && !is_endfile)
+    while (!key_read && !is_endfile)
         key_read = keys_dict_read_key_line(instance, key, &is_endfile);
 
     return key_read;
 }
 
-bool keys_dict_get_next_key(KeysDict* instance, uint8_t* key, size_t key_size) {
+bool keys_dict_get_next_key(KeysDict *instance, uint8_t *key, size_t key_size)
+{
     furi_check(instance);
     furi_check(instance->stream);
     furi_check(instance->key_size == key_size);
     furi_check(key);
 
-    FuriString* temp_key = furi_string_alloc();
+    FuriString *temp_key = furi_string_alloc();
 
     bool key_read = keys_dict_get_next_key_str(instance, temp_key);
 
-    if(key_read) {
+    if (key_read) {
         keys_dict_str_to_int(instance, temp_key, key);
     }
 
@@ -235,12 +247,13 @@ bool keys_dict_get_next_key(KeysDict* instance, uint8_t* key, size_t key_size) {
     return key_read;
 }
 
-static bool keys_dict_is_key_present_str(KeysDict* instance, FuriString* key) {
+static bool keys_dict_is_key_present_str(KeysDict *instance, FuriString *key)
+{
     furi_assert(instance);
     furi_assert(instance->stream);
     furi_assert(key);
 
-    FuriString* line = furi_string_alloc();
+    FuriString *line = furi_string_alloc();
 
     bool is_endfile = false;
     bool line_found = false;
@@ -248,7 +261,7 @@ static bool keys_dict_is_key_present_str(KeysDict* instance, FuriString* key) {
     uint32_t actual_pos = stream_tell(instance->stream);
     stream_rewind(instance->stream);
 
-    while(!line_found && !is_endfile)
+    while (!line_found && !is_endfile)
         line_found = // The line is found if the line was read and the key is equal to the line
             (keys_dict_read_key_line(instance, line, &is_endfile)) &&
             (furi_string_equal(key, line));
@@ -261,13 +274,14 @@ static bool keys_dict_is_key_present_str(KeysDict* instance, FuriString* key) {
     return line_found;
 }
 
-bool keys_dict_is_key_present(KeysDict* instance, const uint8_t* key, size_t key_size) {
+bool keys_dict_is_key_present(KeysDict *instance, const uint8_t *key, size_t key_size)
+{
     furi_check(instance);
     furi_check(instance->stream);
     furi_check(instance->key_size == key_size);
     furi_check(key);
 
-    FuriString* temp_key = furi_string_alloc();
+    FuriString *temp_key = furi_string_alloc();
 
     keys_dict_int_to_str(instance, key, temp_key);
     bool key_found = keys_dict_is_key_present_str(instance, temp_key);
@@ -276,7 +290,8 @@ bool keys_dict_is_key_present(KeysDict* instance, const uint8_t* key, size_t key
     return key_found;
 }
 
-static bool keys_dict_add_key_str(KeysDict* instance, FuriString* key) {
+static bool keys_dict_add_key_str(KeysDict *instance, FuriString *key)
+{
     furi_assert(instance);
     furi_assert(instance->stream);
     furi_assert(key);
@@ -287,8 +302,8 @@ static bool keys_dict_add_key_str(KeysDict* instance, FuriString* key) {
 
     uint32_t actual_pos = stream_tell(instance->stream);
 
-    if(stream_seek(instance->stream, 0, StreamOffsetFromEnd) &&
-       stream_insert_string(instance->stream, key)) {
+    if (stream_seek(instance->stream, 0, StreamOffsetFromEnd) &&
+        stream_insert_string(instance->stream, key)) {
         instance->total_keys++;
         key_added = true;
     }
@@ -298,13 +313,14 @@ static bool keys_dict_add_key_str(KeysDict* instance, FuriString* key) {
     return key_added;
 }
 
-bool keys_dict_add_key(KeysDict* instance, const uint8_t* key, size_t key_size) {
+bool keys_dict_add_key(KeysDict *instance, const uint8_t *key, size_t key_size)
+{
     furi_check(instance);
     furi_check(instance->stream);
     furi_check(instance->key_size == key_size);
     furi_check(key);
 
-    FuriString* temp_key = furi_string_alloc();
+    FuriString *temp_key = furi_string_alloc();
 
     keys_dict_int_to_str(instance, key, temp_key);
     bool key_added = keys_dict_add_key_str(instance, temp_key);
@@ -316,7 +332,8 @@ bool keys_dict_add_key(KeysDict* instance, const uint8_t* key, size_t key_size) 
     return key_added;
 }
 
-bool keys_dict_delete_key(KeysDict* instance, const uint8_t* key, size_t key_size) {
+bool keys_dict_delete_key(KeysDict *instance, const uint8_t *key, size_t key_size)
+{
     furi_check(instance);
     furi_check(instance->stream);
     furi_check(instance->key_size == key_size);
@@ -324,18 +341,18 @@ bool keys_dict_delete_key(KeysDict* instance, const uint8_t* key, size_t key_siz
 
     bool key_removed = false;
 
-    uint8_t* temp_key = malloc(key_size);
+    uint8_t *temp_key = malloc(key_size);
 
     stream_rewind(instance->stream);
 
-    while(!key_removed) {
-        if(!keys_dict_get_next_key(instance, temp_key, key_size)) {
+    while (!key_removed) {
+        if (!keys_dict_get_next_key(instance, temp_key, key_size)) {
             break;
         }
 
-        if(memcmp(temp_key, key, key_size) == 0) {
+        if (memcmp(temp_key, key, key_size) == 0) {
             stream_seek(instance->stream, -instance->key_size_symbols, StreamOffsetFromCurrent);
-            if(stream_delete(instance->stream, instance->key_size_symbols) == false) {
+            if (stream_delete(instance->stream, instance->key_size_symbols) == false) {
                 break;
             }
             instance->total_keys--;
@@ -343,7 +360,7 @@ bool keys_dict_delete_key(KeysDict* instance, const uint8_t* key, size_t key_siz
         }
     }
 
-    FuriString* tmp = furi_string_alloc();
+    FuriString *tmp = furi_string_alloc();
 
     keys_dict_int_to_str(instance, key, tmp);
 

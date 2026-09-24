@@ -1,4 +1,4 @@
-//#include "emv_i.h"
+// #include "emv_i.h"
 
 #include "flipper_format.h"
 #include <core/common_defines.h>
@@ -25,15 +25,17 @@ const NfcDeviceBase nfc_device_emv = {
     .get_base_data = (NfcDeviceGetBaseData)emv_get_base_data,
 };
 
-EmvData* emv_alloc(void) {
-    EmvData* data = malloc(sizeof(EmvData));
+EmvData *emv_alloc(void)
+{
+    EmvData *data = malloc(sizeof(EmvData));
     data->iso14443_4a_data = iso14443_4a_alloc();
     data->emv_application.pin_try_counter = 0xff;
 
     return data;
 }
 
-void emv_free(EmvData* data) {
+void emv_free(EmvData *data)
+{
     furi_assert(data);
 
     emv_reset(data);
@@ -41,7 +43,8 @@ void emv_free(EmvData* data) {
     free(data);
 }
 
-void emv_reset(EmvData* data) {
+void emv_reset(EmvData *data)
+{
     furi_assert(data);
 
     iso14443_4a_reset(data->iso14443_4a_data);
@@ -49,7 +52,8 @@ void emv_reset(EmvData* data) {
     memset(&data->emv_application, 0, sizeof(EmvApplication));
 }
 
-void emv_copy(EmvData* destination, const EmvData* source) {
+void emv_copy(EmvData *destination, const EmvData *source)
+{
     furi_assert(destination);
     furi_assert(source);
 
@@ -59,140 +63,182 @@ void emv_copy(EmvData* destination, const EmvData* source) {
     destination->emv_application = source->emv_application;
 }
 
-bool emv_verify(EmvData* data, const FuriString* device_type) {
+bool emv_verify(EmvData *data, const FuriString *device_type)
+{
     UNUSED(data);
     return furi_string_equal_str(device_type, EMV_PROTOCOL_NAME);
 }
 
-bool emv_load(EmvData* data, FlipperFormat* ff, uint32_t version) {
+bool emv_load(EmvData *data, FlipperFormat *ff, uint32_t version)
+{
     furi_assert(data);
 
-    FuriString* temp_str = furi_string_alloc();
+    FuriString *temp_str = furi_string_alloc();
     bool parsed = false;
 
     do {
         // Read ISO14443_4A data
-        if(!iso14443_4a_load(data->iso14443_4a_data, ff, version)) break;
+        if (!iso14443_4a_load(data->iso14443_4a_data, ff, version))
+            break;
 
-        EmvApplication* app = &data->emv_application;
+        EmvApplication *app = &data->emv_application;
 
-        if(!flipper_format_read_string(ff, "Cardholder name", temp_str)) break;
-        if(furi_string_size(temp_str) >= sizeof(app->cardholder_name)) break;
+        if (!flipper_format_read_string(ff, "Cardholder name", temp_str))
+            break;
+        if (furi_string_size(temp_str) >= sizeof(app->cardholder_name))
+            break;
         strcpy(app->cardholder_name, furi_string_get_cstr(temp_str));
 
-        if(!flipper_format_read_string(ff, "Application name", temp_str)) break;
-        if(furi_string_size(temp_str) >= sizeof(app->application_name)) break;
+        if (!flipper_format_read_string(ff, "Application name", temp_str))
+            break;
+        if (furi_string_size(temp_str) >= sizeof(app->application_name))
+            break;
         strcpy(app->application_name, furi_string_get_cstr(temp_str));
 
-        if(!flipper_format_read_string(ff, "Application label", temp_str)) break;
-        if(furi_string_size(temp_str) >= sizeof(app->application_label)) break;
+        if (!flipper_format_read_string(ff, "Application label", temp_str))
+            break;
+        if (furi_string_size(temp_str) >= sizeof(app->application_label))
+            break;
         strcpy(app->application_label, furi_string_get_cstr(temp_str));
 
         uint32_t pan_len;
-        if(!flipper_format_read_uint32(ff, "PAN length", &pan_len, 1)) break;
-        if(pan_len > sizeof(app->pan)) break;
+        if (!flipper_format_read_uint32(ff, "PAN length", &pan_len, 1))
+            break;
+        if (pan_len > sizeof(app->pan))
+            break;
         app->pan_len = pan_len;
 
-        if(!flipper_format_read_hex(ff, "PAN", app->pan, pan_len)) break;
-
-        uint32_t aid_len;
-        if(!flipper_format_read_uint32(ff, "AID length", &aid_len, 1)) break;
-        if(aid_len > sizeof(app->aid)) break;
-        app->aid_len = aid_len;
-
-        if(!flipper_format_read_hex(ff, "AID", app->aid, aid_len)) break;
-
-        if(!flipper_format_read_hex(
-               ff, "Application interchange profile", app->application_interchange_profile, 2))
+        if (!flipper_format_read_hex(ff, "PAN", app->pan, pan_len))
             break;
 
-        if(!flipper_format_read_hex(ff, "Country code", (uint8_t*)&app->country_code, 2)) break;
+        uint32_t aid_len;
+        if (!flipper_format_read_uint32(ff, "AID length", &aid_len, 1))
+            break;
+        if (aid_len > sizeof(app->aid))
+            break;
+        app->aid_len = aid_len;
 
-        if(!flipper_format_read_hex(ff, "Currency code", (uint8_t*)&app->currency_code, 2)) break;
+        if (!flipper_format_read_hex(ff, "AID", app->aid, aid_len))
+            break;
 
-        if(!flipper_format_read_hex(ff, "Expiration year", &app->exp_year, 1)) break;
-        if(!flipper_format_read_hex(ff, "Expiration month", &app->exp_month, 1)) break;
-        if(!flipper_format_read_hex(ff, "Expiration day", &app->exp_day, 1)) break;
+        if (!flipper_format_read_hex(ff, "Application interchange profile",
+                                     app->application_interchange_profile, 2))
+            break;
 
-        if(!flipper_format_read_hex(ff, "Effective year", &app->effective_year, 1)) break;
-        if(!flipper_format_read_hex(ff, "Effective month", &app->effective_month, 1)) break;
-        if(!flipper_format_read_hex(ff, "Effective day", &app->effective_day, 1)) break;
+        if (!flipper_format_read_hex(ff, "Country code", (uint8_t *)&app->country_code, 2))
+            break;
+
+        if (!flipper_format_read_hex(ff, "Currency code", (uint8_t *)&app->currency_code, 2))
+            break;
+
+        if (!flipper_format_read_hex(ff, "Expiration year", &app->exp_year, 1))
+            break;
+        if (!flipper_format_read_hex(ff, "Expiration month", &app->exp_month, 1))
+            break;
+        if (!flipper_format_read_hex(ff, "Expiration day", &app->exp_day, 1))
+            break;
+
+        if (!flipper_format_read_hex(ff, "Effective year", &app->effective_year, 1))
+            break;
+        if (!flipper_format_read_hex(ff, "Effective month", &app->effective_month, 1))
+            break;
+        if (!flipper_format_read_hex(ff, "Effective day", &app->effective_day, 1))
+            break;
 
         uint32_t pin_try_counter;
-        if(!flipper_format_read_uint32(ff, "PIN try counter", &pin_try_counter, 1)) break;
-        if(pin_try_counter > UINT8_MAX) break;
+        if (!flipper_format_read_uint32(ff, "PIN try counter", &pin_try_counter, 1))
+            break;
+        if (pin_try_counter > UINT8_MAX)
+            break;
         app->pin_try_counter = pin_try_counter;
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     furi_string_free(temp_str);
 
     return parsed;
 }
 
-bool emv_save(const EmvData* data, FlipperFormat* ff) {
+bool emv_save(const EmvData *data, FlipperFormat *ff)
+{
     furi_assert(data);
 
     bool saved = false;
 
     do {
         EmvApplication app = data->emv_application;
-        if(app.pan_len > sizeof(app.pan) || app.aid_len > sizeof(app.aid)) break;
-        if(!memchr(app.cardholder_name, '\0', sizeof(app.cardholder_name)) ||
-           !memchr(app.application_name, '\0', sizeof(app.application_name)) ||
-           !memchr(app.application_label, '\0', sizeof(app.application_label)))
+        if (app.pan_len > sizeof(app.pan) || app.aid_len > sizeof(app.aid))
             break;
-        if(!iso14443_4a_save(data->iso14443_4a_data, ff)) break;
+        if (!memchr(app.cardholder_name, '\0', sizeof(app.cardholder_name)) ||
+            !memchr(app.application_name, '\0', sizeof(app.application_name)) ||
+            !memchr(app.application_label, '\0', sizeof(app.application_label)))
+            break;
+        if (!iso14443_4a_save(data->iso14443_4a_data, ff))
+            break;
 
-        if(!flipper_format_write_comment_cstr(ff, "EMV specific data:\n")) break;
+        if (!flipper_format_write_comment_cstr(ff, "EMV specific data:\n"))
+            break;
 
-        if(!flipper_format_write_string_cstr(ff, "Cardholder name", app.cardholder_name)) break;
+        if (!flipper_format_write_string_cstr(ff, "Cardholder name", app.cardholder_name))
+            break;
 
-        if(!flipper_format_write_string_cstr(ff, "Application name", app.application_name)) break;
+        if (!flipper_format_write_string_cstr(ff, "Application name", app.application_name))
+            break;
 
-        if(!flipper_format_write_string_cstr(ff, "Application label", app.application_label))
+        if (!flipper_format_write_string_cstr(ff, "Application label", app.application_label))
             break;
 
         uint32_t pan_len = app.pan_len;
-        if(!flipper_format_write_uint32(ff, "PAN length", &pan_len, 1)) break;
+        if (!flipper_format_write_uint32(ff, "PAN length", &pan_len, 1))
+            break;
 
-        if(!flipper_format_write_hex(ff, "PAN", app.pan, pan_len)) break;
+        if (!flipper_format_write_hex(ff, "PAN", app.pan, pan_len))
+            break;
 
         uint32_t aid_len = app.aid_len;
-        if(!flipper_format_write_uint32(ff, "AID length", &aid_len, 1)) break;
-
-        if(!flipper_format_write_hex(ff, "AID", app.aid, aid_len)) break;
-
-        if(!flipper_format_write_hex(
-               ff, "Application interchange profile", app.application_interchange_profile, 2))
+        if (!flipper_format_write_uint32(ff, "AID length", &aid_len, 1))
             break;
 
-        if(!flipper_format_write_hex(ff, "Country code", (uint8_t*)&app.country_code, 2)) break;
-
-        if(!flipper_format_write_hex(ff, "Currency code", (uint8_t*)&app.currency_code, 2)) break;
-
-        if(!flipper_format_write_hex(ff, "Expiration year", (uint8_t*)&app.exp_year, 1)) break;
-        if(!flipper_format_write_hex(ff, "Expiration month", (uint8_t*)&app.exp_month, 1)) break;
-        if(!flipper_format_write_hex(ff, "Expiration day", (uint8_t*)&app.exp_day, 1)) break;
-
-        if(!flipper_format_write_hex(ff, "Effective year", (uint8_t*)&app.effective_year, 1))
+        if (!flipper_format_write_hex(ff, "AID", app.aid, aid_len))
             break;
-        if(!flipper_format_write_hex(ff, "Effective month", (uint8_t*)&app.effective_month, 1))
+
+        if (!flipper_format_write_hex(ff, "Application interchange profile",
+                                      app.application_interchange_profile, 2))
             break;
-        if(!flipper_format_write_hex(ff, "Effective day", (uint8_t*)&app.effective_day, 1)) break;
+
+        if (!flipper_format_write_hex(ff, "Country code", (uint8_t *)&app.country_code, 2))
+            break;
+
+        if (!flipper_format_write_hex(ff, "Currency code", (uint8_t *)&app.currency_code, 2))
+            break;
+
+        if (!flipper_format_write_hex(ff, "Expiration year", (uint8_t *)&app.exp_year, 1))
+            break;
+        if (!flipper_format_write_hex(ff, "Expiration month", (uint8_t *)&app.exp_month, 1))
+            break;
+        if (!flipper_format_write_hex(ff, "Expiration day", (uint8_t *)&app.exp_day, 1))
+            break;
+
+        if (!flipper_format_write_hex(ff, "Effective year", (uint8_t *)&app.effective_year, 1))
+            break;
+        if (!flipper_format_write_hex(ff, "Effective month", (uint8_t *)&app.effective_month, 1))
+            break;
+        if (!flipper_format_write_hex(ff, "Effective day", (uint8_t *)&app.effective_day, 1))
+            break;
 
         uint32_t pin_try_counter = app.pin_try_counter;
-        if(!flipper_format_write_uint32(ff, "PIN try counter", &pin_try_counter, 1))
+        if (!flipper_format_write_uint32(ff, "PIN try counter", &pin_try_counter, 1))
             break;
 
         saved = true;
-    } while(false);
+    } while (false);
 
     return saved;
 }
 
-bool emv_is_equal(const EmvData* data, const EmvData* other) {
+bool emv_is_equal(const EmvData *data, const EmvData *other)
+{
     furi_assert(data);
     furi_assert(other);
 
@@ -200,25 +246,29 @@ bool emv_is_equal(const EmvData* data, const EmvData* other) {
            memcmp(&data->emv_application, &other->emv_application, sizeof(EmvApplication)) == 0;
 }
 
-const char* emv_get_device_name(const EmvData* data, NfcDeviceNameType name_type) {
+const char *emv_get_device_name(const EmvData *data, NfcDeviceNameType name_type)
+{
     UNUSED(data);
     UNUSED(name_type);
     return EMV_PROTOCOL_NAME;
 }
 
-const uint8_t* emv_get_uid(const EmvData* data, size_t* uid_len) {
+const uint8_t *emv_get_uid(const EmvData *data, size_t *uid_len)
+{
     furi_assert(data);
 
     return iso14443_4a_get_uid(data->iso14443_4a_data, uid_len);
 }
 
-bool emv_set_uid(EmvData* data, const uint8_t* uid, size_t uid_len) {
+bool emv_set_uid(EmvData *data, const uint8_t *uid, size_t uid_len)
+{
     furi_assert(data);
 
     return iso14443_4a_set_uid(data->iso14443_4a_data, uid, uid_len);
 }
 
-Iso14443_4aData* emv_get_base_data(const EmvData* data) {
+Iso14443_4aData *emv_get_base_data(const EmvData *data)
+{
     furi_assert(data);
 
     return data->iso14443_4a_data;

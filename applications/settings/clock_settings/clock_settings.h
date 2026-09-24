@@ -16,10 +16,10 @@
 typedef struct ClockSettings ClockSettings;
 
 struct ClockSettings {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    ClockSettingsModule* pwm_view;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    ClockSettingsModule *pwm_view;
 };
 
 typedef enum {

@@ -2,15 +2,15 @@
  * Parser for MBTA CharlieCard (Boston, MA, USA).
  *
  * Copyright 2024 Zachary Weiss <me@zachary.ws>
- * 
+ *
  * Public security research on the MBTA's fare system stretches back to 2008,
- * starting with Russel Ryan, Zack Anderson, and Alessandro Chiesa's 
- * "Anatomy of a Subway Hack", for which they were famously issued a gag order. 
- * A thorough history of research & researchers deserving of credit is 
+ * starting with Russel Ryan, Zack Anderson, and Alessandro Chiesa's
+ * "Anatomy of a Subway Hack", for which they were famously issued a gag order.
+ * A thorough history of research & researchers deserving of credit is
  * detailed by @bobbyrsec in his 2022 blog post (& presentation):
- * "Operation Charlie: Hacking the MBTA CharlieCard from 2008 to Present" 
+ * "Operation Charlie: Hacking the MBTA CharlieCard from 2008 to Present"
  * https://medium.com/@bobbyrsec/operation-charlie-hacking-the-mbta-charliecard-from-2008-to-present-24ea9f0aaa38
- * 
+ *
  * Fare gate IDs, card types, and general assistance courtesy of the
  * minds behind DEFCON 31's "Boston Infinite Money Glitch" presentation:
  * — Matthew Harris; mattyharris.net <matty@mattyharris.net>
@@ -18,13 +18,13 @@
  * — Scott Campbell; josephscottcampbell.com <scott@josephscottcampbell.com>
  * — Noah Gibson; <noahgibson06@proton.me>
  * Talk available at: https://www.youtube.com/watch?v=1JT_lTfK69Q
- * 
+ *
  * TODOs:
  * — Reverse engineer passes (sectors 4 & 5?), impl.
  * — Infer transaction flag meanings
  * — Infer remaining unknown bytes in the balance sectors (2 & 3)
  * — Improve string output formatting, esp. of transaction log
- * — Mapping of buses to garages, and subsequently, route subsets via 
+ * — Mapping of buses to garages, and subsequently, route subsets via
  *   http://roster.transithistory.org/ data
  * — Mapping of stations to lines
  * — Add'l data fields for side of station fare gates are on? Some stations
@@ -32,27 +32,27 @@
  *   from gates used.
  * — Continually gather data on fare gate ID mappings, update as collected;
  *   check locations this might be scrapable / inferrable from:
- *   [X] MBTA GTFS spec (https://www.mbta.com/developers/gtfs) features & IDs 
+ *   [X] MBTA GTFS spec (https://www.mbta.com/developers/gtfs) features & IDs
  *       seem too-coarse-grained & uncorrelated
- *   [X] MBTA ArcGIS (https://mbta-massdot.opendata.arcgis.com/) & Tableau 
- *       (https://public.tableau.com/app/profile/mbta.office.of.performance.management.and.innovation/vizzes) 
+ *   [X] MBTA ArcGIS (https://mbta-massdot.opendata.arcgis.com/) & Tableau
+ *       (https://public.tableau.com/app/profile/mbta.office.of.performance.management.and.innovation/vizzes)
  *       files don't seem to have anything of that resolution (only down to ridership by station)
- *   [X] (skim of) MBTA public GitHub (https://github.com/mbta) repos make no reference to fare-gate-level data
- *   [X] (skim of) MBTA public engineering docs (https://www.mbta.com/engineering) unfruitful;
- *       Closest mention spotted is 2014 "Ridership and Service Statistics" 
+ *   [X] (skim of) MBTA public GitHub (https://github.com/mbta) repos make no reference to
+ * fare-gate-level data [X] (skim of) MBTA public engineering docs
+ * (https://www.mbta.com/engineering) unfruitful; Closest mention spotted is 2014 "Ridership and
+ * Service Statistics"
  *       (https://cdn.mbta.com/sites/default/files/fmcb-meeting-docs/reports-policies/2014-07-mbta-bluebook-ed14.pdf)
  *       where on pg.40, "Equipment at Stations" is enumerated, and fare gates counts are given,
  *       listed as "AFC Gates" (presumably standing for "Automated Fare Collection")
- *   [X] Josiah Zachery criminal trial public evidence — convicted partially on 
+ *   [X] Josiah Zachery criminal trial public evidence — convicted partially on
  *       data on his CharlieCard, appeals partially on basis of legality of this search.
  *       Prev. court case (gag order mentioned in preamble) leaked some data in the files
  *       entered into evidence. Seemingly did not happen here; fare gate IDs unmentioned,
  *       only ever the nature of stored/saved data and methods of retrieval.
- *       Appelate case dockets 2019-P-0401, SJC-12952, SJ-2017-0390 
+ *       Appelate case dockets 2019-P-0401, SJC-12952, SJ-2017-0390
  *       (https://www.ma-appellatecourts.org/party)
- *       Trial court indictment 04/02/2015, Case# 1584CR10265 @Suffolk County Criminal Superior Court 
- *       (https://www.masscourts.org/eservices/home.page.16)
- *   [ ] FOIA / public records request? 
+ *       Trial court indictment 04/02/2015, Case# 1584CR10265 @Suffolk County Criminal Superior
+ * Court (https://www.masscourts.org/eservices/home.page.16) [ ] FOIA / public records request?
  *       (https://massachusettsdot.mycusthelp.com/WEBAPP/_rs/(S(tbcygdlm0oojy35p1wv0y2y5))/supporthome.aspx)
  *   [X] MBTA data blog? (https://www.massdottracker.com/datablog/)
  *   [ ] MassDOT developers Google group? (https://groups.google.com/g/massdotdevelopers)
@@ -87,15 +87,16 @@
 #define TAG "CharlieCard"
 
 // starts Wednesday 2003/1/1 @ midnight
-#define CHARLIE_EPOCH          \
-    (DateTime) {               \
-        0, 0, 0, 1, 1, 2003, 4 \
+#define CHARLIE_EPOCH                                                                              \
+    (DateTime)                                                                                     \
+    {                                                                                              \
+        0, 0, 0, 1, 1, 2003, 4                                                                     \
     }
 // timestep is one minute
-#define CHARLIE_TIME_DELTA_SECS       60
-#define CHARLIE_END_VALID_DELTA_SECS  60 * 8
+#define CHARLIE_TIME_DELTA_SECS 60
+#define CHARLIE_END_VALID_DELTA_SECS 60 * 8
 #define CHARLIE_N_TRANSACTION_HISTORY 10
-#define CHARLIE_N_PASSES              4
+#define CHARLIE_N_PASSES 4
 
 typedef struct {
     uint64_t a;
@@ -109,22 +110,14 @@ typedef struct {
 // accounting for this such that reading is faster (else it seems to fall back on dict
 // approach for remaining keys)...
 static const MfClassicKeyPair charliecard_1k_keys[] = {
-    {.a = 0x3060206F5B0A, .b = 0xF1B9F5669CC8},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x3A09594C8587, .b = 0x62387B8D250D},
-    {.a = 0xF238D78FF48F, .b = 0x9DC282D46217},
-    {.a = 0xAFD0BA94D624, .b = 0x92EE4DC87191},
-    {.a = 0xB35A0E4ACC09, .b = 0x756EF55E2507},
-    {.a = 0x447AB7FD5A6B, .b = 0x932B9CB730EF},
-    {.a = 0x1F1A0A111B5B, .b = 0xAD9E0A1CA2F7},
-    {.a = 0xD58023BA2BDC, .b = 0x62CED42A6D87},
-    {.a = 0x2548A443DF28, .b = 0x2ED3B15E7C0F},
+    {.a = 0x3060206F5B0A, .b = 0xF1B9F5669CC8}, {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
+    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89}, {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
+    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89}, {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
+    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89}, {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
+    {.a = 0x3A09594C8587, .b = 0x62387B8D250D}, {.a = 0xF238D78FF48F, .b = 0x9DC282D46217},
+    {.a = 0xAFD0BA94D624, .b = 0x92EE4DC87191}, {.a = 0xB35A0E4ACC09, .b = 0x756EF55E2507},
+    {.a = 0x447AB7FD5A6B, .b = 0x932B9CB730EF}, {.a = 0x1F1A0A111B5B, .b = 0xAD9E0A1CA2F7},
+    {.a = 0xD58023BA2BDC, .b = 0x62CED42A6D87}, {.a = 0x2548A443DF28, .b = 0x2ED3B15E7C0F},
 };
 
 typedef struct {
@@ -132,13 +125,15 @@ typedef struct {
     uint8_t cents;
 } Money;
 
-#define FARE_BUS \
-    (Money) {    \
-        1, 70    \
+#define FARE_BUS                                                                                   \
+    (Money)                                                                                        \
+    {                                                                                              \
+        1, 70                                                                                      \
     }
-#define FARE_SUB \
-    (Money) {    \
-        2, 40    \
+#define FARE_SUB                                                                                   \
+    (Money)                                                                                        \
+    {                                                                                              \
+        2, 40                                                                                      \
     }
 
 typedef struct {
@@ -171,7 +166,7 @@ typedef struct {
 // IdMapping approach borrowed from Jeremy Cooper's 'clipper.c'
 typedef struct {
     uint16_t id;
-    const char* name;
+    const char *name;
 } IdMapping;
 
 // this should be a complete accounting of types, (1 and 7 day pass types maybe missing?)
@@ -607,25 +602,24 @@ static const size_t kNumFareGateIds = COUNT_OF(charliecard_fare_gate_ids);
 // ********************* MISC HELPERS ***********************
 // **********************************************************
 
-static const uint8_t*
-    pos_to_ptr(const MfClassicData* data, uint8_t sector_num, uint8_t block_num, uint8_t byte_num) {
+static const uint8_t *pos_to_ptr(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                                 uint8_t byte_num)
+{
     // returns pointer to specified sector/block/byte of MFClassic card data
     uint8_t block_offset = mf_classic_get_first_block_num_of_sector(sector_num);
     return &data->block[block_offset + block_num].data[byte_num];
 }
 
-static uint64_t pos_to_num(
-    const MfClassicData* data,
-    uint8_t sector_num,
-    uint8_t block_num,
-    uint8_t byte_num,
-    uint8_t byte_len) {
+static uint64_t pos_to_num(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                           uint8_t byte_num, uint8_t byte_len)
+{
     // returns numeric values at specified card location, for given byte length.
     // assumes big endian.
     return bit_lib_bytes_to_num_be(pos_to_ptr(data, sector_num, block_num, byte_num), byte_len);
 }
 
-static DateTime dt_delta(DateTime dt, uint64_t delta_secs) {
+static DateTime dt_delta(DateTime dt, uint64_t delta_secs)
+{
     // returns shifted DateTime, from initial DateTime and time offset in seconds
     DateTime dt_shifted = {0};
     datetime_timestamp_to_datetime(datetime_datetime_to_timestamp(&dt) + delta_secs, &dt_shifted);
@@ -633,22 +627,25 @@ static DateTime dt_delta(DateTime dt, uint64_t delta_secs) {
     return dt_shifted;
 }
 
-static bool dt_ge(DateTime dt1, DateTime dt2) {
+static bool dt_ge(DateTime dt1, DateTime dt2)
+{
     // compares two DateTimes
     return datetime_datetime_to_timestamp(&dt1) >= datetime_datetime_to_timestamp(&dt2);
 }
 
-static bool dt_eq(DateTime dt1, DateTime dt2) {
+static bool dt_eq(DateTime dt1, DateTime dt2)
+{
     // compares two DateTimes
     return datetime_datetime_to_timestamp(&dt1) == datetime_datetime_to_timestamp(&dt2);
 }
 
-static bool get_map_item(uint16_t id, const IdMapping* map, size_t sz, const char** out) {
+static bool get_map_item(uint16_t id, const IdMapping *map, size_t sz, const char **out)
+{
     // code borrowed from Jeremy Cooper's 'clipper.c'. Used as follows:
     // const char* s; if(!get_map_item(_,_,_,&s)) {s="Default str";}
     // TODO: change to furistring out?
-    for(size_t i = 0; i < sz; i++) {
-        if(map[i].id == id) {
+    for (size_t i = 0; i < sz; i++) {
+        if (map[i].id == id) {
             *out = map[i].name;
             return true;
         }
@@ -657,11 +654,13 @@ static bool get_map_item(uint16_t id, const IdMapping* map, size_t sz, const cha
     return false;
 }
 
-uint32_t time_now() {
+uint32_t time_now()
+{
     return furi_hal_rtc_get_timestamp();
 }
 
-static bool is_debug() {
+static bool is_debug()
+{
     return furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug);
 }
 
@@ -669,29 +668,27 @@ static bool is_debug() {
 // ******************** FIELD PARSING ***********************
 // **********************************************************
 
-static Money money_parse(
-    const MfClassicData* data,
-    uint8_t sector_num,
-    uint8_t block_num,
-    uint8_t byte_num) {
+static Money money_parse(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                         uint8_t byte_num)
+{
     // CharlieCards store all money values in two bytes as half-cents
-    // bitmask removes sign/flag, bitshift converts half-cents to cents, div & mod yield dollars & cents
+    // bitmask removes sign/flag, bitshift converts half-cents to cents, div & mod yield dollars &
+    // cents
     uint16_t amt = (pos_to_num(data, sector_num, block_num, byte_num, 2) & 0x7FFF) >> 1;
     return (Money){amt / 100, amt % 100};
 }
 
-static DateTime
-    date_parse(const MfClassicData* data, uint8_t sector_num, uint8_t block_num, uint8_t byte_num) {
+static DateTime date_parse(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                           uint8_t byte_num)
+{
     // Dates are 3 bytes, in minutes since 2003/1/1 ("CHARLIE_EPOCH")
     uint32_t ts_charlie = pos_to_num(data, sector_num, block_num, byte_num, 3);
     return dt_delta(CHARLIE_EPOCH, ts_charlie * CHARLIE_TIME_DELTA_SECS);
 }
 
-static DateTime end_validity_parse(
-    const MfClassicData* data,
-    uint8_t sector_num,
-    uint8_t block_num,
-    uint8_t byte_num) {
+static DateTime end_validity_parse(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                                   uint8_t byte_num)
+{
     // End validity field is weird; shares first byte with another variable (the card type field),
     // occupying the last 5 bits (and subsequent two bytes), hence bitmask
     uint32_t ts_charlie_ev = pos_to_num(data, sector_num, block_num, byte_num, 3) & 0x1FFFFF;
@@ -701,8 +698,9 @@ static DateTime end_validity_parse(
     return dt_delta(CHARLIE_EPOCH, ts_charlie_ev * CHARLIE_END_VALID_DELTA_SECS);
 }
 
-static Pass
-    pass_parse(const MfClassicData* data, uint8_t sector_num, uint8_t block_num, uint8_t byte_num) {
+static Pass pass_parse(const MfClassicData *data, uint8_t sector_num, uint8_t block_num,
+                       uint8_t byte_num)
+{
     // WIP; testing only. Speculating it may be structured as follows
     // Sub-byte field divisions not drawn to scale, see code for exact bit offsets
     //
@@ -729,7 +727,7 @@ static Pass
 
     // check for empty, if so, return struct filled w/ 0s
     // (incl "valid" field: hence, "valid" is false-y)
-    if(pos_to_num(data, sector_num, block_num, byte_num, 6) == 0x002000000000) {
+    if (pos_to_num(data, sector_num, block_num, byte_num, 6) == 0x002000000000) {
         return (Pass){0};
     }
 
@@ -749,33 +747,35 @@ static Pass
     return (Pass){true, pre, post, date};
 }
 
-static Transaction
-    transaction_parse(const MfClassicData* data, uint8_t sector, uint8_t block, uint8_t byte) {
-    // This function parses individual transactions. Each transaction packs 7 bytes, stored as follows:
+static Transaction transaction_parse(const MfClassicData *data, uint8_t sector, uint8_t block,
+                                     uint8_t byte)
+{
+    // This function parses individual transactions. Each transaction packs 7 bytes, stored as
+    // follows:
     //
     //       0    1    2    3    4    5    6
     //       +----.----.----+----.--+-+----.----+
     //       |     date     |   loc |f|   amt   |
     //       +----.----.----+----.--+-+----.----+
     //
-    // Where date is in the typical format, loc represents the fare gate tapped, and amt is the fare amount.
-    // Amount appears to contain some flag bits, however, it is unclear what precisely their function is.
+    // Where date is in the typical format, loc represents the fare gate tapped, and amt is the fare
+    // amount. Amount appears to contain some flag bits, however, it is unclear what precisely their
+    // function is.
     //
-    // Gate ID ("loc") is only the first 13 bits of 0x3:0x5, the final three bits appear to be flags ("f").
-    // Least significant flag bit seems to indicate:
-    // — When f & 1 == 1, fare (the amount by which balance is decremented)
-    // — When f & 1 == 0, refill (the amount by which balance is incremented)
-    // MSB (sign bit) of amt seems to serve the same role, just inverted, ie
-    // — When amt & 0x8000 == 0, fare
-    // — When amt & 0x8000 == 0x8000, refill
-    // Only contradiction between the two observed is on cards w/ passes;
-    // MSB of amt seems to be set for every transaction when (remaining bits of) amt is 0 on a card w/ a pass
-    // Hence, using f's LSB as method for inferring fare v. refill
+    // Gate ID ("loc") is only the first 13 bits of 0x3:0x5, the final three bits appear to be flags
+    // ("f"). Least significant flag bit seems to indicate: — When f & 1 == 1, fare (the amount by
+    // which balance is decremented) — When f & 1 == 0, refill (the amount by which balance is
+    // incremented) MSB (sign bit) of amt seems to serve the same role, just inverted, ie — When amt
+    // & 0x8000 == 0, fare — When amt & 0x8000 == 0x8000, refill Only contradiction between the two
+    // observed is on cards w/ passes; MSB of amt seems to be set for every transaction when
+    // (remaining bits of) amt is 0 on a card w/ a pass Hence, using f's LSB as method for inferring
+    // fare v. refill
     //
     // Remaining unknown bits:
     // — f & 0b100; seems to be set on fares where the card has a pass, and amt is 0
     // — f & 0b010
-    // — amt & 1; does not seem to correspond with card type, last transaction, first transaction, refill v. fare, etc
+    // — amt & 1; does not seem to correspond with card type, last transaction, first transaction,
+    // refill v. fare, etc
 
     const DateTime date = date_parse(data, sector, block, byte);
     const uint16_t gate = pos_to_num(data, sector, block, byte + 3, 2) >> 3;
@@ -789,7 +789,8 @@ static Transaction
 // ******************* SECTOR PARSING ***********************
 // **********************************************************
 
-static uint32_t mfg_sector_parse(const MfClassicData* data) {
+static uint32_t mfg_sector_parse(const MfClassicData *data)
+{
     // Manufacturer data (Sector 0)
     //
     //       0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -805,13 +806,14 @@ static uint32_t mfg_sector_parse(const MfClassicData* data) {
     // uk := "unknown"
 
     size_t uid_len = 0;
-    const uint8_t* uid = mf_classic_get_uid(data, &uid_len);
+    const uint8_t *uid = mf_classic_get_uid(data, &uid_len);
     const uint32_t card_number = bit_lib_bytes_to_num_be(uid, 4);
 
     return card_number;
 }
 
-static CounterSector counter_sector_parse(const MfClassicData* data) {
+static CounterSector counter_sector_parse(const MfClassicData *data)
+{
     // Trip/transaction counters (Sector 1)
     //
     //       0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -844,7 +846,8 @@ static CounterSector counter_sector_parse(const MfClassicData* data) {
     return (CounterSector){n_uses, active_sector};
 }
 
-static BalanceSector balance_sector_parse(const MfClassicData* data, uint8_t active_sector) {
+static BalanceSector balance_sector_parse(const MfClassicData *data, uint8_t active_sector)
+{
     // Balance & misc card info (Sector 2 or 3)
     //
     //       0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -874,7 +877,8 @@ static BalanceSector balance_sector_parse(const MfClassicData* data, uint8_t act
     return (BalanceSector){bal, type, issued, end_validity};
 }
 
-static Pass* passes_parse(const MfClassicData* data) {
+static Pass *passes_parse(const MfClassicData *data)
+{
     // Passes, speculative (Sectors 4 &/or 5)
     //
     //       0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -890,16 +894,17 @@ static Pass* passes_parse(const MfClassicData* data) {
     // 4 separate fields? active vs inactive sector for 2 passes?
     // something else entirely?
 
-    Pass* passes = malloc(sizeof(Pass) * CHARLIE_N_PASSES);
+    Pass *passes = malloc(sizeof(Pass) * CHARLIE_N_PASSES);
 
-    for(size_t i = 0; i < CHARLIE_N_PASSES; i++) {
+    for (size_t i = 0; i < CHARLIE_N_PASSES; i++) {
         passes[i] = pass_parse(data, 4 + (i / 2), 0, (i % 2) * 7);
     }
 
     return passes;
 }
 
-static Transaction* transactions_parse(const MfClassicData* data) {
+static Transaction *transactions_parse(const MfClassicData *data)
+{
     // Transaction history (Sectors 6–7)
     //
     //       0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
@@ -916,30 +921,30 @@ static Transaction* transactions_parse(const MfClassicData* data) {
     // Transactions are not sorted, rather, appear to get overwritten
     // sequentially. (eg, sorted modulo array rotation)
 
-    Transaction* transactions = malloc(sizeof(Transaction) * CHARLIE_N_TRANSACTION_HISTORY);
+    Transaction *transactions = malloc(sizeof(Transaction) * CHARLIE_N_TRANSACTION_HISTORY);
 
     // Parse each transaction field using some modular math magic to get the offsets:
     // move from sector 6 -> 7 after the first 6 transactions
-    // move a block within a given sector every 2 transactions, reset every 3 blocks (as sector has changed)
-    // alternate between a start byte of 0 and 7 with every iteration
-    for(size_t i = 0; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
+    // move a block within a given sector every 2 transactions, reset every 3 blocks (as sector has
+    // changed) alternate between a start byte of 0 and 7 with every iteration
+    for (size_t i = 0; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
         transactions[i] = transaction_parse(data, 6 + (i / 6), (i / 2) % 3, (i % 2) * 7);
     }
 
     // Iterate through the array to find the maximum (newest) date value
     int max_idx = 0;
-    for(int i = 1; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
-        if(dt_ge(transactions[i].date, transactions[max_idx].date)) {
+    for (int i = 1; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
+        if (dt_ge(transactions[i].date, transactions[max_idx].date)) {
             max_idx = i;
         }
     }
 
     // Sort by rotating
-    for(int r = 0; r < (max_idx + 1); r++) {
+    for (int r = 0; r < (max_idx + 1); r++) {
         // Store the first element
         Transaction temp = transactions[0];
         // Shift elements to the left
-        for(int i = 0; i < CHARLIE_N_TRANSACTION_HISTORY - 1; i++) {
+        for (int i = 0; i < CHARLIE_N_TRANSACTION_HISTORY - 1; i++) {
             transactions[i] = transactions[i + 1];
         }
         // Move the first element to the last
@@ -947,7 +952,7 @@ static Transaction* transactions_parse(const MfClassicData* data) {
     }
 
     // Reverse order, such that newest is first, oldest last
-    for(int i = 0; i < CHARLIE_N_TRANSACTION_HISTORY / 2; i++) {
+    for (int i = 0; i < CHARLIE_N_TRANSACTION_HISTORY / 2; i++) {
         // Swap elements at index i and size - i - 1
         Transaction temp = transactions[i];
         transactions[i] = transactions[CHARLIE_N_TRANSACTION_HISTORY - i - 1];
@@ -959,7 +964,8 @@ static Transaction* transactions_parse(const MfClassicData* data) {
 
 /*
 static DateTime expiry(DateTime iss) {
-    // Per Metrodroid CharlieCard parser (https://github.com/metrodroid/metrodroid/blob/master/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/charlie/CharlieCardTransitData.kt)
+    // Per Metrodroid CharlieCard parser
+(https://github.com/metrodroid/metrodroid/blob/master/src/commonMain/kotlin/au/id/micolous/metrodroid/transit/charlie/CharlieCardTransitData.kt)
     // Expiry not explicitly stored in card data; rather, calculated from date of issue
     // Cards were first issued in 2006, expired in 5 years, w/ no printed expiry date
     // Cards issued after 2011 expire in 10 years
@@ -970,7 +976,7 @@ static DateTime expiry(DateTime iss) {
     // Post-2011 expire in 10 years, less one day
     // Redundant function given the existance of the end validity field?
     // Any important distinctions between the two?
-    
+
 
     // perhaps additionally clipping to 2030-12-__ in anticipation of upcoming system migration?
     // need to get a new card to confirm.
@@ -1005,12 +1011,13 @@ static bool expired(DateTime expiry, DateTime last_transaction) {
 // ****************** STRING FORMATTING *********************
 // **********************************************************
 
-void locale_format_dt_cat(FuriString* out, const DateTime* dt) {
+void locale_format_dt_cat(FuriString *out, const DateTime *dt)
+{
     // helper to print datetimes
-    FuriString* s = furi_string_alloc();
+    FuriString *s = furi_string_alloc();
 
     LocaleDateFormat date_format = locale_get_date_format();
-    const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
+    const char *separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
     locale_format_date(s, dt, date_format, separator);
     furi_string_cat(out, s);
     locale_format_time(s, dt, locale_get_time_format(), false);
@@ -1020,9 +1027,10 @@ void locale_format_dt_cat(FuriString* out, const DateTime* dt) {
     furi_string_free(s);
 }
 
-void type_format_cat(FuriString* out, uint16_t type) {
-    const char* s;
-    if(!get_map_item(type, charliecard_types, kNumTypes, &s)) {
+void type_format_cat(FuriString *out, uint16_t type)
+{
+    const char *s;
+    if (!get_map_item(type, charliecard_types, kNumTypes, &s)) {
         s = "";
         furi_string_cat_printf(out, "Unknown-%u", type);
     }
@@ -1030,7 +1038,8 @@ void type_format_cat(FuriString* out, uint16_t type) {
     furi_string_cat_str(out, s);
 }
 
-void pass_format_cat(FuriString* out, Pass pass) {
+void pass_format_cat(FuriString *out, Pass pass)
+{
     furi_string_cat_printf(out, "\n-Pre: %b", pass.pre);
     // type_format_cat(out, pass.type);
     furi_string_cat_printf(out, "\n-Post: ");
@@ -1040,24 +1049,25 @@ void pass_format_cat(FuriString* out, Pass pass) {
     locale_format_dt_cat(out, &pass.date);
 }
 
-void passes_format_cat(FuriString* out, Pass* passes) {
+void passes_format_cat(FuriString *out, Pass *passes)
+{
     // only print passes if DEBUG on
-    if(!is_debug()) {
+    if (!is_debug()) {
         return;
     }
 
     // only print if there is at least 1 valid pass to print
     bool any_valid = false;
-    for(size_t i = 0; i < CHARLIE_N_PASSES; i++) {
+    for (size_t i = 0; i < CHARLIE_N_PASSES; i++) {
         any_valid |= passes[i].valid;
     }
-    if(!any_valid) {
+    if (!any_valid) {
         return;
     }
 
     furi_string_cat_printf(out, "\nPasses (DEBUG / WIP):");
-    for(size_t i = 0; i < CHARLIE_N_PASSES; i++) {
-        if(passes[i].valid) {
+    for (size_t i = 0; i < CHARLIE_N_PASSES; i++) {
+        if (passes[i].valid) {
             furi_string_cat_printf(out, "\nPass %u", i + 1);
             pass_format_cat(out, passes[i]);
             furi_string_cat_printf(out, "\n");
@@ -1065,23 +1075,26 @@ void passes_format_cat(FuriString* out, Pass* passes) {
     }
 }
 
-void money_format_cat(FuriString* out, Money money) {
+void money_format_cat(FuriString *out, Money money)
+{
     furi_string_cat_printf(out, "$%u.%02u", money.dollars, money.cents);
 }
 
-void transaction_format_cat(FuriString* out, Transaction transaction) {
-    const char* sep = "   ";
-    const char* sta;
+void transaction_format_cat(FuriString *out, Transaction transaction)
+{
+    const char *sep = "   ";
+    const char *sta;
 
     locale_format_dt_cat(out, &transaction.date);
     furi_string_cat_printf(out, "\n%s", !!(transaction.g_flag & 0x1) ? "-" : "+");
     money_format_cat(out, transaction.fare);
-    if(!!(transaction.g_flag & 0x1) && (transaction.fare.dollars == FARE_BUS.dollars) &&
-       (transaction.fare.cents == FARE_BUS.cents)) {
-        // if not a refill, and the fare amount is equal to bus fare (any better approach? flag bits for modality?)
-        // format for bus — supposedly some correlation between gate ID & bus #, haven't investigated
+    if (!!(transaction.g_flag & 0x1) && (transaction.fare.dollars == FARE_BUS.dollars) &&
+        (transaction.fare.cents == FARE_BUS.cents)) {
+        // if not a refill, and the fare amount is equal to bus fare (any better approach? flag bits
+        // for modality?) format for bus — supposedly some correlation between gate ID & bus #,
+        // haven't investigated
         furi_string_cat_printf(out, "%s#%u", sep, transaction.gate);
-    } else if(get_map_item(transaction.gate, charliecard_fare_gate_ids, kNumFareGateIds, &sta)) {
+    } else if (get_map_item(transaction.gate, charliecard_fare_gate_ids, kNumFareGateIds, &sta)) {
         // station found in fare gate ID map, append station name
         furi_string_cat_str(out, sep);
         furi_string_cat_str(out, sta);
@@ -1090,14 +1103,15 @@ void transaction_format_cat(FuriString* out, Transaction transaction) {
         furi_string_cat_printf(out, "%s#%u", sep, transaction.gate);
     }
     // print flags for debugging purposes
-    if(is_debug()) {
+    if (is_debug()) {
         furi_string_cat_printf(out, "%s%x%s%x", sep, transaction.g_flag, sep, transaction.f_flag);
     }
 }
 
-void transactions_format_cat(FuriString* out, Transaction* transactions) {
+void transactions_format_cat(FuriString *out, Transaction *transactions)
+{
     furi_string_cat_printf(out, "\nTransactions:");
-    for(size_t i = 0; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
+    for (size_t i = 0; i < CHARLIE_N_TRANSACTION_HISTORY; i++) {
         furi_string_cat_printf(out, "\n");
         transaction_format_cat(out, transactions[i]);
         furi_string_cat_printf(out, "\n");
@@ -1108,37 +1122,41 @@ void transactions_format_cat(FuriString* out, Transaction* transactions) {
 // **************** NFC PLUGIN BOILERPLATE ******************
 // **********************************************************
 
-static bool charliecard_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool charliecard_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
     bool parsed = false;
 
     do {
         // Verify card type
-        if(data->type != MfClassicType1k) break;
+        if (data->type != MfClassicType1k)
+            break;
 
         // Verify key
         // arbitrary sector in the main data portion
         const uint8_t verify_sector = 3;
-        const MfClassicSectorTrailer* sec_tr =
+        const MfClassicSectorTrailer *sec_tr =
             mf_classic_get_sector_trailer_by_sector(data, verify_sector);
 
         const uint64_t key_a =
             bit_lib_bytes_to_num_be(sec_tr->key_a.data, COUNT_OF(sec_tr->key_a.data));
         const uint64_t key_b =
             bit_lib_bytes_to_num_be(sec_tr->key_b.data, COUNT_OF(sec_tr->key_b.data));
-        if(key_a != charliecard_1k_keys[verify_sector].a) break;
-        if(key_b != charliecard_1k_keys[verify_sector].b) break;
+        if (key_a != charliecard_1k_keys[verify_sector].a)
+            break;
+        if (key_b != charliecard_1k_keys[verify_sector].b)
+            break;
 
         // parse card data
         const uint32_t card_number = mfg_sector_parse(data);
         const CounterSector counter_sector = counter_sector_parse(data);
         const BalanceSector balance_sector =
             balance_sector_parse(data, counter_sector.active_balance_sector);
-        Pass* passes = passes_parse(data);
-        Transaction* transactions = transactions_parse(data);
+        Pass *passes = passes_parse(data);
+        Transaction *transactions = transactions_parse(data);
 
         // print/append card data
         furi_string_cat_printf(parsed_data, "\e#CharlieCard");
@@ -1159,8 +1177,8 @@ static bool charliecard_parse(const NfcDevice* device, FuriString* parsed_data) 
         furi_string_cat_printf(parsed_data, "\nIssued: ");
         locale_format_dt_cat(parsed_data, &balance_sector.issued);
 
-        if(!dt_eq(balance_sector.end_validity, CHARLIE_EPOCH) &
-           dt_ge(balance_sector.end_validity, balance_sector.issued)) {
+        if (!dt_eq(balance_sector.end_validity, CHARLIE_EPOCH) &
+            dt_ge(balance_sector.end_validity, balance_sector.issued)) {
             // sometimes (seen on Perq cards) end validity field is all 0
             // When this is the case, calc'd end validity is equal to CHARLIE_EPOCH).
             // Only print if not 0, & end validity after issuance date
@@ -1178,12 +1196,13 @@ static bool charliecard_parse(const NfcDevice* device, FuriString* parsed_data) 
         free(passes);
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
 
-static bool charliecard_verify(Nfc* nfc) {
+static bool charliecard_verify(Nfc *nfc)
+{
     bool verified = false;
 
     do {
@@ -1192,55 +1211,57 @@ static bool charliecard_verify(Nfc* nfc) {
         FURI_LOG_D(TAG, "Verifying sector %u", verify_sector);
 
         MfClassicKey key = {0};
-        bit_lib_num_to_bytes_be(
-            charliecard_1k_keys[verify_sector].a, COUNT_OF(key.data), key.data);
+        bit_lib_num_to_bytes_be(charliecard_1k_keys[verify_sector].a, COUNT_OF(key.data), key.data);
 
         MfClassicAuthContext auth_context;
         MfClassicError error =
             mf_classic_poller_sync_auth(nfc, verify_block, &key, MfClassicKeyTypeA, &auth_context);
-        if(error != MfClassicErrorNone) {
+        if (error != MfClassicErrorNone) {
             FURI_LOG_D(TAG, "Failed to read block %u: %d", verify_block, error);
             break;
         }
 
         verified = true;
-    } while(false);
+    } while (false);
 
     return verified;
 }
 
-static bool charliecard_read(Nfc* nfc, NfcDevice* device) {
+static bool charliecard_read(Nfc *nfc, NfcDevice *device)
+{
     furi_assert(nfc);
     furi_assert(device);
 
     bool is_read = false;
 
-    MfClassicData* data = mf_classic_alloc();
+    MfClassicData *data = mf_classic_alloc();
     nfc_device_copy_data(device, NfcProtocolMfClassic, data);
 
     do {
         MfClassicType type = MfClassicTypeMini;
         MfClassicError error = mf_classic_poller_sync_detect_type(nfc, &type);
-        if(error != MfClassicErrorNone) break;
+        if (error != MfClassicErrorNone)
+            break;
 
         data->type = type;
-        if(type != MfClassicType1k) break;
+        if (type != MfClassicType1k)
+            break;
 
         MfClassicDeviceKeys keys = {
             .key_a_mask = 0,
             .key_b_mask = 0,
         };
-        for(size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
-            bit_lib_num_to_bytes_be(
-                charliecard_1k_keys[i].a, sizeof(MfClassicKey), keys.key_a[i].data);
+        for (size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
+            bit_lib_num_to_bytes_be(charliecard_1k_keys[i].a, sizeof(MfClassicKey),
+                                    keys.key_a[i].data);
             FURI_BIT_SET(keys.key_a_mask, i);
-            bit_lib_num_to_bytes_be(
-                charliecard_1k_keys[i].b, sizeof(MfClassicKey), keys.key_b[i].data);
+            bit_lib_num_to_bytes_be(charliecard_1k_keys[i].b, sizeof(MfClassicKey),
+                                    keys.key_b[i].data);
             FURI_BIT_SET(keys.key_b_mask, i);
         }
 
         error = mf_classic_poller_sync_read(nfc, &keys, data);
-        if(error == MfClassicErrorNotPresent) {
+        if (error == MfClassicErrorNotPresent) {
             FURI_LOG_W(TAG, "Failed to read data");
             break;
         }
@@ -1248,7 +1269,7 @@ static bool charliecard_read(Nfc* nfc, NfcDevice* device) {
         nfc_device_set_data(device, NfcProtocolMfClassic, data);
 
         is_read = (error == MfClassicErrorNone);
-    } while(false);
+    } while (false);
 
     mf_classic_free(data);
 
@@ -1271,6 +1292,7 @@ static const FlipperAppPluginDescriptor charliecard_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* charliecard_plugin_ep(void) {
+const FlipperAppPluginDescriptor *charliecard_plugin_ep(void)
+{
     return &charliecard_plugin_descriptor;
 }

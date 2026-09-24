@@ -17,12 +17,12 @@ typedef enum {
 } Iso15693_3ListenerEventType;
 
 typedef struct {
-    BitBuffer* buffer;
+    BitBuffer *buffer;
 } Iso15693_3ListenerEventData;
 
 typedef struct {
     Iso15693_3ListenerEventType type;
-    Iso15693_3ListenerEventData* data;
+    Iso15693_3ListenerEventData *data;
 } Iso15693_3ListenerEvent;
 
 #ifdef __cplusplus

@@ -20,13 +20,13 @@ typedef struct FuriSemaphore FuriSemaphore;
  *
  * @return     pointer to FuriSemaphore instance
  */
-FuriSemaphore* furi_semaphore_alloc(uint32_t max_count, uint32_t initial_count);
+FuriSemaphore *furi_semaphore_alloc(uint32_t max_count, uint32_t initial_count);
 
 /** Free semaphore
  *
  * @param      instance  The pointer to FuriSemaphore instance
  */
-void furi_semaphore_free(FuriSemaphore* instance);
+void furi_semaphore_free(FuriSemaphore *instance);
 
 /** Acquire semaphore
  *
@@ -35,7 +35,7 @@ void furi_semaphore_free(FuriSemaphore* instance);
  *
  * @return     The furi status.
  */
-FuriStatus furi_semaphore_acquire(FuriSemaphore* instance, uint32_t timeout);
+FuriStatus furi_semaphore_acquire(FuriSemaphore *instance, uint32_t timeout);
 
 /** Release semaphore
  *
@@ -43,7 +43,7 @@ FuriStatus furi_semaphore_acquire(FuriSemaphore* instance, uint32_t timeout);
  *
  * @return     The furi status.
  */
-FuriStatus furi_semaphore_release(FuriSemaphore* instance);
+FuriStatus furi_semaphore_release(FuriSemaphore *instance);
 
 /** Get semaphore count
  *
@@ -51,7 +51,7 @@ FuriStatus furi_semaphore_release(FuriSemaphore* instance);
  *
  * @return     Semaphore count
  */
-uint32_t furi_semaphore_get_count(FuriSemaphore* instance);
+uint32_t furi_semaphore_get_count(FuriSemaphore *instance);
 
 /** Get available space
  *
@@ -59,7 +59,7 @@ uint32_t furi_semaphore_get_count(FuriSemaphore* instance);
  *
  * @return     Semaphore available space
  */
-uint32_t furi_semaphore_get_space(FuriSemaphore* instance);
+uint32_t furi_semaphore_get_space(FuriSemaphore *instance);
 
 #ifdef __cplusplus
 }

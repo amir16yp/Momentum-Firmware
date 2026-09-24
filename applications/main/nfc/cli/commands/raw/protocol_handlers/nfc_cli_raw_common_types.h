@@ -17,12 +17,12 @@ typedef struct {
     bool keep_field;
     bool append_crc;
     NfcProtocol protocol;
-    BitBuffer* tx_buffer;
+    BitBuffer *tx_buffer;
     uint32_t timeout;
 } NfcCliRawRequest;
 
 typedef struct {
     NfcCliRawError result;
-    BitBuffer* rx_buffer;
-    FuriString* activation_string;
+    BitBuffer *rx_buffer;
+    FuriString *activation_string;
 } NfcCliRawResponse;

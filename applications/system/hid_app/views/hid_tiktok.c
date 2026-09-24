@@ -7,8 +7,8 @@
 #define TAG "HidTikTok"
 
 struct HidTikTok {
-    View* view;
-    Hid* hid;
+    View *view;
+    Hid *hid;
 };
 
 typedef struct {
@@ -22,13 +22,14 @@ typedef struct {
     bool back_mouse_pressed;
 } HidTikTokModel;
 
-static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
+static void hid_tiktok_draw_callback(Canvas *canvas, void *context)
+{
     furi_assert(context);
-    HidTikTokModel* model = context;
+    HidTikTokModel *model = context;
 
     // Header
 #ifdef HID_TRANSPORT_BLE
-    if(model->connected) {
+    if (model->connected) {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_connected_15x15);
     } else {
         canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
@@ -44,7 +45,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_draw_icon(canvas, 58, 3, &I_OutCircles_70x51);
 
     // Pause
-    if(model->back_mouse_pressed) {
+    if (model->back_mouse_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 107, 33, &I_Pressed_Button_19x19);
         canvas_set_bitmap_mode(canvas, false);
@@ -54,7 +55,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Up
-    if(model->up_pressed) {
+    if (model->up_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 68, 6, &I_S_UP_31x15);
         canvas_set_bitmap_mode(canvas, false);
@@ -64,7 +65,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Down
-    if(model->down_pressed) {
+    if (model->down_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 68, 36, &I_S_DOWN_31x15);
         canvas_set_bitmap_mode(canvas, false);
@@ -74,7 +75,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Left
-    if(model->left_pressed) {
+    if (model->left_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 61, 13, &I_S_LEFT_15x31);
         canvas_set_bitmap_mode(canvas, false);
@@ -84,7 +85,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Right
-    if(model->right_pressed) {
+    if (model->right_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 91, 13, &I_S_RIGHT_15x31);
         canvas_set_bitmap_mode(canvas, false);
@@ -94,7 +95,7 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
 
     // Ok
-    if(model->ok_pressed) {
+    if (model->ok_pressed) {
         canvas_set_bitmap_mode(canvas, true);
         canvas_draw_icon(canvas, 74, 19, &I_Pressed_Button_19x19);
         canvas_set_bitmap_mode(canvas, false);
@@ -109,10 +110,11 @@ static void hid_tiktok_draw_callback(Canvas* canvas, void* context) {
     elements_multiline_text_aligned(canvas, 13, 62, AlignLeft, AlignBottom, "Hold to exit");
 }
 
-static void hid_tiktok_reset_cursor(HidTikTok* hid_tiktok) {
+static void hid_tiktok_reset_cursor(HidTikTok *hid_tiktok)
+{
     // Set cursor to the phone's left up corner
     // Delays to guarantee one packet per connection interval
-    for(size_t i = 0; i < 8; i++) {
+    for (size_t i = 0; i < 8; i++) {
         hid_hal_mouse_move(hid_tiktok->hid, -127, -127);
         furi_delay_ms(50);
     }
@@ -124,65 +126,67 @@ static void hid_tiktok_reset_cursor(HidTikTok* hid_tiktok) {
     furi_delay_ms(50);
 }
 
-static void
-    hid_tiktok_process_press(HidTikTok* hid_tiktok, HidTikTokModel* model, InputEvent* event) {
-    if(event->key == InputKeyUp) {
+static void hid_tiktok_process_press(HidTikTok *hid_tiktok, HidTikTokModel *model,
+                                     InputEvent *event)
+{
+    if (event->key == InputKeyUp) {
         model->up_pressed = true;
-    } else if(event->key == InputKeyDown) {
+    } else if (event->key == InputKeyDown) {
         model->down_pressed = true;
-    } else if(event->key == InputKeyLeft) {
+    } else if (event->key == InputKeyLeft) {
         model->left_pressed = true;
         hid_hal_consumer_key_press(hid_tiktok->hid, HID_CONSUMER_VOLUME_DECREMENT);
-    } else if(event->key == InputKeyRight) {
+    } else if (event->key == InputKeyRight) {
         model->right_pressed = true;
         hid_hal_consumer_key_press(hid_tiktok->hid, HID_CONSUMER_VOLUME_INCREMENT);
-    } else if(event->key == InputKeyOk) {
+    } else if (event->key == InputKeyOk) {
         model->ok_pressed = true;
-    } else if(event->key == InputKeyBack) {
+    } else if (event->key == InputKeyBack) {
         model->back_mouse_pressed = true;
     }
 }
 
-static void
-    hid_tiktok_process_release(HidTikTok* hid_tiktok, HidTikTokModel* model, InputEvent* event) {
-    if(event->key == InputKeyUp) {
+static void hid_tiktok_process_release(HidTikTok *hid_tiktok, HidTikTokModel *model,
+                                       InputEvent *event)
+{
+    if (event->key == InputKeyUp) {
         model->up_pressed = false;
-    } else if(event->key == InputKeyDown) {
+    } else if (event->key == InputKeyDown) {
         model->down_pressed = false;
-    } else if(event->key == InputKeyLeft) {
+    } else if (event->key == InputKeyLeft) {
         model->left_pressed = false;
         hid_hal_consumer_key_release(hid_tiktok->hid, HID_CONSUMER_VOLUME_DECREMENT);
-    } else if(event->key == InputKeyRight) {
+    } else if (event->key == InputKeyRight) {
         model->right_pressed = false;
         hid_hal_consumer_key_release(hid_tiktok->hid, HID_CONSUMER_VOLUME_INCREMENT);
-    } else if(event->key == InputKeyOk) {
+    } else if (event->key == InputKeyOk) {
         model->ok_pressed = false;
-    } else if(event->key == InputKeyBack) {
+    } else if (event->key == InputKeyBack) {
         model->back_mouse_pressed = false;
     }
 }
 
-static bool hid_tiktok_input_callback(InputEvent* event, void* context) {
+static bool hid_tiktok_input_callback(InputEvent *event, void *context)
+{
     furi_assert(context);
-    HidTikTok* hid_tiktok = context;
+    HidTikTok *hid_tiktok = context;
     bool consumed = false;
 
     with_view_model(
-        hid_tiktok->view,
-        HidTikTokModel * model,
+        hid_tiktok->view, HidTikTokModel * model,
         {
-            if(event->type == InputTypePress) {
+            if (event->type == InputTypePress) {
                 hid_tiktok_process_press(hid_tiktok, model, event);
-                if(model->connected && !model->is_cursor_set) {
+                if (model->connected && !model->is_cursor_set) {
                     hid_tiktok_reset_cursor(hid_tiktok);
                     model->is_cursor_set = true;
                 }
                 consumed = true;
-            } else if(event->type == InputTypeRelease) {
+            } else if (event->type == InputTypeRelease) {
                 hid_tiktok_process_release(hid_tiktok, model, event);
                 consumed = true;
-            } else if(event->type == InputTypeShort) {
-                if(event->key == InputKeyOk) {
+            } else if (event->type == InputTypeShort) {
+                if (event->key == InputKeyOk) {
                     // delays adjusted for emulation of a finger tap
                     hid_hal_mouse_press(hid_tiktok->hid, HID_MOUSE_BTN_LEFT);
                     furi_delay_ms(25);
@@ -192,7 +196,7 @@ static bool hid_tiktok_input_callback(InputEvent* event, void* context) {
                     furi_delay_ms(25);
                     hid_hal_mouse_release(hid_tiktok->hid, HID_MOUSE_BTN_LEFT);
                     consumed = true;
-                } else if(event->key == InputKeyUp) {
+                } else if (event->key == InputKeyUp) {
                     // Emulate up swipe
                     hid_hal_mouse_scroll(hid_tiktok->hid, -12);
                     hid_hal_mouse_scroll(hid_tiktok->hid, -24);
@@ -200,7 +204,7 @@ static bool hid_tiktok_input_callback(InputEvent* event, void* context) {
                     hid_hal_mouse_scroll(hid_tiktok->hid, -24);
                     hid_hal_mouse_scroll(hid_tiktok->hid, -12);
                     consumed = true;
-                } else if(event->key == InputKeyDown) {
+                } else if (event->key == InputKeyDown) {
                     // Emulate down swipe
                     hid_hal_mouse_scroll(hid_tiktok->hid, 12);
                     hid_hal_mouse_scroll(hid_tiktok->hid, 24);
@@ -208,15 +212,15 @@ static bool hid_tiktok_input_callback(InputEvent* event, void* context) {
                     hid_hal_mouse_scroll(hid_tiktok->hid, 24);
                     hid_hal_mouse_scroll(hid_tiktok->hid, 12);
                     consumed = true;
-                } else if(event->key == InputKeyBack) {
+                } else if (event->key == InputKeyBack) {
                     // Pause
                     hid_hal_mouse_press(hid_tiktok->hid, HID_MOUSE_BTN_LEFT);
                     furi_delay_ms(50);
                     hid_hal_mouse_release(hid_tiktok->hid, HID_MOUSE_BTN_LEFT);
                     consumed = true;
                 }
-            } else if(event->type == InputTypeLong) {
-                if(event->key == InputKeyBack) {
+            } else if (event->type == InputTypeLong) {
+                if (event->key == InputKeyBack) {
                     hid_hal_consumer_key_release_all(hid_tiktok->hid);
                     model->is_cursor_set = false;
                     consumed = false;
@@ -228,8 +232,9 @@ static bool hid_tiktok_input_callback(InputEvent* event, void* context) {
     return consumed;
 }
 
-HidTikTok* hid_tiktok_alloc(Hid* bt_hid) {
-    HidTikTok* hid_tiktok = malloc(sizeof(HidTikTok));
+HidTikTok *hid_tiktok_alloc(Hid *bt_hid)
+{
+    HidTikTok *hid_tiktok = malloc(sizeof(HidTikTok));
     hid_tiktok->hid = bt_hid;
     hid_tiktok->view = view_alloc();
     view_set_context(hid_tiktok->view, hid_tiktok);
@@ -240,22 +245,24 @@ HidTikTok* hid_tiktok_alloc(Hid* bt_hid) {
     return hid_tiktok;
 }
 
-void hid_tiktok_free(HidTikTok* hid_tiktok) {
+void hid_tiktok_free(HidTikTok *hid_tiktok)
+{
     furi_assert(hid_tiktok);
     view_free(hid_tiktok->view);
     free(hid_tiktok);
 }
 
-View* hid_tiktok_get_view(HidTikTok* hid_tiktok) {
+View *hid_tiktok_get_view(HidTikTok *hid_tiktok)
+{
     furi_assert(hid_tiktok);
     return hid_tiktok->view;
 }
 
-void hid_tiktok_set_connected_status(HidTikTok* hid_tiktok, bool connected) {
+void hid_tiktok_set_connected_status(HidTikTok *hid_tiktok, bool connected)
+{
     furi_assert(hid_tiktok);
     with_view_model(
-        hid_tiktok->view,
-        HidTikTokModel * model,
+        hid_tiktok->view, HidTikTokModel * model,
         {
             model->connected = connected;
             model->is_cursor_set = false;

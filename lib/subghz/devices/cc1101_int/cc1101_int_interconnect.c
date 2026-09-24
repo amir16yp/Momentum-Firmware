@@ -4,31 +4,35 @@
 
 #define TAG "SubGhzDeviceCc1101Int"
 
-static bool subghz_device_cc1101_int_interconnect_is_frequency_valid(uint32_t frequency) {
+static bool subghz_device_cc1101_int_interconnect_is_frequency_valid(uint32_t frequency)
+{
     bool ret = furi_hal_subghz_is_frequency_valid(frequency);
-    if(!ret) {
+    if (!ret) {
         furi_crash("SubGhz: Incorrect frequency.");
     }
     return ret;
 }
 
-static uint32_t subghz_device_cc1101_int_interconnect_set_frequency(uint32_t frequency) {
+static uint32_t subghz_device_cc1101_int_interconnect_set_frequency(uint32_t frequency)
+{
     subghz_device_cc1101_int_interconnect_is_frequency_valid(frequency);
     return furi_hal_subghz_set_frequency_and_path(frequency);
 }
 
-static bool subghz_device_cc1101_int_interconnect_start_async_tx(void* callback, void* context) {
+static bool subghz_device_cc1101_int_interconnect_start_async_tx(void *callback, void *context)
+{
     return furi_hal_subghz_start_async_tx((FuriHalSubGhzAsyncTxCallback)callback, context);
 }
 
-static void subghz_device_cc1101_int_interconnect_start_async_rx(void* callback, void* context) {
+static void subghz_device_cc1101_int_interconnect_start_async_rx(void *callback, void *context)
+{
     furi_hal_subghz_start_async_rx((FuriHalSubGhzCaptureCallback)callback, context);
 }
 
-static void subghz_device_cc1101_int_interconnect_load_preset(
-    FuriHalSubGhzPreset preset,
-    uint8_t* preset_data) {
-    switch(preset) {
+static void subghz_device_cc1101_int_interconnect_load_preset(FuriHalSubGhzPreset preset,
+                                                              uint8_t *preset_data)
+{
+    switch (preset) {
     case FuriHalSubGhzPresetOok650Async:
         furi_hal_subghz_load_custom_preset(subghz_device_cc1101_preset_ook_650khz_async_regs);
         break;
@@ -56,7 +60,8 @@ static void subghz_device_cc1101_int_interconnect_load_preset(
     }
 }
 
-static bool subghz_device_cc1101_int_interconnect_is_connect(void) {
+static bool subghz_device_cc1101_int_interconnect_is_connect(void)
+{
     return true;
 }
 

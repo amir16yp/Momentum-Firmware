@@ -9,8 +9,8 @@
 #include <stm32wbxx_ll_system.h>
 
 struct FuriHalAdcHandle {
-    ADC_TypeDef* adc;
-    FuriMutex* mutex;
+    ADC_TypeDef *adc;
+    FuriMutex *mutex;
     uint32_t full_scale;
 };
 
@@ -84,15 +84,17 @@ static const uint32_t furi_hal_adc_channel_map[] = {
     [FuriHalAdcChannelVBAT] = LL_ADC_CHANNEL_VBAT,
 };
 
-static FuriHalAdcHandle* furi_hal_adc_handle = NULL;
+static FuriHalAdcHandle *furi_hal_adc_handle = NULL;
 
-void furi_hal_adc_init(void) {
+void furi_hal_adc_init(void)
+{
     furi_hal_adc_handle = malloc(sizeof(FuriHalAdcHandle));
     furi_hal_adc_handle->adc = ADC1;
     furi_hal_adc_handle->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 }
 
-FuriHalAdcHandle* furi_hal_adc_acquire(void) {
+FuriHalAdcHandle *furi_hal_adc_acquire(void)
+{
     furi_check(furi_mutex_acquire(furi_hal_adc_handle->mutex, FuriWaitForever) == FuriStatusOk);
 
     furi_hal_power_insomnia_enter();
@@ -102,10 +104,12 @@ FuriHalAdcHandle* furi_hal_adc_acquire(void) {
     return furi_hal_adc_handle;
 }
 
-void furi_hal_adc_release(FuriHalAdcHandle* handle) {
+void furi_hal_adc_release(FuriHalAdcHandle *handle)
+{
     furi_check(handle);
 
-    if(furi_hal_bus_is_enabled(FuriHalBusADC)) furi_hal_bus_disable(FuriHalBusADC);
+    if (furi_hal_bus_is_enabled(FuriHalBusADC))
+        furi_hal_bus_disable(FuriHalBusADC);
 
     LL_VREFBUF_Disable();
     LL_VREFBUF_EnableHIZ();
@@ -115,21 +119,16 @@ void furi_hal_adc_release(FuriHalAdcHandle* handle) {
     furi_check(furi_mutex_release(furi_hal_adc_handle->mutex) == FuriStatusOk);
 }
 
-void furi_hal_adc_configure(FuriHalAdcHandle* handle) {
-    furi_hal_adc_configure_ex(
-        handle,
-        FuriHalAdcScale2048,
-        FuriHalAdcClockSync64,
-        FuriHalAdcOversample64,
-        FuriHalAdcSamplingtime247_5);
+void furi_hal_adc_configure(FuriHalAdcHandle *handle)
+{
+    furi_hal_adc_configure_ex(handle, FuriHalAdcScale2048, FuriHalAdcClockSync64,
+                              FuriHalAdcOversample64, FuriHalAdcSamplingtime247_5);
 }
 
-void furi_hal_adc_configure_ex(
-    FuriHalAdcHandle* handle,
-    FuriHalAdcScale scale,
-    FuriHalAdcClock clock,
-    FuriHalAdcOversample oversample,
-    FuriHalAdcSamplingTime sampling_time) {
+void furi_hal_adc_configure_ex(FuriHalAdcHandle *handle, FuriHalAdcScale scale,
+                               FuriHalAdcClock clock, FuriHalAdcOversample oversample,
+                               FuriHalAdcSamplingTime sampling_time)
+{
     furi_check(handle);
     furi_check(scale == FuriHalAdcScale2048 || scale == FuriHalAdcScale2500);
     furi_check(clock <= FuriHalAdcClockSync64);
@@ -138,10 +137,11 @@ void furi_hal_adc_configure_ex(
 
     FuriHalCortexTimer timer;
 
-    if(furi_hal_bus_is_enabled(FuriHalBusADC)) furi_hal_bus_disable(FuriHalBusADC);
+    if (furi_hal_bus_is_enabled(FuriHalBusADC))
+        furi_hal_bus_disable(FuriHalBusADC);
 
     uint32_t trim_value = 0;
-    switch(scale) {
+    switch (scale) {
     case FuriHalAdcScale2048:
         LL_VREFBUF_SetVoltageScaling(LL_VREFBUF_VOLTAGE_SCALE0);
         trim_value = LL_VREFBUF_SC0_GetCalibration() & 0x3FU;
@@ -160,7 +160,7 @@ void furi_hal_adc_configure_ex(
     LL_VREFBUF_DisableHIZ();
 
     timer = furi_hal_cortex_timer_get(500000); // 500ms to stabilize VREF
-    while(!LL_VREFBUF_IsVREFReady()) {
+    while (!LL_VREFBUF_IsVREFReady()) {
         furi_check(!furi_hal_cortex_timer_is_expired(timer), "VREF fail");
     };
 
@@ -169,13 +169,11 @@ void furi_hal_adc_configure_ex(
     // ADC Common config
     LL_ADC_CommonInitTypeDef ADC_CommonInitStruct = {0};
     ADC_CommonInitStruct.CommonClock = furi_hal_adc_clock[clock];
-    furi_check(
-        LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(handle->adc), &ADC_CommonInitStruct) ==
-        SUCCESS);
-    LL_ADC_SetCommonPathInternalCh(
-        __LL_ADC_COMMON_INSTANCE(handle->adc),
-        LL_ADC_PATH_INTERNAL_VREFINT | LL_ADC_PATH_INTERNAL_TEMPSENSOR |
-            LL_ADC_PATH_INTERNAL_VBAT);
+    furi_check(LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(handle->adc), &ADC_CommonInitStruct) ==
+               SUCCESS);
+    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(handle->adc),
+                                   LL_ADC_PATH_INTERNAL_VREFINT | LL_ADC_PATH_INTERNAL_TEMPSENSOR |
+                                       LL_ADC_PATH_INTERNAL_VBAT);
 
     // ADC config part 1
     LL_ADC_InitTypeDef ADC_InitStruct = {0};
@@ -195,25 +193,21 @@ void furi_hal_adc_configure_ex(
     furi_check(LL_ADC_REG_Init(handle->adc, &ADC_REG_InitStruct) == SUCCESS);
 
     // ADC config part 3: sequencer and channels
-    if(oversample == FuriHalAdcOversampleNone) {
+    if (oversample == FuriHalAdcOversampleNone) {
         LL_ADC_SetOverSamplingScope(handle->adc, LL_ADC_OVS_DISABLE);
     } else {
         LL_ADC_SetOverSamplingScope(handle->adc, LL_ADC_OVS_GRP_REGULAR_CONTINUED);
-        LL_ADC_ConfigOverSamplingRatioShift(
-            handle->adc,
-            furi_hal_adc_oversample_ratio[oversample],
-            furi_hal_adc_oversample_shift[oversample]);
+        LL_ADC_ConfigOverSamplingRatioShift(handle->adc, furi_hal_adc_oversample_ratio[oversample],
+                                            furi_hal_adc_oversample_shift[oversample]);
     }
 
-    for(FuriHalAdcChannel channel = FuriHalAdcChannel0; channel < FuriHalAdcChannelNone;
-        channel++) {
+    for (FuriHalAdcChannel channel = FuriHalAdcChannel0; channel < FuriHalAdcChannelNone;
+         channel++) {
         // 47.5 cycles on 64MHz is first meaningful value for internal sources sampling
-        LL_ADC_SetChannelSamplingTime(
-            handle->adc,
-            furi_hal_adc_channel_map[channel],
-            furi_hal_adc_sampling_time[sampling_time]);
-        LL_ADC_SetChannelSingleDiff(
-            handle->adc, furi_hal_adc_channel_map[channel], LL_ADC_SINGLE_ENDED);
+        LL_ADC_SetChannelSamplingTime(handle->adc, furi_hal_adc_channel_map[channel],
+                                      furi_hal_adc_sampling_time[sampling_time]);
+        LL_ADC_SetChannelSingleDiff(handle->adc, furi_hal_adc_channel_map[channel],
+                                    LL_ADC_SINGLE_ENDED);
     }
 
     // Disable ADC deep power down (enabled by default after reset state)
@@ -223,59 +217,63 @@ void furi_hal_adc_configure_ex(
     LL_ADC_EnableInternalRegulator(handle->adc);
     // Delay for ADC internal voltage regulator stabilization.
     timer = furi_hal_cortex_timer_get(LL_ADC_DELAY_INTERNAL_REGUL_STAB_US);
-    while(!furi_hal_cortex_timer_is_expired(timer))
+    while (!furi_hal_cortex_timer_is_expired(timer))
         ;
 
     // Run ADC self calibration
     LL_ADC_StartCalibration(handle->adc, LL_ADC_SINGLE_ENDED);
     // Poll for ADC effectively calibrated
-    while(LL_ADC_IsCalibrationOnGoing(handle->adc) != 0)
+    while (LL_ADC_IsCalibrationOnGoing(handle->adc) != 0)
         ;
     // Delay between ADC end of calibration and ADC enable
     size_t end =
         DWT->CYCCNT + (LL_ADC_DELAY_CALIB_ENABLE_ADC_CYCLES * furi_hal_adc_clock_div[clock]);
-    while(DWT->CYCCNT < end)
+    while (DWT->CYCCNT < end)
         ;
 
     // Enable ADC
     LL_ADC_ClearFlag_ADRDY(handle->adc);
     LL_ADC_Enable(handle->adc);
-    while(LL_ADC_IsActiveFlag_ADRDY(handle->adc) == 0)
+    while (LL_ADC_IsActiveFlag_ADRDY(handle->adc) == 0)
         ;
 }
 
-uint16_t furi_hal_adc_read(FuriHalAdcHandle* handle, FuriHalAdcChannel channel) {
+uint16_t furi_hal_adc_read(FuriHalAdcHandle *handle, FuriHalAdcChannel channel)
+{
     furi_check(handle);
     furi_check(channel <= FuriHalAdcChannelVBAT);
     furi_check(LL_ADC_IsEnabled(handle->adc) == 1);
     furi_check(LL_ADC_IsDisableOngoing(handle->adc) == 0);
     furi_check(LL_ADC_REG_IsConversionOngoing(handle->adc) == 0);
 
-    LL_ADC_REG_SetSequencerRanks(
-        handle->adc, LL_ADC_REG_RANK_1, furi_hal_adc_channel_map[channel]);
+    LL_ADC_REG_SetSequencerRanks(handle->adc, LL_ADC_REG_RANK_1, furi_hal_adc_channel_map[channel]);
 
     LL_ADC_REG_StartConversion(handle->adc);
 
-    while(LL_ADC_IsActiveFlag_EOC(handle->adc) == 0)
+    while (LL_ADC_IsActiveFlag_EOC(handle->adc) == 0)
         ;
     uint16_t value = LL_ADC_REG_ReadConversionData12(handle->adc);
 
     return value;
 }
 
-float furi_hal_adc_convert_to_voltage(FuriHalAdcHandle* handle, uint16_t value) {
+float furi_hal_adc_convert_to_voltage(FuriHalAdcHandle *handle, uint16_t value)
+{
     return (float)__LL_ADC_CALC_DATA_TO_VOLTAGE(handle->full_scale, value, LL_ADC_RESOLUTION_12B);
 }
 
-float furi_hal_adc_convert_vref(FuriHalAdcHandle* handle, uint16_t value) {
+float furi_hal_adc_convert_vref(FuriHalAdcHandle *handle, uint16_t value)
+{
     UNUSED(handle);
     return (float)__LL_ADC_CALC_VREFANALOG_VOLTAGE(value, LL_ADC_RESOLUTION_12B);
 }
 
-float furi_hal_adc_convert_temp(FuriHalAdcHandle* handle, uint16_t value) {
+float furi_hal_adc_convert_temp(FuriHalAdcHandle *handle, uint16_t value)
+{
     return (float)__LL_ADC_CALC_TEMPERATURE(handle->full_scale, value, LL_ADC_RESOLUTION_12B);
 }
 
-float furi_hal_adc_convert_vbat(FuriHalAdcHandle* handle, uint16_t value) {
+float furi_hal_adc_convert_vbat(FuriHalAdcHandle *handle, uint16_t value)
+{
     return furi_hal_adc_convert_to_voltage(handle, value) * 3;
 }

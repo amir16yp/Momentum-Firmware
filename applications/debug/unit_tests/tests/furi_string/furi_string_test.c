@@ -1,23 +1,27 @@
 #include <furi.h>
 #include "../test.h" // IWYU pragma: keep
 
-static void test_setup(void) {
+static void test_setup(void)
+{
 }
 
-static void test_teardown(void) {
+static void test_teardown(void)
+{
 }
 
-static FuriString* furi_string_alloc_vprintf_test(const char format[], ...) {
+static FuriString *furi_string_alloc_vprintf_test(const char format[], ...)
+{
     va_list args;
     va_start(args, format);
-    FuriString* string = furi_string_alloc_vprintf(format, args);
+    FuriString *string = furi_string_alloc_vprintf(format, args);
     va_end(args);
     return string;
 }
 
-MU_TEST(mu_test_furi_string_alloc_free) {
-    FuriString* tmp;
-    FuriString* string;
+MU_TEST(mu_test_furi_string_alloc_free)
+{
+    FuriString *tmp;
+    FuriString *string;
 
     // test alloc and free
     string = furi_string_alloc();
@@ -64,8 +68,9 @@ MU_TEST(mu_test_furi_string_alloc_free) {
     furi_string_free(string);
 }
 
-MU_TEST(mu_test_furi_string_mem) {
-    FuriString* string = furi_string_alloc_set("test");
+MU_TEST(mu_test_furi_string_mem)
+{
+    FuriString *string = furi_string_alloc_set("test");
     mu_check(string != NULL);
     mu_check(!furi_string_empty(string));
 
@@ -77,14 +82,14 @@ MU_TEST(mu_test_furi_string_mem) {
 
     // test furi_string_swap
     furi_string_set(string, "test");
-    FuriString* swap_string = furi_string_alloc_set("swap");
+    FuriString *swap_string = furi_string_alloc_set("swap");
     furi_string_swap(string, swap_string);
     mu_check(furi_string_cmp(string, "swap") == 0);
     mu_check(furi_string_cmp(swap_string, "test") == 0);
     furi_string_free(swap_string);
 
     // test furi_string_move
-    FuriString* move_string = furi_string_alloc_set("move");
+    FuriString *move_string = furi_string_alloc_set("move");
     furi_string_move(string, move_string);
     mu_check(furi_string_cmp(string, "move") == 0);
     // move_string is now empty
@@ -106,8 +111,9 @@ MU_TEST(mu_test_furi_string_mem) {
     furi_string_free(string);
 }
 
-MU_TEST(mu_test_furi_string_getters) {
-    FuriString* string = furi_string_alloc_set("test");
+MU_TEST(mu_test_furi_string_getters)
+{
+    FuriString *string = furi_string_alloc_set("test");
 
     // test furi_string_get_char
     mu_check(furi_string_get_char(string, 0) == 't');
@@ -120,7 +126,8 @@ MU_TEST(mu_test_furi_string_getters) {
     furi_string_free(string);
 }
 
-static FuriString* furi_string_vprintf_test(FuriString* string, const char format[], ...) {
+static FuriString *furi_string_vprintf_test(FuriString *string, const char format[], ...)
+{
     va_list args;
     va_start(args, format);
     furi_string_vprintf(string, format, args);
@@ -128,9 +135,10 @@ static FuriString* furi_string_vprintf_test(FuriString* string, const char forma
     return string;
 }
 
-MU_TEST(mu_test_furi_string_setters) {
-    FuriString* tmp;
-    FuriString* string = furi_string_alloc();
+MU_TEST(mu_test_furi_string_setters)
+{
+    FuriString *tmp;
+    FuriString *string = furi_string_alloc();
 
     // test furi_string_set_str
     furi_string_set_str(string, "test");
@@ -168,7 +176,8 @@ MU_TEST(mu_test_furi_string_setters) {
     furi_string_free(string);
 }
 
-static FuriString* furi_string_cat_vprintf_test(FuriString* string, const char format[], ...) {
+static FuriString *furi_string_cat_vprintf_test(FuriString *string, const char format[], ...)
+{
     va_list args;
     va_start(args, format);
     furi_string_cat_vprintf(string, format, args);
@@ -176,9 +185,10 @@ static FuriString* furi_string_cat_vprintf_test(FuriString* string, const char f
     return string;
 }
 
-MU_TEST(mu_test_furi_string_appends) {
-    FuriString* tmp;
-    FuriString* string = furi_string_alloc();
+MU_TEST(mu_test_furi_string_appends)
+{
+    FuriString *tmp;
+    FuriString *string = furi_string_alloc();
 
     // test furi_string_push_back
     furi_string_push_back(string, 't');
@@ -205,15 +215,16 @@ MU_TEST(mu_test_furi_string_appends) {
 
     // test furi_string_cat_vprintf
     furi_string_cat_vprintf_test(string, "test %d %s %c 0x%02x", 4, "five", '6', 0x07);
-    mu_assert_string_eq(
-        "test!testmoretest 1 two 3 0x04test 4 five 6 0x07", furi_string_get_cstr(string));
+    mu_assert_string_eq("test!testmoretest 1 two 3 0x04test 4 five 6 0x07",
+                        furi_string_get_cstr(string));
 
     furi_string_free(string);
 }
 
-MU_TEST(mu_test_furi_string_compare) {
-    FuriString* string_1 = furi_string_alloc_set("string_1");
-    FuriString* string_2 = furi_string_alloc_set("string_2");
+MU_TEST(mu_test_furi_string_compare)
+{
+    FuriString *string_1 = furi_string_alloc_set("string_1");
+    FuriString *string_2 = furi_string_alloc_set("string_2");
 
     // test furi_string_cmp
     mu_assert_int_eq(0, furi_string_cmp(string_1, string_1));
@@ -262,10 +273,11 @@ MU_TEST(mu_test_furi_string_compare) {
     furi_string_free(string_2);
 }
 
-MU_TEST(mu_test_furi_string_search) {
+MU_TEST(mu_test_furi_string_search)
+{
     //                                            012345678901234567
-    FuriString* haystack = furi_string_alloc_set("test321test123test");
-    FuriString* needle = furi_string_alloc_set("test");
+    FuriString *haystack = furi_string_alloc_set("test321test123test");
+    FuriString *needle = furi_string_alloc_set("test");
 
     // test furi_string_search
     mu_assert_int_eq(0, furi_string_search(haystack, needle));
@@ -273,7 +285,7 @@ MU_TEST(mu_test_furi_string_search) {
     mu_assert_int_eq(14, furi_string_search(haystack, needle, 8));
     mu_assert_int_eq(FURI_STRING_FAILURE, furi_string_search(haystack, needle, 15));
 
-    FuriString* tmp = furi_string_alloc_set("testnone");
+    FuriString *tmp = furi_string_alloc_set("testnone");
     mu_assert_int_eq(FURI_STRING_FAILURE, furi_string_search(haystack, tmp));
     furi_string_free(tmp);
 
@@ -306,10 +318,11 @@ MU_TEST(mu_test_furi_string_search) {
     furi_string_free(needle);
 }
 
-MU_TEST(mu_test_furi_string_equality) {
-    FuriString* string = furi_string_alloc_set("test");
-    FuriString* string_eq = furi_string_alloc_set("test");
-    FuriString* string_neq = furi_string_alloc_set("test2");
+MU_TEST(mu_test_furi_string_equality)
+{
+    FuriString *string = furi_string_alloc_set("test");
+    FuriString *string_eq = furi_string_alloc_set("test");
+    FuriString *string_neq = furi_string_alloc_set("test2");
 
     // test furi_string_equal
     mu_check(furi_string_equal(string, string_eq));
@@ -326,10 +339,11 @@ MU_TEST(mu_test_furi_string_equality) {
     furi_string_free(string_neq);
 }
 
-MU_TEST(mu_test_furi_string_replace) {
-    FuriString* needle = furi_string_alloc_set("test");
-    FuriString* replace = furi_string_alloc_set("replace");
-    FuriString* string = furi_string_alloc_set("test123test");
+MU_TEST(mu_test_furi_string_replace)
+{
+    FuriString *needle = furi_string_alloc_set("test");
+    FuriString *replace = furi_string_alloc_set("replace");
+    FuriString *string = furi_string_alloc_set("test123test");
 
     // test furi_string_replace_at
     furi_string_replace_at(string, 4, 3, "!biglongword!");
@@ -364,10 +378,11 @@ MU_TEST(mu_test_furi_string_replace) {
     furi_string_free(replace);
 }
 
-MU_TEST(mu_test_furi_string_start_end) {
-    FuriString* string = furi_string_alloc_set("start_end");
-    FuriString* start = furi_string_alloc_set("start");
-    FuriString* end = furi_string_alloc_set("end");
+MU_TEST(mu_test_furi_string_start_end)
+{
+    FuriString *string = furi_string_alloc_set("start_end");
+    FuriString *start = furi_string_alloc_set("start");
+    FuriString *end = furi_string_alloc_set("end");
 
     // test furi_string_start_with
     mu_check(furi_string_start_with(string, start));
@@ -390,8 +405,9 @@ MU_TEST(mu_test_furi_string_start_end) {
     furi_string_free(end);
 }
 
-MU_TEST(mu_test_furi_string_trim) {
-    FuriString* string = furi_string_alloc_set("biglongstring");
+MU_TEST(mu_test_furi_string_trim)
+{
+    FuriString *string = furi_string_alloc_set("biglongstring");
 
     // test furi_string_left
     furi_string_left(string, 7);
@@ -416,8 +432,9 @@ MU_TEST(mu_test_furi_string_trim) {
     furi_string_free(string);
 }
 
-MU_TEST(mu_test_furi_string_utf8) {
-    FuriString* utf8_string = furi_string_alloc_set("イルカ");
+MU_TEST(mu_test_furi_string_utf8)
+{
+    FuriString *utf8_string = furi_string_alloc_set("イルカ");
 
     // test furi_string_utf8_length
     mu_assert_int_eq(9, furi_string_size(utf8_string));
@@ -445,7 +462,8 @@ MU_TEST(mu_test_furi_string_utf8) {
     furi_string_free(utf8_string);
 }
 
-MU_TEST_SUITE(test_suite) {
+MU_TEST_SUITE(test_suite)
+{
     MU_SUITE_CONFIGURE(&test_setup, &test_teardown);
 
     MU_RUN_TEST(mu_test_furi_string_alloc_free);
@@ -462,7 +480,8 @@ MU_TEST_SUITE(test_suite) {
     MU_RUN_TEST(mu_test_furi_string_utf8);
 }
 
-int run_minunit_test_furi_string(void) {
+int run_minunit_test_furi_string(void)
+{
     MU_RUN_SUITE(test_suite);
 
     return MU_EXIT_CODE;

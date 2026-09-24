@@ -15,7 +15,7 @@ extern "C" {
 typedef struct NumberInput NumberInput;
 
 /** Callback to be called on save button press */
-typedef void (*NumberInputCallback)(void* context, int32_t number);
+typedef void (*NumberInputCallback)(void *context, int32_t number);
 
 /** Allocate and initialize Number input.
  *
@@ -23,13 +23,13 @@ typedef void (*NumberInputCallback)(void* context, int32_t number);
  *
  * @return     NumberInput instance pointer
  */
-NumberInput* number_input_alloc(void);
+NumberInput *number_input_alloc(void);
 
 /** Deinitialize and free byte input
  *
  * @param      number_input  Number input instance
  */
-void number_input_free(NumberInput* number_input);
+void number_input_free(NumberInput *number_input);
 
 /** Get byte input view
  *
@@ -37,7 +37,7 @@ void number_input_free(NumberInput* number_input);
  *
  * @return     View instance that can be used for embedding
  */
-View* number_input_get_view(NumberInput* number_input);
+View *number_input_get_view(NumberInput *number_input);
 
 /** Set byte input result callback
  *
@@ -49,20 +49,16 @@ View* number_input_get_view(NumberInput* number_input);
  * @param      max_value         Max number value
  */
 
-void number_input_set_result_callback(
-    NumberInput* number_input,
-    NumberInputCallback input_callback,
-    void* callback_context,
-    int32_t current_number,
-    int32_t min_value,
-    int32_t max_value);
+void number_input_set_result_callback(NumberInput *number_input, NumberInputCallback input_callback,
+                                      void *callback_context, int32_t current_number,
+                                      int32_t min_value, int32_t max_value);
 
 /** Set byte input header text
  *
  * @param      number_input  byte input instance
  * @param      text          text to be shown
  */
-void number_input_set_header_text(NumberInput* number_input, const char* text);
+void number_input_set_header_text(NumberInput *number_input, const char *text);
 
 #ifdef __cplusplus
 }

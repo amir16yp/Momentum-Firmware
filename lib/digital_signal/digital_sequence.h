@@ -47,14 +47,14 @@ typedef struct DigitalSequence DigitalSequence;
  * @param[in] gpio the GPIO pin used to generate the signal.
  * @returns pointer to the allocated DigitalSequence instance.
  */
-DigitalSequence* digital_sequence_alloc(uint32_t size, const GpioPin* gpio);
+DigitalSequence *digital_sequence_alloc(uint32_t size, const GpioPin *gpio);
 
 /**
  * @brief Delete a previously allocated DigitalSequence instance.
  *
  * @param[in,out] sequence pointer to the instance to be deleted.
  */
-void digital_sequence_free(DigitalSequence* sequence);
+void digital_sequence_free(DigitalSequence *sequence);
 
 /**
  * @brief Register a signal within a DigitalSequence instance by its index.
@@ -69,20 +69,19 @@ void digital_sequence_free(DigitalSequence* sequence);
  * @param[in] signal_index index to register the signal under (must be less than 32).
  * @param[in] signal pointer to the DigitalSignal instance to be registered.
  */
-void digital_sequence_register_signal(
-    DigitalSequence* sequence,
-    uint8_t signal_index,
-    const DigitalSignal* signal);
+void digital_sequence_register_signal(DigitalSequence *sequence, uint8_t signal_index,
+                                      const DigitalSignal *signal);
 
 /**
  * @brief Append a signal index to a DigitalSequence instance.
  *
- * The signal under the index must be registered beforehand by calling digital_sequence_set_signal().
+ * The signal under the index must be registered beforehand by calling
+ * digital_sequence_set_signal().
  *
  * @param[in,out] sequence pointer to the instance to be modified.
  * @param[in] signal_index signal index to be appended to the sequence (must be less than 32).
  */
-void digital_sequence_add_signal(DigitalSequence* sequence, uint8_t signal_index);
+void digital_sequence_add_signal(DigitalSequence *sequence, uint8_t signal_index);
 
 /**
  * @brief Transmit the sequence contained in the DigitalSequence instance.
@@ -95,7 +94,7 @@ void digital_sequence_add_signal(DigitalSequence* sequence, uint8_t signal_index
  *
  * @param[in] sequence pointer to the sequence to be transmitted.
  */
-void digital_sequence_transmit(DigitalSequence* sequence);
+void digital_sequence_transmit(DigitalSequence *sequence);
 
 /**
  * @brief Clear the signal sequence in a DigitalSequence instance.
@@ -105,7 +104,7 @@ void digital_sequence_transmit(DigitalSequence* sequence);
  *
  * @param[in,out] sequence pointer to the instance to be cleared.
  */
-void digital_sequence_clear(DigitalSequence* sequence);
+void digital_sequence_clear(DigitalSequence *sequence);
 
 #ifdef __cplusplus
 }

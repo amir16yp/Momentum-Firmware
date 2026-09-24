@@ -1,14 +1,14 @@
 #include "mf_plus_i.h"
 
-#define MF_PLUS_FFF_VERSION_KEY \
-    MF_PLUS_FFF_PICC_PREFIX " " \
+#define MF_PLUS_FFF_VERSION_KEY                                                                    \
+    MF_PLUS_FFF_PICC_PREFIX " "                                                                    \
                             "Version"
 
 #define MF_PLUS_T1_TK_VALUE_LEN 7
 
 #define MF_PLUS_FFF_SECURITY_LEVEL_KEY "Security Level"
-#define MF_PLUS_FFF_CARD_TYPE_KEY      "Card Type"
-#define MF_PLUS_FFF_MEMORY_SIZE_KEY    "Memory Size"
+#define MF_PLUS_FFF_CARD_TYPE_KEY "Card Type"
+#define MF_PLUS_FFF_MEMORY_SIZE_KEY "Memory Size"
 
 #define TAG "MfPlus"
 
@@ -19,20 +19,20 @@ const uint8_t mf_plus_ats_t1_tk_values[][MF_PLUS_T1_TK_VALUE_LEN] = {
     {0xC1, 0x05, 0x21, 0x30, 0x10, 0xF6, 0xD1}, // Mifare Plus SE
 };
 
-MfPlusError mf_plus_get_type_from_version(
-    const Iso14443_4aData* iso14443_4a_data,
-    MfPlusData* mf_plus_data) {
+MfPlusError mf_plus_get_type_from_version(const Iso14443_4aData *iso14443_4a_data,
+                                          MfPlusData *mf_plus_data)
+{
     furi_assert(iso14443_4a_data);
     furi_assert(mf_plus_data);
 
     MfPlusError error = MfPlusErrorProtocol;
 
-    if((mf_plus_data->version.hw_type & 0x0F) == 0x02) {
+    if ((mf_plus_data->version.hw_type & 0x0F) == 0x02) {
         error = MfPlusErrorNone;
         // Mifare Plus EV1/EV2
 
         // Revision
-        switch(mf_plus_data->version.hw_major) {
+        switch (mf_plus_data->version.hw_major) {
         case 0x11:
             mf_plus_data->type = MfPlusTypeEV1;
             FURI_LOG_D(TAG, "Mifare Plus EV1");
@@ -48,7 +48,7 @@ MfPlusError mf_plus_get_type_from_version(
         }
 
         // Storage size
-        switch(mf_plus_data->version.hw_storage) {
+        switch (mf_plus_data->version.hw_storage) {
         case 0x16:
             mf_plus_data->size = MfPlusSize2K;
             FURI_LOG_D(TAG, "2K");
@@ -64,7 +64,7 @@ MfPlusError mf_plus_get_type_from_version(
         }
 
         // Security level
-        if(iso14443_4a_data->iso14443_3a_data->sak == 0x20) {
+        if (iso14443_4a_data->iso14443_3a_data->sak == 0x20) {
             // Mifare Plus EV1/2 SL3
             mf_plus_data->security_level = MfPlusSecurityLevel3;
             FURI_LOG_D(TAG, "Mifare Plus EV1/2 SL3");
@@ -78,22 +78,22 @@ MfPlusError mf_plus_get_type_from_version(
     return error;
 }
 
-MfPlusError
-    mf_plus_get_type_from_iso4(const Iso14443_4aData* iso4_data, MfPlusData* mf_plus_data) {
+MfPlusError mf_plus_get_type_from_iso4(const Iso14443_4aData *iso4_data, MfPlusData *mf_plus_data)
+{
     furi_assert(iso4_data);
     furi_assert(mf_plus_data);
 
     MfPlusError error = MfPlusErrorProtocol;
 
     const size_t historical_bytes_len = simple_array_get_count(iso4_data->ats_data.t1_tk);
-    if(historical_bytes_len != MF_PLUS_T1_TK_VALUE_LEN) {
+    if (historical_bytes_len != MF_PLUS_T1_TK_VALUE_LEN) {
         return MfPlusErrorProtocol;
     }
-    const uint8_t* historical_bytes = simple_array_cget_data(iso4_data->ats_data.t1_tk);
+    const uint8_t *historical_bytes = simple_array_cget_data(iso4_data->ats_data.t1_tk);
 
-    switch(iso4_data->iso14443_3a_data->sak) {
+    switch (iso4_data->iso14443_3a_data->sak) {
     case 0x08:
-        if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
+        if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
             // Mifare Plus S 2K SL1
             mf_plus_data->type = MfPlusTypeS;
             mf_plus_data->size = MfPlusSize2K;
@@ -101,7 +101,8 @@ MfPlusError
 
             FURI_LOG_D(TAG, "Mifare Plus S 2K SL1");
             error = MfPlusErrorNone;
-        } else if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) == 0) {
+        } else if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) ==
+                   0) {
             // Mifare Plus X 2K SL1
             mf_plus_data->type = MfPlusTypeX;
             mf_plus_data->size = MfPlusSize2K;
@@ -109,9 +110,10 @@ MfPlusError
 
             FURI_LOG_D(TAG, "Mifare Plus X 2K SL1");
             error = MfPlusErrorNone;
-        } else if(
-            memcmp(historical_bytes, mf_plus_ats_t1_tk_values[2], historical_bytes_len) == 0 ||
-            memcmp(historical_bytes, mf_plus_ats_t1_tk_values[3], historical_bytes_len) == 0) {
+        } else if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[2], historical_bytes_len) ==
+                       0 ||
+                   memcmp(historical_bytes, mf_plus_ats_t1_tk_values[3], historical_bytes_len) ==
+                       0) {
             // Mifare Plus SE 1K SL1
             mf_plus_data->type = MfPlusTypeSE;
             mf_plus_data->size = MfPlusSize1K;
@@ -143,7 +145,7 @@ MfPlusError
 
         break;
     case 0x18:
-        if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
+        if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
             // Mifare Plus S 4K SL1
             mf_plus_data->type = MfPlusTypeS;
             mf_plus_data->size = MfPlusSize4K;
@@ -151,7 +153,8 @@ MfPlusError
 
             FURI_LOG_D(TAG, "Mifare Plus S 4K SL1");
             error = MfPlusErrorNone;
-        } else if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) == 0) {
+        } else if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) ==
+                   0) {
             // Mifare Plus X 4K SL1
             mf_plus_data->type = MfPlusTypeX;
             mf_plus_data->size = MfPlusSize4K;
@@ -165,19 +168,19 @@ MfPlusError
 
         break;
     case 0x20:
-        if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
+        if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[0], historical_bytes_len) == 0) {
             // Mifare Plus S 2/4K SL3
             FURI_LOG_D(TAG, "Mifare Plus S SL3");
             mf_plus_data->type = MfPlusTypeS;
             mf_plus_data->security_level = MfPlusSecurityLevel3;
 
-            if((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x04) {
+            if ((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x04) {
                 // Mifare Plus S 2K SL3
                 mf_plus_data->size = MfPlusSize2K;
 
                 FURI_LOG_D(TAG, "Mifare Plus S 2K SL3");
                 error = MfPlusErrorNone;
-            } else if((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x02) {
+            } else if ((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x02) {
                 // Mifare Plus S 4K SL3
                 mf_plus_data->size = MfPlusSize4K;
 
@@ -186,19 +189,20 @@ MfPlusError
             } else {
                 FURI_LOG_D(TAG, "Sak 20 but no known Mifare Plus type (S)");
             }
-        } else if(memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) == 0) {
+        } else if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[1], historical_bytes_len) ==
+                   0) {
             // Mifare Plus X 2/4K SL3
             mf_plus_data->type = MfPlusTypeX;
             mf_plus_data->security_level = MfPlusSecurityLevel3;
             FURI_LOG_D(TAG, "Mifare Plus X SL3");
 
-            if((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x04) {
+            if ((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x04) {
                 // Mifare Plus X 2K SL3
                 mf_plus_data->size = MfPlusSize2K;
 
                 FURI_LOG_D(TAG, "Mifare Plus X 2K SL3");
                 error = MfPlusErrorNone;
-            } else if((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x02) {
+            } else if ((iso4_data->iso14443_3a_data->atqa[0] & 0x0F) == 0x02) {
                 // Mifare Plus X 4K SL3
                 mf_plus_data->size = MfPlusSize4K;
 
@@ -207,9 +211,10 @@ MfPlusError
             } else {
                 FURI_LOG_D(TAG, "Sak 20 but no known Mifare Plus type (X)");
             }
-        } else if(
-            memcmp(historical_bytes, mf_plus_ats_t1_tk_values[2], historical_bytes_len) == 0 ||
-            memcmp(historical_bytes, mf_plus_ats_t1_tk_values[3], historical_bytes_len) == 0) {
+        } else if (memcmp(historical_bytes, mf_plus_ats_t1_tk_values[2], historical_bytes_len) ==
+                       0 ||
+                   memcmp(historical_bytes, mf_plus_ats_t1_tk_values[3], historical_bytes_len) ==
+                       0) {
             // Mifare Plus SE 1K SL3
             mf_plus_data->type = MfPlusTypeSE;
             mf_plus_data->size = MfPlusSize1K;
@@ -225,10 +230,11 @@ MfPlusError
     return error;
 }
 
-MfPlusError mf_plus_version_parse(MfPlusVersion* data, const BitBuffer* buf) {
+MfPlusError mf_plus_version_parse(MfPlusVersion *data, const BitBuffer *buf)
+{
     const bool can_parse = bit_buffer_get_size_bytes(buf) == sizeof(MfPlusVersion);
 
-    if(can_parse) {
+    if (can_parse) {
         bit_buffer_write_bytes(buf, data, sizeof(MfPlusVersion));
     } else {
         memset(data, 0, sizeof(MfPlusVersion));
@@ -237,20 +243,22 @@ MfPlusError mf_plus_version_parse(MfPlusVersion* data, const BitBuffer* buf) {
     return can_parse ? MfPlusErrorNone : MfPlusErrorProtocol;
 }
 
-bool mf_plus_version_load(MfPlusVersion* data, FlipperFormat* ff) {
-    return flipper_format_read_hex(
-        ff, MF_PLUS_FFF_VERSION_KEY, (uint8_t*)data, sizeof(MfPlusVersion));
+bool mf_plus_version_load(MfPlusVersion *data, FlipperFormat *ff)
+{
+    return flipper_format_read_hex(ff, MF_PLUS_FFF_VERSION_KEY, (uint8_t *)data,
+                                   sizeof(MfPlusVersion));
 }
 
-bool mf_plus_security_level_load(MfPlusSecurityLevel* data, FlipperFormat* ff) {
-    FuriString* security_level_string = furi_string_alloc();
+bool mf_plus_security_level_load(MfPlusSecurityLevel *data, FlipperFormat *ff)
+{
+    FuriString *security_level_string = furi_string_alloc();
     flipper_format_read_string(ff, MF_PLUS_FFF_SECURITY_LEVEL_KEY, security_level_string);
 
     // Take the last character of the string
     char security_level_char = furi_string_get_char(
         security_level_string, furi_string_utf8_length(security_level_string) - 1);
 
-    switch(security_level_char) {
+    switch (security_level_char) {
     case '0':
         *data = MfPlusSecurityLevel0;
         break;
@@ -273,21 +281,22 @@ bool mf_plus_security_level_load(MfPlusSecurityLevel* data, FlipperFormat* ff) {
     return true;
 }
 
-bool mf_plus_type_load(MfPlusType* data, FlipperFormat* ff) {
-    FuriString* type_string = furi_string_alloc();
+bool mf_plus_type_load(MfPlusType *data, FlipperFormat *ff)
+{
+    FuriString *type_string = furi_string_alloc();
     flipper_format_read_string(ff, MF_PLUS_FFF_CARD_TYPE_KEY, type_string);
 
-    if(furi_string_equal_str(type_string, "Mifare Plus")) {
+    if (furi_string_equal_str(type_string, "Mifare Plus")) {
         *data = MfPlusTypePlus;
-    } else if(furi_string_equal_str(type_string, "Mifare Plus X")) {
+    } else if (furi_string_equal_str(type_string, "Mifare Plus X")) {
         *data = MfPlusTypeX;
-    } else if(furi_string_equal_str(type_string, "Mifare Plus S")) {
+    } else if (furi_string_equal_str(type_string, "Mifare Plus S")) {
         *data = MfPlusTypeS;
-    } else if(furi_string_equal_str(type_string, "Mifare Plus SE")) {
+    } else if (furi_string_equal_str(type_string, "Mifare Plus SE")) {
         *data = MfPlusTypeSE;
-    } else if(furi_string_equal_str(type_string, "Mifare Plus EV1")) {
+    } else if (furi_string_equal_str(type_string, "Mifare Plus EV1")) {
         *data = MfPlusTypeEV1;
-    } else if(furi_string_equal_str(type_string, "Mifare Plus EV2")) {
+    } else if (furi_string_equal_str(type_string, "Mifare Plus EV2")) {
         *data = MfPlusTypeEV2;
     } else {
         *data = MfPlusTypeUnknown;
@@ -297,15 +306,16 @@ bool mf_plus_type_load(MfPlusType* data, FlipperFormat* ff) {
     return true;
 }
 
-bool mf_plus_size_load(MfPlusSize* data, FlipperFormat* ff) {
-    FuriString* size_string = furi_string_alloc();
+bool mf_plus_size_load(MfPlusSize *data, FlipperFormat *ff)
+{
+    FuriString *size_string = furi_string_alloc();
     flipper_format_read_string(ff, MF_PLUS_FFF_MEMORY_SIZE_KEY, size_string);
 
-    if(furi_string_equal_str(size_string, "1K")) {
+    if (furi_string_equal_str(size_string, "1K")) {
         *data = MfPlusSize1K;
-    } else if(furi_string_equal_str(size_string, "2K")) {
+    } else if (furi_string_equal_str(size_string, "2K")) {
         *data = MfPlusSize2K;
-    } else if(furi_string_equal_str(size_string, "4K")) {
+    } else if (furi_string_equal_str(size_string, "4K")) {
         *data = MfPlusSize4K;
     } else {
         *data = MfPlusSizeUnknown;
@@ -315,15 +325,17 @@ bool mf_plus_size_load(MfPlusSize* data, FlipperFormat* ff) {
     return true;
 }
 
-bool mf_plus_version_save(const MfPlusVersion* data, FlipperFormat* ff) {
-    return flipper_format_write_hex(
-        ff, MF_PLUS_FFF_VERSION_KEY, (const uint8_t*)data, sizeof(MfPlusVersion));
+bool mf_plus_version_save(const MfPlusVersion *data, FlipperFormat *ff)
+{
+    return flipper_format_write_hex(ff, MF_PLUS_FFF_VERSION_KEY, (const uint8_t *)data,
+                                    sizeof(MfPlusVersion));
 }
 
-bool mf_plus_security_level_save(const MfPlusSecurityLevel* data, FlipperFormat* ff) {
-    FuriString* security_level_string = furi_string_alloc();
+bool mf_plus_security_level_save(const MfPlusSecurityLevel *data, FlipperFormat *ff)
+{
+    FuriString *security_level_string = furi_string_alloc();
 
-    switch(*data) {
+    switch (*data) {
     case MfPlusSecurityLevel0:
         furi_string_cat(security_level_string, "SL0");
         break;
@@ -348,10 +360,11 @@ bool mf_plus_security_level_save(const MfPlusSecurityLevel* data, FlipperFormat*
     return success;
 }
 
-bool mf_plus_type_save(const MfPlusType* data, FlipperFormat* ff) {
-    FuriString* type_string = furi_string_alloc();
+bool mf_plus_type_save(const MfPlusType *data, FlipperFormat *ff)
+{
+    FuriString *type_string = furi_string_alloc();
 
-    switch(*data) {
+    switch (*data) {
     case MfPlusTypePlus:
         furi_string_cat(type_string, "Mifare Plus");
         break;
@@ -381,10 +394,11 @@ bool mf_plus_type_save(const MfPlusType* data, FlipperFormat* ff) {
     return success;
 }
 
-bool mf_plus_size_save(const MfPlusSize* data, FlipperFormat* ff) {
-    FuriString* size_string = furi_string_alloc();
+bool mf_plus_size_save(const MfPlusSize *data, FlipperFormat *ff)
+{
+    FuriString *size_string = furi_string_alloc();
 
-    switch(*data) {
+    switch (*data) {
     case MfPlusSize1K:
         furi_string_cat(size_string, "1K");
         break;

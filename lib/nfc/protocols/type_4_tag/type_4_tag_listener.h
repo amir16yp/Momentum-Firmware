@@ -13,12 +13,12 @@ typedef enum {
 } Type4TagListenerEventType;
 
 typedef struct {
-    BitBuffer* buffer;
+    BitBuffer *buffer;
 } Type4TagListenerEventData;
 
 typedef struct {
     Type4TagListenerEventType type;
-    Type4TagListenerEventData* data;
+    Type4TagListenerEventData *data;
 } Type4TagListenerEvent;
 
 #ifdef __cplusplus

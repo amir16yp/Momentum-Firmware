@@ -24,7 +24,7 @@ uint32_t furi_hal_random_get(void);
  * @param      buf  buffer pointer
  * @param      data buffer len
  */
-void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len);
+void furi_hal_random_fill_buf(uint8_t *buf, uint32_t len);
 
 #ifdef __cplusplus
 }

@@ -13,10 +13,10 @@ extern "C" {
 
 typedef struct CliShellCompletions CliShellCompletions;
 
-CliShellCompletions*
-    cli_shell_completions_alloc(CliRegistry* registry, CliShell* shell, CliShellLine* line);
+CliShellCompletions *cli_shell_completions_alloc(CliRegistry *registry, CliShell *shell,
+                                                 CliShellLine *line);
 
-void cli_shell_completions_free(CliShellCompletions* completions);
+void cli_shell_completions_free(CliShellCompletions *completions);
 
 extern const CliShellKeyComboSet cli_shell_completions_key_combo_set;
 

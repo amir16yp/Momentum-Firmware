@@ -10,22 +10,25 @@ typedef enum {
     SubGhzRpcStateTx,
 } SubGhzRpcState;
 
-void subghz_scene_rpc_on_enter(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_rpc_on_enter(void *context)
+{
+    SubGhz *subghz = context;
     scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneRpc, SubGhzRpcStateIdle);
 }
 
-static void subghz_format_file_name_tmp(SubGhz* subghz) {
-    FuriString* file_name;
+static void subghz_format_file_name_tmp(SubGhz *subghz)
+{
+    FuriString *file_name;
     file_name = furi_string_alloc();
     path_extract_filename(subghz->file_path, file_name, true);
-    snprintf(
-        subghz->file_name_tmp, SUBGHZ_MAX_LEN_NAME, "loaded\n%s", furi_string_get_cstr(file_name));
+    snprintf(subghz->file_name_tmp, SUBGHZ_MAX_LEN_NAME, "loaded\n%s",
+             furi_string_get_cstr(file_name));
     furi_string_free(file_name);
 }
 
-static void subghz_scene_rpc_emulation_show(SubGhz* subghz) {
-    Popup* popup = subghz->popup;
+static void subghz_scene_rpc_emulation_show(SubGhz *subghz)
+{
+    Popup *popup = subghz->popup;
 
     subghz_format_file_name_tmp(subghz);
     popup_set_header(popup, "Sub-GHz", 89, 42, AlignCenter, AlignBottom);
@@ -37,58 +40,59 @@ static void subghz_scene_rpc_emulation_show(SubGhz* subghz) {
     notification_message(subghz->notifications, &sequence_display_backlight_on);
 }
 
-bool subghz_scene_rpc_on_event(void* context, SceneManagerEvent event) {
-    SubGhz* subghz = context;
+bool subghz_scene_rpc_on_event(void *context, SceneManagerEvent event)
+{
+    SubGhz *subghz = context;
     bool consumed = false;
     SubGhzRpcState state = scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneRpc);
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == SubGhzCustomEventSceneExit) {
+        if (event.event == SubGhzCustomEventSceneExit) {
             scene_manager_stop(subghz->scene_manager);
             view_dispatcher_stop(subghz->view_dispatcher);
             rpc_system_app_confirm(subghz->rpc_ctx, true);
-        } else if(event.event == SubGhzCustomEventSceneRpcSessionClose) {
+        } else if (event.event == SubGhzCustomEventSceneRpcSessionClose) {
             scene_manager_stop(subghz->scene_manager);
             view_dispatcher_stop(subghz->view_dispatcher);
-        } else if(event.event == SubGhzCustomEventSceneRpcButtonPress) {
+        } else if (event.event == SubGhzCustomEventSceneRpcButtonPress) {
             bool result = false;
-            if(state == SubGhzRpcStateLoaded) {
+            if (state == SubGhzRpcStateLoaded) {
                 // START endless TX until user release button
                 // variable used in protocol yield for endless TX
                 subghz_block_generic_global.endless_tx = true;
-                switch(
+                switch (
                     subghz_txrx_tx_start(subghz->txrx, subghz_txrx_get_fff_data(subghz->txrx))) {
                 case SubGhzTxRxStartTxStateErrorOnlyRx:
                     subghz_block_generic_global.endless_tx = false;
-                    rpc_system_app_set_error_code(
-                        subghz->rpc_ctx, RpcAppSystemErrorCodeRegionLock);
+                    rpc_system_app_set_error_code(subghz->rpc_ctx, RpcAppSystemErrorCodeRegionLock);
                     rpc_system_app_set_error_text(
                         subghz->rpc_ctx,
                         "Transmission on this frequency is restricted in your settings");
                     break;
                 case SubGhzTxRxStartTxStateErrorParserOthers:
                     subghz_block_generic_global.endless_tx = false;
-                    rpc_system_app_set_error_code(
-                        subghz->rpc_ctx, RpcAppSystemErrorCodeInternalParse);
-                    rpc_system_app_set_error_text(
-                        subghz->rpc_ctx, "Error in protocol parameters description");
+                    rpc_system_app_set_error_code(subghz->rpc_ctx,
+                                                  RpcAppSystemErrorCodeInternalParse);
+                    rpc_system_app_set_error_text(subghz->rpc_ctx,
+                                                  "Error in protocol parameters description");
                     break;
 
-                default: //if(SubGhzTxRxStartTxStateOk)
+                default: // if(SubGhzTxRxStartTxStateOk)
                     result = true;
                     subghz_blink_start(subghz);
-                    scene_manager_set_scene_state(
-                        subghz->scene_manager, SubGhzSceneRpc, SubGhzRpcStateTx);
+                    scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneRpc,
+                                                  SubGhzRpcStateTx);
                     break;
                 }
             }
             rpc_system_app_confirm(subghz->rpc_ctx, result);
-        } else if(event.event == SubGhzCustomEventSceneRpcButtonRelease) {
+        } else if (event.event == SubGhzCustomEventSceneRpcButtonRelease) {
             bool result = false;
-            if(state == SubGhzRpcStateTx) {
+            if (state == SubGhzRpcStateTx) {
                 // user release button
-                // set endless TX to OFF and switch off TX in section event.type == SceneManagerEventTypeTick
+                // set endless TX to OFF and switch off TX in section event.type ==
+                // SceneManagerEventTypeTick
                 subghz_block_generic_global.endless_tx = false;
                 result = true;
             }
@@ -101,7 +105,8 @@ bool subghz_scene_rpc_on_event(void* context, SceneManagerEvent event) {
             //     bool result = false;
             //     if(state == SubGhzRpcStateLoaded) {
             //         switch(
-            //             subghz_txrx_tx_start(subghz->txrx, subghz_txrx_get_fff_data(subghz->txrx))) {
+            //             subghz_txrx_tx_start(subghz->txrx,
+            //             subghz_txrx_get_fff_data(subghz->txrx))) {
             //         case SubGhzTxRxStartTxStateErrorOnlyRx:
             //             rpc_system_app_set_error_code(
             //                 subghz->rpc_ctx, RpcAppSystemErrorCodeRegionLock);
@@ -134,13 +139,13 @@ bool subghz_scene_rpc_on_event(void* context, SceneManagerEvent event) {
             //     scene_manager_set_scene_state(
             //         subghz->scene_manager, SubGhzSceneRpc, SubGhzRpcStateIdle);
             //     rpc_system_app_confirm(subghz->rpc_ctx, result);
-        } else if(event.event == SubGhzCustomEventSceneRpcLoad) {
+        } else if (event.event == SubGhzCustomEventSceneRpcLoad) {
             bool result = false;
-            if(state == SubGhzRpcStateIdle) {
-                if(subghz_key_load(subghz, furi_string_get_cstr(subghz->file_path), false)) {
+            if (state == SubGhzRpcStateIdle) {
+                if (subghz_key_load(subghz, furi_string_get_cstr(subghz->file_path), false)) {
                     subghz_scene_rpc_emulation_show(subghz);
-                    scene_manager_set_scene_state(
-                        subghz->scene_manager, SubGhzSceneRpc, SubGhzRpcStateLoaded);
+                    scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneRpc,
+                                                  SubGhzRpcStateLoaded);
                     result = true;
                 } else {
                     rpc_system_app_set_error_code(subghz->rpc_ctx, RpcAppSystemErrorCodeParseFile);
@@ -149,33 +154,34 @@ bool subghz_scene_rpc_on_event(void* context, SceneManagerEvent event) {
             }
             rpc_system_app_confirm(subghz->rpc_ctx, result);
         }
-    } else if(event.type == SceneManagerEventTypeTick) {
+    } else if (event.type == SceneManagerEventTypeTick) {
         // if hardware TX finished then stop TX correctly
-        if(subghz_devices_is_async_complete_tx(subghz->txrx->radio_device)) {
+        if (subghz_devices_is_async_complete_tx(subghz->txrx->radio_device)) {
             bool result = false;
-            if(state == SubGhzRpcStateTx) {
+            if (state == SubGhzRpcStateTx) {
                 subghz_txrx_stop(subghz->txrx);
                 subghz_blink_stop(subghz);
                 result = true;
             }
-            scene_manager_set_scene_state(
-                subghz->scene_manager, SubGhzSceneRpc, SubGhzRpcStateIdle);
+            scene_manager_set_scene_state(subghz->scene_manager, SubGhzSceneRpc,
+                                          SubGhzRpcStateIdle);
             rpc_system_app_confirm(subghz->rpc_ctx, result);
         }
     }
     return consumed;
 }
 
-void subghz_scene_rpc_on_exit(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_rpc_on_exit(void *context)
+{
+    SubGhz *subghz = context;
 
     SubGhzRpcState state = scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneRpc);
-    if(state == SubGhzRpcStateTx) {
+    if (state == SubGhzRpcStateTx) {
         subghz_txrx_stop(subghz->txrx);
         subghz_blink_stop(subghz);
     }
 
-    Popup* popup = subghz->popup;
+    Popup *popup = subghz->popup;
 
     popup_set_header(popup, NULL, 0, 0, AlignCenter, AlignBottom);
     popup_set_text(popup, NULL, 0, 0, AlignCenter, AlignTop);

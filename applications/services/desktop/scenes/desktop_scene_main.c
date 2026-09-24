@@ -12,44 +12,46 @@
 
 #define TAG "DesktopSrv"
 
-static void desktop_scene_main_new_idle_animation_callback(void* context) {
+static void desktop_scene_main_new_idle_animation_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    view_dispatcher_send_custom_event(
-        desktop->view_dispatcher, DesktopAnimationEventNewIdleAnimation);
+    Desktop *desktop = context;
+    view_dispatcher_send_custom_event(desktop->view_dispatcher,
+                                      DesktopAnimationEventNewIdleAnimation);
 }
 
-static void desktop_scene_main_check_animation_callback(void* context) {
+static void desktop_scene_main_check_animation_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    view_dispatcher_send_custom_event(
-        desktop->view_dispatcher, DesktopAnimationEventCheckAnimation);
+    Desktop *desktop = context;
+    view_dispatcher_send_custom_event(desktop->view_dispatcher,
+                                      DesktopAnimationEventCheckAnimation);
 }
 
-static void desktop_scene_main_interact_animation_callback(void* context) {
+static void desktop_scene_main_interact_animation_callback(void *context)
+{
     furi_assert(context);
-    Desktop* desktop = context;
-    view_dispatcher_send_custom_event(
-        desktop->view_dispatcher, DesktopAnimationEventInteractAnimation);
+    Desktop *desktop = context;
+    view_dispatcher_send_custom_event(desktop->view_dispatcher,
+                                      DesktopAnimationEventInteractAnimation);
 }
 
 #ifdef APP_ARCHIVE
-static void desktop_switch_to_app(
-    Desktop* desktop,
-    const FlipperInternalApplication* flipper_app,
-    void* context) {
+static void desktop_switch_to_app(Desktop *desktop, const FlipperInternalApplication *flipper_app,
+                                  void *context)
+{
     furi_assert(desktop);
     furi_assert(flipper_app);
     furi_assert(flipper_app->app);
     furi_assert(flipper_app->name);
 
-    if(furi_thread_get_state(desktop->scene_thread) != FuriThreadStateStopped) {
+    if (furi_thread_get_state(desktop->scene_thread) != FuriThreadStateStopped) {
         FURI_LOG_E("Desktop", "Thread is already running");
         return;
     }
 
     FuriHalRtcHeapTrackMode mode = furi_hal_rtc_get_heap_track_mode();
-    if(mode > FuriHalRtcHeapTrackModeNone) {
+    if (mode > FuriHalRtcHeapTrackModeNone) {
         furi_thread_enable_heap_trace(desktop->scene_thread);
     } else {
         furi_thread_disable_heap_trace(desktop->scene_thread);
@@ -64,37 +66,41 @@ static void desktop_switch_to_app(
 }
 #endif
 
-void desktop_scene_main_callback(DesktopEvent event, void* context) {
-    Desktop* desktop = (Desktop*)context;
-    if(desktop->in_transition) return;
+void desktop_scene_main_callback(DesktopEvent event, void *context)
+{
+    Desktop *desktop = (Desktop *)context;
+    if (desktop->in_transition)
+        return;
     view_dispatcher_send_custom_event(desktop->view_dispatcher, event);
 }
 
-void desktop_scene_main_on_enter(void* context) {
-    Desktop* desktop = (Desktop*)context;
-    DesktopMainView* main_view = desktop->main_view;
+void desktop_scene_main_on_enter(void *context)
+{
+    Desktop *desktop = (Desktop *)context;
+    DesktopMainView *main_view = desktop->main_view;
 
     animation_manager_set_context(desktop->animation_manager, desktop);
-    animation_manager_set_new_idle_callback(
-        desktop->animation_manager, desktop_scene_main_new_idle_animation_callback);
-    animation_manager_set_check_callback(
-        desktop->animation_manager, desktop_scene_main_check_animation_callback);
-    animation_manager_set_interact_callback(
-        desktop->animation_manager, desktop_scene_main_interact_animation_callback);
+    animation_manager_set_new_idle_callback(desktop->animation_manager,
+                                            desktop_scene_main_new_idle_animation_callback);
+    animation_manager_set_check_callback(desktop->animation_manager,
+                                         desktop_scene_main_check_animation_callback);
+    animation_manager_set_interact_callback(desktop->animation_manager,
+                                            desktop_scene_main_interact_animation_callback);
 
     desktop_main_set_callback(main_view, desktop_scene_main_callback, desktop);
 
     view_dispatcher_switch_to_view(desktop->view_dispatcher, DesktopViewIdMain);
 }
 
-bool desktop_scene_main_on_event(void* context, SceneManagerEvent event) {
-    Desktop* desktop = (Desktop*)context;
+bool desktop_scene_main_on_event(void *context, SceneManagerEvent event)
+{
+    Desktop *desktop = (Desktop *)context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        switch(event.event) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        switch (event.event) {
         case DesktopMainEventOpenMenu: {
-            Loader* loader = furi_record_open(RECORD_LOADER);
+            Loader *loader = furi_record_open(RECORD_LOADER);
             loader_show_menu(loader);
             furi_record_close(RECORD_LOADER);
             consumed = true;
@@ -137,7 +143,7 @@ bool desktop_scene_main_on_event(void* context, SceneManagerEvent event) {
             consumed = true;
             break;
         case DesktopAnimationEventInteractAnimation:
-            if(!animation_manager_interact_process(desktop->animation_manager)) {
+            if (!animation_manager_interact_process(desktop->animation_manager)) {
                 desktop_run_keybind(desktop, InputTypeShort, InputKeyRight);
             }
             consumed = true;
@@ -155,8 +161,9 @@ bool desktop_scene_main_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void desktop_scene_main_on_exit(void* context) {
-    Desktop* desktop = (Desktop*)context;
+void desktop_scene_main_on_exit(void *context)
+{
+    Desktop *desktop = (Desktop *)context;
 
     animation_manager_set_new_idle_callback(desktop->animation_manager, NULL);
     animation_manager_set_check_callback(desktop->animation_manager, NULL);

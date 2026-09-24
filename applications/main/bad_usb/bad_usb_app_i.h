@@ -20,27 +20,27 @@
 #include "views/bad_usb_view.h"
 #include <furi_hal_usb.h>
 
-#define BAD_USB_APP_BASE_FOLDER        EXT_PATH("badusb")
+#define BAD_USB_APP_BASE_FOLDER EXT_PATH("badusb")
 #define BAD_USB_APP_PATH_LAYOUT_FOLDER BAD_USB_APP_BASE_FOLDER "/assets/layouts"
-#define BAD_USB_APP_SCRIPT_EXTENSION   ".txt"
-#define BAD_USB_APP_LAYOUT_EXTENSION   ".kl"
+#define BAD_USB_APP_SCRIPT_EXTENSION ".txt"
+#define BAD_USB_APP_LAYOUT_EXTENSION ".kl"
 
 typedef enum {
     BadUsbAppErrorNoFiles,
 } BadUsbAppError;
 
 struct BadUsbApp {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    NotificationApp* notifications;
-    DialogsApp* dialogs;
-    Widget* widget;
-    Popup* popup;
-    VariableItemList* var_item_list;
-    TextInput* text_input;
-    ByteInput* byte_input;
-    Loading* loading;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    NotificationApp *notifications;
+    DialogsApp *dialogs;
+    Widget *widget;
+    Popup *popup;
+    VariableItemList *var_item_list;
+    TextInput *text_input;
+    ByteInput *byte_input;
+    Loading *loading;
 
     char ble_name_buf[FURI_HAL_BT_ADV_NAME_LENGTH];
     uint8_t ble_mac_buf[GAP_MAC_ADDR_SIZE];
@@ -48,10 +48,10 @@ struct BadUsbApp {
     uint16_t usb_vidpid_buf[2];
 
     BadUsbAppError error;
-    FuriString* file_path;
-    FuriString* keyboard_layout;
-    BadUsb* bad_usb_view;
-    BadUsbScript* bad_usb_script;
+    FuriString *file_path;
+    FuriString *keyboard_layout;
+    BadUsb *bad_usb_view;
+    BadUsbScript *bad_usb_script;
 
     BadUsbHidInterface interface;
     BadUsbHidConfig user_hid_cfg;
@@ -68,12 +68,12 @@ typedef enum {
     BadUsbAppViewLoading,
 } BadUsbAppView;
 
-void bad_usb_set_interface(BadUsbApp* app, BadUsbHidInterface interface);
+void bad_usb_set_interface(BadUsbApp *app, BadUsbHidInterface interface);
 
-void bad_usb_app_show_loading_popup(BadUsbApp* app, bool show);
+void bad_usb_app_show_loading_popup(BadUsbApp *app, bool show);
 
 // Editors are owned by their configuration scene and released on scene exit.
-TextInput* bad_usb_app_alloc_text_input(BadUsbApp* app);
-void bad_usb_app_free_text_input(BadUsbApp* app);
-ByteInput* bad_usb_app_alloc_byte_input(BadUsbApp* app);
-void bad_usb_app_free_byte_input(BadUsbApp* app);
+TextInput *bad_usb_app_alloc_text_input(BadUsbApp *app);
+void bad_usb_app_free_text_input(BadUsbApp *app);
+ByteInput *bad_usb_app_alloc_byte_input(BadUsbApp *app);
+void bad_usb_app_free_byte_input(BadUsbApp *app);

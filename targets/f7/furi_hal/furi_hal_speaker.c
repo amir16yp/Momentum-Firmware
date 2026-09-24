@@ -9,42 +9,46 @@
 
 #define TAG "FuriHalSpeaker"
 
-#define FURI_HAL_SPEAKER_TIMER      TIM16
-#define FURI_HAL_SPEAKER_CHANNEL    LL_TIM_CHANNEL_CH1
-#define FURI_HAL_SPEAKER_PRESCALER  500
+#define FURI_HAL_SPEAKER_TIMER TIM16
+#define FURI_HAL_SPEAKER_CHANNEL LL_TIM_CHANNEL_CH1
+#define FURI_HAL_SPEAKER_PRESCALER 500
 #define FURI_HAL_SPEAKER_MAX_VOLUME 60
 
-static FuriMutex* furi_hal_speaker_mutex = NULL;
+static FuriMutex *furi_hal_speaker_mutex = NULL;
 
 // #define FURI_HAL_SPEAKER_NEW_VOLUME
 
-void furi_hal_speaker_init(void) {
+void furi_hal_speaker_init(void)
+{
     furi_assert(furi_hal_speaker_mutex == NULL);
     furi_hal_speaker_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     FURI_LOG_I(TAG, "Init OK");
 }
 
-void furi_hal_speaker_deinit(void) {
+void furi_hal_speaker_deinit(void)
+{
     furi_check(furi_hal_speaker_mutex != NULL);
     furi_mutex_free(furi_hal_speaker_mutex);
     furi_hal_speaker_mutex = NULL;
 }
 
-bool furi_hal_speaker_acquire(uint32_t timeout) {
+bool furi_hal_speaker_acquire(uint32_t timeout)
+{
     furi_check(!FURI_IS_IRQ_MODE());
 
-    if(furi_mutex_acquire(furi_hal_speaker_mutex, timeout) == FuriStatusOk) {
+    if (furi_mutex_acquire(furi_hal_speaker_mutex, timeout) == FuriStatusOk) {
         furi_hal_power_insomnia_enter();
         furi_hal_bus_enable(FuriHalBusTIM16);
-        furi_hal_gpio_init_ex(
-            &gpio_speaker, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn14TIM16);
+        furi_hal_gpio_init_ex(&gpio_speaker, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow,
+                              GpioAltFn14TIM16);
         return true;
     } else {
         return false;
     }
 }
 
-void furi_hal_speaker_release(void) {
+void furi_hal_speaker_release(void)
+{
     furi_check(!FURI_IS_IRQ_MODE());
     furi_check(furi_hal_speaker_is_mine());
 
@@ -57,48 +61,54 @@ void furi_hal_speaker_release(void) {
     furi_check(furi_mutex_release(furi_hal_speaker_mutex) == FuriStatusOk);
 }
 
-bool furi_hal_speaker_is_mine(void) {
+bool furi_hal_speaker_is_mine(void)
+{
     return (FURI_IS_IRQ_MODE()) ||
            (furi_mutex_get_owner(furi_hal_speaker_mutex) == furi_thread_get_current_id());
 }
 
-static inline uint32_t furi_hal_speaker_calculate_autoreload(float frequency) {
+static inline uint32_t furi_hal_speaker_calculate_autoreload(float frequency)
+{
     uint32_t autoreload = (SystemCoreClock / FURI_HAL_SPEAKER_PRESCALER / frequency) - 1;
-    if(autoreload < 2) {
+    if (autoreload < 2) {
         autoreload = 2;
-    } else if(autoreload > UINT16_MAX) {
+    } else if (autoreload > UINT16_MAX) {
         autoreload = UINT16_MAX;
     }
 
     return autoreload;
 }
 
-static inline uint32_t furi_hal_speaker_calculate_compare(float volume) {
-    if(volume < 0) volume = 0;
-    if(volume > 1) volume = 1;
+static inline uint32_t furi_hal_speaker_calculate_compare(float volume)
+{
+    if (volume < 0)
+        volume = 0;
+    if (volume > 1)
+        volume = 1;
     volume = volume * volume * volume;
 
 #ifdef FURI_HAL_SPEAKER_NEW_VOLUME
     uint32_t compare_value = volume * FURI_HAL_SPEAKER_MAX_VOLUME;
     uint32_t clip_value = volume * LL_TIM_GetAutoReload(FURI_HAL_SPEAKER_TIMER) / 2;
-    if(compare_value > clip_value) {
+    if (compare_value > clip_value) {
         compare_value = clip_value;
     }
 #else
     uint32_t compare_value = volume * LL_TIM_GetAutoReload(FURI_HAL_SPEAKER_TIMER) / 2;
 #endif
 
-    if(compare_value == 0) {
+    if (compare_value == 0) {
         compare_value = 1;
     }
 
     return compare_value;
 }
 
-void furi_hal_speaker_start(float frequency, float volume) {
+void furi_hal_speaker_start(float frequency, float volume)
+{
     furi_check(furi_hal_speaker_is_mine());
 
-    if(volume <= 0) {
+    if (volume <= 0) {
         furi_hal_speaker_stop();
         return;
     }
@@ -118,9 +128,10 @@ void furi_hal_speaker_start(float frequency, float volume) {
     LL_TIM_EnableCounter(FURI_HAL_SPEAKER_TIMER);
 }
 
-void furi_hal_speaker_set_volume(float volume) {
+void furi_hal_speaker_set_volume(float volume)
+{
     furi_check(furi_hal_speaker_is_mine());
-    if(volume <= 0) {
+    if (volume <= 0) {
         furi_hal_speaker_stop();
         return;
     }
@@ -132,7 +143,8 @@ void furi_hal_speaker_set_volume(float volume) {
 #endif
 }
 
-void furi_hal_speaker_stop(void) {
+void furi_hal_speaker_stop(void)
+{
     furi_check(furi_hal_speaker_is_mine());
     LL_TIM_DisableAllOutputs(FURI_HAL_SPEAKER_TIMER);
     LL_TIM_DisableCounter(FURI_HAL_SPEAKER_TIMER);

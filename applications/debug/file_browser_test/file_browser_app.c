@@ -7,27 +7,31 @@
 #include <furi.h>
 #include <furi_hal.h>
 
-static bool file_browser_app_custom_event_callback(void* context, uint32_t event) {
+static bool file_browser_app_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    FileBrowserApp* app = context;
+    FileBrowserApp *app = context;
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-static bool file_browser_app_back_event_callback(void* context) {
+static bool file_browser_app_back_event_callback(void *context)
+{
     furi_assert(context);
-    FileBrowserApp* app = context;
+    FileBrowserApp *app = context;
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-static void file_browser_app_tick_event_callback(void* context) {
+static void file_browser_app_tick_event_callback(void *context)
+{
     furi_assert(context);
-    FileBrowserApp* app = context;
+    FileBrowserApp *app = context;
     scene_manager_handle_tick_event(app->scene_manager);
 }
 
-FileBrowserApp* file_browser_app_alloc(char* arg) {
+FileBrowserApp *file_browser_app_alloc(char *arg)
+{
     UNUSED(arg);
-    FileBrowserApp* app = malloc(sizeof(FileBrowserApp));
+    FileBrowserApp *app = malloc(sizeof(FileBrowserApp));
 
     app->gui = furi_record_open(RECORD_GUI);
     app->dialogs = furi_record_open(RECORD_DIALOGS);
@@ -36,12 +40,12 @@ FileBrowserApp* file_browser_app_alloc(char* arg) {
     app->scene_manager = scene_manager_alloc(&file_browser_scene_handlers, app);
 
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
-    view_dispatcher_set_tick_event_callback(
-        app->view_dispatcher, file_browser_app_tick_event_callback, 500);
-    view_dispatcher_set_custom_event_callback(
-        app->view_dispatcher, file_browser_app_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        app->view_dispatcher, file_browser_app_back_event_callback);
+    view_dispatcher_set_tick_event_callback(app->view_dispatcher,
+                                            file_browser_app_tick_event_callback, 500);
+    view_dispatcher_set_custom_event_callback(app->view_dispatcher,
+                                              file_browser_app_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(app->view_dispatcher,
+                                                  file_browser_app_back_event_callback);
 
     app->widget = widget_alloc();
 
@@ -49,12 +53,12 @@ FileBrowserApp* file_browser_app_alloc(char* arg) {
     app->file_browser = file_browser_alloc(app->file_path);
     file_browser_configure(app->file_browser, "*", NULL, true, false, &I_badusb_10px, true);
 
-    view_dispatcher_add_view(
-        app->view_dispatcher, FileBrowserAppViewStart, widget_get_view(app->widget));
-    view_dispatcher_add_view(
-        app->view_dispatcher, FileBrowserAppViewResult, widget_get_view(app->widget));
-    view_dispatcher_add_view(
-        app->view_dispatcher, FileBrowserAppViewBrowser, file_browser_get_view(app->file_browser));
+    view_dispatcher_add_view(app->view_dispatcher, FileBrowserAppViewStart,
+                             widget_get_view(app->widget));
+    view_dispatcher_add_view(app->view_dispatcher, FileBrowserAppViewResult,
+                             widget_get_view(app->widget));
+    view_dispatcher_add_view(app->view_dispatcher, FileBrowserAppViewBrowser,
+                             file_browser_get_view(app->file_browser));
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
 
@@ -63,7 +67,8 @@ FileBrowserApp* file_browser_app_alloc(char* arg) {
     return app;
 }
 
-void file_browser_app_free(FileBrowserApp* app) {
+void file_browser_app_free(FileBrowserApp *app)
+{
     furi_assert(app);
 
     // Views
@@ -87,8 +92,9 @@ void file_browser_app_free(FileBrowserApp* app) {
     free(app);
 }
 
-int32_t file_browser_app(void* p) {
-    FileBrowserApp* file_browser_app = file_browser_app_alloc((char*)p);
+int32_t file_browser_app(void *p)
+{
+    FileBrowserApp *file_browser_app = file_browser_app_alloc((char *)p);
 
     view_dispatcher_run(file_browser_app->view_dispatcher);
 

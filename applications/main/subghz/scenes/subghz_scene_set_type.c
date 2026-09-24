@@ -6,12 +6,13 @@
 
 #define TAG "SubGhzSetType"
 
-void subghz_scene_set_type_submenu_callback(void* context, uint32_t index) {
-    SubGhz* subghz = context;
+void subghz_scene_set_type_submenu_callback(void *context, uint32_t index)
+{
+    SubGhz *subghz = context;
     view_dispatcher_send_custom_event(subghz->view_dispatcher, index);
 }
 
-static const char* submenu_names[SetTypeMAX] = {
+static const char *submenu_names[SetTypeMAX] = {
     [SetTypeFaacSLH_868] = "FAAC SLH 868MHz",
     [SetTypeFaacSLH_433] = "FAAC SLH 433MHz",
     [SetTypeBFTMitto] = "BFT Mitto 433MHz",
@@ -110,153 +111,95 @@ static const char* submenu_names[SetTypeMAX] = {
     [SetTypeSecPlus_v2_433_00] = "Security+2.0 433MHz",
 };
 
-void subghz_scene_set_type_on_enter(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_type_on_enter(void *context)
+{
+    SubGhz *subghz = context;
 
-    for(SetType i = 0; i < SetTypeMAX; i++) {
-        submenu_add_item(
-            subghz->submenu, submenu_names[i], i, subghz_scene_set_type_submenu_callback, subghz);
+    for (SetType i = 0; i < SetTypeMAX; i++) {
+        submenu_add_item(subghz->submenu, submenu_names[i], i,
+                         subghz_scene_set_type_submenu_callback, subghz);
     }
 
     view_dispatcher_switch_to_view(subghz->view_dispatcher, SubGhzViewIdMenu);
 }
 
-bool subghz_scene_set_type_generate_protocol_from_infos(SubGhz* subghz) {
+bool subghz_scene_set_type_generate_protocol_from_infos(SubGhz *subghz)
+{
     GenInfo gen_info = *subghz->gen_info;
     bool generated_protocol = false;
-    switch(gen_info.type) {
+    switch (gen_info.type) {
     case GenData:
-        if(gen_info.data.te) {
+        if (gen_info.data.te) {
             generated_protocol = subghz_txrx_gen_data_protocol_and_te(
-                subghz->txrx,
-                gen_info.mod,
-                gen_info.freq,
-                gen_info.data.name,
-                gen_info.data.key,
-                gen_info.data.bits,
-                gen_info.data.te);
+                subghz->txrx, gen_info.mod, gen_info.freq, gen_info.data.name, gen_info.data.key,
+                gen_info.data.bits, gen_info.data.te);
         } else {
             generated_protocol = subghz_txrx_gen_data_protocol(
-                subghz->txrx,
-                gen_info.mod,
-                gen_info.freq,
-                gen_info.data.name,
-                gen_info.data.key,
+                subghz->txrx, gen_info.mod, gen_info.freq, gen_info.data.name, gen_info.data.key,
                 gen_info.data.bits);
         }
         break;
     case GenFaacSLH:
         generated_protocol = subghz_txrx_gen_faac_slh_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.faac_slh.serial,
-            gen_info.faac_slh.btn,
-            gen_info.faac_slh.cnt,
-            gen_info.faac_slh.seed,
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.faac_slh.serial,
+            gen_info.faac_slh.btn, gen_info.faac_slh.cnt, gen_info.faac_slh.seed,
             gen_info.faac_slh.manuf);
         break;
     case GenKeeloq:
         generated_protocol = subghz_txrx_gen_keeloq_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.keeloq.serial,
-            gen_info.keeloq.btn,
-            gen_info.keeloq.cnt,
-            gen_info.keeloq.manuf);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.keeloq.serial, gen_info.keeloq.btn,
+            gen_info.keeloq.cnt, gen_info.keeloq.manuf);
         break;
     case GenCameAtomo:
         generated_protocol = subghz_txrx_gen_came_atomo_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.came_atomo.serial,
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.came_atomo.serial,
             gen_info.came_atomo.cnt);
         break;
     case GenKeeloqSeed:
         generated_protocol = subghz_txrx_gen_keeloq_seed_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.keeloq_seed.serial,
-            gen_info.keeloq_seed.btn,
-            gen_info.keeloq_seed.cnt,
-            gen_info.keeloq_seed.seed,
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.keeloq_seed.serial,
+            gen_info.keeloq_seed.btn, gen_info.keeloq_seed.cnt, gen_info.keeloq_seed.seed,
             gen_info.keeloq_seed.manuf);
         break;
     case GenAlutechAt4n:
         generated_protocol = subghz_txrx_gen_alutech_at_4n_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.alutech_at_4n.serial,
-            gen_info.alutech_at_4n.btn,
-            gen_info.alutech_at_4n.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.alutech_at_4n.serial,
+            gen_info.alutech_at_4n.btn, gen_info.alutech_at_4n.cnt);
         break;
     case GenSomfyTelis:
         generated_protocol = subghz_txrx_gen_somfy_telis_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.somfy_telis.serial,
-            gen_info.somfy_telis.btn,
-            gen_info.somfy_telis.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.somfy_telis.serial,
+            gen_info.somfy_telis.btn, gen_info.somfy_telis.cnt);
         break;
     case GenSomfyKeytis:
         generated_protocol = subghz_txrx_gen_somfy_keytis_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.somfy_keytis.serial,
-            gen_info.somfy_keytis.btn,
-            gen_info.somfy_keytis.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.somfy_keytis.serial,
+            gen_info.somfy_keytis.btn, gen_info.somfy_keytis.cnt);
         break;
     case GenKingGatesStylo4k:
         generated_protocol = subghz_txrx_gen_kinggates_stylo_4k_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.kinggates_stylo_4k.serial,
-            gen_info.kinggates_stylo_4k.btn,
-            gen_info.kinggates_stylo_4k.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.kinggates_stylo_4k.serial,
+            gen_info.kinggates_stylo_4k.btn, gen_info.kinggates_stylo_4k.cnt);
         break;
     case GenBenincaARC:
         generated_protocol = subghz_txrx_gen_beninca_arc_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.beninca_arc.serial,
-            gen_info.beninca_arc.btn,
-            gen_info.beninca_arc.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.beninca_arc.serial,
+            gen_info.beninca_arc.btn, gen_info.beninca_arc.cnt);
         break;
     case GenJarolift:
         generated_protocol = subghz_txrx_gen_jarolift_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.jarolift.serial,
-            gen_info.jarolift.btn,
-            gen_info.jarolift.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.jarolift.serial,
+            gen_info.jarolift.btn, gen_info.jarolift.cnt);
         break;
     case GenDitecGOL4:
         generated_protocol = subghz_txrx_gen_ditec_gol4_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.ditec_gol4.serial,
-            gen_info.ditec_gol4.btn,
-            gen_info.ditec_gol4.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.ditec_gol4.serial,
+            gen_info.ditec_gol4.btn, gen_info.ditec_gol4.cnt);
         break;
     case GenNiceFlorS:
         generated_protocol = subghz_txrx_gen_nice_flor_s_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.nice_flor_s.serial,
-            gen_info.nice_flor_s.btn,
-            gen_info.nice_flor_s.cnt,
-            gen_info.nice_flor_s.nice_one);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.nice_flor_s.serial,
+            gen_info.nice_flor_s.btn, gen_info.nice_flor_s.cnt, gen_info.nice_flor_s.nice_one);
         break;
     case GenSecPlus1:
         generated_protocol =
@@ -264,19 +207,12 @@ bool subghz_scene_set_type_generate_protocol_from_infos(SubGhz* subghz) {
         break;
     case GenSecPlus2:
         generated_protocol = subghz_txrx_gen_secplus_v2_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.sec_plus_2.serial,
-            gen_info.sec_plus_2.btn,
-            gen_info.sec_plus_2.cnt);
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.sec_plus_2.serial,
+            gen_info.sec_plus_2.btn, gen_info.sec_plus_2.cnt);
         break;
     case GenPhoenixV2:
         generated_protocol = subghz_txrx_gen_phoenix_v2_protocol(
-            subghz->txrx,
-            gen_info.mod,
-            gen_info.freq,
-            gen_info.phoenix_v2.serial,
+            subghz->txrx, gen_info.mod, gen_info.freq, gen_info.phoenix_v2.serial,
             gen_info.phoenix_v2.cnt);
         break;
     default:
@@ -284,7 +220,7 @@ bool subghz_scene_set_type_generate_protocol_from_infos(SubGhz* subghz) {
         break;
     }
 
-    if(generated_protocol) {
+    if (generated_protocol) {
         subghz_file_name_clear(subghz);
         scene_manager_next_scene(subghz->scene_manager, SubGhzSceneSaveName);
     } else {
@@ -294,44 +230,44 @@ bool subghz_scene_set_type_generate_protocol_from_infos(SubGhz* subghz) {
     return generated_protocol;
 }
 
-bool subghz_scene_set_type_on_event(void* context, SceneManagerEvent event) {
-    SubGhz* subghz = context;
+bool subghz_scene_set_type_on_event(void *context, SceneManagerEvent event)
+{
+    SubGhz *subghz = context;
     bool generated_protocol = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event >= SetTypeMAX) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event >= SetTypeMAX) {
             return false;
         }
 
         subghz_gen_info_reset(subghz->gen_info);
         subghz_scene_set_type_fill_generation_infos(subghz->gen_info, event.event);
 
-        if(scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneSetType) ==
-           SubmenuIndexAddManually) {
+        if (scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneSetType) ==
+            SubmenuIndexAddManually) {
             generated_protocol = subghz_scene_set_type_generate_protocol_from_infos(subghz);
-        } else if(
-            scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneSetType) ==
-            SubmenuIndexAddManuallyAdvanced) {
-            switch(subghz->gen_info->type) {
+        } else if (scene_manager_get_scene_state(subghz->scene_manager, SubGhzSceneSetType) ==
+                   SubmenuIndexAddManuallyAdvanced) {
+            switch (subghz->gen_info->type) {
             case GenData: // Key (u64)
                 scene_manager_next_scene(subghz->scene_manager, SubGhzSceneSetKey);
                 break;
             case GenSecPlus1: // None
                 return subghz_scene_set_type_generate_protocol_from_infos(subghz);
-            case GenFaacSLH: // Serial (u32), Button (u8), Counter (u32), Seed (u32)
-            case GenKeeloq: // Serial (u32), Button (u8), Counter (u16)
-            case GenCameAtomo: // Serial (u32), Counter (u16)
-            case GenKeeloqSeed: // Serial (u32), Button (u8), Counter (u16), Seed (u32)
-            case GenAlutechAt4n: // Serial (u32), Button (u8), Counter (u16)
-            case GenSomfyTelis: // Serial (u32), Button (u8), Counter (u16)
-            case GenSomfyKeytis: // Serial (u32), Button (u8), Counter (u16)
+            case GenFaacSLH:          // Serial (u32), Button (u8), Counter (u32), Seed (u32)
+            case GenKeeloq:           // Serial (u32), Button (u8), Counter (u16)
+            case GenCameAtomo:        // Serial (u32), Counter (u16)
+            case GenKeeloqSeed:       // Serial (u32), Button (u8), Counter (u16), Seed (u32)
+            case GenAlutechAt4n:      // Serial (u32), Button (u8), Counter (u16)
+            case GenSomfyTelis:       // Serial (u32), Button (u8), Counter (u16)
+            case GenSomfyKeytis:      // Serial (u32), Button (u8), Counter (u16)
             case GenKingGatesStylo4k: // Serial (u32), Button (u8), Counter (u16)
-            case GenBenincaARC: // Serial (u32), Button (u8), Counter (u32)
-            case GenJarolift: // Serial (u32), Button (u4), Counter (u16)
-            case GenDitecGOL4: // Serial (u32), Button (u4), Counter (u16)
-            case GenNiceFlorS: // Serial (u32), Button (u8), Counter (u16)
-            case GenSecPlus2: // Serial (u32), Button (u8), Counter (u32)
-            case GenPhoenixV2: // Serial (u32), Counter (u16)
+            case GenBenincaARC:       // Serial (u32), Button (u8), Counter (u32)
+            case GenJarolift:         // Serial (u32), Button (u4), Counter (u16)
+            case GenDitecGOL4:        // Serial (u32), Button (u4), Counter (u16)
+            case GenNiceFlorS:        // Serial (u32), Button (u8), Counter (u16)
+            case GenSecPlus2:         // Serial (u32), Button (u8), Counter (u32)
+            case GenPhoenixV2:        // Serial (u32), Counter (u16)
                 scene_manager_next_scene(subghz->scene_manager, SubGhzSceneSetSerial);
                 break;
             }
@@ -342,7 +278,8 @@ bool subghz_scene_set_type_on_event(void* context, SceneManagerEvent event) {
     return generated_protocol;
 }
 
-void subghz_scene_set_type_on_exit(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_type_on_exit(void *context)
+{
+    SubGhz *subghz = context;
     submenu_reset(subghz->submenu);
 }

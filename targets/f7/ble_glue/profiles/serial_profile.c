@@ -11,16 +11,17 @@
 typedef struct {
     FuriHalBleProfileBase base;
 
-    BleServiceDevInfo* dev_info_svc;
-    BleServiceBattery* battery_svc;
-    BleServiceSerial* serial_svc;
+    BleServiceDevInfo *dev_info_svc;
+    BleServiceBattery *battery_svc;
+    BleServiceSerial *serial_svc;
 } BleProfileSerial;
 _Static_assert(offsetof(BleProfileSerial, base) == 0, "Wrong layout");
 
-static FuriHalBleProfileBase* ble_profile_serial_start(FuriHalBleProfileParams profile_params) {
+static FuriHalBleProfileBase *ble_profile_serial_start(FuriHalBleProfileParams profile_params)
+{
     UNUSED(profile_params);
 
-    BleProfileSerial* profile = malloc(sizeof(BleProfileSerial));
+    BleProfileSerial *profile = malloc(sizeof(BleProfileSerial));
 
     profile->base.config = ble_profile_serial;
 
@@ -31,11 +32,12 @@ static FuriHalBleProfileBase* ble_profile_serial_start(FuriHalBleProfileParams p
     return &profile->base;
 }
 
-static void ble_profile_serial_stop(FuriHalBleProfileBase* profile) {
+static void ble_profile_serial_stop(FuriHalBleProfileBase *profile)
+{
     furi_check(profile);
     furi_check(profile->config == ble_profile_serial);
 
-    BleProfileSerial* serial_profile = (BleProfileSerial*)profile;
+    BleProfileSerial *serial_profile = (BleProfileSerial *)profile;
     ble_svc_battery_stop(serial_profile->battery_svc);
     ble_svc_dev_info_stop(serial_profile->dev_info_svc);
     ble_svc_serial_stop(serial_profile->serial_svc);
@@ -43,30 +45,29 @@ static void ble_profile_serial_stop(FuriHalBleProfileBase* profile) {
     free(serial_profile);
 }
 
-// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement, which is 30 ms
-// Since we don't use flash controller anymore interval can be lowered to 7.5ms
+// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement,
+// which is 30 ms Since we don't use flash controller anymore interval can be lowered to 7.5ms
 #define CONNECTION_INTERVAL_MIN (0x06)
 // Up to 45 ms
 #define CONNECTION_INTERVAL_MAX (0x24)
 
-static const GapConfig serial_template_config = {
-    .adv_service =
-        {
-            .UUID_Type = UUID_TYPE_16,
-            .Service_UUID_16 = 0x3080,
-        },
-    .appearance_char = 0x8600,
-    .bonding_mode = true,
-    .pairing_method = GapPairingPinCodeShow,
-    .conn_param = {
-        .conn_int_min = CONNECTION_INTERVAL_MIN,
-        .conn_int_max = CONNECTION_INTERVAL_MAX,
-        .slave_latency = 0,
-        .supervisor_timeout = 0,
-    }};
+static const GapConfig serial_template_config = {.adv_service =
+                                                     {
+                                                         .UUID_Type = UUID_TYPE_16,
+                                                         .Service_UUID_16 = 0x3080,
+                                                     },
+                                                 .appearance_char = 0x8600,
+                                                 .bonding_mode = true,
+                                                 .pairing_method = GapPairingPinCodeShow,
+                                                 .conn_param = {
+                                                     .conn_int_min = CONNECTION_INTERVAL_MIN,
+                                                     .conn_int_max = CONNECTION_INTERVAL_MAX,
+                                                     .slave_latency = 0,
+                                                     .supervisor_timeout = 0,
+                                                 }};
 
-static void
-    ble_profile_serial_get_config(GapConfig* config, FuriHalBleProfileParams profile_params) {
+static void ble_profile_serial_get_config(GapConfig *config, FuriHalBleProfileParams profile_params)
+{
     UNUSED(profile_params);
 
     furi_check(config);
@@ -74,10 +75,8 @@ static void
     // Set mac address
     memcpy(config->mac_address, furi_hal_version_get_ble_mac(), sizeof(config->mac_address));
     // Set advertise name
-    strlcpy(
-        config->adv_name,
-        furi_hal_version_get_ble_local_device_name_ptr(),
-        FURI_HAL_VERSION_DEVICE_NAME_LENGTH);
+    strlcpy(config->adv_name, furi_hal_version_get_ble_local_device_name_ptr(),
+            FURI_HAL_VERSION_DEVICE_NAME_LENGTH);
     config->adv_service.UUID_Type = UUID_TYPE_16;
     config->adv_service.Service_UUID_16 |= furi_hal_version_get_hw_color();
 }
@@ -88,39 +87,40 @@ static const FuriHalBleProfileTemplate profile_callbacks = {
     .get_gap_config = ble_profile_serial_get_config,
 };
 
-const FuriHalBleProfileTemplate* const ble_profile_serial = &profile_callbacks;
+const FuriHalBleProfileTemplate *const ble_profile_serial = &profile_callbacks;
 
-void ble_profile_serial_set_event_callback(
-    FuriHalBleProfileBase* profile,
-    uint16_t buff_size,
-    FuriHalBtSerialCallback callback,
-    void* context) {
+void ble_profile_serial_set_event_callback(FuriHalBleProfileBase *profile, uint16_t buff_size,
+                                           FuriHalBtSerialCallback callback, void *context)
+{
     furi_check(profile && (profile->config == ble_profile_serial));
 
-    BleProfileSerial* serial_profile = (BleProfileSerial*)profile;
+    BleProfileSerial *serial_profile = (BleProfileSerial *)profile;
     ble_svc_serial_set_callbacks(serial_profile->serial_svc, buff_size, callback, context);
 }
 
-void ble_profile_serial_notify_buffer_is_empty(FuriHalBleProfileBase* profile) {
+void ble_profile_serial_notify_buffer_is_empty(FuriHalBleProfileBase *profile)
+{
     furi_check(profile && (profile->config == ble_profile_serial));
 
-    BleProfileSerial* serial_profile = (BleProfileSerial*)profile;
+    BleProfileSerial *serial_profile = (BleProfileSerial *)profile;
     ble_svc_serial_notify_buffer_is_empty(serial_profile->serial_svc);
 }
 
-void ble_profile_serial_set_rpc_active(FuriHalBleProfileBase* profile, bool active) {
+void ble_profile_serial_set_rpc_active(FuriHalBleProfileBase *profile, bool active)
+{
     furi_check(profile && (profile->config == ble_profile_serial));
 
-    BleProfileSerial* serial_profile = (BleProfileSerial*)profile;
+    BleProfileSerial *serial_profile = (BleProfileSerial *)profile;
     ble_svc_serial_set_rpc_active(serial_profile->serial_svc, active);
 }
 
-bool ble_profile_serial_tx(FuriHalBleProfileBase* profile, uint8_t* data, uint16_t size) {
+bool ble_profile_serial_tx(FuriHalBleProfileBase *profile, uint8_t *data, uint16_t size)
+{
     furi_check(profile && (profile->config == ble_profile_serial));
 
-    BleProfileSerial* serial_profile = (BleProfileSerial*)profile;
+    BleProfileSerial *serial_profile = (BleProfileSerial *)profile;
 
-    if(size > BLE_PROFILE_SERIAL_PACKET_SIZE_MAX) {
+    if (size > BLE_PROFILE_SERIAL_PACKET_SIZE_MAX) {
         return false;
     }
 

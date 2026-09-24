@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-FelicaError felica_poller_sync_read(Nfc* nfc, FelicaData* data, const FelicaCardKey* card_key);
+FelicaError felica_poller_sync_read(Nfc *nfc, FelicaData *data, const FelicaCardKey *card_key);
 
 #ifdef __cplusplus
 }

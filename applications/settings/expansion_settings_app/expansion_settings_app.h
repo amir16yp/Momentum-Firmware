@@ -11,10 +11,10 @@
 #include <expansion/expansion_settings.h>
 
 typedef struct {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    VariableItemList* var_item_list;
-    Expansion* expansion;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    VariableItemList *var_item_list;
+    Expansion *expansion;
     ExpansionSettings settings;
 } ExpansionSettingsApp;
 

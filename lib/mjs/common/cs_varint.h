@@ -47,8 +47,7 @@ size_t cs_varint_encode(uint64_t num, uint8_t *buf, size_t buf_size);
  * Stores the number of bytes consumed into `llen`.
  * If there aren't enough bytes in `buf` to decode a number, returns false.
  */
-bool cs_varint_decode(const uint8_t *buf, size_t buf_size, uint64_t *num,
-                      size_t *llen);
+bool cs_varint_decode(const uint8_t *buf, size_t buf_size, uint64_t *num, size_t *llen);
 
 uint64_t cs_varint_decode_unsafe(const uint8_t *buf, int *llen);
 

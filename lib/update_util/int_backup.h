@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-bool int_backup_create(Storage* storage, const char* destination);
-bool int_backup_exists(Storage* storage, const char* source);
-bool int_backup_unpack(Storage* storage, const char* source);
+bool int_backup_create(Storage *storage, const char *destination);
+bool int_backup_exists(Storage *storage, const char *source);
+bool int_backup_unpack(Storage *storage, const char *source);
 
 #ifdef __cplusplus
 }

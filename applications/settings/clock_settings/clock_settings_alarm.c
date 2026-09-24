@@ -11,14 +11,14 @@
 
 #define TAG "ClockSettingsAlarm"
 
-#define SNOOZE_MINUTES  9
+#define SNOOZE_MINUTES 9
 #define TIMEOUT_MINUTES 10
 
 typedef struct {
     DateTime now;
     DateTime snooze_until;
     DateTime alarm_start;
-    IconAnimation* icon;
+    IconAnimation *icon;
 
     bool is_snooze;
 } ClockSettingsAlramModel;
@@ -50,8 +50,9 @@ const NotificationSequence sequence_alarm = {
     NULL,
 };
 
-static void clock_settings_alarm_draw_callback(Canvas* canvas, void* ctx) {
-    ClockSettingsAlramModel* model = ctx;
+static void clock_settings_alarm_draw_callback(Canvas *canvas, void *ctx)
+{
+    ClockSettingsAlramModel *model = ctx;
     char buffer[64] = {};
 
     // Clock icon
@@ -64,13 +65,8 @@ static void clock_settings_alarm_draw_callback(Canvas* canvas, void* ctx) {
 
     // Date
     canvas_set_font(canvas, FontPrimary);
-    snprintf(
-        buffer,
-        sizeof(buffer),
-        "%02u.%02u.%04u",
-        model->now.day,
-        model->now.month,
-        model->now.year);
+    snprintf(buffer, sizeof(buffer), "%02u.%02u.%04u", model->now.day, model->now.month,
+             model->now.year);
     canvas_draw_str(canvas, 60, 44, buffer);
 
     // Press Back to snooze
@@ -79,19 +75,22 @@ static void clock_settings_alarm_draw_callback(Canvas* canvas, void* ctx) {
     canvas_draw_str_aligned(canvas, 20, 50, AlignLeft, AlignTop, "Snooze");
 }
 
-static void clock_settings_alarm_input_callback(InputEvent* input_event, void* ctx) {
+static void clock_settings_alarm_input_callback(InputEvent *input_event, void *ctx)
+{
     furi_assert(ctx);
-    FuriMessageQueue* event_queue = ctx;
+    FuriMessageQueue *event_queue = ctx;
     furi_message_queue_put(event_queue, input_event, FuriWaitForever);
 }
 
-void clock_settings_alarm_animation_callback(IconAnimation* instance, void* context) {
+void clock_settings_alarm_animation_callback(IconAnimation *instance, void *context)
+{
     UNUSED(instance);
-    ViewPort* view_port = context;
+    ViewPort *view_port = context;
     view_port_update(view_port);
 }
 
-int32_t clock_settings_alarm(void* p) {
+int32_t clock_settings_alarm(void *p)
+{
     UNUSED(p);
 
     // View Model
@@ -103,33 +102,33 @@ int32_t clock_settings_alarm(void* p) {
     model.icon = icon_animation_alloc(&A_Alarm_47x39);
 
     // Alloc message queue
-    FuriMessageQueue* event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
+    FuriMessageQueue *event_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     // Configure view port
-    ViewPort* view_port = view_port_alloc();
+    ViewPort *view_port = view_port_alloc();
     view_port_draw_callback_set(view_port, clock_settings_alarm_draw_callback, &model);
     view_port_input_callback_set(view_port, clock_settings_alarm_input_callback, event_queue);
 
     // Register view port in GUI
-    Gui* gui = furi_record_open(RECORD_GUI);
+    Gui *gui = furi_record_open(RECORD_GUI);
     gui_set_lockdown_inhibit(gui, true);
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
 
-    NotificationApp* notification = furi_record_open(RECORD_NOTIFICATION);
+    NotificationApp *notification = furi_record_open(RECORD_NOTIFICATION);
     notification_message(notification, &sequence_alarm);
 
-    icon_animation_set_update_callback(
-        model.icon, clock_settings_alarm_animation_callback, view_port);
+    icon_animation_set_update_callback(model.icon, clock_settings_alarm_animation_callback,
+                                       view_port);
     icon_animation_start(model.icon);
 
     // Process events
     InputEvent event;
     bool running = true;
-    while(running) {
-        if(furi_message_queue_get(event_queue, &event, 2000) == FuriStatusOk) {
-            if(event.type == InputTypePress) {
+    while (running) {
+        if (furi_message_queue_get(event_queue, &event, 2000) == FuriStatusOk) {
+            if (event.type == InputTypePress) {
                 // Snooze
-                if(event.key == InputKeyBack) {
+                if (event.key == InputKeyBack) {
                     furi_hal_rtc_get_datetime(&model.snooze_until);
                     model.snooze_until.minute += SNOOZE_MINUTES;
                     model.snooze_until.hour += model.snooze_until.minute / 60;
@@ -144,10 +143,10 @@ int32_t clock_settings_alarm(void* p) {
                     running = false;
                 }
             }
-        } else if(model.is_snooze) {
+        } else if (model.is_snooze) {
             furi_hal_rtc_get_datetime(&model.now);
-            if(datetime_datetime_to_timestamp(&model.now) >=
-               datetime_datetime_to_timestamp(&model.snooze_until)) {
+            if (datetime_datetime_to_timestamp(&model.now) >=
+                datetime_datetime_to_timestamp(&model.snooze_until)) {
                 view_port_enabled_set(view_port, true);
                 gui_set_lockdown_inhibit(gui, true);
 
@@ -159,10 +158,10 @@ int32_t clock_settings_alarm(void* p) {
             view_port_update(view_port);
 
             // Stop the alarm if it has been ringing for more than TIMEOUT_MINUTES
-            if((model.now.hour == model.alarm_start.hour &&
-                model.now.minute >= model.alarm_start.minute + TIMEOUT_MINUTES) ||
-               (model.now.hour == (model.alarm_start.hour + 1) % 24 &&
-                model.now.minute < (model.alarm_start.minute + TIMEOUT_MINUTES) % 60)) {
+            if ((model.now.hour == model.alarm_start.hour &&
+                 model.now.minute >= model.alarm_start.minute + TIMEOUT_MINUTES) ||
+                (model.now.hour == (model.alarm_start.hour + 1) % 24 &&
+                 model.now.minute < (model.alarm_start.minute + TIMEOUT_MINUTES) % 60)) {
                 running = false;
             }
         }
@@ -185,42 +184,45 @@ int32_t clock_settings_alarm(void* p) {
     return 0;
 }
 
-FuriThread* clock_settings_alarm_thread = NULL;
+FuriThread *clock_settings_alarm_thread = NULL;
 
-static void clock_settings_alarm_thread_state_callback(
-    FuriThread* thread,
-    FuriThreadState state,
-    void* context) {
+static void clock_settings_alarm_thread_state_callback(FuriThread *thread, FuriThreadState state,
+                                                       void *context)
+{
     furi_assert(clock_settings_alarm_thread == thread);
     UNUSED(context);
 
-    if(state == FuriThreadStateStopped) {
+    if (state == FuriThreadStateStopped) {
         furi_thread_free(thread);
         clock_settings_alarm_thread = NULL;
     }
 }
 
-static void clock_settings_alarm_start(void* context, uint32_t arg) {
+static void clock_settings_alarm_start(void *context, uint32_t arg)
+{
     UNUSED(context);
     UNUSED(arg);
 
     FURI_LOG_I(TAG, "spawning alarm thread");
 
-    if(clock_settings_alarm_thread) return;
+    if (clock_settings_alarm_thread)
+        return;
 
     clock_settings_alarm_thread =
         furi_thread_alloc_ex("ClockAlarm", 1024, clock_settings_alarm, NULL);
-    furi_thread_set_state_callback(
-        clock_settings_alarm_thread, clock_settings_alarm_thread_state_callback);
+    furi_thread_set_state_callback(clock_settings_alarm_thread,
+                                   clock_settings_alarm_thread_state_callback);
     furi_thread_start(clock_settings_alarm_thread);
 }
 
-static void clock_settings_alarm_isr(void* context) {
+static void clock_settings_alarm_isr(void *context)
+{
     UNUSED(context);
     furi_timer_pending_callback(clock_settings_alarm_start, NULL, 0);
 }
 
-void clock_settings_start(void) {
+void clock_settings_start(void)
+{
 #ifndef FURI_RAM_EXEC
     furi_hal_rtc_set_alarm_callback(clock_settings_alarm_isr, NULL);
 #endif

@@ -24,13 +24,13 @@ typedef struct FuriMutex FuriMutex;
  *
  * @return     pointer to FuriMutex instance
  */
-FuriMutex* furi_mutex_alloc(FuriMutexType type);
+FuriMutex *furi_mutex_alloc(FuriMutexType type);
 
 /** Free FuriMutex
  *
  * @param      instance  The pointer to FuriMutex instance
  */
-void furi_mutex_free(FuriMutex* instance);
+void furi_mutex_free(FuriMutex *instance);
 
 /** Acquire mutex
  *
@@ -39,7 +39,7 @@ void furi_mutex_free(FuriMutex* instance);
  *
  * @return     The furi status.
  */
-FuriStatus furi_mutex_acquire(FuriMutex* instance, uint32_t timeout);
+FuriStatus furi_mutex_acquire(FuriMutex *instance, uint32_t timeout);
 
 /** Release mutex
  *
@@ -47,7 +47,7 @@ FuriStatus furi_mutex_acquire(FuriMutex* instance, uint32_t timeout);
  *
  * @return     The furi status.
  */
-FuriStatus furi_mutex_release(FuriMutex* instance);
+FuriStatus furi_mutex_release(FuriMutex *instance);
 
 /** Get mutex owner thread id
  *
@@ -55,7 +55,7 @@ FuriStatus furi_mutex_release(FuriMutex* instance);
  *
  * @return     The furi thread identifier.
  */
-FuriThreadId furi_mutex_get_owner(FuriMutex* instance);
+FuriThreadId furi_mutex_get_owner(FuriMutex *instance);
 
 #ifdef __cplusplus
 }

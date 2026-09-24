@@ -9,7 +9,6 @@
  * @param preset The modulation on which the signal was received, SubGhzRadioPreset
  * @return Status Error
  */
-SubGhzProtocolStatus subghz_block_generic_serialize_common(
-    const char* protocol_name,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset);
+SubGhzProtocolStatus subghz_block_generic_serialize_common(const char *protocol_name,
+                                                           FlipperFormat *flipper_format,
+                                                           SubGhzRadioPreset *preset);

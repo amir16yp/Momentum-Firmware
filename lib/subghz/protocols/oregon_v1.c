@@ -6,24 +6,24 @@
 /*
  * Help
  * https://github.dev/merbanan/rtl_433/blob/bb1be7f186ac0fdb7dc5d77693847d96fb95281e/src/devices/oregon_scientific_v1.c
- * 
+ *
  * OSv1 protocol.
- * 
+ *
  * MC with nominal bit width of 2930 us.
  * Pulses are somewhat longer than nominal half-bit width, 1748 us / 3216 us,
  * Gaps are somewhat shorter than nominal half-bit width, 1176 us / 2640 us.
  * After 12 preamble bits there is 4200 us gap, 5780 us pulse, 5200 us gap.
  * And next 32 bit data
- * 
+ *
  * Care must be taken with the gap after the sync pulse since it
  * is outside of the normal clocking.  Because of this a data stream
- * beginning with a 0 will have data in this gap.   
- * 
- * 
+ * beginning with a 0 will have data in this gap.
+ *
+ *
  * Data is in reverse order of bits
  *      RevBit(data32bit)=> tib23atad
- * 
- *      tib23atad => xxxxxxxx | busuTTTT | ttttzzzz | ccuuiiii 
+ *
+ *      tib23atad => xxxxxxxx | busuTTTT | ttttzzzz | ccuuiiii
  *
  *      - i: ID
  *      - x: CRC;
@@ -34,7 +34,7 @@
  *      - t: BCD, Temperature; in �C * 1
  *      - z: BCD, Temperature; in �C * 0.1
  *      - c: Channel 00=CH1, 01=CH2, 10=CH3
- * 
+ *
  */
 
 #define OREGON_V1_HEADER_OK 0xFF
@@ -106,28 +106,33 @@ const SubGhzProtocol ws_protocol_oregon_v1 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_oregon_v1_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_oregon_v1_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderOregon_V1* instance = malloc(sizeof(WSProtocolDecoderOregon_V1));
+    WSProtocolDecoderOregon_V1 *instance = malloc(sizeof(WSProtocolDecoderOregon_V1));
     instance->base.protocol = &ws_protocol_oregon_v1;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_oregon_v1_free(void* context) {
+void ws_protocol_decoder_oregon_v1_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_oregon_v1_reset(void* context) {
+void ws_protocol_decoder_oregon_v1_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     instance->decoder.parser_step = Oregon_V1DecoderStepReset;
 }
 
-static bool ws_protocol_oregon_v1_check(WSProtocolDecoderOregon_V1* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_oregon_v1_check(WSProtocolDecoderOregon_V1 *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
     uint64_t data = subghz_protocol_blocks_reverse_key(instance->decoder.decode_data, 32);
     uint16_t crc = (data & 0xff) + ((data >> 8) & 0xff) + ((data >> 16) & 0xff);
     crc = (crc & 0xff) + ((crc >> 8) & 0xff);
@@ -138,7 +143,8 @@ static bool ws_protocol_oregon_v1_check(WSProtocolDecoderOregon_V1* instance) {
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_oregon_v1_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_oregon_v1_remote_controller(WSBlockGeneric *instance)
+{
     uint64_t data = subghz_protocol_blocks_reverse_key(instance->data, 32);
 
     instance->id = data & 0xFF;
@@ -146,7 +152,7 @@ static void ws_protocol_oregon_v1_remote_controller(WSBlockGeneric* instance) {
 
     float temp_raw =
         ((data >> 8) & 0x0F) * 0.1f + ((data >> 12) & 0x0F) + ((data >> 16) & 0x0F) * 10.0f;
-    if(!((data >> 21) & 1)) {
+    if (!((data >> 21) & 1)) {
         instance->temp = temp_raw;
     } else {
         instance->temp = -temp_raw;
@@ -158,61 +164,58 @@ static void ws_protocol_oregon_v1_remote_controller(WSBlockGeneric* instance) {
     instance->humidity = WS_NO_HUMIDITY;
 }
 
-void ws_protocol_decoder_oregon_v1_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_oregon_v1_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     ManchesterEvent event = ManchesterEventReset;
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Oregon_V1DecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
-                       ws_protocol_oregon_v1_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
+                        ws_protocol_oregon_v1_const.te_delta)) {
             instance->decoder.parser_step = Oregon_V1DecoderStepFoundPreamble;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
         }
         break;
     case Oregon_V1DecoderStepFoundPreamble:
-        if(level) {
-            //keep high levels, if they suit our durations
-            if((DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
-                ws_protocol_oregon_v1_const.te_delta) ||
-               (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short * 4) <
-                ws_protocol_oregon_v1_const.te_delta)) {
+        if (level) {
+            // keep high levels, if they suit our durations
+            if ((DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
+                 ws_protocol_oregon_v1_const.te_delta) ||
+                (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short * 4) <
+                 ws_protocol_oregon_v1_const.te_delta)) {
                 instance->decoder.te_last = duration;
             } else {
                 instance->decoder.parser_step = Oregon_V1DecoderStepReset;
             }
-        } else if(
-            //checking low levels
+        } else if (
+            // checking low levels
             (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
              ws_protocol_oregon_v1_const.te_delta) &&
             (DURATION_DIFF(instance->decoder.te_last, ws_protocol_oregon_v1_const.te_short) <
              ws_protocol_oregon_v1_const.te_delta)) {
             // Found header
             instance->header_count++;
-        } else if(
-            (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short * 3) <
-             ws_protocol_oregon_v1_const.te_delta) &&
-            (DURATION_DIFF(instance->decoder.te_last, ws_protocol_oregon_v1_const.te_short) <
-             ws_protocol_oregon_v1_const.te_delta)) {
+        } else if ((DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short * 3) <
+                    ws_protocol_oregon_v1_const.te_delta) &&
+                   (DURATION_DIFF(instance->decoder.te_last, ws_protocol_oregon_v1_const.te_short) <
+                    ws_protocol_oregon_v1_const.te_delta)) {
             // check header
-            if(instance->header_count > 7) {
+            if (instance->header_count > 7) {
                 instance->header_count = OREGON_V1_HEADER_OK;
             }
-        } else if(
-            (instance->header_count == OREGON_V1_HEADER_OK) &&
-            (DURATION_DIFF(instance->decoder.te_last, ws_protocol_oregon_v1_const.te_short * 4) <
-             ws_protocol_oregon_v1_const.te_delta)) {
-            //found all the necessary patterns
+        } else if ((instance->header_count == OREGON_V1_HEADER_OK) &&
+                   (DURATION_DIFF(instance->decoder.te_last,
+                                  ws_protocol_oregon_v1_const.te_short * 4) <
+                    ws_protocol_oregon_v1_const.te_delta)) {
+            // found all the necessary patterns
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 1;
-            manchester_advance(
-                instance->manchester_state,
-                ManchesterEventReset,
-                &instance->manchester_state,
-                NULL);
+            manchester_advance(instance->manchester_state, ManchesterEventReset,
+                               &instance->manchester_state, NULL);
             instance->decoder.parser_step = Oregon_V1DecoderStepParse;
-            if(duration < ws_protocol_oregon_v1_const.te_short * 4) {
+            if (duration < ws_protocol_oregon_v1_const.te_short * 4) {
                 instance->first_bit = 1;
             } else {
                 instance->first_bit = 0;
@@ -222,56 +225,51 @@ void ws_protocol_decoder_oregon_v1_feed(void* context, bool level, uint32_t dura
         }
         break;
     case Oregon_V1DecoderStepParse:
-        if(level) {
-            if(DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
-               ws_protocol_oregon_v1_const.te_delta) {
-                event = ManchesterEventShortHigh;
-            } else if(
-                DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_long) <
+        if (level) {
+            if (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
                 ws_protocol_oregon_v1_const.te_delta) {
+                event = ManchesterEventShortHigh;
+            } else if (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_long) <
+                       ws_protocol_oregon_v1_const.te_delta) {
                 event = ManchesterEventLongHigh;
             } else {
                 instance->decoder.parser_step = Oregon_V1DecoderStepReset;
             }
         } else {
-            if(DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
-               ws_protocol_oregon_v1_const.te_delta) {
-                event = ManchesterEventShortLow;
-            } else if(
-                DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_long) <
+            if (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_short) <
                 ws_protocol_oregon_v1_const.te_delta) {
+                event = ManchesterEventShortLow;
+            } else if (DURATION_DIFF(duration, ws_protocol_oregon_v1_const.te_long) <
+                       ws_protocol_oregon_v1_const.te_delta) {
                 event = ManchesterEventLongLow;
-            } else if(duration >= ((uint32_t)ws_protocol_oregon_v1_const.te_long * 2)) {
-                if(instance->decoder.decode_count_bit ==
-                   ws_protocol_oregon_v1_const.min_count_bit_for_found) {
-                    if(instance->first_bit) {
+            } else if (duration >= ((uint32_t)ws_protocol_oregon_v1_const.te_long * 2)) {
+                if (instance->decoder.decode_count_bit ==
+                    ws_protocol_oregon_v1_const.min_count_bit_for_found) {
+                    if (instance->first_bit) {
                         instance->decoder.decode_data = ~instance->decoder.decode_data | (1 << 31);
                     }
-                    if(ws_protocol_oregon_v1_check(instance)) {
+                    if (ws_protocol_oregon_v1_check(instance)) {
                         instance->generic.data = instance->decoder.decode_data;
                         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                         ws_protocol_oregon_v1_remote_controller(&instance->generic);
-                        if(instance->base.callback)
+                        if (instance->base.callback)
                             instance->base.callback(&instance->base, instance->base.context);
                     }
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
-                manchester_advance(
-                    instance->manchester_state,
-                    ManchesterEventReset,
-                    &instance->manchester_state,
-                    NULL);
+                manchester_advance(instance->manchester_state, ManchesterEventReset,
+                                   &instance->manchester_state, NULL);
             } else {
                 instance->decoder.parser_step = Oregon_V1DecoderStepReset;
             }
         }
-        if(event != ManchesterEventReset) {
+        if (event != ManchesterEventReset) {
             bool data;
-            bool data_ok = manchester_advance(
-                instance->manchester_state, event, &instance->manchester_state, &data);
+            bool data_ok = manchester_advance(instance->manchester_state, event,
+                                              &instance->manchester_state, &data);
 
-            if(data_ok) {
+            if (data_ok) {
                 instance->decoder.decode_data = (instance->decoder.decode_data << 1) | !data;
                 instance->decoder.decode_count_bit++;
             }
@@ -281,32 +279,35 @@ void ws_protocol_decoder_oregon_v1_feed(void* context, bool level, uint32_t dura
     }
 }
 
-uint32_t ws_protocol_decoder_oregon_v1_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_oregon_v1_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderOregon_V1 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_oregon_v1_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_oregon_v1_serialize(void *context,
+                                                             FlipperFormat *flipper_format,
+                                                             SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_oregon_v1_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_oregon_v1_deserialize(void *context,
+                                                               FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_oregon_v1_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_oregon_v1_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_oregon_v1_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderOregon_V1* instance = context;
+    WSProtocolDecoderOregon_V1 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

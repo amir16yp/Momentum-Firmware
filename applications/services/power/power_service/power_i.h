@@ -20,14 +20,14 @@ typedef enum {
 } PowerState;
 
 struct Power {
-    ViewHolder* view_holder;
-    FuriPubSub* event_pubsub;
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
+    ViewHolder *view_holder;
+    FuriPubSub *event_pubsub;
+    FuriEventLoop *event_loop;
+    FuriMessageQueue *message_queue;
 
-    ViewPort* battery_view_port;
-    PowerOff* view_power_off;
-    PowerUnplugUsb* view_power_unplug_usb;
+    ViewPort *battery_view_port;
+    PowerOff *view_power_off;
+    PowerUnplugUsb *view_power_unplug_usb;
 
     PowerEvent event;
     PowerState state;
@@ -40,13 +40,13 @@ struct Power {
     uint8_t power_off_timeout;
 
     PowerSettings settings;
-    FuriTimer* auto_poweroff_timer;
+    FuriTimer *auto_poweroff_timer;
     bool app_running;
     bool charge_is_supressed;
-    FuriPubSub* input_events_pubsub;
-    FuriPubSub* ascii_events_pubsub;
-    FuriPubSubSubscription* input_events_subscription;
-    FuriPubSubSubscription* ascii_events_subscription;
+    FuriPubSub *input_events_pubsub;
+    FuriPubSub *ascii_events_pubsub;
+    FuriPubSubSubscription *input_events_subscription;
+    FuriPubSubSubscription *ascii_events_subscription;
 };
 
 typedef enum {
@@ -71,11 +71,11 @@ typedef struct {
     PowerMessageType type;
     union {
         PowerBootMode boot_mode;
-        PowerInfo* power_info;
-        bool* bool_param;
+        PowerInfo *power_info;
+        bool *bool_param;
 
-        PowerSettings* settings;
-        const PowerSettings* csettings;
+        PowerSettings *settings;
+        const PowerSettings *csettings;
     };
     FuriApiLock lock;
 } PowerMessage;

@@ -15,19 +15,19 @@ extern "C" {
 typedef struct Menu Menu;
 
 /** Menu Item Callback */
-typedef void (*MenuItemCallback)(void* context, uint32_t index);
+typedef void (*MenuItemCallback)(void *context, uint32_t index);
 
 /** Menu allocation and initialization
  *
  * @return     Menu instance
  */
-Menu* menu_alloc(void);
+Menu *menu_alloc(void);
 
 /** Free menu
  *
  * @param      menu  Menu instance
  */
-void menu_free(Menu* menu);
+void menu_free(Menu *menu);
 
 /** Get Menu view
  *
@@ -35,7 +35,7 @@ void menu_free(Menu* menu);
  *
  * @return     View instance
  */
-View* menu_get_view(Menu* menu);
+View *menu_get_view(Menu *menu);
 
 /** Add item to menu
  *
@@ -46,20 +46,15 @@ View* menu_get_view(Menu* menu);
  * @param      callback  MenuItemCallback instance
  * @param      context   pointer to context
  */
-void menu_add_item(
-    Menu* menu,
-    const char* label,
-    const Icon* icon,
-    uint32_t index,
-    MenuItemCallback callback,
-    void* context);
+void menu_add_item(Menu *menu, const char *label, const Icon *icon, uint32_t index,
+                   MenuItemCallback callback, void *context);
 
 /** Clean menu
  * @note       this function does not free menu instance
  *
  * @param      menu  Menu instance
  */
-void menu_reset(Menu* menu);
+void menu_reset(Menu *menu);
 
 /** Get current menu item
  *
@@ -67,14 +62,14 @@ void menu_reset(Menu* menu);
  *
  * @return     Index of the selected item
  */
-uint32_t menu_get_selected_item(Menu* menu);
+uint32_t menu_get_selected_item(Menu *menu);
 
 /** Set current menu item
  *
  * @param      menu   Menu instance
  * @param      index  The index
  */
-void menu_set_selected_item(Menu* menu, uint32_t index);
+void menu_set_selected_item(Menu *menu, uint32_t index);
 
 #ifdef __cplusplus
 }

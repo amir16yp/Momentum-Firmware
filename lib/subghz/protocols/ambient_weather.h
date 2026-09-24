@@ -22,19 +22,19 @@ extern const SubGhzProtocol ws_protocol_ambient_weather;
  * @param environment Pointer to a SubGhzEnvironment instance
  * @return WSProtocolDecoderAmbient_Weather* pointer to a WSProtocolDecoderAmbient_Weather instance
  */
-void* ws_protocol_decoder_ambient_weather_alloc(SubGhzEnvironment* environment);
+void *ws_protocol_decoder_ambient_weather_alloc(SubGhzEnvironment *environment);
 
 /**
  * Free WSProtocolDecoderAmbient_Weather.
  * @param context Pointer to a WSProtocolDecoderAmbient_Weather instance
  */
-void ws_protocol_decoder_ambient_weather_free(void* context);
+void ws_protocol_decoder_ambient_weather_free(void *context);
 
 /**
  * Reset decoder WSProtocolDecoderAmbient_Weather.
  * @param context Pointer to a WSProtocolDecoderAmbient_Weather instance
  */
-void ws_protocol_decoder_ambient_weather_reset(void* context);
+void ws_protocol_decoder_ambient_weather_reset(void *context);
 
 /**
  * Parse a raw sequence of levels and durations received from the air.
@@ -42,14 +42,14 @@ void ws_protocol_decoder_ambient_weather_reset(void* context);
  * @param level Signal level true-high false-low
  * @param duration Duration of this level in, us
  */
-void ws_protocol_decoder_ambient_weather_feed(void* context, bool level, uint32_t duration);
+void ws_protocol_decoder_ambient_weather_feed(void *context, bool level, uint32_t duration);
 
 /**
  * Getting the hash sum of the last randomly received parcel.
  * @param context Pointer to a WSProtocolDecoderAmbient_Weather instance
  * @return hash Hash sum
  */
-uint32_t ws_protocol_decoder_ambient_weather_get_hash_data(void* context);
+uint32_t ws_protocol_decoder_ambient_weather_get_hash_data(void *context);
 
 /**
  * Serialize data WSProtocolDecoderAmbient_Weather.
@@ -58,10 +58,9 @@ uint32_t ws_protocol_decoder_ambient_weather_get_hash_data(void* context);
  * @param preset The modulation on which the signal was received, SubGhzRadioPreset
  * @return status
  */
-SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset);
+SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_serialize(void *context,
+                                                                   FlipperFormat *flipper_format,
+                                                                   SubGhzRadioPreset *preset);
 
 /**
  * Deserialize data WSProtocolDecoderAmbient_Weather.
@@ -69,12 +68,12 @@ SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_serialize(
  * @param flipper_format Pointer to a FlipperFormat instance
  * @return status
  */
-SubGhzProtocolStatus
-    ws_protocol_decoder_ambient_weather_deserialize(void* context, FlipperFormat* flipper_format);
+SubGhzProtocolStatus ws_protocol_decoder_ambient_weather_deserialize(void *context,
+                                                                     FlipperFormat *flipper_format);
 
 /**
  * Getting a textual representation of the received data.
  * @param context Pointer to a WSProtocolDecoderAmbient_Weather instance
  * @param output Resulting text
  */
-void ws_protocol_decoder_ambient_weather_get_string(void* context, FuriString* output);
+void ws_protocol_decoder_ambient_weather_get_string(void *context, FuriString *output);

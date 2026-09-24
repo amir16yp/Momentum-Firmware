@@ -36,7 +36,7 @@ typedef enum {
 } BtMessageType;
 
 typedef struct {
-    uint8_t* start_address;
+    uint8_t *start_address;
     uint16_t size;
 } BtKeyStorageUpdateData;
 
@@ -45,47 +45,47 @@ typedef union {
     uint8_t battery_level;
     bool power_state_charging;
     struct {
-        const FuriHalBleProfileTemplate* template;
+        const FuriHalBleProfileTemplate *template;
         FuriHalBleProfileParams params;
     } profile;
     FuriHalBleProfileParams profile_params;
     BtKeyStorageUpdateData key_storage_data;
-    BtSettings* settings;
-    const BtSettings* csettings;
+    BtSettings *settings;
+    const BtSettings *csettings;
 } BtMessageData;
 
 typedef struct {
     FuriApiLock lock;
     BtMessageType type;
     BtMessageData data;
-    bool* result;
-    FuriHalBleProfileBase** profile_instance;
+    bool *result;
+    FuriHalBleProfileBase **profile_instance;
 } BtMessage;
 
 struct Bt {
-    uint8_t* bt_keys_addr_start;
+    uint8_t *bt_keys_addr_start;
     uint16_t bt_keys_size;
     uint16_t max_packet_size;
     BtSettings bt_settings;
-    BtKeysStorage* keys_storage;
+    BtKeysStorage *keys_storage;
     BtStatus status;
     bool beacon_active;
-    FuriHalBleProfileBase* current_profile;
-    FuriMessageQueue* message_queue;
-    NotificationApp* notification;
-    Gui* gui;
-    ViewPort* statusbar_view_port;
-    ViewPort* pin_code_view_port;
+    FuriHalBleProfileBase *current_profile;
+    FuriMessageQueue *message_queue;
+    NotificationApp *notification;
+    Gui *gui;
+    ViewPort *statusbar_view_port;
+    ViewPort *pin_code_view_port;
     uint32_t pin_code;
-    DialogsApp* dialogs;
-    DialogMessage* dialog_message;
-    Power* power;
-    Rpc* rpc;
-    RpcSession* rpc_session;
-    FuriEventFlag* rpc_event;
-    FuriEventFlag* api_event;
+    DialogsApp *dialogs;
+    DialogMessage *dialog_message;
+    Power *power;
+    Rpc *rpc;
+    RpcSession *rpc_session;
+    FuriEventFlag *rpc_event;
+    FuriEventFlag *api_event;
     BtStatusChangedCallback status_changed_cb;
-    void* status_changed_ctx;
+    void *status_changed_ctx;
 
     bool suppress_pin_screen;
 };
@@ -94,10 +94,10 @@ struct Bt {
  *
  * @param bt                    Bt instance
  */
-void bt_open_rpc_connection(Bt* bt);
+void bt_open_rpc_connection(Bt *bt);
 
 /** Close the active RPC connection
  *
  * @param bt                    Bt instance
  */
-void bt_close_rpc_connection(Bt* bt);
+void bt_close_rpc_connection(Bt *bt);

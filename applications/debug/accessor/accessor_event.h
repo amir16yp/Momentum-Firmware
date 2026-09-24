@@ -1,8 +1,9 @@
 #pragma once
 #include <stdint.h>
 
-class AccessorEvent {
-public:
+class AccessorEvent
+{
+  public:
     // events enum
     enum class Type : uint8_t {
         Tick,

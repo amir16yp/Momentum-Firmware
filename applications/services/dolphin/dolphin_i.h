@@ -19,20 +19,20 @@ typedef enum {
 
 typedef struct {
     DolphinEventType type;
-    FuriEventFlag* flag;
+    FuriEventFlag *flag;
     union {
         DolphinDeed deed;
-        DolphinStats* stats;
-        DolphinSettings* settings;
+        DolphinStats *stats;
+        DolphinSettings *settings;
     };
 } DolphinEvent;
 
 struct Dolphin {
-    DolphinState* state;
-    FuriPubSub* pubsub;
-    FuriMessageQueue* event_queue;
-    FuriEventLoop* event_loop;
-    FuriEventLoopTimer* butthurt_timer;
-    FuriEventLoopTimer* flush_timer;
-    FuriEventLoopTimer* clear_limits_timer;
+    DolphinState *state;
+    FuriPubSub *pubsub;
+    FuriMessageQueue *event_queue;
+    FuriEventLoop *event_loop;
+    FuriEventLoopTimer *butthurt_timer;
+    FuriEventLoopTimer *flush_timer;
+    FuriEventLoopTimer *clear_limits_timer;
 };

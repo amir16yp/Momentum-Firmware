@@ -2,21 +2,21 @@
 
 // Generate scene on_enter handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_enter,
-void (*const bt_settings_on_enter_handlers[])(void*) = {
+void (*const bt_settings_on_enter_handlers[])(void *) = {
 #include "bt_settings_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_event handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_event,
-bool (*const bt_settings_on_event_handlers[])(void* context, SceneManagerEvent event) = {
+bool (*const bt_settings_on_event_handlers[])(void *context, SceneManagerEvent event) = {
 #include "bt_settings_scene_config.h"
 };
 #undef ADD_SCENE
 
 // Generate scene on_exit handlers array
 #define ADD_SCENE(prefix, name, id) prefix##_scene_##name##_on_exit,
-void (*const bt_settings_on_exit_handlers[])(void* context) = {
+void (*const bt_settings_on_exit_handlers[])(void *context) = {
 #include "bt_settings_scene_config.h"
 };
 #undef ADD_SCENE

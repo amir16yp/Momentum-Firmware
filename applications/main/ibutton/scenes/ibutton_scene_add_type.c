@@ -1,30 +1,28 @@
 #include "../ibutton_i.h"
 
-void ibutton_scene_add_type_on_enter(void* context) {
-    iButton* ibutton = context;
-    Submenu* submenu = ibutton->submenu;
+void ibutton_scene_add_type_on_enter(void *context)
+{
+    iButton *ibutton = context;
+    Submenu *submenu = ibutton->submenu;
 
-    FuriString* tmp = furi_string_alloc();
+    FuriString *tmp = furi_string_alloc();
 
-    for(uint32_t protocol_id = 0; protocol_id < ibutton_protocols_get_protocol_count();
-        ++protocol_id) {
-        if((strcmp(
-                ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id),
-                ibutton_protocols_get_name(ibutton->protocols, protocol_id)) != 0) &&
-           (strcmp(ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id), "N/A") !=
-            0)) {
-            furi_string_printf(
-                tmp,
-                "%s %s",
-                ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id),
-                ibutton_protocols_get_name(ibutton->protocols, protocol_id));
+    for (uint32_t protocol_id = 0; protocol_id < ibutton_protocols_get_protocol_count();
+         ++protocol_id) {
+        if ((strcmp(ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id),
+                    ibutton_protocols_get_name(ibutton->protocols, protocol_id)) != 0) &&
+            (strcmp(ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id), "N/A") !=
+             0)) {
+            furi_string_printf(tmp, "%s %s",
+                               ibutton_protocols_get_manufacturer(ibutton->protocols, protocol_id),
+                               ibutton_protocols_get_name(ibutton->protocols, protocol_id));
         } else {
-            furi_string_printf(
-                tmp, "%s", ibutton_protocols_get_name(ibutton->protocols, protocol_id));
+            furi_string_printf(tmp, "%s",
+                               ibutton_protocols_get_name(ibutton->protocols, protocol_id));
         }
 
-        submenu_add_item(
-            submenu, furi_string_get_cstr(tmp), protocol_id, ibutton_submenu_callback, context);
+        submenu_add_item(submenu, furi_string_get_cstr(tmp), protocol_id, ibutton_submenu_callback,
+                         context);
     }
 
     const uint32_t prev_protocol_id =
@@ -35,13 +33,14 @@ void ibutton_scene_add_type_on_enter(void* context) {
     furi_string_free(tmp);
 }
 
-bool ibutton_scene_add_type_on_event(void* context, SceneManagerEvent event) {
-    iButton* ibutton = context;
-    iButtonKey* key = ibutton->key;
+bool ibutton_scene_add_type_on_event(void *context, SceneManagerEvent event)
+{
+    iButton *ibutton = context;
+    iButtonKey *key = ibutton->key;
 
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         const iButtonProtocolId protocol_id = event.event;
 
         ibutton_key_reset(key);
@@ -57,7 +56,8 @@ bool ibutton_scene_add_type_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void ibutton_scene_add_type_on_exit(void* context) {
-    iButton* ibutton = context;
+void ibutton_scene_add_type_on_exit(void *context)
+{
+    iButton *ibutton = context;
     submenu_reset(ibutton->submenu);
 }

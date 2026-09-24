@@ -5,17 +5,15 @@
 
 #define PRETTY_FORMAT_MAX_CANONICAL_DATA_SIZE 256U
 
-void pretty_format_bytes_hex_canonical(
-    FuriString* result,
-    size_t num_places,
-    const char* line_prefix,
-    const uint8_t* data,
-    size_t data_size) {
+void pretty_format_bytes_hex_canonical(FuriString *result, size_t num_places,
+                                       const char *line_prefix, const uint8_t *data,
+                                       size_t data_size)
+{
     furi_check(data);
 
     bool is_truncated = false;
 
-    if(data_size > PRETTY_FORMAT_MAX_CANONICAL_DATA_SIZE) {
+    if (data_size > PRETTY_FORMAT_MAX_CANONICAL_DATA_SIZE) {
         data_size = PRETTY_FORMAT_MAX_CANONICAL_DATA_SIZE;
         is_truncated = true;
     }
@@ -30,8 +28,8 @@ void pretty_format_bytes_hex_canonical(
     /* Reserve memory in adance in order to avoid unnecessary reallocs */
     furi_string_reserve(result, furi_string_size(result) + line_count * line_length);
 
-    for(size_t i = 0; i < data_size; i += num_places) {
-        if(line_prefix) {
+    for (size_t i = 0; i < data_size; i += num_places) {
+        if (line_prefix) {
             furi_string_cat(result, line_prefix);
         }
 
@@ -39,27 +37,27 @@ void pretty_format_bytes_hex_canonical(
         const size_t wrap_idx = i + num_places;
         const size_t end_idx = MIN(wrap_idx, data_size);
 
-        for(size_t j = begin_idx; j < end_idx; j++) {
+        for (size_t j = begin_idx; j < end_idx; j++) {
             furi_string_cat_printf(result, "%02X ", data[j]);
         }
-        if(end_idx < wrap_idx) {
-            for(size_t j = end_idx; j < wrap_idx; j++) {
+        if (end_idx < wrap_idx) {
+            for (size_t j = end_idx; j < wrap_idx; j++) {
                 furi_string_cat_printf(result, "   ");
             }
         }
 
         furi_string_push_back(result, '|');
 
-        for(size_t j = begin_idx; j < end_idx; j++) {
+        for (size_t j = begin_idx; j < end_idx; j++) {
             const char c = data[j];
             const char sep = ((j < end_idx - 1) ? ' ' : '\n');
-            const char* fmt = ((j < data_size - 1) ? "%c%c" : "%c");
+            const char *fmt = ((j < data_size - 1) ? "%c%c" : "%c");
             furi_string_cat_printf(result, fmt, (c > 0x1f && c < 0x7f) ? c : '.', sep);
         }
     }
 
-    if(is_truncated) {
-        furi_string_cat_printf(
-            result, "\n(Data is too big. Showing only the first %zu bytes.)", data_size);
+    if (is_truncated) {
+        furi_string_cat_printf(result, "\n(Data is too big. Showing only the first %zu bytes.)",
+                               data_size);
     }
 }

@@ -29,8 +29,8 @@
  * To change the size of commands and events parameters used in the
  * auto-generated files, you need to update 2 defines:
  *
- *  - BLE_CMD_MAX_PARAM_LEN          
- *  - BLE_EVT_MAX_PARAM_LEN          
+ *  - BLE_CMD_MAX_PARAM_LEN
+ *  - BLE_EVT_MAX_PARAM_LEN
  *
  * These 2 defines are set below with default values and can be changed.
  *
@@ -79,12 +79,12 @@ struct hci_request {
     uint16_t ogf;
     uint16_t ocf;
     int event;
-    void* cparam;
+    void *cparam;
     int clen;
-    void* rparam;
+    void *rparam;
     int rlen;
 };
-extern int hci_send_req(struct hci_request* req, uint8_t async);
+extern int hci_send_req(struct hci_request *req, uint8_t async);
 
 #ifndef FALSE
 #define FALSE 0

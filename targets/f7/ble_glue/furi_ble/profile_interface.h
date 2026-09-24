@@ -14,16 +14,15 @@ typedef struct FuriHalBleProfileTemplate FuriHalBleProfileTemplate;
 typedef struct {
     /* Pointer to the config for this profile. Must be used to check if the
      * instance belongs to the profile */
-    const FuriHalBleProfileTemplate* config;
+    const FuriHalBleProfileTemplate *config;
 } FuriHalBleProfileBase;
 
-typedef void* FuriHalBleProfileParams;
+typedef void *FuriHalBleProfileParams;
 
-typedef FuriHalBleProfileBase* (*FuriHalBleProfileStart)(FuriHalBleProfileParams profile_params);
-typedef void (*FuriHalBleProfileStop)(FuriHalBleProfileBase* profile);
-typedef void (*FuriHalBleProfileGetGapConfig)(
-    GapConfig* target_config,
-    FuriHalBleProfileParams profile_params);
+typedef FuriHalBleProfileBase *(*FuriHalBleProfileStart)(FuriHalBleProfileParams profile_params);
+typedef void (*FuriHalBleProfileStop)(FuriHalBleProfileBase *profile);
+typedef void (*FuriHalBleProfileGetGapConfig)(GapConfig *target_config,
+                                              FuriHalBleProfileParams profile_params);
 
 struct FuriHalBleProfileTemplate {
     /* Returns an instance of the profile */

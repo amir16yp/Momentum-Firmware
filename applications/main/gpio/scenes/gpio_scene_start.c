@@ -20,56 +20,55 @@ enum GpioOtg {
     GpioOtgSettingsNum,
 };
 
-const char* const gpio_otg_text[GpioOtgSettingsNum] = {
+const char *const gpio_otg_text[GpioOtgSettingsNum] = {
     "OFF",
     "ON",
 };
 
-static void gpio_scene_start_var_list_enter_callback(void* context, uint32_t index) {
+static void gpio_scene_start_var_list_enter_callback(void *context, uint32_t index)
+{
     furi_assert(context);
-    GpioApp* app = context;
-    if(index == GpioItemTest) {
+    GpioApp *app = context;
+    if (index == GpioItemTest) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventManualControl);
-    } else if(index == GpioItemUsbUart) {
+    } else if (index == GpioItemUsbUart) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventUsbUart);
-    } else if(index == GpioItemI2CScanner) {
+    } else if (index == GpioItemI2CScanner) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventI2CScanner);
-    } else if(index == GpioItemI2CSfp) {
+    } else if (index == GpioItemI2CSfp) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventI2CSfp);
     }
 }
 
-static void gpio_scene_start_var_list_change_callback(VariableItem* item) {
-    GpioApp* app = variable_item_get_context(item);
+static void gpio_scene_start_var_list_change_callback(VariableItem *item)
+{
+    GpioApp *app = variable_item_get_context(item);
     uint8_t index = variable_item_get_current_value_index(item);
 
     variable_item_set_current_value_text(item, gpio_otg_text[index]);
-    if(index == GpioOtgOff) {
+    if (index == GpioOtgOff) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventOtgOff);
-    } else if(index == GpioOtgOn) {
+    } else if (index == GpioOtgOn) {
         view_dispatcher_send_custom_event(app->view_dispatcher, GpioStartEventOtgOn);
     }
 }
 
-void gpio_scene_start_on_enter(void* context) {
-    GpioApp* app = context;
-    VariableItemList* var_item_list = app->var_item_list;
+void gpio_scene_start_on_enter(void *context)
+{
+    GpioApp *app = context;
+    VariableItemList *var_item_list = app->var_item_list;
 
-    VariableItem* item;
-    variable_item_list_set_enter_callback(
-        var_item_list, gpio_scene_start_var_list_enter_callback, app);
+    VariableItem *item;
+    variable_item_list_set_enter_callback(var_item_list, gpio_scene_start_var_list_enter_callback,
+                                          app);
 
     variable_item_list_add(var_item_list, "USB-UART Bridge", 0, NULL, NULL);
 
     variable_item_list_add(var_item_list, "GPIO Manual Control", 0, NULL, NULL);
 
-    item = variable_item_list_add(
-        var_item_list,
-        "5V on GPIO",
-        GpioOtgSettingsNum,
-        gpio_scene_start_var_list_change_callback,
-        app);
-    if(power_is_otg_enabled(app->power)) {
+    item = variable_item_list_add(var_item_list, "5V on GPIO", GpioOtgSettingsNum,
+                                  gpio_scene_start_var_list_change_callback, app);
+    if (power_is_otg_enabled(app->power)) {
         variable_item_set_current_value_index(item, GpioOtgOn);
         variable_item_set_current_value_text(item, gpio_otg_text[GpioOtgOn]);
     } else {
@@ -86,27 +85,28 @@ void gpio_scene_start_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, GpioAppViewVarItemList);
 }
 
-bool gpio_scene_start_on_event(void* context, SceneManagerEvent event) {
-    GpioApp* app = context;
+bool gpio_scene_start_on_event(void *context, SceneManagerEvent event)
+{
+    GpioApp *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == GpioStartEventOtgOn) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event == GpioStartEventOtgOn) {
             power_enable_otg(app->power, true);
-        } else if(event.event == GpioStartEventOtgOff) {
+        } else if (event.event == GpioStartEventOtgOff) {
             power_enable_otg(app->power, false);
-        } else if(event.event == GpioStartEventManualControl) {
+        } else if (event.event == GpioStartEventManualControl) {
             scene_manager_set_scene_state(app->scene_manager, GpioSceneStart, GpioItemTest);
             scene_manager_next_scene(app->scene_manager, GpioSceneTest);
-        } else if(event.event == GpioStartEventI2CScanner) {
+        } else if (event.event == GpioStartEventI2CScanner) {
             scene_manager_set_scene_state(app->scene_manager, GpioSceneStart, GpioItemI2CScanner);
             scene_manager_next_scene(app->scene_manager, GpioSceneI2CScanner);
-        } else if(event.event == GpioStartEventI2CSfp) {
+        } else if (event.event == GpioStartEventI2CSfp) {
             scene_manager_set_scene_state(app->scene_manager, GpioSceneStart, GpioItemI2CSfp);
             scene_manager_next_scene(app->scene_manager, GpioSceneI2CSfp);
-        } else if(event.event == GpioStartEventUsbUart) {
+        } else if (event.event == GpioStartEventUsbUart) {
             scene_manager_set_scene_state(app->scene_manager, GpioSceneStart, GpioItemUsbUart);
-            if(!furi_hal_usb_is_locked()) {
+            if (!furi_hal_usb_is_locked()) {
                 dolphin_deed(DolphinDeedGpioUartBridge);
                 scene_manager_next_scene(app->scene_manager, GpioSceneUsbUart);
             } else {
@@ -118,8 +118,9 @@ bool gpio_scene_start_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void gpio_scene_start_on_exit(void* context) {
-    GpioApp* app = context;
+void gpio_scene_start_on_exit(void *context)
+{
+    GpioApp *app = context;
     variable_item_list_reset(app->var_item_list);
 }
 

@@ -29,15 +29,15 @@ extern FuriHalSpiBus furi_hal_spi_bus_d;
 
 /** External on `furi_hal_spi_bus_r`
  * Preset: `furi_hal_spi_preset_1edge_low_2m`
- * 
+ *
  * miso: pa6
  * mosi: pa7
  * sck: pb3
  * cs:  pa4 (software controlled)
- * 
+ *
  * @warning not initialized by default, call `furi_hal_spi_bus_handle_init` to initialize
  * Bus pins are floating on inactive state, CS high after initialization
- * 
+ *
  */
 extern const FuriHalSpiBusHandle furi_hal_spi_bus_handle_external;
 

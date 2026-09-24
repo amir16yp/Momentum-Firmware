@@ -25,15 +25,15 @@
 #include <stdint.h>
 
 typedef struct {
-    Gui* gui;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    Gui *gui;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    Submenu* submenu;
-    ByteInput* byte_input;
-    DialogEx* dialog_ex;
+    Submenu *submenu;
+    ByteInput *byte_input;
+    DialogEx *dialog_ex;
 
-    FuriString* status_string;
+    FuriString *status_string;
 
     GapExtraBeaconConfig beacon_config;
     uint8_t beacon_data[EXTRA_BEACON_MAX_DATA_SIZE];
@@ -51,4 +51,4 @@ typedef enum {
     BleBeaconAppCustomEventDataEditResult = 100,
 } BleBeaconAppCustomEvent;
 
-void ble_beacon_app_update_state(BleBeaconApp* app);
+void ble_beacon_app_update_state(BleBeaconApp *app);

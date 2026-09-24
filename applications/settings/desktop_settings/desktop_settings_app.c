@@ -9,32 +9,28 @@
 #include "desktop_settings_app.h"
 #include "scenes/desktop_settings_scene.h"
 
-const char* EXTRA_KEYBINDS[] = {
-    "Apps Menu",
-    "Archive",
-    "Clock",
-    "Device Info",
-    "Lock Menu",
-    "Lock Keypad",
-    "Lock with PIN",
-    "Passport",
-    "Wipe Device",
+const char *EXTRA_KEYBINDS[] = {
+    "Apps Menu",   "Archive",       "Clock",    "Device Info", "Lock Menu",
+    "Lock Keypad", "Lock with PIN", "Passport", "Wipe Device",
 };
 const size_t EXTRA_KEYBINDS_COUNT = COUNT_OF(EXTRA_KEYBINDS);
 
-static bool desktop_settings_custom_event_callback(void* context, uint32_t event) {
+static bool desktop_settings_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    DesktopSettingsApp* app = context;
+    DesktopSettingsApp *app = context;
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-static bool desktop_settings_back_event_callback(void* context) {
+static bool desktop_settings_back_event_callback(void *context)
+{
     furi_assert(context);
-    DesktopSettingsApp* app = context;
+    DesktopSettingsApp *app = context;
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-FuriString* desktop_settings_app_get_keybind(DesktopSettingsApp* app) {
+FuriString *desktop_settings_app_get_keybind(DesktopSettingsApp *app)
+{
     DesktopKeybindType type =
         scene_manager_get_scene_state(app->scene_manager, DesktopSettingsAppSceneKeybindsType);
     DesktopKeybindKey key =
@@ -42,7 +38,8 @@ FuriString* desktop_settings_app_get_keybind(DesktopSettingsApp* app) {
     return app->keybinds[type][key];
 }
 
-void desktop_settings_app_set_keybind(DesktopSettingsApp* app, const char* value) {
+void desktop_settings_app_set_keybind(DesktopSettingsApp *app, const char *value)
+{
     DesktopKeybindType type =
         scene_manager_get_scene_state(app->scene_manager, DesktopSettingsAppSceneKeybindsType);
     DesktopKeybindKey key =
@@ -51,8 +48,9 @@ void desktop_settings_app_set_keybind(DesktopSettingsApp* app, const char* value
     app->save_keybinds = true;
 }
 
-DesktopSettingsApp* desktop_settings_app_alloc(void) {
-    DesktopSettingsApp* app = malloc(sizeof(DesktopSettingsApp));
+DesktopSettingsApp *desktop_settings_app_alloc(void)
+{
+    DesktopSettingsApp *app = malloc(sizeof(DesktopSettingsApp));
 
     app->gui = furi_record_open(RECORD_GUI);
     app->dialogs = furi_record_open(RECORD_DIALOGS);
@@ -60,10 +58,10 @@ DesktopSettingsApp* desktop_settings_app_alloc(void) {
     app->scene_manager = scene_manager_alloc(&desktop_settings_scene_handlers, app);
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
 
-    view_dispatcher_set_custom_event_callback(
-        app->view_dispatcher, desktop_settings_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        app->view_dispatcher, desktop_settings_back_event_callback);
+    view_dispatcher_set_custom_event_callback(app->view_dispatcher,
+                                              desktop_settings_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(app->view_dispatcher,
+                                                  desktop_settings_back_event_callback);
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
 
@@ -75,32 +73,27 @@ DesktopSettingsApp* desktop_settings_app_alloc(void) {
     app->pin_setup_howto2_view = desktop_settings_view_pin_setup_howto2_alloc();
     app->dialog_ex = dialog_ex_alloc();
 
+    view_dispatcher_add_view(app->view_dispatcher, DesktopSettingsAppViewMenu,
+                             submenu_get_view(app->submenu));
+    view_dispatcher_add_view(app->view_dispatcher, DesktopSettingsAppViewVarItemList,
+                             variable_item_list_get_view(app->variable_item_list));
+    view_dispatcher_add_view(app->view_dispatcher, DesktopSettingsAppViewIdPopup,
+                             popup_get_view(app->popup));
+    view_dispatcher_add_view(app->view_dispatcher, DesktopSettingsAppViewIdPinInput,
+                             desktop_view_pin_input_get_view(app->pin_input_view));
     view_dispatcher_add_view(
-        app->view_dispatcher, DesktopSettingsAppViewMenu, submenu_get_view(app->submenu));
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        DesktopSettingsAppViewVarItemList,
-        variable_item_list_get_view(app->variable_item_list));
-    view_dispatcher_add_view(
-        app->view_dispatcher, DesktopSettingsAppViewIdPopup, popup_get_view(app->popup));
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        DesktopSettingsAppViewIdPinInput,
-        desktop_view_pin_input_get_view(app->pin_input_view));
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        DesktopSettingsAppViewIdPinSetupHowto,
+        app->view_dispatcher, DesktopSettingsAppViewIdPinSetupHowto,
         desktop_settings_view_pin_setup_howto_get_view(app->pin_setup_howto_view));
     view_dispatcher_add_view(
-        app->view_dispatcher,
-        DesktopSettingsAppViewIdPinSetupHowto2,
+        app->view_dispatcher, DesktopSettingsAppViewIdPinSetupHowto2,
         desktop_settings_view_pin_setup_howto2_get_view(app->pin_setup_howto2_view));
-    view_dispatcher_add_view(
-        app->view_dispatcher, DesktopSettingsAppViewDialogEx, dialog_ex_get_view(app->dialog_ex));
+    view_dispatcher_add_view(app->view_dispatcher, DesktopSettingsAppViewDialogEx,
+                             dialog_ex_get_view(app->dialog_ex));
     return app;
 }
 
-void desktop_settings_app_free(DesktopSettingsApp* app) {
+void desktop_settings_app_free(DesktopSettingsApp *app)
+{
     furi_assert(app);
     // Variable item list
     view_dispatcher_remove_view(app->view_dispatcher, DesktopSettingsAppViewMenu);
@@ -126,14 +119,15 @@ void desktop_settings_app_free(DesktopSettingsApp* app) {
     free(app);
 }
 
-extern int32_t desktop_settings_app(void* p) {
-    DesktopSettingsApp* app = desktop_settings_app_alloc();
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+extern int32_t desktop_settings_app(void *p)
+{
+    DesktopSettingsApp *app = desktop_settings_app_alloc();
+    Desktop *desktop = furi_record_open(RECORD_DESKTOP);
 
     desktop_api_get_settings(desktop, &app->settings);
     desktop_keybinds_load(desktop, &app->keybinds);
 
-    if(p && (strcmp(p, DESKTOP_SETTINGS_RUN_PIN_SETUP_ARG) == 0)) {
+    if (p && (strcmp(p, DESKTOP_SETTINGS_RUN_PIN_SETUP_ARG) == 0)) {
         scene_manager_next_scene(app->scene_manager, DesktopSettingsAppScenePinSetupHowto);
     } else {
         scene_manager_next_scene(app->scene_manager, DesktopSettingsAppSceneStart);
@@ -141,7 +135,7 @@ extern int32_t desktop_settings_app(void* p) {
 
     view_dispatcher_run(app->view_dispatcher);
 
-    if(app->save_keybinds) {
+    if (app->save_keybinds) {
         desktop_keybinds_save(desktop, &app->keybinds);
     }
     desktop_keybinds_free(&app->keybinds);

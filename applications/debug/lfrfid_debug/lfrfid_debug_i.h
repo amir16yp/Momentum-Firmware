@@ -15,13 +15,13 @@
 typedef struct LfRfidDebug LfRfidDebug;
 
 struct LfRfidDebug {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
 
     // Common Views
-    Submenu* submenu;
-    LfRfidTuneView* tune_view;
+    Submenu *submenu;
+    LfRfidTuneView *tune_view;
 };
 
 typedef enum {

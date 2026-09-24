@@ -12,19 +12,19 @@ extern "C" {
 
 #define STORAGE_COUNT (ST_ERROR - 1)
 
-#define APPS_DATA_PATH   EXT_PATH("apps_data")
+#define APPS_DATA_PATH EXT_PATH("apps_data")
 #define APPS_ASSETS_PATH EXT_PATH("apps_assets")
 
 typedef struct {
-    ViewPort* view_port;
+    ViewPort *view_port;
     bool enabled;
 } StorageSDGui;
 
 struct Storage {
-    FuriMessageQueue* message_queue;
+    FuriMessageQueue *message_queue;
     StorageData storage[STORAGE_COUNT];
     StorageSDGui sd_gui;
-    FuriPubSub* pubsub;
+    FuriPubSub *pubsub;
 };
 
 #ifdef __cplusplus

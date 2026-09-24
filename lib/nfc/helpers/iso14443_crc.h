@@ -16,11 +16,11 @@ typedef enum {
     Iso14443CrcTypeB,
 } Iso14443CrcType;
 
-void iso14443_crc_append(Iso14443CrcType type, BitBuffer* buf);
+void iso14443_crc_append(Iso14443CrcType type, BitBuffer *buf);
 
-bool iso14443_crc_check(Iso14443CrcType type, const BitBuffer* buf);
+bool iso14443_crc_check(Iso14443CrcType type, const BitBuffer *buf);
 
-void iso14443_crc_trim(BitBuffer* buf);
+void iso14443_crc_trim(BitBuffer *buf);
 
 #ifdef __cplusplus
 }

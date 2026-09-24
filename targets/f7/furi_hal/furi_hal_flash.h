@@ -9,8 +9,8 @@ extern "C" {
 #endif
 
 #define FURI_HAL_FLASH_OB_RAW_SIZE_BYTES 0x80
-#define FURI_HAL_FLASH_OB_SIZE_WORDS     (FURI_HAL_FLASH_OB_RAW_SIZE_BYTES / sizeof(uint32_t))
-#define FURI_HAL_FLASH_OB_TOTAL_VALUES   (FURI_HAL_FLASH_OB_SIZE_WORDS / 2)
+#define FURI_HAL_FLASH_OB_SIZE_WORDS (FURI_HAL_FLASH_OB_RAW_SIZE_BYTES / sizeof(uint32_t))
+#define FURI_HAL_FLASH_OB_TOTAL_VALUES (FURI_HAL_FLASH_OB_SIZE_WORDS / 2)
 
 typedef union {
     uint8_t bytes[FURI_HAL_FLASH_OB_RAW_SIZE_BYTES];
@@ -23,9 +23,8 @@ typedef union {
     } obs[FURI_HAL_FLASH_OB_TOTAL_VALUES];
 } FuriHalFlashRawOptionByteData;
 
-_Static_assert(
-    sizeof(FuriHalFlashRawOptionByteData) == FURI_HAL_FLASH_OB_RAW_SIZE_BYTES,
-    "UpdateManifestOptionByteData size error");
+_Static_assert(sizeof(FuriHalFlashRawOptionByteData) == FURI_HAL_FLASH_OB_RAW_SIZE_BYTES,
+               "UpdateManifestOptionByteData size error");
 
 /** Init flash, applying necessary workarounds
  */
@@ -65,13 +64,13 @@ size_t furi_hal_flash_get_cycles_count(void);
  *
  * @return     pointer to free region start
  */
-const void* furi_hal_flash_get_free_start_address(void);
+const void *furi_hal_flash_get_free_start_address(void);
 
 /** Get free flash end address
  *
  * @return     pointer to free region end
  */
-const void* furi_hal_flash_get_free_end_address(void);
+const void *furi_hal_flash_get_free_end_address(void);
 
 /** Get first free page start address
  *
@@ -110,7 +109,7 @@ void furi_hal_flash_write_dword(size_t address, uint64_t data);
  * @param      data     data to write
  * @param      length   data length
  */
-void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16_t length);
+void furi_hal_flash_program_page(const uint8_t page, const uint8_t *data, uint16_t length);
 
 /** Get flash page number for address
  *
@@ -139,7 +138,7 @@ void furi_hal_flash_ob_apply(void);
  *
  * @return     pointer to read-only data of OB (raw + complementary values)
  */
-const FuriHalFlashRawOptionByteData* furi_hal_flash_ob_get_raw_ptr(void);
+const FuriHalFlashRawOptionByteData *furi_hal_flash_ob_get_raw_ptr(void);
 
 #ifdef __cplusplus
 }

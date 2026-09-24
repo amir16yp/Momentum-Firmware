@@ -13,48 +13,50 @@
  * Per-pin control structure
  */
 typedef struct {
-    const GpioPin* pin;
+    const GpioPin *pin;
     bool had_interrupt;
-    FuriSemaphore* interrupt_semaphore;
-    JsEventLoopContract* interrupt_contract;
+    FuriSemaphore *interrupt_semaphore;
+    JsEventLoopContract *interrupt_contract;
     FuriHalAdcChannel adc_channel;
     FuriHalPwmOutputId pwm_output;
-    FuriHalAdcHandle* adc_handle;
+    FuriHalAdcHandle *adc_handle;
 } JsGpioPinInst;
 
-ARRAY_DEF(ManagedPinsArray, JsGpioPinInst*, M_PTR_OPLIST); //-V575
+ARRAY_DEF(ManagedPinsArray, JsGpioPinInst *, M_PTR_OPLIST); //-V575
 #define M_OPL_ManagedPinsArray_t() ARRAY_OPLIST(ManagedPinsArray)
 
 /**
  * Per-module instance control structure
  */
 typedef struct {
-    FuriEventLoop* loop;
+    FuriEventLoop *loop;
     ManagedPinsArray_t managed_pins;
-    FuriHalAdcHandle* adc_handle;
+    FuriHalAdcHandle *adc_handle;
 } JsGpioInst;
 
 /**
  * @brief Interrupt callback
  */
-static void js_gpio_int_cb(void* arg) {
+static void js_gpio_int_cb(void *arg)
+{
     furi_assert(arg);
-    FuriSemaphore* semaphore = arg;
+    FuriSemaphore *semaphore = arg;
     furi_semaphore_release(semaphore);
 }
 
 /**
  * @brief Initializes a GPIO pin according to the provided mode object
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let led = gpio.get("pc3");
  * led.init({ direction: "out", outMode: "push_pull" });
  * ```
  */
-static void js_gpio_init(struct mjs* mjs) {
+static void js_gpio_init(struct mjs *mjs)
+{
     // direction variants
     typedef enum {
         JsGpioDirectionIn,
@@ -119,10 +121,8 @@ static void js_gpio_init(struct mjs* mjs) {
 
     // complete mode object
     static const JsValueObjectField js_gpio_mode_object_fields[] = {
-        {"direction", &js_gpio_direction},
-        {"inMode", &js_gpio_in_mode},
-        {"outMode", &js_gpio_out_mode},
-        {"edge", &js_gpio_edge},
+        {"direction", &js_gpio_direction}, {"inMode", &js_gpio_in_mode},
+        {"outMode", &js_gpio_out_mode},    {"edge", &js_gpio_edge},
         {"pull", &js_gpio_pull},
     };
 
@@ -137,11 +137,11 @@ static void js_gpio_init(struct mjs* mjs) {
     JsGpioOutMode out_mode;
     JsGpioEdge edge;
     GpioPull pull;
-    JS_VALUE_PARSE_ARGS_OR_RETURN(
-        mjs, &js_gpio_init_args, &direction, &in_mode, &out_mode, &edge, &pull);
+    JS_VALUE_PARSE_ARGS_OR_RETURN(mjs, &js_gpio_init_args, &direction, &in_mode, &out_mode, &edge,
+                                  &pull);
 
     GpioMode mode;
-    if(direction == JsGpioDirectionOut) {
+    if (direction == JsGpioDirectionOut) {
         static const GpioMode js_gpio_out_mode_lut[] = {
             [JsGpioOutModePushPull] = GpioModeOutputPushPull,
             [JsGpioOutModeOpenDrain] = GpioModeOutputOpenDrain,
@@ -161,15 +161,15 @@ static void js_gpio_init(struct mjs* mjs) {
         mode = js_gpio_in_mode_lut[in_mode | edge];
     }
 
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
     furi_hal_gpio_init(manager_data->pin, mode, pull, GpioSpeedVeryHigh);
 }
 
 /**
- * @brief Writes a logic value to a GPIO pin 
- * 
+ * @brief Writes a logic value to a GPIO pin
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let led = gpio.get("pc3");
@@ -177,7 +177,8 @@ static void js_gpio_init(struct mjs* mjs) {
  * led.write(true);
  * ```
  */
-static void js_gpio_write(struct mjs* mjs) {
+static void js_gpio_write(struct mjs *mjs)
+{
     static const JsValueDeclaration js_gpio_write_arg_list[] = {
         JS_VALUE_SIMPLE(JsValueTypeBool),
     };
@@ -185,16 +186,16 @@ static void js_gpio_write(struct mjs* mjs) {
     bool level;
     JS_VALUE_PARSE_ARGS_OR_RETURN(mjs, &js_gpio_write_args, &level);
 
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
     furi_hal_gpio_write(manager_data->pin, level);
     mjs_return(mjs, MJS_UNDEFINED);
 }
 
 /**
  * @brief Reads a logic value from a GPIO pin
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let button = gpio.get("pc1");
@@ -203,18 +204,19 @@ static void js_gpio_write(struct mjs* mjs) {
  *     print("hi button!!!!!");
  * ```
  */
-static void js_gpio_read(struct mjs* mjs) {
+static void js_gpio_read(struct mjs *mjs)
+{
     // get level
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
     bool value = furi_hal_gpio_read(manager_data->pin);
     mjs_return(mjs, mjs_mk_boolean(mjs, value));
 }
 
 /**
  * @brief Returns a event loop contract that can be used to listen to interrupts
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let button = gpio.get("pc1");
@@ -224,19 +226,20 @@ static void js_gpio_read(struct mjs* mjs) {
  * event_loop.run();
  * ```
  */
-static void js_gpio_interrupt(struct mjs* mjs) {
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+static void js_gpio_interrupt(struct mjs *mjs)
+{
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
 
     // interrupt handling
-    if(!manager_data->had_interrupt) {
-        furi_hal_gpio_add_int_callback(
-            manager_data->pin, js_gpio_int_cb, manager_data->interrupt_semaphore);
+    if (!manager_data->had_interrupt) {
+        furi_hal_gpio_add_int_callback(manager_data->pin, js_gpio_int_cb,
+                                       manager_data->interrupt_semaphore);
         furi_hal_gpio_enable_int_callback(manager_data->pin);
         manager_data->had_interrupt = true;
     }
 
     // make contract
-    JsEventLoopContract* contract = malloc(sizeof(JsEventLoopContract));
+    JsEventLoopContract *contract = malloc(sizeof(JsEventLoopContract));
     *contract = (JsEventLoopContract){
         .magic = JsForeignMagic_JsEventLoopContract,
         .object_type = JsEventLoopObjectTypeSemaphore,
@@ -252,9 +255,9 @@ static void js_gpio_interrupt(struct mjs* mjs) {
 
 /**
  * @brief Reads a voltage from a GPIO pin in analog mode
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let pot = gpio.get("pc0");
@@ -262,9 +265,10 @@ static void js_gpio_interrupt(struct mjs* mjs) {
  * print("voltage:" pot.readAnalog(), "mV");
  * ```
  */
-static void js_gpio_read_analog(struct mjs* mjs) {
+static void js_gpio_read_analog(struct mjs *mjs)
+{
     // get mV (ADC is configured for 12 bits and 2048 mV max)
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
     uint16_t millivolts =
         furi_hal_adc_read(manager_data->adc_handle, manager_data->adc_channel) / 2;
     mjs_return(mjs, mjs_mk_number(mjs, (double)millivolts));
@@ -272,32 +276,34 @@ static void js_gpio_read_analog(struct mjs* mjs) {
 
 /**
  * @brief Determines whether this pin supports PWM
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * assert_eq(true, gpio.get("pa4").isPwmSupported());
  * assert_eq(false, gpio.get("pa5").isPwmSupported());
  * ```
  */
-static void js_gpio_is_pwm_supported(struct mjs* mjs) {
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
+static void js_gpio_is_pwm_supported(struct mjs *mjs)
+{
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
     mjs_return(mjs, mjs_mk_boolean(mjs, manager_data->pwm_output != FuriHalPwmOutputIdNone));
 }
 
 /**
  * @brief Sets PWM parameters and starts the PWM
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let pa4 = gpio.get("pa4");
  * pa4.pwmWrite(10000, 50);
  * ```
  */
-static void js_gpio_pwm_write(struct mjs* mjs) {
+static void js_gpio_pwm_write(struct mjs *mjs)
+{
     static const JsValueDeclaration js_gpio_pwm_write_arg_list[] = {
         JS_VALUE_SIMPLE(JsValueTypeInt32),
         JS_VALUE_SIMPLE(JsValueTypeInt32),
@@ -307,12 +313,12 @@ static void js_gpio_pwm_write(struct mjs* mjs) {
     int32_t frequency, duty;
     JS_VALUE_PARSE_ARGS_OR_RETURN(mjs, &js_gpio_pwm_write_args, &frequency, &duty);
 
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
-    if(manager_data->pwm_output == FuriHalPwmOutputIdNone) {
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
+    if (manager_data->pwm_output == FuriHalPwmOutputIdNone) {
         JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "PWM is not supported on this pin");
     }
 
-    if(furi_hal_pwm_is_running(manager_data->pwm_output)) {
+    if (furi_hal_pwm_is_running(manager_data->pwm_output)) {
         furi_hal_pwm_set_params(manager_data->pwm_output, frequency, duty);
     } else {
         furi_hal_pwm_start(manager_data->pwm_output, frequency, duty);
@@ -321,17 +327,18 @@ static void js_gpio_pwm_write(struct mjs* mjs) {
 
 /**
  * @brief Determines whether PWM is running
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * assert_eq(false, gpio.get("pa4").isPwmRunning());
  * ```
  */
-static void js_gpio_is_pwm_running(struct mjs* mjs) {
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
-    if(manager_data->pwm_output == FuriHalPwmOutputIdNone) {
+static void js_gpio_is_pwm_running(struct mjs *mjs)
+{
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
+    if (manager_data->pwm_output == FuriHalPwmOutputIdNone) {
         JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "PWM is not supported on this pin");
     }
 
@@ -340,9 +347,9 @@ static void js_gpio_is_pwm_running(struct mjs* mjs) {
 
 /**
  * @brief Stops PWM
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let pa4 = gpio.get("pa4");
@@ -350,9 +357,10 @@ static void js_gpio_is_pwm_running(struct mjs* mjs) {
  * pa4.pwmStop();
  * ```
  */
-static void js_gpio_pwm_stop(struct mjs* mjs) {
-    JsGpioPinInst* manager_data = JS_GET_CONTEXT(mjs);
-    if(manager_data->pwm_output == FuriHalPwmOutputIdNone) {
+static void js_gpio_pwm_stop(struct mjs *mjs)
+{
+    JsGpioPinInst *manager_data = JS_GET_CONTEXT(mjs);
+    if (manager_data->pwm_output == FuriHalPwmOutputIdNone) {
         JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "PWM is not supported on this pin");
     }
 
@@ -361,15 +369,16 @@ static void js_gpio_pwm_stop(struct mjs* mjs) {
 
 /**
  * @brief Returns an object that manages a specified pin.
- * 
+ *
  * Example usage:
- * 
+ *
  * ```js
  * let gpio = require("gpio");
  * let led = gpio.get("pc3");
  * ```
  */
-static void js_gpio_get(struct mjs* mjs) {
+static void js_gpio_get(struct mjs *mjs)
+{
     static const JsValueDeclaration js_gpio_get_arg_list[] = {
         JS_VALUE_SIMPLE(JsValueTypeAny),
     };
@@ -377,33 +386,35 @@ static void js_gpio_get(struct mjs* mjs) {
     mjs_val_t name_arg;
     JS_VALUE_PARSE_ARGS_OR_RETURN(mjs, &js_gpio_get_args, &name_arg);
 
-    const char* name_string = mjs_get_string(mjs, &name_arg, NULL);
-    const GpioPinRecord* pin_record = NULL;
+    const char *name_string = mjs_get_string(mjs, &name_arg, NULL);
+    const GpioPinRecord *pin_record = NULL;
 
     // parse input argument to a pin pointer
-    if(name_string) {
+    if (name_string) {
         pin_record = furi_hal_resources_pin_by_name(name_string);
-    } else if(mjs_is_number(name_arg)) {
+    } else if (mjs_is_number(name_arg)) {
         int name_int = mjs_get_int(mjs, name_arg);
         pin_record = furi_hal_resources_pin_by_number(name_int);
     } else {
         JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "Must be either a string or a number");
     }
 
-    if(!pin_record) JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "Pin not found on device");
-    if(pin_record->debug)
+    if (!pin_record)
+        JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "Pin not found on device");
+    if (pin_record->debug)
         JS_ERROR_AND_RETURN(mjs, MJS_BAD_ARGS_ERROR, "Pin is used for debugging");
 
     // return pin manager object
-    JsGpioInst* module = JS_GET_CONTEXT(mjs);
+    JsGpioInst *module = JS_GET_CONTEXT(mjs);
     mjs_val_t manager = mjs_mk_object(mjs);
-    JsGpioPinInst* manager_data = malloc(sizeof(JsGpioPinInst));
+    JsGpioPinInst *manager_data = malloc(sizeof(JsGpioPinInst));
     manager_data->pin = pin_record->pin;
     manager_data->interrupt_semaphore = furi_semaphore_alloc(UINT32_MAX, 0);
     manager_data->adc_handle = module->adc_handle;
     manager_data->adc_channel = pin_record->channel;
     manager_data->pwm_output = pin_record->pwm_output;
-    JS_ASSIGN_MULTI(mjs, manager) {
+    JS_ASSIGN_MULTI(mjs, manager)
+    {
         JS_FIELD(INST_PROP_NAME, mjs_mk_foreign(mjs, manager_data));
         JS_FIELD("init", MJS_MK_FN(js_gpio_init));
         JS_FIELD("write", MJS_MK_FN(js_gpio_write));
@@ -421,12 +432,14 @@ static void js_gpio_get(struct mjs* mjs) {
     ManagedPinsArray_push_back(module->managed_pins, manager_data);
 }
 
-static void* js_gpio_create(struct mjs* mjs, mjs_val_t* object, JsModules* modules) {
-    JsEventLoop* js_loop = js_module_get(modules, "event_loop");
-    if(M_UNLIKELY(!js_loop)) return NULL;
-    FuriEventLoop* loop = js_event_loop_get_loop(js_loop);
+static void *js_gpio_create(struct mjs *mjs, mjs_val_t *object, JsModules *modules)
+{
+    JsEventLoop *js_loop = js_module_get(modules, "event_loop");
+    if (M_UNLIKELY(!js_loop))
+        return NULL;
+    FuriEventLoop *loop = js_event_loop_get_loop(js_loop);
 
-    JsGpioInst* module = malloc(sizeof(JsGpioInst));
+    JsGpioInst *module = malloc(sizeof(JsGpioInst));
     ManagedPinsArray_init(module->managed_pins);
     module->adc_handle = furi_hal_adc_acquire();
     module->loop = loop;
@@ -437,24 +450,26 @@ static void* js_gpio_create(struct mjs* mjs, mjs_val_t* object, JsModules* modul
     mjs_set(mjs, gpio_obj, "get", ~0, MJS_MK_FN(js_gpio_get));
     *object = gpio_obj;
 
-    return (void*)module;
+    return (void *)module;
 }
 
-static void js_gpio_destroy(void* inst) {
+static void js_gpio_destroy(void *inst)
+{
     furi_assert(inst);
-    JsGpioInst* module = (JsGpioInst*)inst;
+    JsGpioInst *module = (JsGpioInst *)inst;
 
     // reset pins
     for
-        M_EACH(item, module->managed_pins, ManagedPinsArray_t) {
-            JsGpioPinInst* manager_data = *item;
+        M_EACH(item, module->managed_pins, ManagedPinsArray_t)
+        {
+            JsGpioPinInst *manager_data = *item;
 
-            if(manager_data->had_interrupt) {
+            if (manager_data->had_interrupt) {
                 furi_hal_gpio_disable_int_callback(manager_data->pin);
                 furi_hal_gpio_remove_int_callback(manager_data->pin);
             }
-            if(manager_data->pwm_output != FuriHalPwmOutputIdNone) {
-                if(furi_hal_pwm_is_running(manager_data->pwm_output))
+            if (manager_data->pwm_output != FuriHalPwmOutputIdNone) {
+                if (furi_hal_pwm_is_running(manager_data->pwm_output))
                     furi_hal_pwm_stop(manager_data->pwm_output);
             }
             furi_hal_gpio_init(manager_data->pin, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
@@ -485,6 +500,7 @@ static const FlipperAppPluginDescriptor plugin_descriptor = {
     .entry_point = &js_gpio_desc,
 };
 
-const FlipperAppPluginDescriptor* js_gpio_ep(void) {
+const FlipperAppPluginDescriptor *js_gpio_ep(void)
+{
     return &plugin_descriptor;
 }

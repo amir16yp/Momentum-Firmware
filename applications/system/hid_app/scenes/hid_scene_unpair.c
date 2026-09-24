@@ -2,36 +2,39 @@
 #include "../views.h"
 #include "hid_icons.h"
 
-static void hid_scene_unpair_dialog_callback(DialogExResult result, void* context) {
-    Hid* app = context;
+static void hid_scene_unpair_dialog_callback(DialogExResult result, void *context)
+{
+    Hid *app = context;
 
-    if(result == DialogExResultRight) {
+    if (result == DialogExResultRight) {
         // Unpair all devices
         bt_hid_remove_pairing(app);
 
         // Show popup
         view_dispatcher_switch_to_view(app->view_dispatcher, HidViewPopup);
-    } else if(result == DialogExResultLeft) {
+    } else if (result == DialogExResultLeft) {
         scene_manager_previous_scene(app->scene_manager);
     }
 }
 
-void hid_scene_unpair_popup_callback(void* context) {
-    Hid* app = context;
+void hid_scene_unpair_popup_callback(void *context)
+{
+    Hid *app = context;
 
     scene_manager_previous_scene(app->scene_manager);
 }
 
-void hid_scene_unpair_on_enter(void* context) {
-    Hid* app = context;
+void hid_scene_unpair_on_enter(void *context)
+{
+    Hid *app = context;
 
     // Un-pair dialog view
     dialog_ex_reset(app->dialog);
     dialog_ex_set_result_callback(app->dialog, hid_scene_unpair_dialog_callback);
     dialog_ex_set_context(app->dialog, app);
     dialog_ex_set_header(app->dialog, "Unpair All Devices?", 64, 3, AlignCenter, AlignTop);
-    dialog_ex_set_text(
-        app->dialog, "All previous pairings\nwill be lost!", 64, 22, AlignCenter, AlignTop);
+    dialog_ex_set_text(app->dialog, "All previous pairings\nwill be lost!", 64, 22, AlignCenter,
+                       AlignTop);
     dialog_ex_set_left_button_text(app->dialog, "Back");
     dialog_ex_set_right_button_text(app->dialog, "Unpair");
 
@@ -46,8 +49,9 @@ void hid_scene_unpair_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, HidViewDialog);
 }
 
-bool hid_scene_unpair_on_event(void* context, SceneManagerEvent event) {
-    Hid* app = context;
+bool hid_scene_unpair_on_event(void *context, SceneManagerEvent event)
+{
+    Hid *app = context;
     bool consumed = false;
     UNUSED(app);
     UNUSED(event);
@@ -55,8 +59,9 @@ bool hid_scene_unpair_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void hid_scene_unpair_on_exit(void* context) {
-    Hid* app = context;
+void hid_scene_unpair_on_exit(void *context)
+{
+    Hid *app = context;
 
     dialog_ex_reset(app->dialog);
     popup_reset(app->popup);

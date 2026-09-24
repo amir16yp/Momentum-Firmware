@@ -11,16 +11,22 @@
 #define MJS_UNDEFINED (-1)
 typedef int mjs_val_t;
 typedef enum { MJS_OK, MJS_FILE_READ_ERROR, MJS_SYNTAX_ERROR, MJS_TYPE_ERROR } mjs_err_t;
-struct mjs { size_t bcode_len; mjs_err_t error; int generate_jsc; };
-static char* source_buffer;
+struct mjs {
+    size_t bcode_len;
+    mjs_err_t error;
+    int generate_jsc;
+};
+static char *source_buffer;
 static bool read_failure;
 static mjs_err_t parse_result;
 static mjs_err_t execute_result;
 static unsigned frees, executions;
 
-static char* cs_read_file(const char* path, size_t* size) {
+static char *cs_read_file(const char *path, size_t *size)
+{
     assert(strcmp(path, "gui.js") == 0);
-    if(read_failure) return NULL;
+    if (read_failure)
+        return NULL;
     *size = 16384;
     source_buffer = malloc(*size + 1);
     assert(source_buffer);
@@ -28,19 +34,23 @@ static char* cs_read_file(const char* path, size_t* size) {
     source_buffer[*size] = 0;
     return source_buffer;
 }
-static void tracked_free(void* ptr) {
+static void tracked_free(void *ptr)
+{
     assert(ptr && ptr == source_buffer);
     frees++;
     source_buffer = NULL;
     free(ptr);
 }
-static mjs_err_t mjs_parse(const char* path, const char* src, struct mjs* mjs) {
+static mjs_err_t mjs_parse(const char *path, const char *src, struct mjs *mjs)
+{
     assert(path && src);
-    if(strcmp(path, "gui.js") == 0) assert(src == source_buffer);
+    if (strcmp(path, "gui.js") == 0)
+        assert(src == source_buffer);
     mjs->bcode_len += 128;
     return parse_result;
 }
-static void mjs_execute(struct mjs* mjs, size_t off, mjs_val_t* result) {
+static void mjs_execute(struct mjs *mjs, size_t off, mjs_val_t *result)
+{
     /* GUI/native allocations must not overlap the source allocation. */
     assert(source_buffer == NULL);
     assert(off == mjs->bcode_len - 128);
@@ -48,7 +58,8 @@ static void mjs_execute(struct mjs* mjs, size_t off, mjs_val_t* result) {
     *result = 42;
     mjs->error = execute_result;
 }
-static void mjs_prepend_errorf(struct mjs* mjs, mjs_err_t error, const char* fmt, const char* path) {
+static void mjs_prepend_errorf(struct mjs *mjs, mjs_err_t error, const char *fmt, const char *path)
+{
     assert(fmt && path);
     mjs->error = error;
 }
@@ -56,7 +67,8 @@ static void mjs_prepend_errorf(struct mjs* mjs, mjs_err_t error, const char* fmt
 /* PRODUCTION_CODE */
 #undef free
 
-int main(void) {
+int main(void)
+{
     struct mjs mjs = {.bcode_len = 512};
     mjs_val_t result;
     assert(mjs_exec_file(&mjs, "gui.js", &result) == MJS_OK);

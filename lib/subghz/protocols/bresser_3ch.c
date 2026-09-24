@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------
  * Bresser-3CH V1 format
  * ----------------------------------------------------------------------------
- * 
+ *
  * Help:
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/bresser_3ch.c
  *
@@ -23,23 +23,24 @@
  * a long pulse of 500 us followed by a 250 us gap is a 1 bit,
  * there is a sync preamble of pulse, gap, 750 us each, repeated 4 times.
  * Actual received and demodulated timings might be 2% shorter.
- * 
+ *
  * The data is grouped in 5 bytes / 10 nibbles
- * 
+ *
  *     [id] [id] [flags] [temp] [temp] [temp] [humi] [humi] [chk] [chk]
- * 
+ *
  * - id is an 8 bit random id that is generated when the sensor starts
  * - flags are 4 bits battery low indicator, test button press and channel
  * - temp is 12 bit unsigned fahrenheit offset by 90 and scaled by 10
  * - humi is 8 bit relative humidity percentage
- * - chk is the sum of the four data bytes 
- * 
+ * - chk is the sum of the four data bytes
+ *
  * ----------------------------------------------------------------------------
  * Bresser-3CH V0 format
  * ----------------------------------------------------------------------------
- * 
+ *
  * Typically gets sent before V1: same weather station parameters, but in another format.
- * Probably for older weather stations, as it seems simpler and without a CRC check. No rtl_433 driver yet. 
+ * Probably for older weather stations, as it seems simpler and without a CRC check. No rtl_433
+ * driver yet.
  *
  * Encoding, PPM modulated with 0 and 1 swapped:
  * - Data sync begins with     475 -3975
@@ -63,9 +64,9 @@
  *
  */
 
-#define BRESSER_V0_DATA          36
+#define BRESSER_V0_DATA 36
 #define BRESSER_V0_DATA_AND_TAIL 52
-#define BRESSER_V1_DATA          40
+#define BRESSER_V1_DATA 40
 
 static const SubGhzBlockConst ws_protocol_bresser_3ch_v0_const = {
     .te_short = 475,
@@ -139,48 +140,60 @@ typedef enum {
     Bresser3chDecoderStepV1CheckDuration,
 } Bresser3chDecoderStepV1;
 
-void* ws_protocol_decoder_bresser_3ch_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_bresser_3ch_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderBresser3ch* instance = malloc(sizeof(WSProtocolDecoderBresser3ch));
+    WSProtocolDecoderBresser3ch *instance = malloc(sizeof(WSProtocolDecoderBresser3ch));
     instance->base.protocol = &ws_protocol_bresser_3ch;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_bresser_3ch_free(void* context) {
+void ws_protocol_decoder_bresser_3ch_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_bresser_3ch_reset(void* context) {
+void ws_protocol_decoder_bresser_3ch_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
     instance->decoder.parser_step = Bresser3chDecoderStepReset;
 }
 
-static bool ws_protocol_bresser_3ch_check_v0(WSProtocolDecoderBresser3ch* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_bresser_3ch_check_v0(WSProtocolDecoderBresser3ch *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
 
     // No CRC, so better sanity checks here
 
-    if(((instance->decoder.decode_data >> 8) & 0x0f) != 0x0f) return false; // separator not 0xf
-    if(((instance->decoder.decode_data >> 28) & 0xff) == 0xff) return false; // ID only ones?
-    if(((instance->decoder.decode_data >> 28) & 0xff) == 0x00) return false; // ID only zeroes?
-    if(((instance->decoder.decode_data >> 25) & 0x0f) == 0x0f) return false; // flags only ones?
-    if(((instance->decoder.decode_data >> 25) & 0x0f) == 0x00) return false; // flags only zeroes?
-    if(((instance->decoder.decode_data >> 12) & 0x0fff) == 0x0fff)
+    if (((instance->decoder.decode_data >> 8) & 0x0f) != 0x0f)
+        return false; // separator not 0xf
+    if (((instance->decoder.decode_data >> 28) & 0xff) == 0xff)
+        return false; // ID only ones?
+    if (((instance->decoder.decode_data >> 28) & 0xff) == 0x00)
+        return false; // ID only zeroes?
+    if (((instance->decoder.decode_data >> 25) & 0x0f) == 0x0f)
+        return false; // flags only ones?
+    if (((instance->decoder.decode_data >> 25) & 0x0f) == 0x00)
+        return false; // flags only zeroes?
+    if (((instance->decoder.decode_data >> 12) & 0x0fff) == 0x0fff)
         return false; // temperature maxed out?
-    if((instance->decoder.decode_data & 0xff) < 20)
+    if ((instance->decoder.decode_data & 0xff) < 20)
         return false; // humidity percentage less than 20?
-    if((instance->decoder.decode_data & 0xff) > 95)
+    if ((instance->decoder.decode_data & 0xff) > 95)
         return false; // humidity percentage more than 95?
 
     return true;
 }
 
-static bool ws_protocol_bresser_3ch_check_v1(WSProtocolDecoderBresser3ch* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_bresser_3ch_check_v1(WSProtocolDecoderBresser3ch *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
 
     uint8_t sum = (((instance->decoder.decode_data >> 32) & 0xff) +
                    ((instance->decoder.decode_data >> 24) & 0xff) +
@@ -195,7 +208,8 @@ static bool ws_protocol_bresser_3ch_check_v1(WSProtocolDecoderBresser3ch* instan
  * Analysis of received data for V0
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_bresser_3ch_extract_data_v0(WSBlockGeneric* instance) {
+static void ws_protocol_bresser_3ch_extract_data_v0(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 28) & 0xff;
     instance->channel = ((instance->data >> 27) & 0x01) | (((instance->data >> 26) & 0x01) << 1);
     instance->btn = ((instance->data >> 25) & 0x1);
@@ -203,7 +217,7 @@ static void ws_protocol_bresser_3ch_extract_data_v0(WSBlockGeneric* instance) {
 
     int16_t temp = (instance->data >> 12) & 0x0fff;
     /* Handle signed data */
-    if(temp & 0x0800) {
+    if (temp & 0x0800) {
         temp |= 0xf000;
     }
     instance->temp = (float)temp / 10.0;
@@ -215,7 +229,8 @@ static void ws_protocol_bresser_3ch_extract_data_v0(WSBlockGeneric* instance) {
  * Analysis of received data for V1
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_bresser_3ch_extract_data_v1(WSBlockGeneric* instance) {
+static void ws_protocol_bresser_3ch_extract_data_v1(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 32) & 0xff;
     instance->battery_low = ((instance->data >> 31) & 0x1);
     instance->btn = (instance->data >> 30) & 0x1;
@@ -227,19 +242,20 @@ static void ws_protocol_bresser_3ch_extract_data_v1(WSBlockGeneric* instance) {
     instance->humidity = (instance->data >> 8) & 0xff;
 }
 
-void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_bresser_3ch_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Bresser3chDecoderStepReset:
-        if(level && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
-                        ws_protocol_bresser_3ch_v1_const.te_delta) {
+        if (level && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
+                         ws_protocol_bresser_3ch_v1_const.te_delta) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Bresser3chDecoderStepV1PreambleDn;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
-        } else if((!level) && duration >= ws_protocol_bresser_3ch_v0_const.te_long) {
+        } else if ((!level) && duration >= ws_protocol_bresser_3ch_v0_const.te_long) {
             instance->decoder.parser_step = Bresser3chDecoderStepV0SaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -247,9 +263,9 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV0SaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
-            if(instance->decoder.decode_count_bit < BRESSER_V0_DATA) {
+            if (instance->decoder.decode_count_bit < BRESSER_V0_DATA) {
                 instance->decoder.parser_step = Bresser3chDecoderStepV0CheckDuration;
             } else {
                 instance->decoder.parser_step = Bresser3chDecoderStepV0TailCheckDuration;
@@ -260,16 +276,16 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV0CheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(instance->decoder.te_last, ws_protocol_bresser_3ch_v0_const.te_short) <
-               ws_protocol_bresser_3ch_v0_const.te_delta) {
-                if(DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 2) <
-                   ws_protocol_bresser_3ch_v0_const.te_delta) {
+        if (!level) {
+            if (DURATION_DIFF(instance->decoder.te_last,
+                              ws_protocol_bresser_3ch_v0_const.te_short) <
+                ws_protocol_bresser_3ch_v0_const.te_delta) {
+                if (DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 2) <
+                    ws_protocol_bresser_3ch_v0_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = Bresser3chDecoderStepV0SaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 4) <
-                    ws_protocol_bresser_3ch_v0_const.te_delta) {
+                } else if (DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 4) <
+                           ws_protocol_bresser_3ch_v0_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = Bresser3chDecoderStepV0SaveDuration;
                 } else
@@ -281,29 +297,28 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV0TailCheckDuration:
-        if(!level) {
-            if(duration >= ws_protocol_bresser_3ch_v0_const.te_long) {
-                if(instance->decoder.decode_count_bit == BRESSER_V0_DATA_AND_TAIL &&
-                   ws_protocol_bresser_3ch_check_v0(instance)) {
+        if (!level) {
+            if (duration >= ws_protocol_bresser_3ch_v0_const.te_long) {
+                if (instance->decoder.decode_count_bit == BRESSER_V0_DATA_AND_TAIL &&
+                    ws_protocol_bresser_3ch_check_v0(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->decoder.decode_count_bit = BRESSER_V0_DATA;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_bresser_3ch_extract_data_v0(&instance->generic);
 
-                    if(instance->base.callback) {
+                    if (instance->base.callback) {
                         instance->base.callback(&instance->base, instance->base.context);
                     }
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = Bresser3chDecoderStepReset;
-            } else if(
-                instance->decoder.decode_count_bit < BRESSER_V0_DATA_AND_TAIL &&
-                DURATION_DIFF(
-                    instance->decoder.te_last, ws_protocol_bresser_3ch_v0_const.te_short) <
-                    ws_protocol_bresser_3ch_v0_const.te_delta &&
-                DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 2) <
-                    ws_protocol_bresser_3ch_v0_const.te_delta) {
+            } else if (instance->decoder.decode_count_bit < BRESSER_V0_DATA_AND_TAIL &&
+                       DURATION_DIFF(instance->decoder.te_last,
+                                     ws_protocol_bresser_3ch_v0_const.te_short) <
+                           ws_protocol_bresser_3ch_v0_const.te_delta &&
+                       DURATION_DIFF(duration, ws_protocol_bresser_3ch_v0_const.te_short * 2) <
+                           ws_protocol_bresser_3ch_v0_const.te_delta) {
                 instance->decoder.decode_count_bit++;
                 instance->decoder.parser_step = Bresser3chDecoderStepV0SaveDuration;
             } else
@@ -313,11 +328,11 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV1PreambleDn:
-        if((!level) && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
-                           ws_protocol_bresser_3ch_v1_const.te_delta) {
-            if(DURATION_DIFF(
-                   instance->decoder.te_last, ws_protocol_bresser_3ch_v1_const.te_short * 12) <
-               ws_protocol_bresser_3ch_v1_const.te_delta * 2) {
+        if ((!level) && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
+                            ws_protocol_bresser_3ch_v1_const.te_delta) {
+            if (DURATION_DIFF(instance->decoder.te_last,
+                              ws_protocol_bresser_3ch_v1_const.te_short * 12) <
+                ws_protocol_bresser_3ch_v1_const.te_delta * 2) {
                 // End of sync after 4*750 (12*250) high values, start reading the message
                 instance->decoder.parser_step = Bresser3chDecoderStepV1SaveDuration;
             } else {
@@ -329,8 +344,8 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV1PreambleUp:
-        if(level && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
-                        ws_protocol_bresser_3ch_v1_const.te_delta) {
+        if (level && DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short * 3) <
+                         ws_protocol_bresser_3ch_v1_const.te_delta) {
             instance->decoder.te_last = instance->decoder.te_last + duration;
             instance->decoder.parser_step = Bresser3chDecoderStepV1PreambleDn;
         } else {
@@ -339,20 +354,20 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV1SaveDuration:
-        if(instance->decoder.decode_count_bit == BRESSER_V1_DATA) {
-            if(ws_protocol_bresser_3ch_check_v1(instance)) {
+        if (instance->decoder.decode_count_bit == BRESSER_V1_DATA) {
+            if (ws_protocol_bresser_3ch_check_v1(instance)) {
                 instance->generic.data = instance->decoder.decode_data;
                 instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                 ws_protocol_bresser_3ch_extract_data_v1(&instance->generic);
 
-                if(instance->base.callback) {
+                if (instance->base.callback) {
                     instance->base.callback(&instance->base, instance->base.context);
                 }
             }
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
             instance->decoder.parser_step = Bresser3chDecoderStepReset;
-        } else if(level) {
+        } else if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Bresser3chDecoderStepV1CheckDuration;
         } else {
@@ -361,18 +376,19 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
         break;
 
     case Bresser3chDecoderStepV1CheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(instance->decoder.te_last, ws_protocol_bresser_3ch_v1_const.te_short) <
-                   ws_protocol_bresser_3ch_v1_const.te_delta &&
-               DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_long) <
-                   ws_protocol_bresser_3ch_v1_const.te_delta) {
+        if (!level) {
+            if (DURATION_DIFF(instance->decoder.te_last,
+                              ws_protocol_bresser_3ch_v1_const.te_short) <
+                    ws_protocol_bresser_3ch_v1_const.te_delta &&
+                DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_long) <
+                    ws_protocol_bresser_3ch_v1_const.te_delta) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Bresser3chDecoderStepV1SaveDuration;
-            } else if(
-                DURATION_DIFF(instance->decoder.te_last, ws_protocol_bresser_3ch_v1_const.te_long) <
-                    ws_protocol_bresser_3ch_v1_const.te_delta &&
-                DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short) <
-                    ws_protocol_bresser_3ch_v1_const.te_delta) {
+            } else if (DURATION_DIFF(instance->decoder.te_last,
+                                     ws_protocol_bresser_3ch_v1_const.te_long) <
+                           ws_protocol_bresser_3ch_v1_const.te_delta &&
+                       DURATION_DIFF(duration, ws_protocol_bresser_3ch_v1_const.te_short) <
+                           ws_protocol_bresser_3ch_v1_const.te_delta) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Bresser3chDecoderStepV1SaveDuration;
             } else
@@ -383,32 +399,34 @@ void ws_protocol_decoder_bresser_3ch_feed(void* context, bool level, uint32_t du
     }
 }
 
-uint32_t ws_protocol_decoder_bresser_3ch_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_bresser_3ch_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderBresser3ch *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_bresser_3ch_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_bresser_3ch_serialize(void *context,
+                                                               FlipperFormat *flipper_format,
+                                                               SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_bresser_3ch_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_bresser_3ch_deserialize(void *context,
+                                                                 FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
 
     SubGhzProtocolStatus ret = ws_block_generic_deserialize(&instance->generic, flipper_format);
 
-    if(ret == SubGhzProtocolStatusOk) {
-        if(instance->generic.data_count_bit != BRESSER_V0_DATA &&
-           instance->generic.data_count_bit != BRESSER_V1_DATA) {
+    if (ret == SubGhzProtocolStatusOk) {
+        if (instance->generic.data_count_bit != BRESSER_V0_DATA &&
+            instance->generic.data_count_bit != BRESSER_V1_DATA) {
             FURI_LOG_D(TAG, "Wrong number of bits in key for Bresser-3CH V0 or V1 packet format");
             ret = SubGhzProtocolStatusErrorValueBitCount;
         }
@@ -417,8 +435,9 @@ SubGhzProtocolStatus
     return ret;
 }
 
-void ws_protocol_decoder_bresser_3ch_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_bresser_3ch_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderBresser3ch* instance = context;
+    WSProtocolDecoderBresser3ch *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

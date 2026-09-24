@@ -5,7 +5,7 @@
 /*
  * Help
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/acurite.c
- * 
+ *
  * Acurite 592TXR Temperature Humidity sensor decoder
  * Message Type 0x04, 7 bytes
  * | Byte 0    | Byte 1    | Byte 2    | Byte 3    | Byte 4    | Byte 5    | Byte 6    |
@@ -25,9 +25,10 @@
  *   - only 11 bits needed for specified range -40 C to 70 C (-40 F - 158 F)
  *   - However 14 bits available for temperature, giving possible range of -100 C to 1538.4 C
  *   - @todo - check if high 3 bits ever used for anything else
- * 
- *   SUB file generator: https://htotoo.github.io/FlipperSUBGenerator/acurite_592txr-generator/index.html
- * 
+ *
+ *   SUB file generator:
+ * https://htotoo.github.io/FlipperSUBGenerator/acurite_592txr-generator/index.html
+ *
  */
 
 static const SubGhzBlockConst ws_protocol_acurite_592txr_const = {
@@ -97,38 +98,38 @@ const SubGhzProtocol ws_protocol_acurite_592txr = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_acurite_592txr_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_acurite_592txr_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderAcurite_592TXR* instance = malloc(sizeof(WSProtocolDecoderAcurite_592TXR));
+    WSProtocolDecoderAcurite_592TXR *instance = malloc(sizeof(WSProtocolDecoderAcurite_592TXR));
     instance->base.protocol = &ws_protocol_acurite_592txr;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_acurite_592txr_free(void* context) {
+void ws_protocol_decoder_acurite_592txr_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_acurite_592txr_reset(void* context) {
+void ws_protocol_decoder_acurite_592txr_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
     instance->decoder.parser_step = Acurite_592TXRDecoderStepReset;
 }
 
-static bool ws_protocol_acurite_592txr_check_crc(WSProtocolDecoderAcurite_592TXR* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 48,
-        instance->decoder.decode_data >> 40,
-        instance->decoder.decode_data >> 32,
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8};
+static bool ws_protocol_acurite_592txr_check_crc(WSProtocolDecoderAcurite_592TXR *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 48, instance->decoder.decode_data >> 40,
+                     instance->decoder.decode_data >> 32, instance->decoder.decode_data >> 24,
+                     instance->decoder.decode_data >> 16, instance->decoder.decode_data >> 8};
 
-    if((subghz_protocol_blocks_add_bytes(msg, 6) ==
-        (uint8_t)(instance->decoder.decode_data & 0xFF)) &&
-       (!subghz_protocol_blocks_parity_bytes(&msg[2], 4))) {
+    if ((subghz_protocol_blocks_add_bytes(msg, 6) ==
+         (uint8_t)(instance->decoder.decode_data & 0xFF)) &&
+        (!subghz_protocol_blocks_parity_bytes(&msg[2], 4))) {
         return true;
     } else {
         return false;
@@ -139,7 +140,8 @@ static bool ws_protocol_acurite_592txr_check_crc(WSProtocolDecoderAcurite_592TXR
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_acurite_592txr_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_acurite_592txr_remote_controller(WSBlockGeneric *instance)
+{
     uint8_t channel[] = {3, 0, 2, 1};
     uint8_t channel_raw = ((instance->data >> 54) & 0x03);
     instance->channel = channel[channel_raw];
@@ -153,14 +155,15 @@ static void ws_protocol_acurite_592txr_remote_controller(WSBlockGeneric* instanc
     instance->btn = WS_NO_BTN;
 }
 
-void ws_protocol_decoder_acurite_592txr_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_acurite_592txr_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Acurite_592TXRDecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short * 3) <
-                       ws_protocol_acurite_592txr_const.te_delta * 2)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short * 3) <
+                        ws_protocol_acurite_592txr_const.te_delta * 2)) {
             instance->decoder.parser_step = Acurite_592TXRDecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -168,32 +171,31 @@ void ws_protocol_decoder_acurite_592txr_feed(void* context, bool level, uint32_t
         break;
 
     case Acurite_592TXRDecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(
-                    instance->decoder.te_last, ws_protocol_acurite_592txr_const.te_short * 3) <
-                ws_protocol_acurite_592txr_const.te_delta * 2) &&
-               (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short * 3) <
-                ws_protocol_acurite_592txr_const.te_delta * 2)) {
-                //Found preambule
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               ws_protocol_acurite_592txr_const.te_short * 3) <
+                 ws_protocol_acurite_592txr_const.te_delta * 2) &&
+                (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short * 3) <
+                 ws_protocol_acurite_592txr_const.te_delta * 2)) {
+                // Found preambule
                 instance->header_count++;
-            } else if((instance->header_count > 2) && (instance->header_count < 5)) {
-                if((DURATION_DIFF(
-                        instance->decoder.te_last, ws_protocol_acurite_592txr_const.te_short) <
-                    ws_protocol_acurite_592txr_const.te_delta) &&
-                   (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_long) <
-                    ws_protocol_acurite_592txr_const.te_delta)) {
+            } else if ((instance->header_count > 2) && (instance->header_count < 5)) {
+                if ((DURATION_DIFF(instance->decoder.te_last,
+                                   ws_protocol_acurite_592txr_const.te_short) <
+                     ws_protocol_acurite_592txr_const.te_delta) &&
+                    (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_long) <
+                     ws_protocol_acurite_592txr_const.te_delta)) {
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = Acurite_592TXRDecoderStepSaveDuration;
-                } else if(
-                    (DURATION_DIFF(
-                         instance->decoder.te_last, ws_protocol_acurite_592txr_const.te_long) <
-                     ws_protocol_acurite_592txr_const.te_delta) &&
-                    (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short) <
-                     ws_protocol_acurite_592txr_const.te_delta)) {
+                } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                          ws_protocol_acurite_592txr_const.te_long) <
+                            ws_protocol_acurite_592txr_const.te_delta) &&
+                           (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short) <
+                            ws_protocol_acurite_592txr_const.te_delta)) {
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
@@ -208,7 +210,7 @@ void ws_protocol_decoder_acurite_592txr_feed(void* context, bool level, uint32_t
         break;
 
     case Acurite_592TXRDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Acurite_592TXRDecoderStepCheckDuration;
         } else {
@@ -217,35 +219,33 @@ void ws_protocol_decoder_acurite_592txr_feed(void* context, bool level, uint32_t
         break;
 
     case Acurite_592TXRDecoderStepCheckDuration:
-        if(!level) {
-            if(duration >= ((uint32_t)ws_protocol_acurite_592txr_const.te_short * 5)) {
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_acurite_592txr_const.min_count_bit_for_found) &&
-                   ws_protocol_acurite_592txr_check_crc(instance)) {
+        if (!level) {
+            if (duration >= ((uint32_t)ws_protocol_acurite_592txr_const.te_short * 5)) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_acurite_592txr_const.min_count_bit_for_found) &&
+                    ws_protocol_acurite_592txr_check_crc(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_acurite_592txr_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = Acurite_592TXRDecoderStepReset;
                 break;
-            } else if(
-                (DURATION_DIFF(
-                     instance->decoder.te_last, ws_protocol_acurite_592txr_const.te_short) <
-                 ws_protocol_acurite_592txr_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_long) <
-                 ws_protocol_acurite_592txr_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_acurite_592txr_const.te_short) <
+                        ws_protocol_acurite_592txr_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_long) <
+                        ws_protocol_acurite_592txr_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Acurite_592TXRDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(
-                     instance->decoder.te_last, ws_protocol_acurite_592txr_const.te_long) <
-                 ws_protocol_acurite_592txr_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short) <
-                 ws_protocol_acurite_592txr_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_acurite_592txr_const.te_long) <
+                        ws_protocol_acurite_592txr_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_acurite_592txr_const.te_short) <
+                        ws_protocol_acurite_592txr_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Acurite_592TXRDecoderStepSaveDuration;
             } else {
@@ -258,41 +258,44 @@ void ws_protocol_decoder_acurite_592txr_feed(void* context, bool level, uint32_t
     }
 }
 
-uint32_t ws_protocol_decoder_acurite_592txr_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_acurite_592txr_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderAcurite_592TXR *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_acurite_592txr_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_592txr_serialize(void *context,
+                                                                  FlipperFormat *flipper_format,
+                                                                  SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_acurite_592txr_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_592txr_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         ws_protocol_acurite_592txr_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_acurite_592txr_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_acurite_592txr_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_592TXR* instance = context;
+    WSProtocolDecoderAcurite_592TXR *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }
 
-void* ws_protocol_encoder_acurite_592txr_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_encoder_acurite_592txr_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolEncoderAcurite_592TXR* instance = malloc(sizeof(WSProtocolEncoderAcurite_592TXR));
+    WSProtocolEncoderAcurite_592TXR *instance = malloc(sizeof(WSProtocolEncoderAcurite_592TXR));
 
     instance->base.protocol = &ws_protocol_acurite_592txr;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -305,18 +308,20 @@ void* ws_protocol_encoder_acurite_592txr_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void ws_protocol_encoder_acurite_592txr_free(void* context) {
+void ws_protocol_encoder_acurite_592txr_free(void *context)
+{
     furi_assert(context);
-    WSProtocolEncoderAcurite_592TXR* instance = context;
+    WSProtocolEncoderAcurite_592TXR *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
 
-bool ws_protocol_encoder_acurite_592txr_get_upload(WSProtocolEncoderAcurite_592TXR* instance) {
+bool ws_protocol_encoder_acurite_592txr_get_upload(WSProtocolEncoderAcurite_592TXR *instance)
+{
     furi_assert(instance);
     size_t index = 0;
     size_t size_upload = (instance->generic.data_count_bit * 2) + 8;
-    if(size_upload > instance->encoder.size_upload) {
+    if (size_upload > instance->encoder.size_upload) {
         FURI_LOG_E(TAG, "Size upload exceeds allocated encoder buffer.");
         return false;
     } else {
@@ -339,15 +344,15 @@ bool ws_protocol_encoder_acurite_592txr_get_upload(WSProtocolEncoderAcurite_592T
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)ws_protocol_acurite_592txr_const.te_short * 3);
 
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(!bit_read(instance->generic.data, i - 1)) {
-            //send bit 1
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (!bit_read(instance->generic.data, i - 1)) {
+            // send bit 1
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)ws_protocol_acurite_592txr_const.te_short);
             instance->encoder.upload[index++] =
                 level_duration_make(false, (uint32_t)ws_protocol_acurite_592txr_const.te_long);
         } else {
-            //send bit 0
+            // send bit 0
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)ws_protocol_acurite_592txr_const.te_long);
             instance->encoder.upload[index++] =
@@ -358,51 +363,54 @@ bool ws_protocol_encoder_acurite_592txr_get_upload(WSProtocolEncoderAcurite_592T
     return true;
 }
 
-SubGhzProtocolStatus
-    ws_protocol_encoder_acurite_592txr_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_encoder_acurite_592txr_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolEncoderAcurite_592TXR* instance = context;
+    WSProtocolEncoderAcurite_592TXR *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = ws_block_generic_deserialize(&instance->generic, flipper_format);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
-        if((instance->generic.data_count_bit >
-            ws_protocol_acurite_592txr_const.min_count_bit_for_found)) {
+        if ((instance->generic.data_count_bit >
+             ws_protocol_acurite_592txr_const.min_count_bit_for_found)) {
             FURI_LOG_E(TAG, "Wrong number of bits in key");
             ret = SubGhzProtocolStatusErrorValueBitCount;
             break;
         }
-        //optional parameter parameter
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 6);
+        // optional parameter parameter
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   6);
 
-        if(!ws_protocol_encoder_acurite_592txr_get_upload(instance)) {
+        if (!ws_protocol_encoder_acurite_592txr_get_upload(instance)) {
             ret = SubGhzProtocolStatusErrorEncoderGetUpload;
             break;
         }
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-LevelDuration ws_protocol_encoder_acurite_592txr_yield(void* context) {
-    WSProtocolEncoderAcurite_592TXR* instance = context;
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+LevelDuration ws_protocol_encoder_acurite_592txr_yield(void *context)
+{
+    WSProtocolEncoderAcurite_592TXR *instance = context;
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
-    if(++instance->encoder.front == instance->encoder.size_upload) {
+    if (++instance->encoder.front == instance->encoder.size_upload) {
         instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
     return ret;
 }
 
-void ws_protocol_encoder_acurite_592txr_stop(void* context) {
-    WSProtocolEncoderAcurite_592TXR* instance = context;
+void ws_protocol_encoder_acurite_592txr_stop(void *context)
+{
+    WSProtocolEncoderAcurite_592TXR *instance = context;
     instance->encoder.is_running = false;
 }

@@ -16,7 +16,7 @@ typedef struct {
 
 struct SceneManager {
     SceneManagerIdStack_t scene_id_stack;
-    const SceneManagerHandlers* scene_handlers;
-    void* context;
+    const SceneManagerHandlers *scene_handlers;
+    void *context;
     AppScene scene[];
 };

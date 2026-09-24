@@ -10,12 +10,12 @@
 #include "../settings/power_settings_app/views/battery_info.h"
 
 typedef struct {
-    Power* power;
-    Gui* gui;
-    NotificationApp* notifications;
-    ViewDispatcher* view_dispatcher;
-    BatteryInfo* battery_info;
-    DialogEx* dialog;
+    Power *power;
+    Gui *gui;
+    NotificationApp *notifications;
+    ViewDispatcher *view_dispatcher;
+    BatteryInfo *battery_info;
+    DialogEx *dialog;
     PowerInfo info;
 } BatteryTestApp;
 

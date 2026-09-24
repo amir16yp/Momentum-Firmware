@@ -10,93 +10,70 @@
 #include <stdint.h>
 #include <m-array.h>
 
-#define SCROLL_INTERVAL    (333)
-#define ITEM_FIRST_OFFSET  17
-#define ITEM_NEXT_OFFSET   4
-#define ITEM_HEIGHT        14
-#define ITEM_WIDTH         64
+#define SCROLL_INTERVAL (333)
+#define ITEM_FIRST_OFFSET 17
+#define ITEM_NEXT_OFFSET 4
+#define ITEM_HEIGHT 14
+#define ITEM_WIDTH 64
 #define BUTTONS_PER_SCREEN 6
 
 struct ButtonMenuItem {
-    const char* label;
+    const char *label;
     int32_t index;
     ButtonMenuItemCallback callback;
     ButtonMenuItemType type;
-    void* callback_context;
+    void *callback_context;
 };
 
 ARRAY_DEF(ButtonMenuItemArray, ButtonMenuItem, M_POD_OPLIST); //-V658
 
 struct ButtonMenu {
-    View* view;
+    View *view;
     bool freeze_input;
 };
 
 typedef struct {
     ButtonMenuItemArray_t items;
     size_t position;
-    const char* header;
+    const char *header;
     size_t scroll_counter;
-    FuriTimer* scroll_timer;
+    FuriTimer *scroll_timer;
 } ButtonMenuModel;
 
-static void button_menu_draw_text(
-    Canvas* canvas,
-    uint8_t item_x,
-    uint8_t item_y,
-    const char* text,
-    bool selected,
-    ButtonMenuModel* model) {
+static void button_menu_draw_text(Canvas *canvas, uint8_t item_x, uint8_t item_y, const char *text,
+                                  bool selected, ButtonMenuModel *model)
+{
     const size_t text_width = canvas_string_width(canvas, text);
-    if(text_width < ITEM_WIDTH - 8 || (!selected && text_width <= ITEM_WIDTH - 6)) {
-        canvas_draw_str_aligned(
-            canvas,
-            item_x + (ITEM_WIDTH / 2),
-            item_y + (ITEM_HEIGHT / 2),
-            AlignCenter,
-            AlignCenter,
-            text);
+    if (text_width < ITEM_WIDTH - 8 || (!selected && text_width <= ITEM_WIDTH - 6)) {
+        canvas_draw_str_aligned(canvas, item_x + (ITEM_WIDTH / 2), item_y + (ITEM_HEIGHT / 2),
+                                AlignCenter, AlignCenter, text);
         return;
     }
 
-    FuriString* disp_str;
+    FuriString *disp_str;
     disp_str = furi_string_alloc_set(text);
     bool draw_static = true;
 
-    if(selected) {
-        if(text_width >= ITEM_WIDTH - 8) {
-            elements_scrollable_text_line(
-                canvas,
-                item_x + 4,
-                item_y + ITEM_HEIGHT - 4,
-                ITEM_WIDTH - 8,
-                disp_str,
-                model->scroll_counter,
-                false);
+    if (selected) {
+        if (text_width >= ITEM_WIDTH - 8) {
+            elements_scrollable_text_line(canvas, item_x + 4, item_y + ITEM_HEIGHT - 4,
+                                          ITEM_WIDTH - 8, disp_str, model->scroll_counter, false);
             draw_static = false;
         }
     }
 
-    if(draw_static) {
+    if (draw_static) {
         elements_string_fit_width(canvas, disp_str, ITEM_WIDTH - 6);
-        canvas_draw_str_aligned(
-            canvas,
-            item_x + (ITEM_WIDTH / 2),
-            item_y + (ITEM_HEIGHT / 2),
-            AlignCenter,
-            AlignCenter,
-            furi_string_get_cstr(disp_str));
+        canvas_draw_str_aligned(canvas, item_x + (ITEM_WIDTH / 2), item_y + (ITEM_HEIGHT / 2),
+                                AlignCenter, AlignCenter, furi_string_get_cstr(disp_str));
     }
 
     furi_string_free(disp_str);
 }
 
-static void button_menu_draw_control_button(
-    Canvas* canvas,
-    uint8_t item_position,
-    const char* text,
-    bool selected,
-    ButtonMenuModel* model) {
+static void button_menu_draw_control_button(Canvas *canvas, uint8_t item_position, const char *text,
+                                            bool selected, ButtonMenuModel *model)
+{
     furi_assert(canvas);
     furi_assert(text);
 
@@ -105,7 +82,7 @@ static void button_menu_draw_control_button(
 
     canvas_set_color(canvas, ColorBlack);
 
-    if(selected) {
+    if (selected) {
         elements_slightly_rounded_box(canvas, item_x, item_y, ITEM_WIDTH, ITEM_HEIGHT);
         canvas_set_color(canvas, ColorWhite);
     }
@@ -113,12 +90,9 @@ static void button_menu_draw_control_button(
     button_menu_draw_text(canvas, item_x, item_y, text, selected, model);
 }
 
-static void button_menu_draw_common_button(
-    Canvas* canvas,
-    uint8_t item_position,
-    const char* text,
-    bool selected,
-    ButtonMenuModel* model) {
+static void button_menu_draw_common_button(Canvas *canvas, uint8_t item_position, const char *text,
+                                           bool selected, ButtonMenuModel *model)
+{
     furi_assert(canvas);
     furi_assert(text);
 
@@ -127,7 +101,7 @@ static void button_menu_draw_common_button(
 
     canvas_set_color(canvas, ColorBlack);
 
-    if(selected) {
+    if (selected) {
         canvas_draw_rbox(canvas, item_x, item_y, ITEM_WIDTH, ITEM_HEIGHT, 5);
         canvas_set_color(canvas, ColorWhite);
     } else {
@@ -137,73 +111,66 @@ static void button_menu_draw_common_button(
     button_menu_draw_text(canvas, item_x, item_y, text, selected, model);
 }
 
-static void button_menu_view_draw_callback(Canvas* canvas, void* _model) {
+static void button_menu_view_draw_callback(Canvas *canvas, void *_model)
+{
     furi_assert(canvas);
     furi_assert(_model);
 
-    ButtonMenuModel* model = (ButtonMenuModel*)_model;
+    ButtonMenuModel *model = (ButtonMenuModel *)_model;
     canvas_set_font(canvas, FontSecondary);
 
     const size_t active_screen = model->position / BUTTONS_PER_SCREEN;
     const size_t items_size = ButtonMenuItemArray_size(model->items);
     const size_t max_screen = items_size ? (items_size - 1) / BUTTONS_PER_SCREEN : 0;
 
-    if(active_screen > 0) {
+    if (active_screen > 0) {
         canvas_draw_icon(canvas, 28, 1, &I_InfraredArrowUp_4x8);
     }
 
-    if(max_screen > active_screen) {
+    if (max_screen > active_screen) {
         canvas_draw_icon(canvas, 28, 123, &I_InfraredArrowDown_4x8);
     }
 
-    if(model->header) {
-        FuriString* disp_str;
+    if (model->header) {
+        FuriString *disp_str;
         disp_str = furi_string_alloc_set(model->header);
         size_t header_width = canvas_string_width(canvas, furi_string_get_cstr(disp_str));
 
-        if(header_width >= ITEM_WIDTH - 8) {
-            elements_scrollable_text_line(
-                canvas, 3, 13, ITEM_WIDTH - 8, disp_str, model->scroll_counter, false);
+        if (header_width >= ITEM_WIDTH - 8) {
+            elements_scrollable_text_line(canvas, 3, 13, ITEM_WIDTH - 8, disp_str,
+                                          model->scroll_counter, false);
         } else {
             elements_string_fit_width(canvas, disp_str, ITEM_WIDTH - 8);
-            canvas_draw_str_aligned(
-                canvas, 32, 10, AlignCenter, AlignCenter, furi_string_get_cstr(disp_str));
+            canvas_draw_str_aligned(canvas, 32, 10, AlignCenter, AlignCenter,
+                                    furi_string_get_cstr(disp_str));
         }
 
         furi_string_free(disp_str);
     }
 
     const size_t first_item = active_screen * BUTTONS_PER_SCREEN;
-    for(size_t item_position = first_item;
-        item_position < items_size && item_position - first_item < BUTTONS_PER_SCREEN;
-        ++item_position) {
-        const ButtonMenuItem* item = ButtonMenuItemArray_get(model->items, item_position);
-        if(item->type == ButtonMenuItemTypeControl) {
-            button_menu_draw_control_button(
-                canvas,
-                item_position % BUTTONS_PER_SCREEN,
-                item->label,
-                (item_position == model->position),
-                model);
-        } else if(item->type == ButtonMenuItemTypeCommon) {
-            button_menu_draw_common_button(
-                canvas,
-                item_position % BUTTONS_PER_SCREEN,
-                item->label,
-                (item_position == model->position),
-                model);
+    for (size_t item_position = first_item;
+         item_position < items_size && item_position - first_item < BUTTONS_PER_SCREEN;
+         ++item_position) {
+        const ButtonMenuItem *item = ButtonMenuItemArray_get(model->items, item_position);
+        if (item->type == ButtonMenuItemTypeControl) {
+            button_menu_draw_control_button(canvas, item_position % BUTTONS_PER_SCREEN, item->label,
+                                            (item_position == model->position), model);
+        } else if (item->type == ButtonMenuItemTypeCommon) {
+            button_menu_draw_common_button(canvas, item_position % BUTTONS_PER_SCREEN, item->label,
+                                           (item_position == model->position), model);
         }
     }
 }
 
-static void button_menu_process_up(ButtonMenu* button_menu) {
+static void button_menu_process_up(ButtonMenu *button_menu)
+{
     furi_assert(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
-            if(model->position > 0) {
+            if (model->position > 0) {
                 model->position--;
                 model->scroll_counter = 0;
             } else {
@@ -214,14 +181,14 @@ static void button_menu_process_up(ButtonMenu* button_menu) {
         true);
 }
 
-static void button_menu_process_down(ButtonMenu* button_menu) {
+static void button_menu_process_down(ButtonMenu *button_menu)
+{
     furi_assert(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
-            if(model->position < (ButtonMenuItemArray_size(model->items) - 1)) {
+            if (model->position < (ButtonMenuItemArray_size(model->items) - 1)) {
                 model->position++;
                 model->scroll_counter = 0;
             } else {
@@ -232,17 +199,17 @@ static void button_menu_process_down(ButtonMenu* button_menu) {
         true);
 }
 
-static void button_menu_process_right(ButtonMenu* button_menu) {
+static void button_menu_process_right(ButtonMenu *button_menu)
+{
     furi_assert(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
-            if(ButtonMenuItemArray_size(model->items) > BUTTONS_PER_SCREEN) {
+            if (ButtonMenuItemArray_size(model->items) > BUTTONS_PER_SCREEN) {
                 size_t position_candidate = model->position + BUTTONS_PER_SCREEN;
                 position_candidate -= position_candidate % BUTTONS_PER_SCREEN;
-                if(position_candidate < (ButtonMenuItemArray_size(model->items))) {
+                if (position_candidate < (ButtonMenuItemArray_size(model->items))) {
                     model->position = position_candidate;
                     model->scroll_counter = 0;
                 } else {
@@ -254,16 +221,16 @@ static void button_menu_process_right(ButtonMenu* button_menu) {
         true);
 }
 
-static void button_menu_process_left(ButtonMenu* button_menu) {
+static void button_menu_process_left(ButtonMenu *button_menu)
+{
     furi_assert(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
-            if(ButtonMenuItemArray_size(model->items) > BUTTONS_PER_SCREEN) {
+            if (ButtonMenuItemArray_size(model->items) > BUTTONS_PER_SCREEN) {
                 size_t position_candidate;
-                if(model->position < BUTTONS_PER_SCREEN) {
+                if (model->position < BUTTONS_PER_SCREEN) {
                     position_candidate = (ButtonMenuItemArray_size(model->items) - 1);
                 } else {
                     position_candidate = model->position - BUTTONS_PER_SCREEN;
@@ -276,32 +243,32 @@ static void button_menu_process_left(ButtonMenu* button_menu) {
         true);
 }
 
-static void button_menu_process_ok(ButtonMenu* button_menu, InputType type) {
+static void button_menu_process_ok(ButtonMenu *button_menu, InputType type)
+{
     furi_assert(button_menu);
 
-    ButtonMenuItem* item = NULL;
+    ButtonMenuItem *item = NULL;
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
-            if(model->position < (ButtonMenuItemArray_size(model->items))) {
+            if (model->position < (ButtonMenuItemArray_size(model->items))) {
                 item = ButtonMenuItemArray_get(model->items, model->position);
             }
         },
         false);
 
-    if(item) {
-        if(item->type == ButtonMenuItemTypeControl) {
-            if(type == InputTypeShort) {
-                if(item->callback) {
+    if (item) {
+        if (item->type == ButtonMenuItemTypeControl) {
+            if (type == InputTypeShort) {
+                if (item->callback) {
                     item->callback(item->callback_context, item->index, type);
                 }
             }
         }
-        if(item->type == ButtonMenuItemTypeCommon) {
-            if((type == InputTypePress) || (type == InputTypeRelease)) {
-                if(item->callback) {
+        if (item->type == ButtonMenuItemTypeCommon) {
+            if ((type == InputTypePress) || (type == InputTypeRelease)) {
+                if (item->callback) {
                     item->callback(item->callback_context, item->index, type);
                 }
             }
@@ -309,26 +276,27 @@ static void button_menu_process_ok(ButtonMenu* button_menu, InputType type) {
     }
 }
 
-static bool button_menu_view_input_callback(InputEvent* event, void* context) {
+static bool button_menu_view_input_callback(InputEvent *event, void *context)
+{
     furi_assert(event);
 
-    ButtonMenu* button_menu = context;
+    ButtonMenu *button_menu = context;
     bool consumed = false;
 
-    if(event->key == InputKeyOk) {
-        if((event->type == InputTypeRelease) || (event->type == InputTypePress)) {
+    if (event->key == InputKeyOk) {
+        if ((event->type == InputTypeRelease) || (event->type == InputTypePress)) {
             consumed = true;
             button_menu->freeze_input = (event->type == InputTypePress);
             button_menu_process_ok(button_menu, event->type);
-        } else if(event->type == InputTypeShort) {
+        } else if (event->type == InputTypeShort) {
             consumed = true;
             button_menu_process_ok(button_menu, event->type);
         }
     }
 
-    if(!button_menu->freeze_input &&
-       ((event->type == InputTypeRepeat) || (event->type == InputTypeShort))) {
-        switch(event->key) {
+    if (!button_menu->freeze_input &&
+        ((event->type == InputTypeRepeat) || (event->type == InputTypeShort))) {
+        switch (event->key) {
         case InputKeyUp:
             consumed = true;
             button_menu_process_up(button_menu);
@@ -353,17 +321,18 @@ static bool button_menu_view_input_callback(InputEvent* event, void* context) {
     return consumed;
 }
 
-View* button_menu_get_view(ButtonMenu* button_menu) {
+View *button_menu_get_view(ButtonMenu *button_menu)
+{
     furi_check(button_menu);
     return button_menu->view;
 }
 
-void button_menu_reset(ButtonMenu* button_menu) {
+void button_menu_reset(ButtonMenu *button_menu)
+{
     furi_check(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
             ButtonMenuItemArray_reset(model->items);
             model->position = 0;
@@ -373,26 +342,23 @@ void button_menu_reset(ButtonMenu* button_menu) {
         true);
 }
 
-void button_menu_set_header(ButtonMenu* button_menu, const char* header) {
+void button_menu_set_header(ButtonMenu *button_menu, const char *header)
+{
     furi_check(button_menu);
 
     with_view_model(button_menu->view, ButtonMenuModel * model, { model->header = header; }, true);
 }
 
-ButtonMenuItem* button_menu_add_item(
-    ButtonMenu* button_menu,
-    const char* label,
-    int32_t index,
-    ButtonMenuItemCallback callback,
-    ButtonMenuItemType type,
-    void* callback_context) {
-    ButtonMenuItem* item = NULL;
+ButtonMenuItem *button_menu_add_item(ButtonMenu *button_menu, const char *label, int32_t index,
+                                     ButtonMenuItemCallback callback, ButtonMenuItemType type,
+                                     void *callback_context)
+{
+    ButtonMenuItem *item = NULL;
     furi_check(label);
     furi_check(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
             item = ButtonMenuItemArray_push_new(model->items);
             item->label = label;
@@ -406,14 +372,15 @@ ButtonMenuItem* button_menu_add_item(
     return item;
 }
 
-static void button_menu_process_timer_callback(void* context) {
-    ButtonMenu* button_menu = context;
-    with_view_model(
-        button_menu->view, ButtonMenuModel * model, { model->scroll_counter++; }, true);
+static void button_menu_process_timer_callback(void *context)
+{
+    ButtonMenu *button_menu = context;
+    with_view_model(button_menu->view, ButtonMenuModel * model, { model->scroll_counter++; }, true);
 }
 
-ButtonMenu* button_menu_alloc(void) {
-    ButtonMenu* button_menu = malloc(sizeof(ButtonMenu));
+ButtonMenu *button_menu_alloc(void)
+{
+    ButtonMenu *button_menu = malloc(sizeof(ButtonMenu));
     button_menu->view = view_alloc();
     view_set_orientation(button_menu->view, ViewOrientationVertical);
     view_set_context(button_menu->view, button_menu);
@@ -422,15 +389,14 @@ ButtonMenu* button_menu_alloc(void) {
     view_set_input_callback(button_menu->view, button_menu_view_input_callback);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
             ButtonMenuItemArray_init(model->items);
             model->position = 0;
             model->header = NULL;
             model->scroll_counter = 0;
-            model->scroll_timer = furi_timer_alloc(
-                button_menu_process_timer_callback, FuriTimerTypePeriodic, button_menu);
+            model->scroll_timer = furi_timer_alloc(button_menu_process_timer_callback,
+                                                   FuriTimerTypePeriodic, button_menu);
             furi_timer_start(model->scroll_timer, SCROLL_INTERVAL);
         },
         true);
@@ -439,12 +405,12 @@ ButtonMenu* button_menu_alloc(void) {
     return button_menu;
 }
 
-void button_menu_free(ButtonMenu* button_menu) {
+void button_menu_free(ButtonMenu *button_menu)
+{
     furi_check(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
             ButtonMenuItemArray_clear(model->items);
             furi_timer_stop(model->scroll_timer);
@@ -455,18 +421,18 @@ void button_menu_free(ButtonMenu* button_menu) {
     free(button_menu);
 }
 
-void button_menu_set_selected_item(ButtonMenu* button_menu, uint32_t index) {
+void button_menu_set_selected_item(ButtonMenu *button_menu, uint32_t index)
+{
     furi_check(button_menu);
 
     with_view_model(
-        button_menu->view,
-        ButtonMenuModel * model,
+        button_menu->view, ButtonMenuModel * model,
         {
             size_t item_position = 0;
             ButtonMenuItemArray_it_t it;
-            for(ButtonMenuItemArray_it(it, model->items); !ButtonMenuItemArray_end_p(it);
-                ButtonMenuItemArray_next(it), ++item_position) {
-                if((uint32_t)ButtonMenuItemArray_cref(it)->index == index) {
+            for (ButtonMenuItemArray_it(it, model->items); !ButtonMenuItemArray_end_p(it);
+                 ButtonMenuItemArray_next(it), ++item_position) {
+                if ((uint32_t)ButtonMenuItemArray_cref(it)->index == index) {
                     model->position = item_position;
                     break;
                 }

@@ -28,26 +28,27 @@ typedef enum {
 
 typedef enum {
     FuriHalRtcBootModeNormal = 0, /**< Normal boot mode, default value */
-    FuriHalRtcBootModeDfu, /**< Boot to DFU (MCU bootloader by ST) */
-    FuriHalRtcBootModePreUpdate, /**< Boot to Update, pre update */
-    FuriHalRtcBootModeUpdate, /**< Boot to Update, main */
+    FuriHalRtcBootModeDfu,        /**< Boot to DFU (MCU bootloader by ST) */
+    FuriHalRtcBootModePreUpdate,  /**< Boot to Update, pre update */
+    FuriHalRtcBootModeUpdate,     /**< Boot to Update, main */
     FuriHalRtcBootModePostUpdate, /**< Boot to Update, post update */
 } FuriHalRtcBootMode;
 
 typedef enum {
     FuriHalRtcHeapTrackModeNone = 0, /**< Disable allocation tracking */
-    FuriHalRtcHeapTrackModeMain, /**< Enable allocation tracking for main application thread */
-    FuriHalRtcHeapTrackModeTree, /**< Enable allocation tracking for main and children application threads */
-    FuriHalRtcHeapTrackModeAll, /**< Enable allocation tracking for all threads */
+    FuriHalRtcHeapTrackModeMain,     /**< Enable allocation tracking for main application thread */
+    FuriHalRtcHeapTrackModeTree, /**< Enable allocation tracking for main and children application
+                                    threads */
+    FuriHalRtcHeapTrackModeAll,  /**< Enable allocation tracking for all threads */
 } FuriHalRtcHeapTrackMode;
 
 typedef enum {
-    FuriHalRtcRegisterHeader, /**< RTC structure header */
-    FuriHalRtcRegisterSystem, /**< Various system bits */
-    FuriHalRtcRegisterVersion, /**< Pointer to Version */
+    FuriHalRtcRegisterHeader,                         /**< RTC structure header */
+    FuriHalRtcRegisterSystem,                         /**< Various system bits */
+    FuriHalRtcRegisterVersion,                        /**< Pointer to Version */
     FuriHalRtcRegisterLfsFingerprint FURI_DEPRECATED, /**< LFS geometry fingerprint */
-    FuriHalRtcRegisterFaultData, /**< Pointer to last fault message */
-    FuriHalRtcRegisterPinFails, /**< Failed PINs count */
+    FuriHalRtcRegisterFaultData,                      /**< Pointer to last fault message */
+    FuriHalRtcRegisterPinFails,                       /**< Failed PINs count */
     /* Index of FS directory entry corresponding to FW update to be applied */
     FuriHalRtcRegisterUpdateFolderFSIndex,
     FuriHalRtcRegisterPinValue, /**< Encoded value of the currently set PIN */
@@ -56,7 +57,7 @@ typedef enum {
 } FuriHalRtcRegister;
 
 typedef enum {
-    FuriHalRtcLocaleUnitsMetric = 0x0, /**< Metric measurement units */
+    FuriHalRtcLocaleUnitsMetric = 0x0,   /**< Metric measurement units */
     FuriHalRtcLocaleUnitsImperial = 0x1, /**< Imperial measurement units */
 } FuriHalRtcLocaleUnits;
 
@@ -72,20 +73,20 @@ typedef enum {
 } FuriHalRtcLocaleDateFormat;
 
 typedef enum {
-    FuriHalRtcLogDeviceUsart = 0x0, /**< Default: USART */
-    FuriHalRtcLogDeviceLpuart = 0x1, /**< Default: LPUART */
+    FuriHalRtcLogDeviceUsart = 0x0,    /**< Default: USART */
+    FuriHalRtcLogDeviceLpuart = 0x1,   /**< Default: LPUART */
     FuriHalRtcLogDeviceReserved = 0x2, /**< Reserved for future use */
-    FuriHalRtcLogDeviceNone = 0x3, /**< None, disable serial logging */
+    FuriHalRtcLogDeviceNone = 0x3,     /**< None, disable serial logging */
 } FuriHalRtcLogDevice;
 
 typedef enum {
-    FuriHalRtcLogBaudRate230400 = 0x0, /**< 230400 baud */
-    FuriHalRtcLogBaudRate9600 = 0x1, /**< 9600 baud */
-    FuriHalRtcLogBaudRate38400 = 0x2, /**< 38400 baud */
-    FuriHalRtcLogBaudRate57600 = 0x3, /**< 57600 baud */
-    FuriHalRtcLogBaudRate115200 = 0x4, /**< 115200 baud */
-    FuriHalRtcLogBaudRate460800 = 0x5, /**< 460800 baud */
-    FuriHalRtcLogBaudRate921600 = 0x6, /**< 921600 baud */
+    FuriHalRtcLogBaudRate230400 = 0x0,  /**< 230400 baud */
+    FuriHalRtcLogBaudRate9600 = 0x1,    /**< 9600 baud */
+    FuriHalRtcLogBaudRate38400 = 0x2,   /**< 38400 baud */
+    FuriHalRtcLogBaudRate57600 = 0x3,   /**< 57600 baud */
+    FuriHalRtcLogBaudRate115200 = 0x4,  /**< 115200 baud */
+    FuriHalRtcLogBaudRate460800 = 0x5,  /**< 460800 baud */
+    FuriHalRtcLogBaudRate921600 = 0x6,  /**< 921600 baud */
     FuriHalRtcLogBaudRate1843200 = 0x7, /**< 1843200 baud */
 } FuriHalRtcLogBaudRate;
 
@@ -247,20 +248,20 @@ FuriHalRtcLocaleDateFormat furi_hal_rtc_get_locale_dateformat(void);
  *
  * @param      datetime  The date time to set
  */
-void furi_hal_rtc_set_datetime(DateTime* datetime);
+void furi_hal_rtc_set_datetime(DateTime *datetime);
 
 /** Get RTC Date Time
  *
  * @param      datetime  The datetime
  */
-void furi_hal_rtc_get_datetime(DateTime* datetime);
+void furi_hal_rtc_get_datetime(DateTime *datetime);
 
 /** Set alarm
  *
  * @param[in]  datetime  The date time to set or NULL if time change is not needed
  * @param[in]  enabled   Indicates if alarm must be enabled or disabled
  */
-void furi_hal_rtc_set_alarm(const DateTime* datetime, bool enabled);
+void furi_hal_rtc_set_alarm(const DateTime *datetime, bool enabled);
 
 /** Get alarm
  *
@@ -268,10 +269,10 @@ void furi_hal_rtc_set_alarm(const DateTime* datetime, bool enabled);
  *
  * @return     true if alarm was set, false otherwise
  */
-bool furi_hal_rtc_get_alarm(DateTime* datetime);
+bool furi_hal_rtc_get_alarm(DateTime *datetime);
 
 /** Furi HAL RTC alarm callback signature */
-typedef void (*FuriHalRtcAlarmCallback)(void* context);
+typedef void (*FuriHalRtcAlarmCallback)(void *context);
 
 /** Set alarm callback
  *
@@ -285,7 +286,7 @@ typedef void (*FuriHalRtcAlarmCallback)(void* context);
  * @param[in]  callback  The callback
  * @param      context   The context
  */
-void furi_hal_rtc_set_alarm_callback(FuriHalRtcAlarmCallback callback, void* context);
+void furi_hal_rtc_set_alarm_callback(FuriHalRtcAlarmCallback callback, void *context);
 
 /** Set RTC Fault Data
  *

@@ -4,7 +4,7 @@
 
 /**
  * @file js_event_loop.h
- * 
+ *
  * In JS interpreter code, `js_event_loop` always creates and maintains the
  * event loop. There are two ways in which other modules can integrate with this
  * loop:
@@ -19,7 +19,7 @@
  *     programmer having to pass contracts around. This is useful for
  *     "behind-the-scenes" events that the user does not need to know about. For
  *     more info, look at `js_event_loop_get_loop`.
- * 
+ *
  * In both cases, your module is responsible for both instantiating,
  * unsubscribing and freeing the object that the event loop subscribes to.
  */
@@ -38,13 +38,13 @@ typedef enum {
     JsEventLoopObjectTypeStream,
 } JsEventLoopObjectType;
 
-typedef mjs_val_t (
-    *JsEventLoopTransformer)(struct mjs* mjs, FuriEventLoopObject* object, void* context);
+typedef mjs_val_t (*JsEventLoopTransformer)(struct mjs *mjs, FuriEventLoopObject *object,
+                                            void *context);
 
 typedef struct {
     FuriEventLoopEvent event;
     JsEventLoopTransformer transformer;
-    void* transformer_context;
+    void *transformer_context;
 } JsEventLoopNonTimerContract;
 
 typedef struct {
@@ -55,12 +55,12 @@ typedef struct {
 /**
  * @brief Adapter for other JS modules that wish to integrate with the event
  * loop JS module
- * 
+ *
  * If another module wishes to integrate with `js_event_loop`, it needs to
  * implement a function callable from JS that returns an mJS foreign pointer to
  * an instance of this structure. This value is then read by `event_loop`'s
  * `subscribe` function.
- * 
+ *
  * There are two fundamental variants of this structure:
  *   - `object_type` is `JsEventLoopObjectTypeTimer`: the `timer` field is
  *     valid, and the `non_timer` field is invalid.
@@ -72,14 +72,14 @@ typedef struct {
  *     queue and pass it to JS code in a convenient format. If
  *     `non_timer.transformer` is NULL, the event loop will take semaphores and
  *     mutexes on its own.
- * 
+ *
  * The producer of the contract is responsible for freeing both the contract and
  * the object that it points to when the interpreter is torn down.
  */
 typedef struct {
     JsForeignMagic magic; // <! `JsForeignMagic_JsEventLoopContract`
     JsEventLoopObjectType object_type;
-    FuriEventLoopObject* object;
+    FuriEventLoopObject *object;
     union {
         JsEventLoopNonTimerContract non_timer;
         JsEventLoopTimerContract timer;
@@ -90,14 +90,14 @@ static_assert(offsetof(JsEventLoopContract, magic) == 0);
 
 /**
  * @brief Gets the FuriEventLoop owned by a JsEventLoop
- * 
+ *
  * This function is useful in case your JS module wishes to integrate with
  * the event loop without passing contracts through JS code. Your module will be
  * dynamically linked to this one if you use this function, but only if JS code
  * imports `event_loop` _before_ your module. An instance of `JsEventLoop` may
  * be obtained via `js_module_get`.
  */
-FuriEventLoop* js_event_loop_get_loop(JsEventLoop* loop);
+FuriEventLoop *js_event_loop_get_loop(JsEventLoop *loop);
 
 #ifdef __cplusplus
 }

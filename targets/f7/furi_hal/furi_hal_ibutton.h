@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-typedef void (*FuriHalIbuttonEmulateCallback)(void* context);
+typedef void (*FuriHalIbuttonEmulateCallback)(void *context);
 
 /** Initialize */
 void furi_hal_ibutton_init(void);
@@ -23,10 +23,8 @@ void furi_hal_ibutton_init(void);
  * @param callback timer callback
  * @param context callback context
  */
-void furi_hal_ibutton_emulate_start(
-    uint32_t period,
-    FuriHalIbuttonEmulateCallback callback,
-    void* context);
+void furi_hal_ibutton_emulate_start(uint32_t period, FuriHalIbuttonEmulateCallback callback,
+                                    void *context);
 
 /**
  * Update emulation timer period

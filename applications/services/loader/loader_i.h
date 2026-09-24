@@ -15,27 +15,27 @@
 #include "loader_queue.h"
 
 typedef struct {
-    FuriString* launch_path;
-    char* args;
-    FuriThread* thread;
+    FuriString *launch_path;
+    char *args;
+    FuriThread *thread;
     bool insomniac;
-    FlipperApplication* fap;
+    FlipperApplication *fap;
 
     bool unloaded_asset_packs;
 } LoaderAppData;
 
 struct Loader {
-    FuriPubSub* pubsub;
-    FuriMessageQueue* queue;
-    LoaderMenu* loader_menu;
-    LoaderApplications* loader_applications;
+    FuriPubSub *pubsub;
+    FuriMessageQueue *queue;
+    LoaderMenu *loader_menu;
+    LoaderApplications *loader_applications;
     LoaderAppData app;
 
     LoaderLaunchQueue launch_queue;
 
-    Gui* gui;
-    ViewHolder* view_holder;
-    Loading* loading;
+    Gui *gui;
+    ViewHolder *view_holder;
+    Loading *loading;
 };
 
 typedef enum {
@@ -58,14 +58,14 @@ typedef enum {
 } LoaderMessageType;
 
 typedef struct {
-    const char* name;
-    const char* args;
-    FuriString* error_message;
+    const char *name;
+    const char *args;
+    FuriString *error_message;
 } LoaderMessageStartByName;
 
 typedef struct {
     uint32_t signal;
-    void* arg;
+    void *arg;
 } LoaderMessageSignal;
 
 typedef enum {
@@ -96,11 +96,11 @@ typedef struct {
         LoaderMessageStartByName start;
         LoaderDeferredLaunchRecord defer_start;
         LoaderMessageSignal signal;
-        FuriString* application_name;
+        FuriString *application_name;
     };
 
     union {
-        LoaderMessageLoaderStatusResult* status_value;
-        LoaderMessageBoolResult* bool_value;
+        LoaderMessageLoaderStatusResult *status_value;
+        LoaderMessageBoolResult *bool_value;
     };
 } LoaderMessage;

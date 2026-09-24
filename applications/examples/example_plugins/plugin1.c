@@ -9,11 +9,13 @@
 
 #include <flipper_application/flipper_application.h>
 
-static int example_plugin1_method1(void) {
+static int example_plugin1_method1(void)
+{
     return 42;
 }
 
-static int example_plugin1_method2(int arg1, int arg2) {
+static int example_plugin1_method2(int arg1, int arg2)
+{
     return arg1 + arg2;
 }
 
@@ -32,6 +34,7 @@ static const FlipperAppPluginDescriptor example_plugin1_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* example_plugin1_ep(void) {
+const FlipperAppPluginDescriptor *example_plugin1_ep(void)
+{
     return &example_plugin1_descriptor;
 }

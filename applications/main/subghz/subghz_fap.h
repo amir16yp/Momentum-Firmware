@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-int32_t subghz_app(char* p);
+int32_t subghz_app(char *p);
 
 #ifdef __cplusplus
 }

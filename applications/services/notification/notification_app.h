@@ -4,7 +4,7 @@
 #include "notification_messages.h"
 #include "notification_settings_filename.h"
 
-#define NOTIFICATION_LED_COUNT      3
+#define NOTIFICATION_LED_COUNT 3
 #define NOTIFICATION_EVENT_COMPLETE 0x00000001U
 
 typedef enum {
@@ -15,9 +15,9 @@ typedef enum {
 } NotificationAppMessageType;
 
 typedef struct {
-    const NotificationSequence* sequence;
+    const NotificationSequence *sequence;
     NotificationAppMessageType type;
-    FuriEventFlag* back_event;
+    FuriEventFlag *back_event;
 } NotificationAppMessage;
 
 typedef enum {
@@ -34,7 +34,7 @@ typedef struct {
 } NotificationLedLayer;
 
 #define NOTIFICATION_SETTINGS_VERSION 0x02
-#define NOTIFICATION_SETTINGS_MAGIC   0x16
+#define NOTIFICATION_SETTINGS_MAGIC 0x16
 
 typedef struct {
     uint8_t version;
@@ -47,9 +47,9 @@ typedef struct {
 } NotificationSettings;
 
 struct NotificationApp {
-    FuriMessageQueue* queue;
-    FuriPubSub* event_record;
-    FuriTimer* display_timer;
+    FuriMessageQueue *queue;
+    FuriPubSub *event_record;
+    FuriTimer *display_timer;
 
     NotificationLedLayer display;
     NotificationLedLayer led[NOTIFICATION_LED_COUNT];
@@ -57,14 +57,14 @@ struct NotificationApp {
 
     NotificationSettings settings;
 
-    FuriPubSub* ascii_record;
+    FuriPubSub *ascii_record;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void notification_message_save_settings(NotificationApp* app);
+void notification_message_save_settings(NotificationApp *app);
 
 #ifdef __cplusplus
 }

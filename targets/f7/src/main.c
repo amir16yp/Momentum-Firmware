@@ -6,7 +6,8 @@
 
 #define TAG "Main"
 
-int32_t init_task(void* context) {
+int32_t init_task(void *context)
+{
     UNUSED(context);
 
     // Flipper FURI HAL
@@ -20,7 +21,8 @@ int32_t init_task(void* context) {
     return 0;
 }
 
-int main(void) {
+int main(void)
+{
     // Initialize FURI layer
     furi_init();
 
@@ -28,7 +30,7 @@ int main(void) {
     furi_hal_init_early();
 
     furi_hal_set_is_normal_boot(false);
-    FuriThread* main_thread = furi_thread_alloc_ex("InitSrv", 1024, init_task, NULL);
+    FuriThread *main_thread = furi_thread_alloc_ex("InitSrv", 1024, init_task, NULL);
     furi_thread_set_priority(main_thread, FuriThreadPriorityInit);
 
 #ifdef FURI_RAM_EXEC
@@ -42,12 +44,12 @@ int main(void) {
     furi_delay_ms(100);
 
     FuriHalRtcBootMode boot_mode = furi_hal_rtc_get_boot_mode();
-    if(boot_mode == FuriHalRtcBootModeDfu || !furi_hal_gpio_read(&gpio_button_left)) {
+    if (boot_mode == FuriHalRtcBootModeDfu || !furi_hal_gpio_read(&gpio_button_left)) {
         furi_hal_light_sequence("rgb WB");
         furi_hal_rtc_set_boot_mode(FuriHalRtcBootModeNormal);
         flipper_boot_dfu_exec();
         furi_hal_power_reset();
-    } else if(boot_mode == FuriHalRtcBootModeUpdate) {
+    } else if (boot_mode == FuriHalRtcBootModeUpdate) {
         furi_hal_light_sequence("rgb BR");
         // Do update
         flipper_boot_update_exec();
@@ -55,13 +57,13 @@ int main(void) {
         // But if we do, abandon to avoid bootloops
         furi_hal_rtc_set_boot_mode(FuriHalRtcBootModeNormal);
         furi_hal_power_reset();
-    } else if(!furi_hal_gpio_read(&gpio_button_up)) {
+    } else if (!furi_hal_gpio_read(&gpio_button_up)) {
         furi_hal_light_sequence("rgb WR");
         flipper_boot_recovery_exec();
         furi_hal_power_reset();
     } else {
         furi_hal_light_sequence("rgb G");
-        if(boot_mode != FuriHalRtcBootModePostUpdate && boot_mode != FuriHalRtcBootModePreUpdate) {
+        if (boot_mode != FuriHalRtcBootModePostUpdate && boot_mode != FuriHalRtcBootModePreUpdate) {
             furi_hal_set_is_normal_boot(true);
         }
         furi_thread_start(main_thread);
@@ -74,10 +76,12 @@ int main(void) {
     furi_crash("Kernel is Dead");
 }
 
-void Error_Handler(void) {
+void Error_Handler(void)
+{
     furi_crash("ErrorHandler");
 }
 
-void abort(void) {
+void abort(void)
+{
     furi_crash("AbortHandler");
 }

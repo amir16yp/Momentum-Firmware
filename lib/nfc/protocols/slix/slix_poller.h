@@ -17,9 +17,10 @@ typedef struct SlixPoller SlixPoller;
  * @brief Enumeration of possible Slix poller event types.
  */
 typedef enum {
-    SlixPollerEventTypeError, /**< An error occured while reading card. */
-    SlixPollerEventTypePrivacyUnlockRequest, /**< Poller requests password to disable privacy mode. */
-    SlixPollerEventTypeReady, /**< The card was successfully read by the poller. */
+    SlixPollerEventTypeError,                /**< An error occured while reading card. */
+    SlixPollerEventTypePrivacyUnlockRequest, /**< Poller requests password to disable privacy mode.
+                                              */
+    SlixPollerEventTypeReady,                /**< The card was successfully read by the poller. */
 } SlixPollerEventType;
 
 /**
@@ -27,7 +28,7 @@ typedef enum {
  */
 typedef struct {
     SlixPassword password; /**< Privacy password. */
-    bool password_set; /**< Filed to indicate that password was set or not. */
+    bool password_set;     /**< Filed to indicate that password was set or not. */
 } SlixPollerEventDataPrivacyUnlockContext;
 
 /**
@@ -44,8 +45,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    SlixPollerEventType type; /**< Type of emmitted event. */
-    SlixPollerEventData* data; /**< Pointer to event specific data. */
+    SlixPollerEventType type;  /**< Type of emmitted event. */
+    SlixPollerEventData *data; /**< Pointer to event specific data. */
 } SlixPollerEvent;
 
 /**
@@ -62,11 +63,8 @@ typedef struct {
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_send_frame(
-    SlixPoller* instance,
-    const BitBuffer* tx_data,
-    BitBuffer* rx_data,
-    uint32_t fwt);
+SlixError slix_poller_send_frame(SlixPoller *instance, const BitBuffer *tx_data, BitBuffer *rx_data,
+                                 uint32_t fwt);
 
 /**
  * @brief Send get nxp system info command and parse response.
@@ -77,7 +75,7 @@ SlixError slix_poller_send_frame(
  * @param[out] data pointer to the SlixSystemInfo structure to be filled.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_get_nxp_system_info(SlixPoller* instance, SlixSystemInfo* data);
+SlixError slix_poller_get_nxp_system_info(SlixPoller *instance, SlixSystemInfo *data);
 
 /**
  * @brief Read signature from card.
@@ -88,7 +86,7 @@ SlixError slix_poller_get_nxp_system_info(SlixPoller* instance, SlixSystemInfo* 
  * @param[out] data pointer to the SlixSignature structure to be filled.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_read_signature(SlixPoller* instance, SlixSignature* data);
+SlixError slix_poller_read_signature(SlixPoller *instance, SlixSignature *data);
 
 /**
  * @brief Get random number from card.
@@ -99,7 +97,7 @@ SlixError slix_poller_read_signature(SlixPoller* instance, SlixSignature* data);
  * @param[out] data pointer to the SlixRandomNumber structure to be filled.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_get_random_number(SlixPoller* instance, SlixRandomNumber* data);
+SlixError slix_poller_get_random_number(SlixPoller *instance, SlixRandomNumber *data);
 
 /**
  * @brief Set password to card.
@@ -112,11 +110,8 @@ SlixError slix_poller_get_random_number(SlixPoller* instance, SlixRandomNumber* 
  * @param[in] random_number SlixRandomNumber instance.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_set_password(
-    SlixPoller* instance,
-    SlixPasswordType type,
-    SlixPassword password,
-    SlixRandomNumber random_number);
+SlixError slix_poller_set_password(SlixPoller *instance, SlixPasswordType type,
+                                   SlixPassword password, SlixRandomNumber random_number);
 
 /**
  * @brief Write a single block to a Slix card.
@@ -129,11 +124,8 @@ SlixError slix_poller_set_password(
  * @param[in] block_size size of the block in bytes.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_write_block(
-    SlixPoller* instance,
-    const uint8_t* data,
-    uint8_t block_number,
-    uint8_t block_size);
+SlixError slix_poller_write_block(SlixPoller *instance, const uint8_t *data, uint8_t block_number,
+                                  uint8_t block_size);
 
 /**
  * @brief Write multiple consecutive blocks to a Slix card.
@@ -146,11 +138,8 @@ SlixError slix_poller_write_block(
  * @param[in] block_size size of each block in bytes.
  * @return SlixErrorNone on success, an error code on failure.
  */
-SlixError slix_poller_write_blocks(
-    SlixPoller* instance,
-    const uint8_t* data,
-    uint16_t block_count,
-    uint8_t block_size);
+SlixError slix_poller_write_blocks(SlixPoller *instance, const uint8_t *data, uint16_t block_count,
+                                   uint8_t block_size);
 
 #ifdef __cplusplus
 }

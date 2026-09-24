@@ -26,14 +26,14 @@ typedef struct NfcSupportedCards NfcSupportedCards;
  *
  * @return pointer to allocated NfcSupportedCards instance.
  */
-NfcSupportedCards* nfc_supported_cards_alloc(CompositeApiResolver* api_resolver);
+NfcSupportedCards *nfc_supported_cards_alloc(CompositeApiResolver *api_resolver);
 
 /**
  * @brief Delete an NfcSupportedCards instance
- * 
+ *
  * @param[in] instance pointer to instance to be deleted.
  */
-void nfc_supported_cards_free(NfcSupportedCards* instance);
+void nfc_supported_cards_free(NfcSupportedCards *instance);
 
 /**
  * @brief Load plugins information to cache.
@@ -42,7 +42,7 @@ void nfc_supported_cards_free(NfcSupportedCards* instance);
  *
  * @param[in, out] instance pointer to NfcSupportedCards instance.
  */
-void nfc_supported_cards_load_cache(NfcSupportedCards* instance);
+void nfc_supported_cards_load_cache(NfcSupportedCards *instance);
 
 /**
  * @brief Read the card using a custom procedure.
@@ -58,7 +58,7 @@ void nfc_supported_cards_load_cache(NfcSupportedCards* instance);
  *
  * @see NfcSupportedCardPluginRead for detailed description.
  */
-bool nfc_supported_cards_read(NfcSupportedCards* instance, NfcDevice* device, Nfc* nfc);
+bool nfc_supported_cards_read(NfcSupportedCards *instance, NfcDevice *device, Nfc *nfc);
 
 /**
  * @brief Parse raw data into human-readable representation.
@@ -74,10 +74,8 @@ bool nfc_supported_cards_read(NfcSupportedCards* instance, NfcDevice* device, Nf
  *
  * @see NfcSupportedCardPluginParse for detailed description.
  */
-bool nfc_supported_cards_parse(
-    NfcSupportedCards* instance,
-    NfcDevice* device,
-    FuriString* parsed_data);
+bool nfc_supported_cards_parse(NfcSupportedCards *instance, NfcDevice *device,
+                               FuriString *parsed_data);
 
 #ifdef __cplusplus
 }

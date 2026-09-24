@@ -26,5 +26,5 @@ typedef enum {
 
 typedef struct {
     uint32_t value;
-    const char* str;
+    const char *str;
 } BtTestParamValue;

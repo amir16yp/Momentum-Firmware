@@ -9,15 +9,15 @@
 
 typedef struct DesktopLockMenuView DesktopLockMenuView;
 
-typedef void (*DesktopLockMenuViewCallback)(DesktopEvent event, void* context);
+typedef void (*DesktopLockMenuViewCallback)(DesktopEvent event, void *context);
 
 struct DesktopLockMenuView {
-    View* view;
+    View *view;
     DesktopLockMenuViewCallback callback;
-    void* context;
+    void *context;
 
-    NotificationApp* notification;
-    Bt* bt;
+    NotificationApp *notification;
+    Bt *bt;
     bool save_notification;
     bool save_momentum;
     bool save_bt;
@@ -38,17 +38,15 @@ typedef struct {
     bool pin_is_set;
     bool show_lock_popup;
     DesktopLockMenuPopupIndex lock_popup_index;
-    DesktopLockMenuView* lock_menu;
+    DesktopLockMenuView *lock_menu;
 } DesktopLockMenuViewModel;
 
-void desktop_lock_menu_set_callback(
-    DesktopLockMenuView* lock_menu,
-    DesktopLockMenuViewCallback callback,
-    void* context);
+void desktop_lock_menu_set_callback(DesktopLockMenuView *lock_menu,
+                                    DesktopLockMenuViewCallback callback, void *context);
 
-View* desktop_lock_menu_get_view(DesktopLockMenuView* lock_menu);
-void desktop_lock_menu_set_pin_state(DesktopLockMenuView* lock_menu, bool pin_is_set);
-void desktop_lock_menu_set_stealth_mode_state(DesktopLockMenuView* lock_menu, bool stealth_mode);
-void desktop_lock_menu_set_idx(DesktopLockMenuView* lock_menu, uint8_t idx);
-DesktopLockMenuView* desktop_lock_menu_alloc(void);
-void desktop_lock_menu_free(DesktopLockMenuView* lock_menu);
+View *desktop_lock_menu_get_view(DesktopLockMenuView *lock_menu);
+void desktop_lock_menu_set_pin_state(DesktopLockMenuView *lock_menu, bool pin_is_set);
+void desktop_lock_menu_set_stealth_mode_state(DesktopLockMenuView *lock_menu, bool stealth_mode);
+void desktop_lock_menu_set_idx(DesktopLockMenuView *lock_menu, uint8_t idx);
+DesktopLockMenuView *desktop_lock_menu_alloc(void);
+void desktop_lock_menu_free(DesktopLockMenuView *lock_menu);

@@ -28,8 +28,8 @@
 #include "ibutton_custom_event.h"
 #include "scenes/ibutton_scene.h"
 
-#define IBUTTON_APP_FOLDER             EXT_PATH("ibutton")
-#define IBUTTON_APP_FILENAME_PREFIX    "iBtn"
+#define IBUTTON_APP_FOLDER EXT_PATH("ibutton")
+#define IBUTTON_APP_FILENAME_PREFIX "iBtn"
 #define IBUTTON_APP_FILENAME_EXTENSION ".ibtn"
 
 #define IBUTTON_KEY_NAME_SIZE 30
@@ -41,29 +41,29 @@ typedef enum {
 } iButtonWriteMode;
 
 struct iButton {
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    Gui* gui;
-    Storage* storage;
-    DialogsApp* dialogs;
-    NotificationApp* notifications;
-    RpcAppSystem* rpc;
+    Gui *gui;
+    Storage *storage;
+    DialogsApp *dialogs;
+    NotificationApp *notifications;
+    RpcAppSystem *rpc;
 
-    iButtonKey* key;
-    iButtonWorker* worker;
-    iButtonProtocols* protocols;
+    iButtonKey *key;
+    iButtonWorker *worker;
+    iButtonProtocols *protocols;
     iButtonWriteMode write_mode;
 
-    FuriString* file_path;
+    FuriString *file_path;
     char key_name[IBUTTON_KEY_NAME_SIZE];
 
-    Submenu* submenu;
-    ByteInput* byte_input;
-    TextInput* text_input;
-    Popup* popup;
-    Widget* widget;
-    Loading* loading;
+    Submenu *submenu;
+    ByteInput *byte_input;
+    TextInput *text_input;
+    Popup *popup;
+    Widget *widget;
+    Loading *loading;
 };
 
 typedef enum {
@@ -89,12 +89,12 @@ typedef enum {
     iButtonNotificationMessageBlinkStop,
 } iButtonNotificationMessage;
 
-bool ibutton_select_and_load_key(iButton* ibutton);
-bool ibutton_load_key(iButton* ibutton, bool show_error);
-bool ibutton_save_key(iButton* ibutton);
-bool ibutton_delete_key(iButton* ibutton);
-void ibutton_reset_key(iButton* ibutton);
-void ibutton_notification_message(iButton* ibutton, uint32_t message);
+bool ibutton_select_and_load_key(iButton *ibutton);
+bool ibutton_load_key(iButton *ibutton, bool show_error);
+bool ibutton_save_key(iButton *ibutton);
+bool ibutton_delete_key(iButton *ibutton);
+void ibutton_reset_key(iButton *ibutton);
+void ibutton_notification_message(iButton *ibutton, uint32_t message);
 
-void ibutton_submenu_callback(void* context, uint32_t index);
-void ibutton_widget_callback(GuiButtonType result, InputType type, void* context);
+void ibutton_submenu_callback(void *context, uint32_t index);
+void ibutton_widget_callback(GuiButtonType result, InputType type, void *context);

@@ -18,22 +18,22 @@ typedef enum {
 } Ntag4xxPollerState;
 
 struct Ntag4xxPoller {
-    Iso14443_4aPoller* iso14443_4a_poller;
+    Iso14443_4aPoller *iso14443_4a_poller;
     Ntag4xxPollerState state;
     Ntag4xxError error;
-    Ntag4xxData* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
-    BitBuffer* input_buffer;
-    BitBuffer* result_buffer;
+    Ntag4xxData *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
+    BitBuffer *input_buffer;
+    BitBuffer *result_buffer;
     Ntag4xxPollerEventData ntag4xx_event_data;
     Ntag4xxPollerEvent ntag4xx_event;
     NfcGenericEvent general_event;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
-Ntag4xxError ntag4xx_poller_read_version(Ntag4xxPoller* instance, Ntag4xxVersion* data);
+Ntag4xxError ntag4xx_poller_read_version(Ntag4xxPoller *instance, Ntag4xxVersion *data);
 
 #ifdef __cplusplus
 }

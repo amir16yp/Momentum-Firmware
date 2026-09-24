@@ -41,19 +41,19 @@ typedef enum {
 } NfcCliDumpError;
 
 typedef struct {
-    Nfc* nfc;
-    FuriString* file_path;
-    Storage* storage;
-    NfcCliScanner* scanner;
+    Nfc *nfc;
+    FuriString *file_path;
+    Storage *storage;
+    NfcCliScanner *scanner;
     NfcProtocol desired_protocol;
     uint32_t timeout;
-    FuriSemaphore* sem_done;
+    FuriSemaphore *sem_done;
 
     NfcCliDumpError result;
 
     NfcCliDumpAuthContext auth_ctx;
-    MfClassicKeyCache* mfc_key_cache;
+    MfClassicKeyCache *mfc_key_cache;
 
-    NfcPoller* poller;
-    NfcDevice* nfc_device;
+    NfcPoller *poller;
+    NfcDevice *nfc_device;
 } NfcCliDumpContext;

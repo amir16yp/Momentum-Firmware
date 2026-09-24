@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 typedef enum {
-    LocaleMeasurementUnitsMetric = 0, /**< Metric measurement units */
+    LocaleMeasurementUnitsMetric = 0,   /**< Metric measurement units */
     LocaleMeasurementUnitsImperial = 1, /**< Imperial measurement units */
 } LocaleMeasurementUnits;
 
@@ -40,13 +40,13 @@ void locale_set_measurement_unit(LocaleMeasurementUnits format);
  *
  * @param[in]  temp_f  The Temperature in Fahrenheit
  *
- * @return     The Temperature in Celsius 
+ * @return     The Temperature in Celsius
  */
 float locale_fahrenheit_to_celsius(float temp_f);
 
 /** Convert Celsius to Fahrenheit
  *
- * @param[in]  temp_c  The Temperature in Celsius 
+ * @param[in]  temp_c  The Temperature in Celsius
  *
  * @return     The Temperature in Fahrenheit
  */
@@ -71,11 +71,8 @@ void locale_set_time_format(LocaleTimeFormat format);
  * @param[in]  format        The Locale Time Format
  * @param[in]  show_seconds  The show seconds flag
  */
-void locale_format_time(
-    FuriString* out_str,
-    const DateTime* datetime,
-    const LocaleTimeFormat format,
-    const bool show_seconds);
+void locale_format_time(FuriString *out_str, const DateTime *datetime,
+                        const LocaleTimeFormat format, const bool show_seconds);
 
 /** Get Locale DateFormat
  *
@@ -96,11 +93,8 @@ void locale_set_date_format(LocaleDateFormat format);
  * @param[in]  format     The format
  * @param[in]  separator  The separator
  */
-void locale_format_date(
-    FuriString* out_str,
-    const DateTime* datetime,
-    const LocaleDateFormat format,
-    const char* separator);
+void locale_format_date(FuriString *out_str, const DateTime *datetime,
+                        const LocaleDateFormat format, const char *separator);
 
 #ifdef __cplusplus
 }

@@ -114,13 +114,13 @@ typedef struct FuriEventLoop FuriEventLoop;
  *
  * @return     The Event Loop instance
  */
-FuriEventLoop* furi_event_loop_alloc(void);
+FuriEventLoop *furi_event_loop_alloc(void);
 
 /** Free Event Loop instance
  *
  * @param      instance  The Event Loop instance
  */
-void furi_event_loop_free(FuriEventLoop* instance);
+void furi_event_loop_free(FuriEventLoop *instance);
 
 /** Continuously poll for events
  *
@@ -128,13 +128,13 @@ void furi_event_loop_free(FuriEventLoop* instance);
  *
  * @param      instance  The Event Loop instance
  */
-void furi_event_loop_run(FuriEventLoop* instance);
+void furi_event_loop_run(FuriEventLoop *instance);
 
 /** Stop Event Loop instance
  *
  * @param      instance  The Event Loop instance
  */
-void furi_event_loop_stop(FuriEventLoop* instance);
+void furi_event_loop_stop(FuriEventLoop *instance);
 
 /*
  * Tick related API
@@ -144,7 +144,7 @@ void furi_event_loop_stop(FuriEventLoop* instance);
  *
  * @param      context  The context for callback
  */
-typedef void (*FuriEventLoopTickCallback)(void* context);
+typedef void (*FuriEventLoopTickCallback)(void *context);
 
 /** Set Event Loop tick callback
  *
@@ -158,11 +158,8 @@ typedef void (*FuriEventLoopTickCallback)(void* context);
  * @param[in]  callback  The callback to call
  * @param      context   The context for callback
  */
-void furi_event_loop_tick_set(
-    FuriEventLoop* instance,
-    uint32_t interval,
-    FuriEventLoopTickCallback callback,
-    void* context);
+void furi_event_loop_tick_set(FuriEventLoop *instance, uint32_t interval,
+                              FuriEventLoopTickCallback callback, void *context);
 
 /*
  * Deferred function call API
@@ -174,7 +171,7 @@ void furi_event_loop_tick_set(
  * @param[in,out] context pointer to a user-specific object that was provided during
  *                        furi_event_loop_pend_callback() call
  */
-typedef void (*FuriEventLoopPendingCallback)(void* context);
+typedef void (*FuriEventLoopPendingCallback)(void *context);
 
 /**
  * @brief Call a function when all preceding timer commands are processed
@@ -182,13 +179,12 @@ typedef void (*FuriEventLoopPendingCallback)(void* context);
  * This function may be useful to call another function when the event loop has been started.
  *
  * @param[in,out] instance pointer to the current FuriEventLoop instance
- * @param[in] callback pointer to the callback to be executed when previous commands have been processed
+ * @param[in] callback pointer to the callback to be executed when previous commands have been
+ * processed
  * @param[in,out] context pointer to a user-specific object (will be passed to the callback)
  */
-void furi_event_loop_pend_callback(
-    FuriEventLoop* instance,
-    FuriEventLoopPendingCallback callback,
-    void* context);
+void furi_event_loop_pend_callback(FuriEventLoop *instance, FuriEventLoopPendingCallback callback,
+                                   void *context);
 
 /*
  * Event subscription/notification APIs
@@ -201,13 +197,13 @@ typedef void FuriEventLoopObject;
  * @param      object   The object that triggered the event
  * @param      context  The context that was provided upon subscription
  */
-typedef void (*FuriEventLoopEventCallback)(FuriEventLoopObject* object, void* context);
+typedef void (*FuriEventLoopEventCallback)(FuriEventLoopObject *object, void *context);
 
 /** Callback type for event loop thread flag events
- * 
+ *
  * @param context The context that was provided upon subscription
  */
-typedef void (*FuriEventLoopThreadFlagsCallback)(void* context);
+typedef void (*FuriEventLoopThreadFlagsCallback)(void *context);
 
 /** Opaque event flag type */
 typedef struct FuriEventFlag FuriEventFlag;
@@ -223,18 +219,15 @@ typedef struct FuriEventFlag FuriEventFlag;
  * @param      context        The context for callback
  */
 
-void furi_event_loop_subscribe_event_flag(
-    FuriEventLoop* instance,
-    FuriEventFlag* event_flag,
-    FuriEventLoopEvent event,
-    FuriEventLoopEventCallback callback,
-    void* context);
+void furi_event_loop_subscribe_event_flag(FuriEventLoop *instance, FuriEventFlag *event_flag,
+                                          FuriEventLoopEvent event,
+                                          FuriEventLoopEventCallback callback, void *context);
 
 /** Opaque message queue type */
 typedef struct FuriMessageQueue FuriMessageQueue;
 
 /** Subscribe to message queue events
- * 
+ *
  * @warning you can only have one subscription for one event type.
  *
  * @param      instance       The Event Loop instance
@@ -243,12 +236,10 @@ typedef struct FuriMessageQueue FuriMessageQueue;
  * @param[in]  callback       The callback to call on event
  * @param      context        The context for callback
  */
-void furi_event_loop_subscribe_message_queue(
-    FuriEventLoop* instance,
-    FuriMessageQueue* message_queue,
-    FuriEventLoopEvent event,
-    FuriEventLoopEventCallback callback,
-    void* context);
+void furi_event_loop_subscribe_message_queue(FuriEventLoop *instance,
+                                             FuriMessageQueue *message_queue,
+                                             FuriEventLoopEvent event,
+                                             FuriEventLoopEventCallback callback, void *context);
 
 /** Opaque stream buffer type */
 typedef struct FuriStreamBuffer FuriStreamBuffer;
@@ -263,12 +254,10 @@ typedef struct FuriStreamBuffer FuriStreamBuffer;
  * @param[in]  callback       The callback to call on event
  * @param      context        The context for callback
  */
-void furi_event_loop_subscribe_stream_buffer(
-    FuriEventLoop* instance,
-    FuriStreamBuffer* stream_buffer,
-    FuriEventLoopEvent event,
-    FuriEventLoopEventCallback callback,
-    void* context);
+void furi_event_loop_subscribe_stream_buffer(FuriEventLoop *instance,
+                                             FuriStreamBuffer *stream_buffer,
+                                             FuriEventLoopEvent event,
+                                             FuriEventLoopEventCallback callback, void *context);
 
 /** Opaque semaphore type */
 typedef struct FuriSemaphore FuriSemaphore;
@@ -283,12 +272,9 @@ typedef struct FuriSemaphore FuriSemaphore;
  * @param[in]  callback       The callback to call on event
  * @param      context        The context for callback
  */
-void furi_event_loop_subscribe_semaphore(
-    FuriEventLoop* instance,
-    FuriSemaphore* semaphore,
-    FuriEventLoopEvent event,
-    FuriEventLoopEventCallback callback,
-    void* context);
+void furi_event_loop_subscribe_semaphore(FuriEventLoop *instance, FuriSemaphore *semaphore,
+                                         FuriEventLoopEvent event,
+                                         FuriEventLoopEventCallback callback, void *context);
 
 /** Opaque mutex type */
 typedef struct FuriMutex FuriMutex;
@@ -303,51 +289,48 @@ typedef struct FuriMutex FuriMutex;
  * @param[in]  callback       The callback to call on event
  * @param      context        The context for callback
  */
-void furi_event_loop_subscribe_mutex(
-    FuriEventLoop* instance,
-    FuriMutex* mutex,
-    FuriEventLoopEvent event,
-    FuriEventLoopEventCallback callback,
-    void* context);
+void furi_event_loop_subscribe_mutex(FuriEventLoop *instance, FuriMutex *mutex,
+                                     FuriEventLoopEvent event, FuriEventLoopEventCallback callback,
+                                     void *context);
 
 /** Subscribe to thread flag events of the current thread
- * 
+ *
  * @param instance The Event Loop instance
  * @param callback The callback to call when a flag has been set
  * @param context  The context for callback
  */
-void furi_event_loop_subscribe_thread_flags(
-    FuriEventLoop* instance,
-    FuriEventLoopThreadFlagsCallback callback,
-    void* context);
+void furi_event_loop_subscribe_thread_flags(FuriEventLoop *instance,
+                                            FuriEventLoopThreadFlagsCallback callback,
+                                            void *context);
 
 /** Unsubscribe from thread flag events of the current thread
- * 
+ *
  * @param instance The Event Loop instance
  */
-void furi_event_loop_unsubscribe_thread_flags(FuriEventLoop* instance);
+void furi_event_loop_unsubscribe_thread_flags(FuriEventLoop *instance);
 
 /** Unsubscribe from events (common)
  *
  * @param      instance       The Event Loop instance
  * @param      object         The object to unsubscribe from
  */
-void furi_event_loop_unsubscribe(FuriEventLoop* instance, FuriEventLoopObject* object);
+void furi_event_loop_unsubscribe(FuriEventLoop *instance, FuriEventLoopObject *object);
 
 /**
  * @brief Checks if the loop is subscribed to an object of any kind
- * 
+ *
  * @param      instance       Event Loop instance
  * @param      object         Object to check
  */
-bool furi_event_loop_is_subscribed(FuriEventLoop* instance, FuriEventLoopObject* object);
+bool furi_event_loop_is_subscribed(FuriEventLoop *instance, FuriEventLoopObject *object);
 
 /**
  * @brief Convenience function for `if(is_subscribed()) unsubscribe()`
  */
-static inline void
-    furi_event_loop_maybe_unsubscribe(FuriEventLoop* instance, FuriEventLoopObject* object) {
-    if(furi_event_loop_is_subscribed(instance, object))
+static inline void furi_event_loop_maybe_unsubscribe(FuriEventLoop *instance,
+                                                     FuriEventLoopObject *object)
+{
+    if (furi_event_loop_is_subscribed(instance, object))
         furi_event_loop_unsubscribe(instance, object);
 }
 

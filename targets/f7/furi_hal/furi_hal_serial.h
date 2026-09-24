@@ -1,6 +1,6 @@
 /**
  * @file furi_hal_serial.h
- * 
+ *
  * Serial HAL API
  */
 #pragma once
@@ -23,7 +23,7 @@ extern "C" {
  * @param      handle  Serial handle
  * @param      baud    baud rate
  */
-void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud);
+void furi_hal_serial_init(FuriHalSerialHandle *handle, uint32_t baud);
 
 /** De-initialize Serial
  *
@@ -32,7 +32,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud);
  *
  * @param      handle  Serial handle
  */
-void furi_hal_serial_deinit(FuriHalSerialHandle* handle);
+void furi_hal_serial_deinit(FuriHalSerialHandle *handle);
 
 /** Suspend operation
  *
@@ -40,7 +40,7 @@ void furi_hal_serial_deinit(FuriHalSerialHandle* handle);
  *
  * @param      handle  Serial handle
  */
-void furi_hal_serial_suspend(FuriHalSerialHandle* handle);
+void furi_hal_serial_suspend(FuriHalSerialHandle *handle);
 
 /** Resume operation
  *
@@ -48,7 +48,7 @@ void furi_hal_serial_suspend(FuriHalSerialHandle* handle);
  *
  * @param      handle  Serial handle
  */
-void furi_hal_serial_resume(FuriHalSerialHandle* handle);
+void furi_hal_serial_resume(FuriHalSerialHandle *handle);
 
 /**
  * @brief Determine whether a certain baud rate is supported
@@ -57,28 +57,25 @@ void furi_hal_serial_resume(FuriHalSerialHandle* handle);
  * @param      baud baud rate to be checked
  * @returns    true if baud rate is supported, false otherwise.
  */
-bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_t baud);
+bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle *handle, uint32_t baud);
 
 /** Changes baud rate
  *
  * @param      handle  Serial handle
  * @param      baud    baud rate
  */
-void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud);
+void furi_hal_serial_set_br(FuriHalSerialHandle *handle, uint32_t baud);
 
 /**
  * @brief Configures framing of a serial interface
- * 
+ *
  * @param      handle     Serial handle
  * @param      data_bits  Data bits
  * @param      parity     Parity
  * @param      stop_bits  Stop bits
  */
-void furi_hal_serial_configure_framing(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialDataBits data_bits,
-    FuriHalSerialParity parity,
-    FuriHalSerialStopBits stop_bits);
+void furi_hal_serial_configure_framing(FuriHalSerialHandle *handle, FuriHalSerialDataBits data_bits,
+                                       FuriHalSerialParity parity, FuriHalSerialStopBits stop_bits);
 
 /** Transmits data in semi-blocking mode
  *
@@ -92,7 +89,7 @@ void furi_hal_serial_configure_framing(
  * @param      buffer       data
  * @param      buffer_size  data size (in bytes)
  */
-void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size);
+void furi_hal_serial_tx(FuriHalSerialHandle *handle, const uint8_t *buffer, size_t buffer_size);
 
 /** Wait until transmission is completed
  *
@@ -100,16 +97,16 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
  *
  * @param      handle  Serial handle
  */
-void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle);
+void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle *handle);
 
 /** Serial RX events */
 typedef enum {
-    FuriHalSerialRxEventData = (1 << 0), /**< Data: new data available */
-    FuriHalSerialRxEventIdle = (1 << 1), /**< Idle: bus idle detected */
-    FuriHalSerialRxEventFrameError = (1 << 2), /**< Framing Error: incorrect frame detected */
-    FuriHalSerialRxEventNoiseError = (1 << 3), /**< Noise Error: noise on the line detected */
+    FuriHalSerialRxEventData = (1 << 0),         /**< Data: new data available */
+    FuriHalSerialRxEventIdle = (1 << 1),         /**< Idle: bus idle detected */
+    FuriHalSerialRxEventFrameError = (1 << 2),   /**< Framing Error: incorrect frame detected */
+    FuriHalSerialRxEventNoiseError = (1 << 3),   /**< Noise Error: noise on the line detected */
     FuriHalSerialRxEventOverrunError = (1 << 4), /**< Overrun Error: no space for received data */
-    FuriHalSerialRxEventParityError = (1 << 5), /**< Parity Error: incorrect parity bit received */
+    FuriHalSerialRxEventParityError = (1 << 5),  /**< Parity Error: incorrect parity bit received */
 } FuriHalSerialRxEvent;
 
 /** Receive callback
@@ -120,10 +117,8 @@ typedef enum {
  * @param      event    FuriHalSerialRxEvent
  * @param      context  Callback context provided earlier
  */
-typedef void (*FuriHalSerialAsyncRxCallback)(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialRxEvent event,
-    void* context);
+typedef void (*FuriHalSerialAsyncRxCallback)(FuriHalSerialHandle *handle,
+                                             FuriHalSerialRxEvent event, void *context);
 
 /** Start and sets Serial Receive callback
  *
@@ -135,17 +130,15 @@ typedef void (*FuriHalSerialAsyncRxCallback)(
  * @param      context        callback context
  * @param[in]  report_errors  report RX error
  */
-void furi_hal_serial_async_rx_start(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialAsyncRxCallback callback,
-    void* context,
-    bool report_errors);
+void furi_hal_serial_async_rx_start(FuriHalSerialHandle *handle,
+                                    FuriHalSerialAsyncRxCallback callback, void *context,
+                                    bool report_errors);
 
 /** Stop Serial Receive
  *
  * @param      handle    Serial handle
  */
-void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle);
+void furi_hal_serial_async_rx_stop(FuriHalSerialHandle *handle);
 
 /** Check if there is data available for reading
  *
@@ -155,7 +148,7 @@ void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle);
  * @param      handle    Serial handle
  * @return     true if data is available for reading, false otherwise
  */
-bool furi_hal_serial_async_rx_available(FuriHalSerialHandle* handle);
+bool furi_hal_serial_async_rx_available(FuriHalSerialHandle *handle);
 
 /** Get data Serial receive
  *
@@ -166,7 +159,7 @@ bool furi_hal_serial_async_rx_available(FuriHalSerialHandle* handle);
  *
  * @return     data
  */
-uint8_t furi_hal_serial_async_rx(FuriHalSerialHandle* handle);
+uint8_t furi_hal_serial_async_rx(FuriHalSerialHandle *handle);
 
 /* DMA based Serial API */
 
@@ -182,11 +175,8 @@ uint8_t furi_hal_serial_async_rx(FuriHalSerialHandle* handle);
  * @param      data_len  Received data
  * @param      context   Callback context provided earlier
  */
-typedef void (*FuriHalSerialDmaRxCallback)(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialRxEvent event,
-    size_t data_len,
-    void* context);
+typedef void (*FuriHalSerialDmaRxCallback)(FuriHalSerialHandle *handle, FuriHalSerialRxEvent event,
+                                           size_t data_len, void *context);
 
 /**
  * @brief Enable an input/output direction
@@ -197,9 +187,8 @@ typedef void (*FuriHalSerialDmaRxCallback)(
  * @param     handle        Serial handle
  * @param     direction     Direction to enable
  */
-void furi_hal_serial_enable_direction(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialDirection direction);
+void furi_hal_serial_enable_direction(FuriHalSerialHandle *handle,
+                                      FuriHalSerialDirection direction);
 
 /**
  * @brief Disable an input/output direction
@@ -210,9 +199,8 @@ void furi_hal_serial_enable_direction(
  * @param     handle        Serial handle
  * @param     direction     Direction to disable
  */
-void furi_hal_serial_disable_direction(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialDirection direction);
+void furi_hal_serial_disable_direction(FuriHalSerialHandle *handle,
+                                       FuriHalSerialDirection direction);
 
 /**
  * @brief Get the GPIO pin associated with a serial
@@ -221,8 +209,8 @@ void furi_hal_serial_disable_direction(
  * @param     direction     Direction to query
  * @returns   pointer to the respective pin instance
  */
-const GpioPin*
-    furi_hal_serial_get_gpio_pin(FuriHalSerialHandle* handle, FuriHalSerialDirection direction);
+const GpioPin *furi_hal_serial_get_gpio_pin(FuriHalSerialHandle *handle,
+                                            FuriHalSerialDirection direction);
 
 /** Start and sets Serial event callback receive DMA
  *
@@ -231,17 +219,14 @@ const GpioPin*
  * @param      context        callback context
  * @param[in]  report_errors  report RX error
  */
-void furi_hal_serial_dma_rx_start(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialDmaRxCallback callback,
-    void* context,
-    bool report_errors);
+void furi_hal_serial_dma_rx_start(FuriHalSerialHandle *handle, FuriHalSerialDmaRxCallback callback,
+                                  void *context, bool report_errors);
 
 /** Stop Serial receive DMA
  *
  * @param      handle  Serial handle
  */
-void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
+void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle *handle);
 
 /** Get data Serial receive DMA
  *
@@ -254,7 +239,7 @@ void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
  *
  * @return     size actual data receive (in bytes)
  */
-size_t furi_hal_serial_dma_rx(FuriHalSerialHandle* handle, uint8_t* data, size_t len);
+size_t furi_hal_serial_dma_rx(FuriHalSerialHandle *handle, uint8_t *data, size_t len);
 
 #ifdef __cplusplus
 }

@@ -24,16 +24,16 @@
 void reverse_mac_addr(uint8_t mac_addr[GAP_MAC_ADDR_SIZE]);
 
 struct FindMy {
-    Gui* gui;
-    Storage* storage;
-    DialogsApp* dialogs;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    Gui *gui;
+    Storage *storage;
+    DialogsApp *dialogs;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
-    FindMyMain* findmy_main;
-    ByteInput* byte_input;
-    VariableItemList* var_item_list;
-    Popup* popup;
+    FindMyMain *findmy_main;
+    ByteInput *byte_input;
+    VariableItemList *var_item_list;
+    Popup *popup;
 
     uint8_t mac_buf[EXTRA_BEACON_MAC_ADDR_SIZE];
     uint8_t packet_buf[EXTRA_BEACON_MAX_DATA_SIZE];
@@ -48,8 +48,8 @@ typedef enum {
     FindMyViewPopup,
 } FindMyView;
 
-void findmy_change_broadcast_interval(FindMy* app, uint8_t value);
-void findmy_change_transmit_power(FindMy* app, uint8_t value);
-void findmy_toggle_show_mac(FindMy* app, bool show_mac);
-void findmy_set_tag_type(FindMy* app, FindMyType type);
-void findmy_toggle_beacon(FindMy* app);
+void findmy_change_broadcast_interval(FindMy *app, uint8_t value);
+void findmy_change_transmit_power(FindMy *app, uint8_t value);
+void findmy_toggle_show_mac(FindMy *app, bool show_mac);
+void findmy_set_tag_type(FindMy *app, FindMyType type);
+void findmy_toggle_beacon(FindMy *app);

@@ -6,11 +6,11 @@
 
 typedef struct DesktopDebugView DesktopDebugView;
 
-typedef void (*DesktopDebugViewCallback)(DesktopEvent event, void* context);
+typedef void (*DesktopDebugViewCallback)(DesktopEvent event, void *context);
 
 struct DesktopDebugView {
-    View* view;
-    FuriTimer* timer;
+    View *view;
+    FuriTimer *timer;
     DesktopDebugViewCallback callback;
-    void* context;
+    void *context;
 };

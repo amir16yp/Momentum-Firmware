@@ -5,39 +5,41 @@
 
 #define TAG "JsMath"
 
-static void ret_bad_args(struct mjs* mjs, const char* error) {
+static void ret_bad_args(struct mjs *mjs, const char *error)
+{
     mjs_prepend_errorf(mjs, MJS_BAD_ARGS_ERROR, "%s", error);
     mjs_return(mjs, MJS_UNDEFINED);
 }
 
-void js_send_protocol_signal(struct mjs* mjs) {
+void js_send_protocol_signal(struct mjs *mjs)
+{
     size_t num_args = mjs_nargs(mjs);
-    if(num_args < 3 || num_args > 4) {
+    if (num_args < 3 || num_args > 4) {
         ret_bad_args(mjs, "Wrong argument count");
         return;
     }
-    if(!mjs_is_string(mjs_arg(mjs, 0)) || !mjs_is_number(mjs_arg(mjs, 1)) ||
-       !mjs_is_number(mjs_arg(mjs, 2)) || (num_args == 4 && !mjs_is_object(mjs_arg(mjs, 3)))) {
+    if (!mjs_is_string(mjs_arg(mjs, 0)) || !mjs_is_number(mjs_arg(mjs, 1)) ||
+        !mjs_is_number(mjs_arg(mjs, 2)) || (num_args == 4 && !mjs_is_object(mjs_arg(mjs, 3)))) {
         ret_bad_args(mjs, "Wrong argument type");
         return;
     }
     bool repeat = false;
     int times = 1;
-    if(num_args == 4) {
+    if (num_args == 4) {
         mjs_val_t options_obj = mjs_arg(mjs, 3);
 
         mjs_val_t repeat_val = mjs_get(mjs, options_obj, "repeat", ~0);
-        if(mjs_is_boolean(repeat_val)) {
+        if (mjs_is_boolean(repeat_val)) {
             repeat = mjs_get_bool(mjs, repeat_val);
-        } else if(!mjs_is_undefined(repeat_val)) {
+        } else if (!mjs_is_undefined(repeat_val)) {
             ret_bad_args(mjs, "Wrong 'repeat' option type");
             return;
         }
 
         mjs_val_t times_val = mjs_get(mjs, options_obj, "times", ~0);
-        if(mjs_is_number(times_val)) {
+        if (mjs_is_number(times_val)) {
             times = mjs_get_int(mjs, times_val);
-        } else if(!mjs_is_undefined(times_val)) {
+        } else if (!mjs_is_undefined(times_val)) {
             ret_bad_args(mjs, "Wrong 'times' option type");
             return;
         }
@@ -52,22 +54,23 @@ void js_send_protocol_signal(struct mjs* mjs) {
     infrared_send(&message, times);
 }
 
-void js_send_raw_signal(struct mjs* mjs) {
+void js_send_raw_signal(struct mjs *mjs)
+{
     size_t num_args = mjs_nargs(mjs);
-    if(num_args < 1 || num_args > 3) {
+    if (num_args < 1 || num_args > 3) {
         ret_bad_args(mjs, "Wrong argument count");
         return;
     }
-    if(!mjs_is_array(mjs_arg(mjs, 0)) || (num_args > 1 && !mjs_is_boolean(mjs_arg(mjs, 1))) ||
-       (num_args > 2 && !mjs_is_object(mjs_arg(mjs, 2)))) {
+    if (!mjs_is_array(mjs_arg(mjs, 0)) || (num_args > 1 && !mjs_is_boolean(mjs_arg(mjs, 1))) ||
+        (num_args > 2 && !mjs_is_object(mjs_arg(mjs, 2)))) {
         ret_bad_args(mjs, "Wrong argument type");
         return;
     }
     int array_length = mjs_array_length(mjs, mjs_arg(mjs, 0));
     uint32_t timings[array_length];
-    for(int i = 0; i < array_length; i++) {
+    for (int i = 0; i < array_length; i++) {
         mjs_val_t elem = mjs_array_get(mjs, mjs_arg(mjs, 0), i);
-        if(!mjs_is_number(elem)) {
+        if (!mjs_is_number(elem)) {
             ret_bad_args(mjs, "Timings array must contain only numbers");
             return;
         }
@@ -75,21 +78,21 @@ void js_send_raw_signal(struct mjs* mjs) {
     }
 
     bool start_from_mark = true;
-    if(num_args > 1) {
+    if (num_args > 1) {
         start_from_mark = mjs_get_bool(mjs, mjs_arg(mjs, 1));
     }
 
-    if(num_args > 2) {
+    if (num_args > 2) {
         mjs_val_t options_obj = mjs_arg(mjs, 2);
 
         mjs_val_t frequency_val = mjs_get(mjs, options_obj, "frequency", ~0);
-        if(!mjs_is_number(frequency_val)) {
+        if (!mjs_is_number(frequency_val)) {
             ret_bad_args(mjs, "Wrong 'frequency' option type");
             return;
         }
 
         mjs_val_t duty_val = mjs_get(mjs, options_obj, "dutyCycle", ~0);
-        if(!mjs_is_number(duty_val)) {
+        if (!mjs_is_number(duty_val)) {
             ret_bad_args(mjs, "Wrong 'dutyCycle' option type");
             return;
         }
@@ -102,13 +105,14 @@ void js_send_raw_signal(struct mjs* mjs) {
     return;
 }
 
-static void* js_infrared_create(struct mjs* mjs, mjs_val_t* object, JsModules* modules) {
+static void *js_infrared_create(struct mjs *mjs, mjs_val_t *object, JsModules *modules)
+{
     UNUSED(modules);
     mjs_val_t infrared_object = mjs_mk_object(mjs);
     mjs_set(mjs, infrared_object, "sendSignal", ~0, MJS_MK_FN(js_send_protocol_signal));
     mjs_set(mjs, infrared_object, "sendRawSignal", ~0, MJS_MK_FN(js_send_raw_signal));
     *object = infrared_object;
-    return (void*)1;
+    return (void *)1;
 }
 
 static const JsModuleDescriptor js_infrared_desc = {
@@ -124,6 +128,7 @@ static const FlipperAppPluginDescriptor plugin_descriptor = {
     .entry_point = &js_infrared_desc,
 };
 
-const FlipperAppPluginDescriptor* js_infrared_ep(void) {
+const FlipperAppPluginDescriptor *js_infrared_ep(void)
+{
     return &plugin_descriptor;
 }

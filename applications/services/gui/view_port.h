@@ -25,18 +25,18 @@ typedef enum {
 /** ViewPort Draw callback
  * @warning    called from GUI thread
  */
-typedef void (*ViewPortDrawCallback)(Canvas* canvas, void* context);
+typedef void (*ViewPortDrawCallback)(Canvas *canvas, void *context);
 
 /** ViewPort Input callback
  * @warning    called from GUI thread
  */
-typedef void (*ViewPortInputCallback)(InputEvent* event, void* context);
+typedef void (*ViewPortInputCallback)(InputEvent *event, void *context);
 
 /** ViewPort Ascii callback
  * @return     true if event handled, false if event ignored
  * @warning    called from GUI thread
  */
-typedef bool (*ViewPortAsciiCallback)(AsciiEvent* event, void* context);
+typedef bool (*ViewPortAsciiCallback)(AsciiEvent *event, void *context);
 
 /** ViewPort allocator
  *
@@ -44,7 +44,7 @@ typedef bool (*ViewPortAsciiCallback)(AsciiEvent* event, void* context);
  *
  * @return     ViewPort instance
  */
-ViewPort* view_port_alloc(void);
+ViewPort *view_port_alloc(void);
 
 /** ViewPort deallocator
  *
@@ -52,7 +52,7 @@ ViewPort* view_port_alloc(void);
  *
  * @param      view_port  ViewPort instance
  */
-void view_port_free(ViewPort* view_port);
+void view_port_free(ViewPort *view_port);
 
 /** Set view_port width.
  *
@@ -61,8 +61,8 @@ void view_port_free(ViewPort* view_port);
  * @param      view_port  ViewPort instance
  * @param      width      wanted width, 0 - auto.
  */
-void view_port_set_width(ViewPort* view_port, uint8_t width);
-uint8_t view_port_get_width(const ViewPort* view_port);
+void view_port_set_width(ViewPort *view_port, uint8_t width);
+uint8_t view_port_get_width(const ViewPort *view_port);
 
 /** Set view_port height.
  *
@@ -71,8 +71,8 @@ uint8_t view_port_get_width(const ViewPort* view_port);
  * @param      view_port  ViewPort instance
  * @param      height     wanted height, 0 - auto.
  */
-void view_port_set_height(ViewPort* view_port, uint8_t height);
-uint8_t view_port_get_height(const ViewPort* view_port);
+void view_port_set_height(ViewPort *view_port, uint8_t height);
+uint8_t view_port_get_height(const ViewPort *view_port);
 
 /** Enable or disable view_port rendering.
  *
@@ -80,8 +80,8 @@ uint8_t view_port_get_height(const ViewPort* view_port);
  * @param      enabled    Indicates if enabled
  * @warning    automatically dispatches update event
  */
-void view_port_enabled_set(ViewPort* view_port, bool enabled);
-bool view_port_is_enabled(const ViewPort* view_port);
+void view_port_enabled_set(ViewPort *view_port, bool enabled);
+bool view_port_is_enabled(const ViewPort *view_port);
 
 /** ViewPort event callbacks
  *
@@ -89,15 +89,11 @@ bool view_port_is_enabled(const ViewPort* view_port);
  * @param      callback   appropriate callback function
  * @param      context    context to pass to callback
  */
-void view_port_draw_callback_set(ViewPort* view_port, ViewPortDrawCallback callback, void* context);
-void view_port_input_callback_set(
-    ViewPort* view_port,
-    ViewPortInputCallback callback,
-    void* context);
-void view_port_ascii_callback_set(
-    ViewPort* view_port,
-    ViewPortAsciiCallback callback,
-    void* context);
+void view_port_draw_callback_set(ViewPort *view_port, ViewPortDrawCallback callback, void *context);
+void view_port_input_callback_set(ViewPort *view_port, ViewPortInputCallback callback,
+                                  void *context);
+void view_port_ascii_callback_set(ViewPort *view_port, ViewPortAsciiCallback callback,
+                                  void *context);
 
 /** Emit update signal to GUI system.
  *
@@ -105,15 +101,15 @@ void view_port_ascii_callback_set(
  *
  * @param      view_port  ViewPort instance
  */
-void view_port_update(ViewPort* view_port);
+void view_port_update(ViewPort *view_port);
 
 /** Set ViewPort orientation.
  *
  * @param      view_port    ViewPort instance
  * @param      orientation  display orientation, horizontal or vertical.
  */
-void view_port_set_orientation(ViewPort* view_port, ViewPortOrientation orientation);
-ViewPortOrientation view_port_get_orientation(const ViewPort* view_port);
+void view_port_set_orientation(ViewPort *view_port, ViewPortOrientation orientation);
+ViewPortOrientation view_port_get_orientation(const ViewPort *view_port);
 
 #ifdef __cplusplus
 }

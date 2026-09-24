@@ -9,10 +9,10 @@ extern "C" {
 /**
  * Returns the underlying stream instance.
  * Use only if you know what you are doing.
- * @param flipper_format 
- * @return Stream* 
+ * @param flipper_format
+ * @return Stream*
  */
-Stream* flipper_format_get_raw_stream(FlipperFormat* flipper_format);
+Stream *flipper_format_get_raw_stream(FlipperFormat *flipper_format);
 
 #ifdef __cplusplus
 }

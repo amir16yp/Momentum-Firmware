@@ -26,24 +26,24 @@ extern "C" {
 
 typedef struct {
     // records
-    Gui* gui;
-    NotificationApp* notification;
-    Storage* fs_api;
+    Gui *gui;
+    NotificationApp *notification;
+    Storage *fs_api;
 
     // view management
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
 
     // view modules
-    Submenu* submenu;
-    DialogEx* dialog_ex;
+    Submenu *submenu;
+    DialogEx *dialog_ex;
 
     // text
-    FuriString* text_string;
+    FuriString *text_string;
 
     // helpers
-    SubmenuSettingsHelperDescriptor* helper_descriptor;
-    SubmenuSettingsHelper* settings_helper;
+    SubmenuSettingsHelperDescriptor *helper_descriptor;
+    SubmenuSettingsHelper *settings_helper;
 
     bool from_favorites;
 } StorageSettings;

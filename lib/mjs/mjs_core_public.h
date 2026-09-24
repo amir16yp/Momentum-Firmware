@@ -69,10 +69,10 @@ typedef uint64_t mjs_val_t;
 #define MJS_TAG_UNDEFINED MAKE_TAG(1, 3)
 #define MJS_TAG_BOOLEAN MAKE_TAG(1, 4)
 #define MJS_TAG_NAN MAKE_TAG(1, 5)
-#define MJS_TAG_STRING_I MAKE_TAG(1, 6) /* Inlined string len < 5 */
-#define MJS_TAG_STRING_5 MAKE_TAG(1, 7) /* Inlined string len 5 */
-#define MJS_TAG_STRING_O MAKE_TAG(1, 8) /* Owned string */
-#define MJS_TAG_STRING_F MAKE_TAG(1, 9) /* Foreign string */
+#define MJS_TAG_STRING_I MAKE_TAG(1, 6)  /* Inlined string len < 5 */
+#define MJS_TAG_STRING_5 MAKE_TAG(1, 7)  /* Inlined string len 5 */
+#define MJS_TAG_STRING_O MAKE_TAG(1, 8)  /* Owned string */
+#define MJS_TAG_STRING_F MAKE_TAG(1, 9)  /* Foreign string */
 #define MJS_TAG_STRING_C MAKE_TAG(1, 10) /* String chunk */
 #define MJS_TAG_STRING_D MAKE_TAG(1, 11) /* Dictionary string  */
 #define MJS_TAG_ARRAY MAKE_TAG(1, 12)
@@ -80,7 +80,7 @@ typedef uint64_t mjs_val_t;
 #define MJS_TAG_FUNCTION_FFI MAKE_TAG(1, 14)
 #define MJS_TAG_NULL MAKE_TAG(1, 15)
 
-#define MJS_TAG_ARRAY_BUF MAKE_TAG(0, 1) /* ArrayBuffer */
+#define MJS_TAG_ARRAY_BUF MAKE_TAG(0, 1)      /* ArrayBuffer */
 #define MJS_TAG_ARRAY_BUF_VIEW MAKE_TAG(0, 2) /* DataView */
 
 #define MJS_TAG_MASK MAKE_TAG(1, 15)
@@ -111,8 +111,8 @@ enum mjs_type {
     MJS_TYPE_OBJECT_ARRAY,
     MJS_TYPE_OBJECT_FUNCTION,
     /*
-   * TODO(dfrank): if we support prototypes, need to add items for them here
-   */
+     * TODO(dfrank): if we support prototypes, need to add items for them here
+     */
 
     MJS_TYPES_CNT
 };
@@ -133,17 +133,17 @@ typedef enum mjs_err {
     MJS_ERRS_CNT
 } mjs_err_t;
 
-typedef void (*mjs_flags_poller_t)(struct mjs* mjs);
+typedef void (*mjs_flags_poller_t)(struct mjs *mjs);
 
 struct mjs;
 
 /* Create MJS instance */
-struct mjs* mjs_create(void* context);
+struct mjs *mjs_create(void *context);
 
 /* Destroy MJS instance */
-void mjs_destroy(struct mjs* mjs);
+void mjs_destroy(struct mjs *mjs);
 
-mjs_val_t mjs_get_global(struct mjs* mjs);
+mjs_val_t mjs_get_global(struct mjs *mjs);
 
 /*
  * Tells the GC about an MJS value variable/field owned by C code.
@@ -212,22 +212,22 @@ mjs_val_t mjs_get_global(struct mjs* mjs);
  * stay alive after the C function has returned, it also needs to be properly
  * owned.
  */
-void mjs_own(struct mjs* mjs, mjs_val_t* v);
+void mjs_own(struct mjs *mjs, mjs_val_t *v);
 
 /*
  * Disowns the value previously owned by `mjs_own()`.
  *
  * Returns 1 if value is found, 0 otherwise.
  */
-int mjs_disown(struct mjs* mjs, mjs_val_t* v);
+int mjs_disown(struct mjs *mjs, mjs_val_t *v);
 
-mjs_err_t mjs_set_errorf(struct mjs* mjs, mjs_err_t err, const char* fmt, ...);
+mjs_err_t mjs_set_errorf(struct mjs *mjs, mjs_err_t err, const char *fmt, ...);
 
-void mjs_exit(struct mjs* mjs);
+void mjs_exit(struct mjs *mjs);
 
-void mjs_set_exec_flags_poller(struct mjs* mjs, mjs_flags_poller_t poller);
+void mjs_set_exec_flags_poller(struct mjs *mjs, mjs_flags_poller_t poller);
 
-void* mjs_get_context(struct mjs* mjs);
+void *mjs_get_context(struct mjs *mjs);
 
 /*
  * If there is no error message already set, then it's equal to
@@ -236,22 +236,22 @@ void* mjs_get_context(struct mjs* mjs);
  * Otherwise, an old message gets prepended with the new one, followed by a
  * colon. (the previously set error code is kept)
  */
-mjs_err_t mjs_prepend_errorf(struct mjs* mjs, mjs_err_t err, const char* fmt, ...);
+mjs_err_t mjs_prepend_errorf(struct mjs *mjs, mjs_err_t err, const char *fmt, ...);
 
 /*
  * Print the last error details. If print_stack_trace is non-zero, also
  * print stack trace. `msg` is the message which gets prepended to the actual
  * error message, if it's NULL, then "MJS error" is used.
  */
-void mjs_print_error(struct mjs* mjs, FILE* fp, const char* msg, int print_stack_trace);
+void mjs_print_error(struct mjs *mjs, FILE *fp, const char *msg, int print_stack_trace);
 
 /*
  * return a string representation of an error.
  * the error string might be overwritten by calls to `mjs_set_errorf`.
  */
-const char* mjs_strerror(struct mjs* mjs, enum mjs_err err);
+const char *mjs_strerror(struct mjs *mjs, enum mjs_err err);
 
-const char* mjs_get_stack_trace(struct mjs* mjs);
+const char *mjs_get_stack_trace(struct mjs *mjs);
 
 /*
  * Sets whether *.jsc files are generated when *.js file is executed. By
@@ -260,24 +260,24 @@ const char* mjs_get_stack_trace(struct mjs* mjs);
  * If either `MJS_GENERATE_JSC` or `CS_MMAP` is off, then this function has no
  * effect.
  */
-void mjs_set_generate_jsc(struct mjs* mjs, int generate_jsc);
+void mjs_set_generate_jsc(struct mjs *mjs, int generate_jsc);
 
 /*
  * When invoked from a cfunction, returns number of arguments passed to the
  * current JS function call.
  */
-int mjs_nargs(struct mjs* mjs);
+int mjs_nargs(struct mjs *mjs);
 
 /*
  * When invoked from a cfunction, returns n-th argument to the current JS
  * function call.
  */
-mjs_val_t mjs_arg(struct mjs* mjs, int n);
+mjs_val_t mjs_arg(struct mjs *mjs, int n);
 
 /*
  * Sets return value for the current JS function call.
  */
-void mjs_return(struct mjs* mjs, mjs_val_t v);
+void mjs_return(struct mjs *mjs, mjs_val_t v);
 
 #if defined(__cplusplus)
 }

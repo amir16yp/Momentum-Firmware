@@ -10,44 +10,52 @@
 #define SECTORS 4096
 static uint8_t disk_data[SECTORS * 512];
 static bool fail_disk;
-DSTATUS disk_initialize(BYTE drive) {
+DSTATUS disk_initialize(BYTE drive)
+{
     assert(drive == 1);
     return 0;
 }
-DSTATUS disk_status(BYTE drive) {
+DSTATUS disk_status(BYTE drive)
+{
     assert(drive == 1);
     return 0;
 }
-DRESULT disk_read(BYTE drive, BYTE* data, DWORD sector, UINT count) {
+DRESULT disk_read(BYTE drive, BYTE *data, DWORD sector, UINT count)
+{
     assert(drive == 1);
-    if(fail_disk) return RES_ERROR;
+    if (fail_disk)
+        return RES_ERROR;
     assert(sector <= SECTORS && count <= SECTORS - sector);
     memcpy(data, disk_data + sector * 512, (size_t)count * 512);
     return RES_OK;
 }
-DRESULT disk_write(BYTE drive, const BYTE* data, DWORD sector, UINT count) {
+DRESULT disk_write(BYTE drive, const BYTE *data, DWORD sector, UINT count)
+{
     assert(drive == 1);
-    if(fail_disk) return RES_ERROR;
+    if (fail_disk)
+        return RES_ERROR;
     assert(sector <= SECTORS && count <= SECTORS - sector);
     memcpy(disk_data + sector * 512, data, (size_t)count * 512);
     return RES_OK;
 }
-DRESULT disk_ioctl(BYTE drive, BYTE command, void* data) {
+DRESULT disk_ioctl(BYTE drive, BYTE command, void *data)
+{
     assert(drive == 1);
-    switch(command) {
+    switch (command) {
     case CTRL_SYNC:
         return RES_OK;
     case GET_SECTOR_COUNT:
-        *(DWORD*)data = SECTORS;
+        *(DWORD *)data = SECTORS;
         return RES_OK;
     case GET_BLOCK_SIZE:
-        *(DWORD*)data = 1;
+        *(DWORD *)data = 1;
         return RES_OK;
     default:
         return RES_PARERR;
     }
 }
-DWORD get_fattime(void) {
+DWORD get_fattime(void)
+{
     return (2026U - 1980) << 25 | 1 << 21 | 1 << 16;
 }
 
@@ -59,41 +67,41 @@ typedef enum {
     FSE_INVALID_PARAMETER,
     FSE_INTERNAL
 } FS_Error;
-enum {
-    StorageStatusNotReady,
-    StorageStatusNotMounted,
-    StorageStatusOK
-};
+enum { StorageStatusNotReady, StorageStatusNotMounted, StorageStatusOK };
 typedef struct {
-    FATFS* fs;
-    const char* path;
+    FATFS *fs;
+    const char *path;
     bool sd_was_present;
 } SDData;
 typedef struct {
-    SDData* data;
+    SDData *data;
     int status;
-    const void* fs_api;
+    const void *fs_api;
 } StorageData;
-static void* mnt_image;
-static StorageData* mnt_image_storage;
+static void *mnt_image;
+static StorageData *mnt_image_storage;
 static const int mnt_driver;
 static const int fs_api;
 static size_t fs_allocations;
 
-static void* tracked_malloc(size_t size) {
-    if(size == sizeof(FATFS)) fs_allocations++;
-    void* data = calloc(1, size);
+static void *tracked_malloc(size_t size)
+{
+    if (size == sizeof(FATFS))
+        fs_allocations++;
+    void *data = calloc(1, size);
     assert(data);
     return data;
 }
-static char* test_strdup(const char* source) {
+static char *test_strdup(const char *source)
+{
     size_t size = strlen(source) + 1;
-    char* data = malloc(size);
+    char *data = malloc(size);
     assert(data);
     memcpy(data, source, size);
     return data;
 }
-static int FATFS_LinkDriver(const int* driver, char* path) {
+static int FATFS_LinkDriver(const int *driver, char *path)
+{
     assert(driver == &mnt_driver);
     memcpy(path, "1:/", 4);
     return 0;
@@ -104,7 +112,8 @@ static size_t transfer_calls;
 static size_t seek_calls;
 static size_t fail_transfer = SIZE_MAX;
 static bool fail_seek;
-static bool storage_ext_file_seek(void* storage, void* file, uint32_t offset, bool from_start) {
+static bool storage_ext_file_seek(void *storage, void *file, uint32_t offset, bool from_start)
+{
     (void)storage;
     (void)file;
     assert(from_start);
@@ -112,41 +121,45 @@ static bool storage_ext_file_seek(void* storage, void* file, uint32_t offset, bo
     image_position = offset;
     return !fail_seek;
 }
-static uint16_t storage_ext_file_read(void* storage, void* file, void* data, uint16_t size) {
+static uint16_t storage_ext_file_read(void *storage, void *file, void *data, uint16_t size)
+{
     (void)storage;
     (void)file;
     assert(size && size % 512 == 0 && image_position + size <= sizeof(disk_data));
-    if(transfer_calls++ == fail_transfer) return size - 1;
+    if (transfer_calls++ == fail_transfer)
+        return size - 1;
     memcpy(data, disk_data + image_position, size);
     image_position += size;
     return size;
 }
-static uint16_t
-    storage_ext_file_write(void* storage, void* file, const void* data, uint16_t size) {
+static uint16_t storage_ext_file_write(void *storage, void *file, const void *data, uint16_t size)
+{
     (void)storage;
     (void)file;
     assert(size && size % 512 == 0 && image_position + size <= sizeof(disk_data));
-    if(transfer_calls++ == fail_transfer) return size - 1;
+    if (transfer_calls++ == fail_transfer)
+        return size - 1;
     memcpy(disk_data + image_position, data, size);
     image_position += size;
     return size;
 }
-#define UNUSED(value)   (void)(value)
-#define MIN(a, b)       ((a) < (b) ? (a) : (b))
+#define UNUSED(value) (void)(value)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define SCSI_BLOCK_SIZE 512UL
-#define malloc          tracked_malloc
-#define strdup          test_strdup
+#define malloc tracked_malloc
+#define strdup test_strdup
 /* PRODUCTION_CODE */
 #undef malloc
 #undef strdup
 
-static void test_transfers(void) {
+static void test_transfers(void)
+{
     const UINT counts[] = {1, 127, 128, 129, 257};
-    uint8_t* data = malloc(257 * 512);
+    uint8_t *data = malloc(257 * 512);
     assert(data);
-    for(size_t c = 0; c < sizeof(counts) / sizeof(counts[0]); c++) {
+    for (size_t c = 0; c < sizeof(counts) / sizeof(counts[0]); c++) {
         const size_t size = counts[c] * 512U;
-        for(size_t i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
             data[i] = (uint8_t)(i * 13 + i / 512);
         seek_calls = transfer_calls = 0;
         assert(mnt_driver_write(1, data, 7, counts[c]) == RES_OK);
@@ -156,10 +169,10 @@ static void test_transfers(void) {
         seek_calls = transfer_calls = 0;
         assert(mnt_driver_read(1, data, 7, counts[c]) == RES_OK);
         assert(seek_calls == 1 && transfer_calls == (counts[c] + 126U) / 127U);
-        for(size_t i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
             assert(data[i] == (uint8_t)(i * 13 + i / 512));
     }
-    for(size_t failure = 0; failure < 3; failure++) {
+    for (size_t failure = 0; failure < 3; failure++) {
         fail_transfer = failure;
         transfer_calls = 0;
         assert(mnt_driver_read(1, data, 7, 257) == RES_ERROR);
@@ -184,7 +197,8 @@ static void test_transfers(void) {
     free(data);
 }
 
-int main(void) {
+int main(void)
+{
     StorageData storage = {.status = StorageStatusNotReady};
     storage_mnt_init(&storage);
     assert(storage.data->fs == NULL && fs_allocations == 0);
@@ -193,7 +207,7 @@ int main(void) {
 
     storage.status = StorageStatusNotMounted;
     assert(storage_process_virtual_mount(&storage) == FSE_INVALID_PARAMETER);
-    FATFS* stable_fs = storage.data->fs;
+    FATFS *stable_fs = storage.data->fs;
     assert(stable_fs && fs_allocations == 1);
     fail_disk = true;
     assert(storage_process_virtual_mount(&storage) == FSE_INTERNAL);
@@ -201,21 +215,18 @@ int main(void) {
 
     uint8_t work[512];
     assert(f_mkfs("1:", FM_ANY | FM_SFD, 0, work, sizeof(work)) == FR_OK);
-    for(size_t cycle = 0; cycle < 100; cycle++) {
+    for (size_t cycle = 0; cycle < 100; cycle++) {
         storage.status = StorageStatusNotMounted;
         assert(storage_process_virtual_mount(&storage) == FSE_OK);
         assert(storage_process_virtual_mount(&storage) == FSE_ALREADY_OPEN);
         assert(storage.data->fs == stable_fs && fs_allocations == 1);
         FIL file;
-        assert(
-            f_open(
-                &file,
-                "1:/long filename for lifetime regression.txt",
-                FA_CREATE_ALWAYS | FA_WRITE | FA_READ) == FR_OK);
+        assert(f_open(&file, "1:/long filename for lifetime regression.txt",
+                      FA_CREATE_ALWAYS | FA_WRITE | FA_READ) == FR_OK);
         const char content[] = "FatFs virtual mount lifetime";
         UINT count = 0;
-        assert(
-            f_write(&file, content, sizeof(content), &count) == FR_OK && count == sizeof(content));
+        assert(f_write(&file, content, sizeof(content), &count) == FR_OK &&
+               count == sizeof(content));
         assert(f_sync(&file) == FR_OK);
         assert(f_lseek(&file, 0) == FR_OK);
         char copy[sizeof(content)];
@@ -232,7 +243,7 @@ int main(void) {
     }
     assert(f_mount(NULL, "1:", 0) == FR_OK);
     free(storage.data->fs);
-    free((void*)storage.data->path);
+    free((void *)storage.data->path);
     free(storage.data);
     test_transfers();
     puts("FatFs: deferred allocation, failed mounts, 100 real mount/file/unmount cycles passed");

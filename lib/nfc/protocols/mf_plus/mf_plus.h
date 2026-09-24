@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 #define MF_PLUS_UID_SIZE_MAX (7)
-#define MF_PLUS_BATCH_SIZE   (5)
+#define MF_PLUS_BATCH_SIZE (5)
 
 #define MF_PLUS_CMD_GET_VERSION (0x60)
 
@@ -76,39 +76,39 @@ typedef struct {
 } MfPlusVersion;
 
 typedef struct {
-    Iso14443_4aData* iso14443_4a_data;
+    Iso14443_4aData *iso14443_4a_data;
     MfPlusVersion version;
     MfPlusType type;
     MfPlusSize size;
     MfPlusSecurityLevel security_level;
-    FuriString* device_name;
+    FuriString *device_name;
 } MfPlusData;
 
 extern const NfcDeviceBase nfc_device_mf_plus;
 
-MfPlusData* mf_plus_alloc(void);
+MfPlusData *mf_plus_alloc(void);
 
-void mf_plus_free(MfPlusData* data);
+void mf_plus_free(MfPlusData *data);
 
-void mf_plus_reset(MfPlusData* data);
+void mf_plus_reset(MfPlusData *data);
 
-void mf_plus_copy(MfPlusData* data, const MfPlusData* other);
+void mf_plus_copy(MfPlusData *data, const MfPlusData *other);
 
-bool mf_plus_verify(MfPlusData* data, const FuriString* device_type);
+bool mf_plus_verify(MfPlusData *data, const FuriString *device_type);
 
-bool mf_plus_load(MfPlusData* data, FlipperFormat* ff, uint32_t version);
+bool mf_plus_load(MfPlusData *data, FlipperFormat *ff, uint32_t version);
 
-bool mf_plus_save(const MfPlusData* data, FlipperFormat* ff);
+bool mf_plus_save(const MfPlusData *data, FlipperFormat *ff);
 
-bool mf_plus_is_equal(const MfPlusData* data, const MfPlusData* other);
+bool mf_plus_is_equal(const MfPlusData *data, const MfPlusData *other);
 
-const char* mf_plus_get_device_name(const MfPlusData* data, NfcDeviceNameType name_type);
+const char *mf_plus_get_device_name(const MfPlusData *data, NfcDeviceNameType name_type);
 
-const uint8_t* mf_plus_get_uid(const MfPlusData* data, size_t* uid_len);
+const uint8_t *mf_plus_get_uid(const MfPlusData *data, size_t *uid_len);
 
-bool mf_plus_set_uid(MfPlusData* data, const uint8_t* uid, size_t uid_len);
+bool mf_plus_set_uid(MfPlusData *data, const uint8_t *uid, size_t uid_len);
 
-Iso14443_4aData* mf_plus_get_base_data(const MfPlusData* data);
+Iso14443_4aData *mf_plus_get_base_data(const MfPlusData *data);
 
 #ifdef __cplusplus
 }

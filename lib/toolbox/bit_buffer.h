@@ -22,19 +22,19 @@ typedef struct BitBuffer BitBuffer;
  *
  * @return     pointer to the allocated BitBuffer instance
  */
-BitBuffer* bit_buffer_alloc(size_t capacity_bytes);
+BitBuffer *bit_buffer_alloc(size_t capacity_bytes);
 
 /** Delete a BitBuffer instance.
  *
  * @param[in,out] buf   pointer to a BitBuffer instance
  */
-void bit_buffer_free(BitBuffer* buf);
+void bit_buffer_free(BitBuffer *buf);
 
 /** Clear all data from a BitBuffer instance.
  *
  * @param[in,out] buf   pointer to a BitBuffer instance
  */
-void bit_buffer_reset(BitBuffer* buf);
+void bit_buffer_reset(BitBuffer *buf);
 
 // Copy and write
 
@@ -47,7 +47,7 @@ void bit_buffer_reset(BitBuffer* buf);
  * @param[in,out] buf    pointer to a BitBuffer instance to copy into
  * @param[in]     other  pointer to a BitBuffer instance to copy from
  */
-void bit_buffer_copy(BitBuffer* buf, const BitBuffer* other);
+void bit_buffer_copy(BitBuffer *buf, const BitBuffer *other);
 
 /** Copy all BitBuffer instance's contents to this one, starting from
  * start_index, replacing all of the original data.
@@ -59,7 +59,7 @@ void bit_buffer_copy(BitBuffer* buf, const BitBuffer* other);
  * @param[in]     other        pointer to a BitBuffer instance to copy from
  * @param[in]     start_index  index to begin copying source data from
  */
-void bit_buffer_copy_right(BitBuffer* buf, const BitBuffer* other, size_t start_index);
+void bit_buffer_copy_right(BitBuffer *buf, const BitBuffer *other, size_t start_index);
 
 /** Copy all BitBuffer instance's contents to this one, ending with end_index,
  * replacing all of the original data.
@@ -71,7 +71,7 @@ void bit_buffer_copy_right(BitBuffer* buf, const BitBuffer* other, size_t start_
  * @param[in]     other      pointer to a BitBuffer instance to copy from
  * @param[in]     end_index  index to end copying source data at
  */
-void bit_buffer_copy_left(BitBuffer* buf, const BitBuffer* other, size_t end_index);
+void bit_buffer_copy_left(BitBuffer *buf, const BitBuffer *other, size_t end_index);
 
 /** Copy a byte array to a BitBuffer instance, replacing all of the original
  * data.
@@ -83,7 +83,7 @@ void bit_buffer_copy_left(BitBuffer* buf, const BitBuffer* other, size_t end_ind
  * @param[in]     data        pointer to the byte array to be copied
  * @param[in]     size_bytes  size of the data to be copied, in bytes
  */
-void bit_buffer_copy_bytes(BitBuffer* buf, const uint8_t* data, size_t size_bytes);
+void bit_buffer_copy_bytes(BitBuffer *buf, const uint8_t *data, size_t size_bytes);
 
 /** Copy a byte array to a BitBuffer instance, replacing all of the original
  * data.
@@ -95,7 +95,7 @@ void bit_buffer_copy_bytes(BitBuffer* buf, const uint8_t* data, size_t size_byte
  * @param[in]     data       pointer to the byte array to be copied
  * @param[in]     size_bits  size of the data to be copied, in bits
  */
-void bit_buffer_copy_bits(BitBuffer* buf, const uint8_t* data, size_t size_bits);
+void bit_buffer_copy_bits(BitBuffer *buf, const uint8_t *data, size_t size_bits);
 
 /** Copy a byte with parity array to a BitBuffer instance, replacing all of the
  * original data.
@@ -110,7 +110,7 @@ void bit_buffer_copy_bits(BitBuffer* buf, const uint8_t* data, size_t size_bits)
  *                of each byte and moving up.
  * @note          Example: DDDDDDDD PDDDDDDD DPDDDDDD DDP...
  */
-void bit_buffer_copy_bytes_with_parity(BitBuffer* buf, const uint8_t* data, size_t size_bits);
+void bit_buffer_copy_bytes_with_parity(BitBuffer *buf, const uint8_t *data, size_t size_bits);
 
 /** Write a BitBuffer instance's entire contents to an arbitrary memory location.
  *
@@ -121,7 +121,7 @@ void bit_buffer_copy_bytes_with_parity(BitBuffer* buf, const uint8_t* data, size
  * @param[out] dest        pointer to the destination memory location
  * @param[in]  size_bytes  maximum destination data size, in bytes
  */
-void bit_buffer_write_bytes(const BitBuffer* buf, void* dest, size_t size_bytes);
+void bit_buffer_write_bytes(const BitBuffer *buf, void *dest, size_t size_bytes);
 
 /** Write a BitBuffer instance's entire contents to an arbitrary memory location.
  *
@@ -139,11 +139,8 @@ void bit_buffer_write_bytes(const BitBuffer* buf, void* dest, size_t size_bytes)
  *             each byte and moving up.
  * @note       Example: DDDDDDDD PDDDDDDD DPDDDDDD DDP...
  */
-void bit_buffer_write_bytes_with_parity(
-    const BitBuffer* buf,
-    void* dest,
-    size_t size_bytes,
-    size_t* bits_written);
+void bit_buffer_write_bytes_with_parity(const BitBuffer *buf, void *dest, size_t size_bytes,
+                                        size_t *bits_written);
 
 /** Write a slice of BitBuffer instance's contents to an arbitrary memory
  * location.
@@ -157,11 +154,8 @@ void bit_buffer_write_bytes_with_parity(
  * @param[in]  start_index  index to begin copying source data from
  * @param[in]  size_bytes   data slice size, in bytes
  */
-void bit_buffer_write_bytes_mid(
-    const BitBuffer* buf,
-    void* dest,
-    size_t start_index,
-    size_t size_bytes);
+void bit_buffer_write_bytes_mid(const BitBuffer *buf, void *dest, size_t start_index,
+                                size_t size_bytes);
 
 // Checks
 
@@ -172,7 +166,7 @@ void bit_buffer_write_bytes_mid(
  *
  * @return     true if the instance contains a partial byte, false otherwise
  */
-bool bit_buffer_has_partial_byte(const BitBuffer* buf);
+bool bit_buffer_has_partial_byte(const BitBuffer *buf);
 
 /** Check whether a BitBuffer instance's contents start with the designated byte.
  *
@@ -181,7 +175,7 @@ bool bit_buffer_has_partial_byte(const BitBuffer* buf);
  *
  * @return     true if data starts with designated byte, false otherwise
  */
-bool bit_buffer_starts_with_byte(const BitBuffer* buf, uint8_t byte);
+bool bit_buffer_starts_with_byte(const BitBuffer *buf, uint8_t byte);
 
 // Getters
 
@@ -192,7 +186,7 @@ bool bit_buffer_starts_with_byte(const BitBuffer* buf, uint8_t byte);
  *
  * @return     capacity, in bytes
  */
-size_t bit_buffer_get_capacity_bytes(const BitBuffer* buf);
+size_t bit_buffer_get_capacity_bytes(const BitBuffer *buf);
 
 /** Get a BitBuffer instance's data size (i.e.\ the amount of stored data), in
  * bits.
@@ -203,7 +197,7 @@ size_t bit_buffer_get_capacity_bytes(const BitBuffer* buf);
  *
  * @return     data size, in bits.
  */
-size_t bit_buffer_get_size(const BitBuffer* buf);
+size_t bit_buffer_get_size(const BitBuffer *buf);
 
 /**
  * Get a BitBuffer instance's data size (i.e.\ the amount of stored data), in
@@ -215,7 +209,7 @@ size_t bit_buffer_get_size(const BitBuffer* buf);
  *
  * @return     data size, in bytes.
  */
-size_t bit_buffer_get_size_bytes(const BitBuffer* buf);
+size_t bit_buffer_get_size_bytes(const BitBuffer *buf);
 
 /** Get a byte value at a specified index in a BitBuffer instance.
  *
@@ -227,7 +221,7 @@ size_t bit_buffer_get_size_bytes(const BitBuffer* buf);
  *
  * @return     byte value
  */
-uint8_t bit_buffer_get_byte(const BitBuffer* buf, size_t index);
+uint8_t bit_buffer_get_byte(const BitBuffer *buf, size_t index);
 
 /** Get a byte value starting from the specified bit index in a BitBuffer
  * instance.
@@ -242,7 +236,7 @@ uint8_t bit_buffer_get_byte(const BitBuffer* buf, size_t index);
  *
  * @return     byte value
  */
-uint8_t bit_buffer_get_byte_from_bit(const BitBuffer* buf, size_t index_bits);
+uint8_t bit_buffer_get_byte_from_bit(const BitBuffer *buf, size_t index_bits);
 
 /** Get the pointer to a BitBuffer instance's underlying data.
  *
@@ -250,7 +244,7 @@ uint8_t bit_buffer_get_byte_from_bit(const BitBuffer* buf, size_t index_bits);
  *
  * @return     pointer to the underlying data
  */
-const uint8_t* bit_buffer_get_data(const BitBuffer* buf);
+const uint8_t *bit_buffer_get_data(const BitBuffer *buf);
 
 /** Get the pointer to the parity data of a BitBuffer instance.
  *
@@ -258,7 +252,7 @@ const uint8_t* bit_buffer_get_data(const BitBuffer* buf);
  *
  * @return     pointer to the parity data
  */
-const uint8_t* bit_buffer_get_parity(const BitBuffer* buf);
+const uint8_t *bit_buffer_get_parity(const BitBuffer *buf);
 
 // Setters
 
@@ -271,7 +265,7 @@ const uint8_t* bit_buffer_get_parity(const BitBuffer* buf);
  * @param[in]     index  index of the byte in question
  * @param[in]     byte   byte value to be set at index
  */
-void bit_buffer_set_byte(BitBuffer* buf, size_t index, uint8_t byte);
+void bit_buffer_set_byte(BitBuffer *buf, size_t index, uint8_t byte);
 
 /** Set byte and parity bit value at a specified index in a BitBuffer instance.
  *
@@ -283,7 +277,7 @@ void bit_buffer_set_byte(BitBuffer* buf, size_t index, uint8_t byte);
  * @param[in]     byte    byte value to be set at index
  * @param[in]     parity  parity bit value to be set at index
  */
-void bit_buffer_set_byte_with_parity(BitBuffer* buff, size_t index, uint8_t byte, bool parity);
+void bit_buffer_set_byte_with_parity(BitBuffer *buff, size_t index, uint8_t byte, bool parity);
 
 /** Resize a BitBuffer instance to a new size, in bits.
  *
@@ -292,7 +286,7 @@ void bit_buffer_set_byte_with_parity(BitBuffer* buff, size_t index, uint8_t byte
  * @param[in,out] buf       pointer to a BitBuffer instance to be resized
  * @param[in]     new_size  the new size of the buffer, in bits
  */
-void bit_buffer_set_size(BitBuffer* buf, size_t new_size);
+void bit_buffer_set_size(BitBuffer *buf, size_t new_size);
 
 /** Resize a BitBuffer instance to a new size, in bytes.
  *
@@ -301,7 +295,7 @@ void bit_buffer_set_size(BitBuffer* buf, size_t new_size);
  * @param[in,out] buf             pointer to a BitBuffer instance to be resized
  * @param[in]     new_size_bytes  the new size of the buffer, in bytes
  */
-void bit_buffer_set_size_bytes(BitBuffer* buf, size_t new_size_bytes);
+void bit_buffer_set_size_bytes(BitBuffer *buf, size_t new_size_bytes);
 
 // Modification
 
@@ -313,7 +307,7 @@ void bit_buffer_set_size_bytes(BitBuffer* buf, size_t new_size_bytes);
  * @param[in,out] buf    pointer to a BitBuffer instance to be appended to
  * @param[in]     other  pointer to a BitBuffer instance to be appended
  */
-void bit_buffer_append(BitBuffer* buf, const BitBuffer* other);
+void bit_buffer_append(BitBuffer *buf, const BitBuffer *other);
 
 /** Append a BitBuffer's instance contents to this one, starting from
  * start_index.
@@ -325,7 +319,7 @@ void bit_buffer_append(BitBuffer* buf, const BitBuffer* other);
  * @param[in]     other        pointer to a BitBuffer instance to be appended
  * @param[in]     start_index  index to begin copying source data from
  */
-void bit_buffer_append_right(BitBuffer* buf, const BitBuffer* other, size_t start_index);
+void bit_buffer_append_right(BitBuffer *buf, const BitBuffer *other, size_t start_index);
 
 /** Append a byte to a BitBuffer instance.
  *
@@ -335,7 +329,7 @@ void bit_buffer_append_right(BitBuffer* buf, const BitBuffer* other, size_t star
  * @param[in,out] buf   pointer to a BitBuffer instance to be appended to
  * @param[in]     byte  byte value to be appended
  */
-void bit_buffer_append_byte(BitBuffer* buf, uint8_t byte);
+void bit_buffer_append_byte(BitBuffer *buf, uint8_t byte);
 
 /** Append a byte array to a BitBuffer instance.
  *
@@ -346,7 +340,7 @@ void bit_buffer_append_byte(BitBuffer* buf, uint8_t byte);
  * @param[in]     data        pointer to the byte array to be appended
  * @param[in]     size_bytes  size of the data to be appended, in bytes
  */
-void bit_buffer_append_bytes(BitBuffer* buf, const uint8_t* data, size_t size_bytes);
+void bit_buffer_append_bytes(BitBuffer *buf, const uint8_t *data, size_t size_bytes);
 
 /** Append a bit to a BitBuffer instance.
  *
@@ -356,7 +350,7 @@ void bit_buffer_append_bytes(BitBuffer* buf, const uint8_t* data, size_t size_by
  * @param[in,out] buf   pointer to a BitBuffer instance to be appended to
  * @param[in]     bit   bit value to be appended
  */
-void bit_buffer_append_bit(BitBuffer* buf, bool bit);
+void bit_buffer_append_bit(BitBuffer *buf, bool bit);
 
 #ifdef __cplusplus
 }

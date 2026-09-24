@@ -27,14 +27,14 @@ typedef struct {
  *
  * @param[in,out] settings pointer to an ExpansionSettings instance to load settings into.
  */
-void expansion_settings_load(ExpansionSettings* settings);
+void expansion_settings_load(ExpansionSettings *settings);
 
 /**
  * @brief Save expansion module support settings to file.
  *
  * @param[in] settings pointer to an ExpansionSettings instance to save settings from.
  */
-void expansion_settings_save(const ExpansionSettings* settings);
+void expansion_settings_save(const ExpansionSettings *settings);
 
 #ifdef __cplusplus
 }

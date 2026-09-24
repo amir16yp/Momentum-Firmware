@@ -18,25 +18,30 @@ typedef struct {
 
 static const uint32_t protocol_0_decoder_result = 0xDEADBEEF;
 
-static void* protocol_0_alloc(void) {
-    void* data = malloc(sizeof(Protocol0Data));
+static void *protocol_0_alloc(void)
+{
+    void *data = malloc(sizeof(Protocol0Data));
     return data;
 }
 
-static void protocol_0_free(Protocol0Data* data) {
+static void protocol_0_free(Protocol0Data *data)
+{
     free(data);
 }
 
-static uint8_t* protocol_0_get_data(Protocol0Data* data) {
-    return (uint8_t*)&data->data;
+static uint8_t *protocol_0_get_data(Protocol0Data *data)
+{
+    return (uint8_t *)&data->data;
 }
 
-static void protocol_0_decoder_start(Protocol0Data* data) {
+static void protocol_0_decoder_start(Protocol0Data *data)
+{
     data->data = 0;
 }
 
-static bool protocol_0_decoder_feed(Protocol0Data* data, bool level, uint32_t duration) {
-    if(level && duration == 666) {
+static bool protocol_0_decoder_feed(Protocol0Data *data, bool level, uint32_t duration)
+{
+    if (level && duration == 666) {
         data->data = protocol_0_decoder_result;
         return true;
     } else {
@@ -44,12 +49,14 @@ static bool protocol_0_decoder_feed(Protocol0Data* data, bool level, uint32_t du
     }
 }
 
-static bool protocol_0_encoder_start(Protocol0Data* data) {
+static bool protocol_0_encoder_start(Protocol0Data *data)
+{
     data->encoder_counter = 0;
     return true;
 }
 
-static LevelDuration protocol_0_encoder_yield(Protocol0Data* data) {
+static LevelDuration protocol_0_encoder_yield(Protocol0Data *data)
+{
     data->encoder_counter++;
     return level_duration_make(data->encoder_counter % 2, data->data);
 }
@@ -63,25 +70,30 @@ typedef struct {
 
 static const uint64_t protocol_1_decoder_result = 0x1234567890ABCDEF;
 
-static void* protocol_1_alloc(void) {
-    void* data = malloc(sizeof(Protocol1Data));
+static void *protocol_1_alloc(void)
+{
+    void *data = malloc(sizeof(Protocol1Data));
     return data;
 }
 
-static void protocol_1_free(Protocol1Data* data) {
+static void protocol_1_free(Protocol1Data *data)
+{
     free(data);
 }
 
-static uint8_t* protocol_1_get_data(Protocol1Data* data) {
-    return (uint8_t*)&data->data;
+static uint8_t *protocol_1_get_data(Protocol1Data *data)
+{
+    return (uint8_t *)&data->data;
 }
 
-static void protocol_1_decoder_start(Protocol1Data* data) {
+static void protocol_1_decoder_start(Protocol1Data *data)
+{
     data->data = 0;
 }
 
-static bool protocol_1_decoder_feed(Protocol1Data* data, bool level, uint32_t duration) {
-    if(level && duration == 543) {
+static bool protocol_1_decoder_feed(Protocol1Data *data, bool level, uint32_t duration)
+{
+    if (level && duration == 543) {
         data->data = 0x1234567890ABCDEF;
         return true;
     } else {
@@ -89,12 +101,14 @@ static bool protocol_1_decoder_feed(Protocol1Data* data, bool level, uint32_t du
     }
 }
 
-static bool protocol_1_encoder_start(Protocol1Data* data) {
+static bool protocol_1_encoder_start(Protocol1Data *data)
+{
     data->encoder_counter = 0;
     return true;
 }
 
-static LevelDuration protocol_1_encoder_yield(Protocol1Data* data) {
+static LevelDuration protocol_1_encoder_yield(Protocol1Data *data)
+{
     data->encoder_counter++;
     return level_duration_make(!(data->encoder_counter % 2), 100);
 }
@@ -138,21 +152,22 @@ static const ProtocolBase protocol_1 = {
         },
 };
 
-static const ProtocolBase* test_protocols_base[] = {
+static const ProtocolBase *test_protocols_base[] = {
     [TestDictProtocol0] = &protocol_0,
     [TestDictProtocol1] = &protocol_1,
 };
 
-MU_TEST(test_protocol_dict) {
-    ProtocolDict* dict = protocol_dict_alloc(test_protocols_base, TestDictProtocolMax);
+MU_TEST(test_protocol_dict)
+{
+    ProtocolDict *dict = protocol_dict_alloc(test_protocols_base, TestDictProtocolMax);
     size_t max_data_size = protocol_dict_get_max_data_size(dict);
     mu_assert_int_eq(8, max_data_size);
-    uint8_t* data = malloc(max_data_size);
+    uint8_t *data = malloc(max_data_size);
 
     protocol_dict_decoders_start(dict);
     ProtocolId protocol_id = PROTOCOL_NO;
 
-    for(size_t i = 0; i < 100; i++) {
+    for (size_t i = 0; i < 100; i++) {
         protocol_id = protocol_dict_decoders_feed(dict, i % 2, 100);
         mu_assert_int_eq(PROTOCOL_NO, protocol_id);
     }
@@ -212,11 +227,13 @@ MU_TEST(test_protocol_dict) {
     free(data);
 }
 
-MU_TEST_SUITE(test_protocol_dict_suite) {
+MU_TEST_SUITE(test_protocol_dict_suite)
+{
     MU_RUN_TEST(test_protocol_dict);
 }
 
-int run_minunit_test_protocol_dict(void) {
+int run_minunit_test_protocol_dict(void)
+{
     MU_RUN_SUITE(test_protocol_dict_suite);
     return MU_EXIT_CODE;
 }

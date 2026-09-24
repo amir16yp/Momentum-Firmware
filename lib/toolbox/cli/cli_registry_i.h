@@ -16,29 +16,27 @@ extern "C" {
 #define CLI_BUILTIN_COMMAND_STACK_SIZE (4 * 1024U)
 
 typedef struct {
-    void* context; //<! Context passed to callbacks
+    void *context;                              //<! Context passed to callbacks
     CliCommandExecuteCallback execute_callback; //<! Callback for command execution
     CliCommandFlag flags;
     size_t stack_depth;
 } CliRegistryCommand;
 
-DICT_DEF2(CliCommandDict, FuriString*, FURI_STRING_OPLIST, CliRegistryCommand, M_POD_OPLIST);
+DICT_DEF2(CliCommandDict, FuriString *, FURI_STRING_OPLIST, CliRegistryCommand, M_POD_OPLIST);
 
 #define M_OPL_CliCommandDict_t() DICT_OPLIST(CliCommandDict, FURI_STRING_OPLIST, M_POD_OPLIST)
 
-bool cli_registry_get_command(
-    CliRegistry* registry,
-    FuriString* command,
-    CliRegistryCommand* result);
+bool cli_registry_get_command(CliRegistry *registry, FuriString *command,
+                              CliRegistryCommand *result);
 
-void cli_registry_lock(CliRegistry* registry);
+void cli_registry_lock(CliRegistry *registry);
 
-void cli_registry_unlock(CliRegistry* registry);
+void cli_registry_unlock(CliRegistry *registry);
 
 /**
  * @warning Surround calls to this function with `cli_registry_[un]lock`
  */
-CliCommandDict_t* cli_registry_get_commands(CliRegistry* registry);
+CliCommandDict_t *cli_registry_get_commands(CliRegistry *registry);
 
 #ifdef __cplusplus
 }

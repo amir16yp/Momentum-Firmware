@@ -9,15 +9,16 @@
 #define TAG "ExampleAppsData"
 
 // Application entry point
-int32_t example_apps_data_main(void* p) {
+int32_t example_apps_data_main(void *p)
+{
     // Mark argument as unused
     UNUSED(p);
 
     // Open storage
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     // Allocate file
-    File* file = storage_file_alloc(storage);
+    File *file = storage_file_alloc(storage);
 
     // Get the path to the current application data folder
     // That is: /ext/apps_data/<app_name>
@@ -26,10 +27,10 @@ int32_t example_apps_data_main(void* p) {
     // And file will be /ext/apps_data/example_apps_data/test.txt
 
     // Open file, write data and close it
-    if(!storage_file_open(file, APP_DATA_PATH("test.txt"), FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+    if (!storage_file_open(file, APP_DATA_PATH("test.txt"), FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
         FURI_LOG_E(TAG, "Failed to open file");
     }
-    if(!storage_file_write(file, "Hello World!", strlen("Hello World!"))) {
+    if (!storage_file_write(file, "Hello World!", strlen("Hello World!"))) {
         FURI_LOG_E(TAG, "Failed to write to file");
     }
     storage_file_close(file);

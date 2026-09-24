@@ -5,7 +5,7 @@
 /*
  * Help
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/acurite.c
- * 
+ *
  * Acurite 5n1 Wind Speed Temperature Humidity sensor decoder
  * Message Type 0x38, 8 bytes
  * | Byte 0    | Byte 1    | Byte 2    | Byte 3    | Byte 4    | Byte 5    | Byte 6    | Byte 7    |
@@ -15,7 +15,7 @@
  * - I: Device ID (14 bits)
  * - B: Battery, 1 is battery OK, 0 is battery low
  * - M: Message type (6 bits), 0x38
- * - W: Wind Speed (8 bits) 
+ * - W: Wind Speed (8 bits)
  * - T: Temperature Fahrenheit (11 bits), + 400 * 10
  * - H: Relative Humidity (%) (7 bits)
  * - K: Checksum (8 bits)
@@ -24,7 +24,7 @@
  * - Temperature
  *   - Encoded as Fahrenheit + 400 * 10
  *   - only 11 bits needed for specified range -40 F - 158 F (-40 C to 70 C)
- * 
+ *
  */
 
 static const SubGhzBlockConst ws_protocol_acurite_5n1_const = {
@@ -94,47 +94,48 @@ const SubGhzProtocol ws_protocol_acurite_5n1 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_acurite_5n1_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_acurite_5n1_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderAcurite_5n1* instance = malloc(sizeof(WSProtocolDecoderAcurite_5n1));
+    WSProtocolDecoderAcurite_5n1 *instance = malloc(sizeof(WSProtocolDecoderAcurite_5n1));
     instance->base.protocol = &ws_protocol_acurite_5n1;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_acurite_5n1_free(void* context) {
+void ws_protocol_decoder_acurite_5n1_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_acurite_5n1_reset(void* context) {
+void ws_protocol_decoder_acurite_5n1_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
     instance->decoder.parser_step = Acurite_5n1DecoderStepReset;
 }
 
-static bool ws_protocol_acurite_5n1_check_crc(WSProtocolDecoderAcurite_5n1* instance) {
-    uint8_t msg[] = {
-        instance->decoder.decode_data >> 56,
-        instance->decoder.decode_data >> 48,
-        instance->decoder.decode_data >> 40,
-        instance->decoder.decode_data >> 32,
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8};
+static bool ws_protocol_acurite_5n1_check_crc(WSProtocolDecoderAcurite_5n1 *instance)
+{
+    uint8_t msg[] = {instance->decoder.decode_data >> 56, instance->decoder.decode_data >> 48,
+                     instance->decoder.decode_data >> 40, instance->decoder.decode_data >> 32,
+                     instance->decoder.decode_data >> 24, instance->decoder.decode_data >> 16,
+                     instance->decoder.decode_data >> 8};
 
-    if((subghz_protocol_blocks_add_bytes(msg, 7) ==
-        (uint8_t)(instance->decoder.decode_data & 0xFF)) &&
-       (!subghz_protocol_blocks_parity_bytes(&msg[2], 5))) {
+    if ((subghz_protocol_blocks_add_bytes(msg, 7) ==
+         (uint8_t)(instance->decoder.decode_data & 0xFF)) &&
+        (!subghz_protocol_blocks_parity_bytes(&msg[2], 5))) {
         return true;
     } else {
         return false;
     }
 }
 
-static bool ws_protocol_acurite_5n1_check_message_type(WSProtocolDecoderAcurite_5n1* instance) {
-    if(((instance->decoder.decode_data >> 40) & 0x3F) == 0x38) {
+static bool ws_protocol_acurite_5n1_check_message_type(WSProtocolDecoderAcurite_5n1 *instance)
+{
+    if (((instance->decoder.decode_data >> 40) & 0x3F) == 0x38) {
         return true;
     } else {
         return false;
@@ -145,7 +146,8 @@ static bool ws_protocol_acurite_5n1_check_message_type(WSProtocolDecoderAcurite_
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_acurite_5n1_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_acurite_5n1_remote_controller(WSBlockGeneric *instance)
+{
     uint8_t channel[] = {3, 0, 2, 1};
     uint8_t channel_raw = ((instance->data >> 62) & 0x03);
     instance->channel = channel[channel_raw];
@@ -159,14 +161,15 @@ static void ws_protocol_acurite_5n1_remote_controller(WSBlockGeneric* instance) 
     instance->btn = WS_NO_BTN;
 }
 
-void ws_protocol_decoder_acurite_5n1_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_acurite_5n1_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Acurite_5n1DecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short * 3) <
-                       ws_protocol_acurite_5n1_const.te_delta * 2)) {
+        if ((level) && (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short * 3) <
+                        ws_protocol_acurite_5n1_const.te_delta * 2)) {
             instance->decoder.parser_step = Acurite_5n1DecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -174,32 +177,31 @@ void ws_protocol_decoder_acurite_5n1_feed(void* context, bool level, uint32_t du
         break;
 
     case Acurite_5n1DecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(
-                    instance->decoder.te_last, ws_protocol_acurite_5n1_const.te_short * 3) <
-                ws_protocol_acurite_5n1_const.te_delta * 2) &&
-               (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short * 3) <
-                ws_protocol_acurite_5n1_const.te_delta * 2)) {
-                //Found preambule
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               ws_protocol_acurite_5n1_const.te_short * 3) <
+                 ws_protocol_acurite_5n1_const.te_delta * 2) &&
+                (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short * 3) <
+                 ws_protocol_acurite_5n1_const.te_delta * 2)) {
+                // Found preambule
                 instance->header_count++;
-            } else if((instance->header_count > 2) && (instance->header_count < 5)) {
-                if((DURATION_DIFF(
-                        instance->decoder.te_last, ws_protocol_acurite_5n1_const.te_short) <
-                    ws_protocol_acurite_5n1_const.te_delta) &&
-                   (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_long) <
-                    ws_protocol_acurite_5n1_const.te_delta)) {
+            } else if ((instance->header_count > 2) && (instance->header_count < 5)) {
+                if ((DURATION_DIFF(instance->decoder.te_last,
+                                   ws_protocol_acurite_5n1_const.te_short) <
+                     ws_protocol_acurite_5n1_const.te_delta) &&
+                    (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_long) <
+                     ws_protocol_acurite_5n1_const.te_delta)) {
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = Acurite_5n1DecoderStepSaveDuration;
-                } else if(
-                    (DURATION_DIFF(
-                         instance->decoder.te_last, ws_protocol_acurite_5n1_const.te_long) <
-                     ws_protocol_acurite_5n1_const.te_delta) &&
-                    (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short) <
-                     ws_protocol_acurite_5n1_const.te_delta)) {
+                } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                          ws_protocol_acurite_5n1_const.te_long) <
+                            ws_protocol_acurite_5n1_const.te_delta) &&
+                           (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short) <
+                            ws_protocol_acurite_5n1_const.te_delta)) {
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
@@ -214,7 +216,7 @@ void ws_protocol_decoder_acurite_5n1_feed(void* context, bool level, uint32_t du
         break;
 
     case Acurite_5n1DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Acurite_5n1DecoderStepCheckDuration;
         } else {
@@ -223,34 +225,34 @@ void ws_protocol_decoder_acurite_5n1_feed(void* context, bool level, uint32_t du
         break;
 
     case Acurite_5n1DecoderStepCheckDuration:
-        if(!level) {
-            if(duration >= ((uint32_t)ws_protocol_acurite_5n1_const.te_short * 5)) {
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_acurite_5n1_const.min_count_bit_for_found) &&
-                   ws_protocol_acurite_5n1_check_crc(instance) &&
-                   ws_protocol_acurite_5n1_check_message_type(instance)) {
+        if (!level) {
+            if (duration >= ((uint32_t)ws_protocol_acurite_5n1_const.te_short * 5)) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_acurite_5n1_const.min_count_bit_for_found) &&
+                    ws_protocol_acurite_5n1_check_crc(instance) &&
+                    ws_protocol_acurite_5n1_check_message_type(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_acurite_5n1_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
                 instance->decoder.parser_step = Acurite_5n1DecoderStepReset;
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_acurite_5n1_const.te_short) <
-                 ws_protocol_acurite_5n1_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_long) <
-                 ws_protocol_acurite_5n1_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_acurite_5n1_const.te_short) <
+                        ws_protocol_acurite_5n1_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_long) <
+                        ws_protocol_acurite_5n1_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Acurite_5n1DecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_acurite_5n1_const.te_long) <
-                 ws_protocol_acurite_5n1_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short) <
-                 ws_protocol_acurite_5n1_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_acurite_5n1_const.te_long) <
+                        ws_protocol_acurite_5n1_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_acurite_5n1_const.te_short) <
+                        ws_protocol_acurite_5n1_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Acurite_5n1DecoderStepSaveDuration;
             } else {
@@ -263,32 +265,35 @@ void ws_protocol_decoder_acurite_5n1_feed(void* context, bool level, uint32_t du
     }
 }
 
-uint32_t ws_protocol_decoder_acurite_5n1_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_acurite_5n1_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderAcurite_5n1 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_acurite_5n1_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_5n1_serialize(void *context,
+                                                               FlipperFormat *flipper_format,
+                                                               SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_acurite_5n1_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_5n1_deserialize(void *context,
+                                                                 FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_acurite_5n1_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_acurite_5n1_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_acurite_5n1_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_5n1* instance = context;
+    WSProtocolDecoderAcurite_5n1 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

@@ -11,11 +11,8 @@
  * @param aid_name - string to keep AID name
  * @return - true if AID found, false otherwise
  */
-bool nfc_emv_parser_get_aid_name(
-    Storage* storage,
-    const uint8_t* aid,
-    uint8_t aid_len,
-    FuriString* aid_name);
+bool nfc_emv_parser_get_aid_name(Storage *storage, const uint8_t *aid, uint8_t aid_len,
+                                 FuriString *aid_name);
 
 /** Get country name by country code
  * @param storage Storage instance
@@ -23,10 +20,8 @@ bool nfc_emv_parser_get_aid_name(
  * @param country_name - string to keep country name
  * @return - true if country found, false otherwise
  */
-bool nfc_emv_parser_get_country_name(
-    Storage* storage,
-    uint16_t country_code,
-    FuriString* country_name);
+bool nfc_emv_parser_get_country_name(Storage *storage, uint16_t country_code,
+                                     FuriString *country_name);
 
 /** Get currency name by currency code
  * @param storage Storage instance
@@ -34,7 +29,5 @@ bool nfc_emv_parser_get_country_name(
  * @param currency_name - string to keep currency name
  * @return - true if currency found, false otherwise
  */
-bool nfc_emv_parser_get_currency_name(
-    Storage* storage,
-    uint16_t currency_code,
-    FuriString* currency_name);
+bool nfc_emv_parser_get_currency_name(Storage *storage, uint16_t currency_code,
+                                      FuriString *currency_name);

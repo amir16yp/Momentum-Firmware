@@ -1,16 +1,18 @@
 #include "../ibutton_i.h"
 #include <dolphin/dolphin.h>
 
-static void ibutton_scene_read_callback(void* context) {
-    iButton* ibutton = context;
+static void ibutton_scene_read_callback(void *context)
+{
+    iButton *ibutton = context;
     view_dispatcher_send_custom_event(ibutton->view_dispatcher, iButtonCustomEventWorkerRead);
 }
 
-void ibutton_scene_read_on_enter(void* context) {
-    iButton* ibutton = context;
-    Popup* popup = ibutton->popup;
-    iButtonKey* key = ibutton->key;
-    iButtonWorker* worker = ibutton->worker;
+void ibutton_scene_read_on_enter(void *context)
+{
+    iButton *ibutton = context;
+    Popup *popup = ibutton->popup;
+    iButtonKey *key = ibutton->key;
+    iButtonWorker *worker = ibutton->worker;
 
     popup_set_header(popup, "Reading", 95, 26, AlignCenter, AlignBottom);
     popup_set_text(popup, "Connect key\nwith pogo pins", 95, 30, AlignCenter, AlignTop);
@@ -24,17 +26,18 @@ void ibutton_scene_read_on_enter(void* context) {
     ibutton_notification_message(ibutton, iButtonNotificationMessageReadStart);
 }
 
-bool ibutton_scene_read_on_event(void* context, SceneManagerEvent event) {
-    iButton* ibutton = context;
-    SceneManager* scene_manager = ibutton->scene_manager;
+bool ibutton_scene_read_on_event(void *context, SceneManagerEvent event)
+{
+    iButton *ibutton = context;
+    SceneManager *scene_manager = ibutton->scene_manager;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeTick) {
+    if (event.type == SceneManagerEventTypeTick) {
         consumed = true;
-    } else if(event.type == SceneManagerEventTypeCustom) {
+    } else if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == iButtonCustomEventWorkerRead) {
-            if(ibutton_protocols_is_valid(ibutton->protocols, ibutton->key)) {
+        if (event.event == iButtonCustomEventWorkerRead) {
+            if (ibutton_protocols_is_valid(ibutton->protocols, ibutton->key)) {
                 ibutton_notification_message(ibutton, iButtonNotificationMessageSuccess);
                 scene_manager_next_scene(scene_manager, iButtonSceneReadSuccess);
 
@@ -49,9 +52,10 @@ bool ibutton_scene_read_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void ibutton_scene_read_on_exit(void* context) {
-    iButton* ibutton = context;
-    Popup* popup = ibutton->popup;
+void ibutton_scene_read_on_exit(void *context)
+{
+    iButton *ibutton = context;
+    Popup *popup = ibutton->popup;
     ibutton_worker_stop(ibutton->worker);
     popup_set_header(popup, NULL, 0, 0, AlignCenter, AlignBottom);
     popup_set_text(popup, NULL, 0, 0, AlignCenter, AlignTop);

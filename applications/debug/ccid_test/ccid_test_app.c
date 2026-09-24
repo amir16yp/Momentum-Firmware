@@ -19,11 +19,11 @@ typedef enum {
 } EventType;
 
 typedef struct {
-    Gui* gui;
-    ViewPort* view_port;
-    FuriMessageQueue* event_queue;
+    Gui *gui;
+    ViewPort *view_port;
+    FuriMessageQueue *event_queue;
     FuriHalUsbCcidConfig ccid_cfg;
-    Iso7816Handler* iso7816_handler;
+    Iso7816Handler *iso7816_handler;
 } CcidTestApp;
 
 typedef struct {
@@ -39,7 +39,8 @@ typedef enum {
     CcidTestSubmenuIndexInsertSmartcardReader
 } SubmenuIndex;
 
-static void ccid_test_app_render_callback(Canvas* canvas, void* ctx) {
+static void ccid_test_app_render_callback(Canvas *canvas, void *ctx)
+{
     UNUSED(ctx);
     canvas_clear(canvas);
 
@@ -50,8 +51,9 @@ static void ccid_test_app_render_callback(Canvas* canvas, void* ctx) {
     canvas_draw_str(canvas, 0, 63, "Hold [back] to exit");
 }
 
-static void ccid_test_app_input_callback(InputEvent* input_event, void* ctx) {
-    FuriMessageQueue* event_queue = ctx;
+static void ccid_test_app_input_callback(InputEvent *input_event, void *ctx)
+{
+    FuriMessageQueue *event_queue = ctx;
 
     CcidTestAppEvent event;
     event.type = EventTypeInput;
@@ -59,16 +61,18 @@ static void ccid_test_app_input_callback(InputEvent* input_event, void* ctx) {
     furi_message_queue_put(event_queue, &event, FuriWaitForever);
 }
 
-uint32_t ccid_test_exit(void* context) {
+uint32_t ccid_test_exit(void *context)
+{
     UNUSED(context);
     return VIEW_NONE;
 }
 
-CcidTestApp* ccid_test_app_alloc(void) {
-    CcidTestApp* app = malloc(sizeof(CcidTestApp));
+CcidTestApp *ccid_test_app_alloc(void)
+{
+    CcidTestApp *app = malloc(sizeof(CcidTestApp));
 
-    //setup CCID USB
-    // On linux: set VID PID using: /usr/lib/pcsc/drivers/ifd-ccid.bundle/Contents/Info.plist
+    // setup CCID USB
+    //  On linux: set VID PID using: /usr/lib/pcsc/drivers/ifd-ccid.bundle/Contents/Info.plist
     app->ccid_cfg.vid = 0x076B;
     app->ccid_cfg.pid = 0x3A21;
 
@@ -79,25 +83,26 @@ CcidTestApp* ccid_test_app_alloc(void) {
     // Gui
     app->gui = furi_record_open(RECORD_GUI);
 
-    //viewport
+    // viewport
     app->view_port = view_port_alloc();
     gui_add_view_port(app->gui, app->view_port, GuiLayerFullscreen);
     view_port_draw_callback_set(app->view_port, ccid_test_app_render_callback, NULL);
 
-    //message queue
+    // message queue
     app->event_queue = furi_message_queue_alloc(8, sizeof(CcidTestAppEvent));
     view_port_input_callback_set(app->view_port, ccid_test_app_input_callback, app->event_queue);
 
     return app;
 }
 
-void ccid_test_app_free(CcidTestApp* app) {
+void ccid_test_app_free(CcidTestApp *app)
+{
     furi_assert(app);
 
-    //message queue
+    // message queue
     furi_message_queue_free(app->event_queue);
 
-    //view port
+    // view port
     gui_remove_view_port(app->gui, app->view_port);
     view_port_free(app->view_port);
 
@@ -111,28 +116,28 @@ void ccid_test_app_free(CcidTestApp* app) {
     free(app);
 }
 
-int32_t ccid_test_app(void* p) {
+int32_t ccid_test_app(void *p)
+{
     UNUSED(p);
 
-    //setup view
-    CcidTestApp* app = ccid_test_app_alloc();
+    // setup view
+    CcidTestApp *app = ccid_test_app_alloc();
 
-    FuriHalUsbInterface* usb_mode_prev = furi_hal_usb_get_config();
+    FuriHalUsbInterface *usb_mode_prev = furi_hal_usb_get_config();
     furi_hal_usb_unlock();
 
     furi_check(furi_hal_usb_set_config(&usb_ccid, &app->ccid_cfg) == true);
     iso7816_handler_set_usb_ccid_callbacks();
     furi_hal_usb_ccid_insert_smartcard();
 
-    //handle button events
+    // handle button events
     CcidTestAppEvent event;
-    while(1) {
-        FuriStatus event_status =
-            furi_message_queue_get(app->event_queue, &event, FuriWaitForever);
+    while (1) {
+        FuriStatus event_status = furi_message_queue_get(app->event_queue, &event, FuriWaitForever);
 
-        if(event_status == FuriStatusOk) {
-            if(event.type == EventTypeInput) {
-                if(event.input.type == InputTypeLong && event.input.key == InputKeyBack) {
+        if (event_status == FuriStatusOk) {
+            if (event.type == EventTypeInput) {
+                if (event.input.type == InputTypeLong && event.input.key == InputKeyBack) {
                     break;
                 }
             }
@@ -140,11 +145,11 @@ int32_t ccid_test_app(void* p) {
         view_port_update(app->view_port);
     }
 
-    //tear down USB
+    // tear down USB
     iso7816_handler_reset_usb_ccid_callbacks();
     furi_hal_usb_set_config(usb_mode_prev, NULL);
 
-    //teardown view
+    // teardown view
     ccid_test_app_free(app);
     return 0;
 }

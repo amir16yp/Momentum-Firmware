@@ -17,12 +17,12 @@ typedef enum {
 } Iso14443_4aListenerEventType;
 
 typedef struct {
-    BitBuffer* buffer;
+    BitBuffer *buffer;
 } Iso14443_4aListenerEventData;
 
 typedef struct {
     Iso14443_4aListenerEventType type;
-    Iso14443_4aListenerEventData* data;
+    Iso14443_4aListenerEventData *data;
 } Iso14443_4aListenerEvent;
 
 /**
@@ -34,8 +34,8 @@ typedef struct {
  * @param[in] tx_buffer pointer to the buffer containing the data to be transmitted.
  * @return Iso14443_4aErrorNone on success, an error code on failure.
  */
-Iso14443_4aError
-    iso14443_4a_listener_send_block(Iso14443_4aListener* instance, const BitBuffer* tx_buffer);
+Iso14443_4aError iso14443_4a_listener_send_block(Iso14443_4aListener *instance,
+                                                 const BitBuffer *tx_buffer);
 
 #ifdef __cplusplus
 }

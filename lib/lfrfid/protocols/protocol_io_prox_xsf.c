@@ -6,21 +6,21 @@
 #include "lfrfid_protocols.h"
 
 #define JITTER_TIME (20)
-#define MIN_TIME    (64 - JITTER_TIME)
-#define MAX_TIME    (80 + JITTER_TIME)
+#define MIN_TIME (64 - JITTER_TIME)
+#define MAX_TIME (80 + JITTER_TIME)
 
 #define IOPROXXSF_DECODED_DATA_SIZE (4)
 #define IOPROXXSF_ENCODED_DATA_SIZE (8)
 
-#define IOPROXXSF_BIT_SIZE     (8)
+#define IOPROXXSF_BIT_SIZE (8)
 #define IOPROXXSF_BIT_MAX_SIZE (IOPROXXSF_BIT_SIZE * IOPROXXSF_ENCODED_DATA_SIZE)
 
 typedef struct {
-    FSKDemod* fsk_demod;
+    FSKDemod *fsk_demod;
 } ProtocolIOProxXSFDecoder;
 
 typedef struct {
-    FSKOsc* fsk_osc;
+    FSKOsc *fsk_osc;
     uint8_t encoded_index;
 } ProtocolIOProxXSFEncoder;
 
@@ -31,55 +31,61 @@ typedef struct {
     uint8_t data[IOPROXXSF_DECODED_DATA_SIZE];
 } ProtocolIOProxXSF;
 
-ProtocolIOProxXSF* protocol_io_prox_xsf_alloc(void) {
-    ProtocolIOProxXSF* protocol = malloc(sizeof(ProtocolIOProxXSF));
+ProtocolIOProxXSF *protocol_io_prox_xsf_alloc(void)
+{
+    ProtocolIOProxXSF *protocol = malloc(sizeof(ProtocolIOProxXSF));
     protocol->decoder.fsk_demod = fsk_demod_alloc(MIN_TIME, 8, MAX_TIME, 6);
     protocol->encoder.fsk_osc = fsk_osc_alloc(8, 10, 64);
     return protocol;
 }
 
-void protocol_io_prox_xsf_free(ProtocolIOProxXSF* protocol) {
+void protocol_io_prox_xsf_free(ProtocolIOProxXSF *protocol)
+{
     fsk_demod_free(protocol->decoder.fsk_demod);
     fsk_osc_free(protocol->encoder.fsk_osc);
     free(protocol);
 }
 
-uint8_t* protocol_io_prox_xsf_get_data(ProtocolIOProxXSF* protocol) {
+uint8_t *protocol_io_prox_xsf_get_data(ProtocolIOProxXSF *protocol)
+{
     return protocol->data;
 }
 
-void protocol_io_prox_xsf_decoder_start(ProtocolIOProxXSF* protocol) {
+void protocol_io_prox_xsf_decoder_start(ProtocolIOProxXSF *protocol)
+{
     memset(protocol->encoded_data, 0, IOPROXXSF_ENCODED_DATA_SIZE);
 }
 
-static uint8_t protocol_io_prox_xsf_compute_checksum(const uint8_t* data) {
+static uint8_t protocol_io_prox_xsf_compute_checksum(const uint8_t *data)
+{
     // Packet structure:
     //
-    //0        1        2         3         4         5         6         7
-    //v        v        v         v         v         v         v         v
-    //01234567 8 9ABCDEF0 1 23456789 A BCDEF012 3 456789AB C DEF01234 5 6789ABCD EF
-    //00000000 0 VVVVVVVV 1 WWWWWWWW 1 XXXXXXXX 1 YYYYYYYY 1 ZZZZZZZZ 1 CHECKSUM 11
+    // 0        1        2         3         4         5         6         7
+    // v        v        v         v         v         v         v         v
+    // 01234567 8 9ABCDEF0 1 23456789 A BCDEF012 3 456789AB C DEF01234 5 6789ABCD EF
+    // 00000000 0 VVVVVVVV 1 WWWWWWWW 1 XXXXXXXX 1 YYYYYYYY 1 ZZZZZZZZ 1 CHECKSUM 11
     //
     // algorithm as observed by the proxmark3 folks
     // CHECKSUM == 0xFF - (V + W + X + Y + Z)
 
     uint8_t checksum = 0;
 
-    for(size_t i = 1; i <= 5; i++) {
+    for (size_t i = 1; i <= 5; i++) {
         checksum += bit_lib_get_bits(data, 9 * i, 8);
     }
 
     return 0xFF - checksum;
 }
 
-static bool protocol_io_prox_xsf_can_be_decoded(const uint8_t* encoded_data) {
+static bool protocol_io_prox_xsf_can_be_decoded(const uint8_t *encoded_data)
+{
     // Packet framing
     //
-    //0        1        2        3        4        5        6        7
-    //v        v        v        v        v        v        v        v
-    //01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF
+    // 0        1        2        3        4        5        6        7
+    // v        v        v        v        v        v        v        v
+    // 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF
     //-----------------------------------------------------------------------
-    //00000000 01______ _1______ __1_____ ___1____ ____1___ _____1XX XXXXXX11
+    // 00000000 01______ _1______ __1_____ ___1____ ____1___ _____1XX XXXXXX11
     //
     // _ = variable data
     // 0 = preamble 0
@@ -87,33 +93,33 @@ static bool protocol_io_prox_xsf_can_be_decoded(const uint8_t* encoded_data) {
     // X = checksum
 
     // Validate the packet preamble is there...
-    if(encoded_data[0] != 0b00000000) {
+    if (encoded_data[0] != 0b00000000) {
         return false;
     }
-    if((encoded_data[1] >> 6) != 0b01) {
+    if ((encoded_data[1] >> 6) != 0b01) {
         return false;
     }
 
     // ... check for known ones...
-    if(bit_lib_bit_is_not_set(encoded_data[2], 6)) {
+    if (bit_lib_bit_is_not_set(encoded_data[2], 6)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[3], 5)) {
+    if (bit_lib_bit_is_not_set(encoded_data[3], 5)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[4], 4)) {
+    if (bit_lib_bit_is_not_set(encoded_data[4], 4)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[5], 3)) {
+    if (bit_lib_bit_is_not_set(encoded_data[5], 3)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[6], 2)) {
+    if (bit_lib_bit_is_not_set(encoded_data[6], 2)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[7], 1)) {
+    if (bit_lib_bit_is_not_set(encoded_data[7], 1)) {
         return false;
     }
-    if(bit_lib_bit_is_not_set(encoded_data[7], 0)) {
+    if (bit_lib_bit_is_not_set(encoded_data[7], 0)) {
         return false;
     }
 
@@ -121,23 +127,24 @@ static bool protocol_io_prox_xsf_can_be_decoded(const uint8_t* encoded_data) {
     uint8_t checksum = protocol_io_prox_xsf_compute_checksum(encoded_data);
     uint8_t checkval = bit_lib_get_bits(encoded_data, 54, 8);
 
-    if(checksum != checkval) {
+    if (checksum != checkval) {
         return false;
     }
 
     return true;
 }
 
-void protocol_io_prox_xsf_decode(const uint8_t* encoded_data, uint8_t* decoded_data) {
+void protocol_io_prox_xsf_decode(const uint8_t *encoded_data, uint8_t *decoded_data)
+{
     // Packet structure:
     // (Note: the second word seems fixed; but this may not be a guarantee;
     //  it currently has no meaning.)
     //
-    //0        1        2        3        4        5        6        7
-    //v        v        v        v        v        v        v        v
-    //01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF
+    // 0        1        2        3        4        5        6        7
+    // v        v        v        v        v        v        v        v
+    // 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF 01234567 89ABCDEF
     //-----------------------------------------------------------------------
-    //00000000 01111000 01FFFFFF FF1VVVVV VVV1CCCC CCCC1CCC CCCCC1XX XXXXXX11
+    // 00000000 01111000 01FFFFFF FF1VVVVV VVV1CCCC CCCC1CCC CCCCC1XX XXXXXX11
     //
     // F = facility code
     // V = version
@@ -155,16 +162,17 @@ void protocol_io_prox_xsf_decode(const uint8_t* encoded_data, uint8_t* decoded_d
     decoded_data[3] = bit_lib_get_bits(encoded_data, 45, 8);
 }
 
-bool protocol_io_prox_xsf_decoder_feed(ProtocolIOProxXSF* protocol, bool level, uint32_t duration) {
+bool protocol_io_prox_xsf_decoder_feed(ProtocolIOProxXSF *protocol, bool level, uint32_t duration)
+{
     bool result = false;
 
     uint32_t count;
     bool value;
 
     fsk_demod_feed(protocol->decoder.fsk_demod, level, duration, &value, &count);
-    for(size_t i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         bit_lib_push_bit(protocol->encoded_data, IOPROXXSF_ENCODED_DATA_SIZE, value);
-        if(protocol_io_prox_xsf_can_be_decoded(protocol->encoded_data)) {
+        if (protocol_io_prox_xsf_can_be_decoded(protocol->encoded_data)) {
             protocol_io_prox_xsf_decode(protocol->encoded_data, protocol->data);
             result = true;
             break;
@@ -174,7 +182,8 @@ bool protocol_io_prox_xsf_decoder_feed(ProtocolIOProxXSF* protocol, bool level, 
     return result;
 }
 
-static void protocol_io_prox_xsf_encode(const uint8_t* decoded_data, uint8_t* encoded_data) {
+static void protocol_io_prox_xsf_encode(const uint8_t *decoded_data, uint8_t *encoded_data)
+{
     // Packet to transmit:
     //
     // 0           10          20          30          40          50          60
@@ -212,51 +221,50 @@ static void protocol_io_prox_xsf_encode(const uint8_t* decoded_data, uint8_t* en
     bit_lib_set_bit(encoded_data, 63, 1);
 }
 
-bool protocol_io_prox_xsf_encoder_start(ProtocolIOProxXSF* protocol) {
+bool protocol_io_prox_xsf_encoder_start(ProtocolIOProxXSF *protocol)
+{
     protocol_io_prox_xsf_encode(protocol->data, protocol->encoded_data);
     protocol->encoder.encoded_index = 0;
     fsk_osc_reset(protocol->encoder.fsk_osc);
     return true;
 }
 
-LevelDuration protocol_io_prox_xsf_encoder_yield(ProtocolIOProxXSF* protocol) {
+LevelDuration protocol_io_prox_xsf_encoder_yield(ProtocolIOProxXSF *protocol)
+{
     bool level;
     uint32_t duration;
 
     bool bit = bit_lib_get_bit(protocol->encoded_data, protocol->encoder.encoded_index);
     bool advance = fsk_osc_next_half(protocol->encoder.fsk_osc, bit, &level, &duration);
 
-    if(advance) {
+    if (advance) {
         bit_lib_increment_index(protocol->encoder.encoded_index, IOPROXXSF_BIT_MAX_SIZE);
     }
     return level_duration_make(level, duration);
 }
 
-void protocol_io_prox_xsf_render_data(ProtocolIOProxXSF* protocol, FuriString* result) {
-    uint8_t* data = protocol->data;
-    furi_string_printf(
-        result,
-        "FC: %hhu\n"
-        "V: %hhu\n"
-        "Card: %hu",
-        data[0],
-        data[1],
-        (uint16_t)((data[2] << 8) | (data[3])));
+void protocol_io_prox_xsf_render_data(ProtocolIOProxXSF *protocol, FuriString *result)
+{
+    uint8_t *data = protocol->data;
+    furi_string_printf(result,
+                       "FC: %hhu\n"
+                       "V: %hhu\n"
+                       "Card: %hu",
+                       data[0], data[1], (uint16_t)((data[2] << 8) | (data[3])));
 }
 
-void protocol_io_prox_xsf_render_brief_data(ProtocolIOProxXSF* protocol, FuriString* result) {
-    uint8_t* data = protocol->data;
-    furi_string_printf(
-        result,
-        "FC: %hhu, V: %hhu\n"
-        "Card: %hu",
-        data[0],
-        data[1],
-        (uint16_t)((data[2] << 8) | (data[3])));
+void protocol_io_prox_xsf_render_brief_data(ProtocolIOProxXSF *protocol, FuriString *result)
+{
+    uint8_t *data = protocol->data;
+    furi_string_printf(result,
+                       "FC: %hhu, V: %hhu\n"
+                       "Card: %hu",
+                       data[0], data[1], (uint16_t)((data[2] << 8) | (data[3])));
 }
 
-bool protocol_io_prox_xsf_write_data(ProtocolIOProxXSF* protocol, void* data) {
-    LFRFIDWriteRequest* request = (LFRFIDWriteRequest*)data;
+bool protocol_io_prox_xsf_write_data(ProtocolIOProxXSF *protocol, void *data)
+{
+    LFRFIDWriteRequest *request = (LFRFIDWriteRequest *)data;
     bool result = false;
 
     // Correct protocol data by redecoding
@@ -265,7 +273,7 @@ bool protocol_io_prox_xsf_write_data(ProtocolIOProxXSF* protocol, void* data) {
 
     protocol_io_prox_xsf_encode(protocol->data, protocol->encoded_data);
 
-    if(request->write_type == LFRFIDWriteTypeT5577) {
+    if (request->write_type == LFRFIDWriteTypeT5577) {
         request->t5577.block[0] = LFRFID_T5577_MODULATION_FSK2a | LFRFID_T5577_BITRATE_RF_64 |
                                   (2 << LFRFID_T5577_MAXBLOCK_SHIFT);
         request->t5577.block[1] = bit_lib_get_bits_32(protocol->encoded_data, 0, 32);

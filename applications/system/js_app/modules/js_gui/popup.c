@@ -6,44 +6,36 @@
 
 typedef struct {
     StrBuffer str_buffer;
-    FuriSemaphore* semaphore;
+    FuriSemaphore *semaphore;
     JsEventLoopContract contract;
 } JsPopupCtx;
 
-static void timeout_callback(JsPopupCtx* context) {
+static void timeout_callback(JsPopupCtx *context)
+{
     furi_check(furi_semaphore_release(context->semaphore) == FuriStatusOk);
 }
 
-static bool
-    header_assign(struct mjs* mjs, Popup* popup, JsViewPropValue value, JsPopupCtx* context) {
+static bool header_assign(struct mjs *mjs, Popup *popup, JsViewPropValue value, JsPopupCtx *context)
+{
     UNUSED(mjs);
     UNUSED(context);
-    popup_set_header(
-        popup,
-        str_buffer_make_owned_clone(&context->str_buffer, value.string),
-        64,
-        0,
-        AlignCenter,
-        AlignTop);
+    popup_set_header(popup, str_buffer_make_owned_clone(&context->str_buffer, value.string), 64, 0,
+                     AlignCenter, AlignTop);
     return true;
 }
 
-static bool
-    text_assign(struct mjs* mjs, Popup* popup, JsViewPropValue value, JsPopupCtx* context) {
+static bool text_assign(struct mjs *mjs, Popup *popup, JsViewPropValue value, JsPopupCtx *context)
+{
     UNUSED(mjs);
     UNUSED(context);
-    popup_set_text(
-        popup,
-        str_buffer_make_owned_clone(&context->str_buffer, value.string),
-        64,
-        32,
-        AlignCenter,
-        AlignCenter);
+    popup_set_text(popup, str_buffer_make_owned_clone(&context->str_buffer, value.string), 64, 32,
+                   AlignCenter, AlignCenter);
     return true;
 }
 
-static bool
-    timeout_assign(struct mjs* mjs, Popup* popup, JsViewPropValue value, JsPopupCtx* context) {
+static bool timeout_assign(struct mjs *mjs, Popup *popup, JsViewPropValue value,
+                           JsPopupCtx *context)
+{
     UNUSED(mjs);
     UNUSED(context);
     popup_set_timeout(popup, value.number);
@@ -51,8 +43,9 @@ static bool
     return true;
 }
 
-static JsPopupCtx* ctx_make(struct mjs* mjs, Popup* popup, mjs_val_t view_obj) {
-    JsPopupCtx* context = malloc(sizeof(JsPopupCtx));
+static JsPopupCtx *ctx_make(struct mjs *mjs, Popup *popup, mjs_val_t view_obj)
+{
+    JsPopupCtx *context = malloc(sizeof(JsPopupCtx));
     context->semaphore = furi_semaphore_alloc(1, 0);
     context->contract = (JsEventLoopContract){
         .magic = JsForeignMagic_JsEventLoopContract,
@@ -69,7 +62,8 @@ static JsPopupCtx* ctx_make(struct mjs* mjs, Popup* popup, mjs_val_t view_obj) {
     return context;
 }
 
-static void ctx_destroy(Popup* popup, JsPopupCtx* context, FuriEventLoop* loop) {
+static void ctx_destroy(Popup *popup, JsPopupCtx *context, FuriEventLoop *loop)
+{
     UNUSED(popup);
     furi_event_loop_maybe_unsubscribe(loop, context->semaphore);
     furi_semaphore_free(context->semaphore);
@@ -85,18 +79,14 @@ static const JsViewDescriptor view_descriptor = {
     .custom_destroy = (JsViewCustomDestroy)ctx_destroy,
     .prop_cnt = 3,
     .props = {
+        (JsViewPropDescriptor){.name = "header",
+                               .type = JsViewPropTypeString,
+                               .assign = (JsViewPropAssign)header_assign},
         (JsViewPropDescriptor){
-            .name = "header",
-            .type = JsViewPropTypeString,
-            .assign = (JsViewPropAssign)header_assign},
-        (JsViewPropDescriptor){
-            .name = "text",
-            .type = JsViewPropTypeString,
-            .assign = (JsViewPropAssign)text_assign},
-        (JsViewPropDescriptor){
-            .name = "timeout",
-            .type = JsViewPropTypeNumber,
-            .assign = (JsViewPropAssign)timeout_assign},
+            .name = "text", .type = JsViewPropTypeString, .assign = (JsViewPropAssign)text_assign},
+        (JsViewPropDescriptor){.name = "timeout",
+                               .type = JsViewPropTypeNumber,
+                               .assign = (JsViewPropAssign)timeout_assign},
     }};
 
 JS_GUI_VIEW_DEF(popup, &view_descriptor);

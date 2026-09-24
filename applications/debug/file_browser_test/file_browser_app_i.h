@@ -15,14 +15,14 @@
 typedef struct FileBrowserApp FileBrowserApp;
 
 struct FileBrowserApp {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    DialogsApp* dialogs;
-    Widget* widget;
-    FileBrowser* file_browser;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    DialogsApp *dialogs;
+    Widget *widget;
+    FileBrowser *file_browser;
 
-    FuriString* file_path;
+    FuriString *file_path;
 };
 
 typedef enum {

@@ -3,26 +3,30 @@
 #include <furi.h>
 #include <furi_hal.h>
 
-static bool gpio_app_custom_event_callback(void* context, uint32_t event) {
+static bool gpio_app_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    GpioApp* app = context;
+    GpioApp *app = context;
     return scene_manager_handle_custom_event(app->scene_manager, event);
 }
 
-static bool gpio_app_back_event_callback(void* context) {
+static bool gpio_app_back_event_callback(void *context)
+{
     furi_assert(context);
-    GpioApp* app = context;
+    GpioApp *app = context;
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-static void gpio_app_tick_event_callback(void* context) {
+static void gpio_app_tick_event_callback(void *context)
+{
     furi_assert(context);
-    GpioApp* app = context;
+    GpioApp *app = context;
     scene_manager_handle_tick_event(app->scene_manager);
 }
 
-GpioApp* gpio_app_alloc(void) {
-    GpioApp* app = malloc(sizeof(GpioApp));
+GpioApp *gpio_app_alloc(void)
+{
+    GpioApp *app = malloc(sizeof(GpioApp));
 
     app->expansion = furi_record_open(RECORD_EXPANSION);
     expansion_disable(app->expansion);
@@ -36,12 +40,11 @@ GpioApp* gpio_app_alloc(void) {
     app->scene_manager = scene_manager_alloc(&gpio_scene_handlers, app);
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
 
-    view_dispatcher_set_custom_event_callback(
-        app->view_dispatcher, gpio_app_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        app->view_dispatcher, gpio_app_back_event_callback);
-    view_dispatcher_set_tick_event_callback(
-        app->view_dispatcher, gpio_app_tick_event_callback, 100);
+    view_dispatcher_set_custom_event_callback(app->view_dispatcher, gpio_app_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(app->view_dispatcher,
+                                                  gpio_app_back_event_callback);
+    view_dispatcher_set_tick_event_callback(app->view_dispatcher, gpio_app_tick_event_callback,
+                                            100);
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
 
@@ -49,47 +52,42 @@ GpioApp* gpio_app_alloc(void) {
 
     // Dialog view
     app->dialog = dialog_ex_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, GpioAppViewExitConfirm, dialog_ex_get_view(app->dialog));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewExitConfirm,
+                             dialog_ex_get_view(app->dialog));
 
     app->var_item_list = variable_item_list_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        GpioAppViewVarItemList,
-        variable_item_list_get_view(app->var_item_list));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewVarItemList,
+                             variable_item_list_get_view(app->var_item_list));
     app->gpio_test = gpio_test_alloc(app->gpio_items);
-    view_dispatcher_add_view(
-        app->view_dispatcher, GpioAppViewGpioTest, gpio_test_get_view(app->gpio_test));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewGpioTest,
+                             gpio_test_get_view(app->gpio_test));
 
     app->gpio_i2c_scanner = gpio_i2c_scanner_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        GpioAppViewI2CScanner,
-        gpio_i2c_scanner_get_view(app->gpio_i2c_scanner));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewI2CScanner,
+                             gpio_i2c_scanner_get_view(app->gpio_i2c_scanner));
 
     app->gpio_i2c_sfp = gpio_i2c_sfp_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, GpioAppViewI2CSfp, gpio_i2c_sfp_get_view(app->gpio_i2c_sfp));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewI2CSfp,
+                             gpio_i2c_sfp_get_view(app->gpio_i2c_sfp));
 
     app->widget = widget_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, GpioAppViewUsbUartCloseRpc, widget_get_view(app->widget));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewUsbUartCloseRpc,
+                             widget_get_view(app->widget));
 
     app->gpio_usb_uart = gpio_usb_uart_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, GpioAppViewUsbUart, gpio_usb_uart_get_view(app->gpio_usb_uart));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewUsbUart,
+                             gpio_usb_uart_get_view(app->gpio_usb_uart));
 
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        GpioAppViewUsbUartCfg,
-        variable_item_list_get_view(app->var_item_list));
+    view_dispatcher_add_view(app->view_dispatcher, GpioAppViewUsbUartCfg,
+                             variable_item_list_get_view(app->var_item_list));
 
     scene_manager_next_scene(app->scene_manager, GpioSceneStart);
 
     return app;
 }
 
-void gpio_app_free(GpioApp* app) {
+void gpio_app_free(GpioApp *app)
+{
     furi_assert(app);
 
     // Views
@@ -125,9 +123,10 @@ void gpio_app_free(GpioApp* app) {
     free(app);
 }
 
-int32_t gpio_app(void* p) {
+int32_t gpio_app(void *p)
+{
     UNUSED(p);
-    GpioApp* gpio_app = gpio_app_alloc();
+    GpioApp *gpio_app = gpio_app_alloc();
 
     view_dispatcher_run(gpio_app->view_dispatcher);
 

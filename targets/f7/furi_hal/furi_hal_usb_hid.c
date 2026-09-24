@@ -7,9 +7,9 @@
 #include "usb.h"
 #include "usb_hid.h"
 
-#define HID_EP_IN  0x81
+#define HID_EP_IN 0x81
 #define HID_EP_OUT 0x01
-#define HID_EP_SZ  0x10
+#define HID_EP_SZ 0x10
 
 #define HID_INTERVAL 2
 
@@ -234,10 +234,10 @@ static struct HidReport {
     struct HidReportConsumer consumer;
 } FURI_PACKED hid_report;
 
-static void hid_init(usbd_device* dev, FuriHalUsbInterface* intf, void* ctx);
-static void hid_deinit(usbd_device* dev);
-static void hid_on_wakeup(usbd_device* dev);
-static void hid_on_suspend(usbd_device* dev);
+static void hid_init(usbd_device *dev, FuriHalUsbInterface *intf, void *ctx);
+static void hid_deinit(usbd_device *dev);
+static void hid_on_wakeup(usbd_device *dev);
+static void hid_on_suspend(usbd_device *dev);
 
 FuriHalUsbInterface usb_hid = {
     .init = hid_init,
@@ -245,50 +245,56 @@ FuriHalUsbInterface usb_hid = {
     .wakeup = hid_on_wakeup,
     .suspend = hid_on_suspend,
 
-    .dev_descr = (struct usb_device_descriptor*)&hid_device_desc,
+    .dev_descr = (struct usb_device_descriptor *)&hid_device_desc,
 
     .str_manuf_descr = NULL,
     .str_prod_descr = NULL,
     .str_serial_descr = NULL,
 
-    .cfg_descr = (void*)&hid_cfg_desc,
+    .cfg_descr = (void *)&hid_cfg_desc,
 };
 
 static bool hid_send_report(uint8_t report_id);
-static usbd_respond hid_ep_config(usbd_device* dev, uint8_t cfg);
-static usbd_respond hid_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_callback* callback);
-static usbd_device* usb_dev;
-static FuriSemaphore* hid_semaphore = NULL;
+static usbd_respond hid_ep_config(usbd_device *dev, uint8_t cfg);
+static usbd_respond hid_control(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_callback *callback);
+static usbd_device *usb_dev;
+static FuriSemaphore *hid_semaphore = NULL;
 static bool hid_connected = false;
 static HidStateCallback callback;
-static void* cb_ctx;
+static void *cb_ctx;
 static uint8_t led_state;
 static bool boot_protocol = false;
 
-bool furi_hal_hid_is_connected(void) {
+bool furi_hal_hid_is_connected(void)
+{
     return hid_connected;
 }
 
-uint8_t furi_hal_hid_get_led_state(void) {
+uint8_t furi_hal_hid_get_led_state(void)
+{
     return led_state;
 }
 
-void furi_hal_hid_set_state_callback(HidStateCallback cb, void* ctx) {
-    if(callback != NULL) {
-        if(hid_connected == true) callback(false, cb_ctx);
+void furi_hal_hid_set_state_callback(HidStateCallback cb, void *ctx)
+{
+    if (callback != NULL) {
+        if (hid_connected == true)
+            callback(false, cb_ctx);
     }
 
     callback = cb;
     cb_ctx = ctx;
 
-    if(callback != NULL) {
-        if(hid_connected == true) callback(true, cb_ctx);
+    if (callback != NULL) {
+        if (hid_connected == true)
+            callback(true, cb_ctx);
     }
 }
 
-bool furi_hal_hid_kb_press(uint16_t button) {
-    for(uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
-        if(hid_report.keyboard.boot.btn[key_nb] == 0) {
+bool furi_hal_hid_kb_press(uint16_t button)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
+        if (hid_report.keyboard.boot.btn[key_nb] == 0) {
             hid_report.keyboard.boot.btn[key_nb] = button & 0xFF;
             break;
         }
@@ -297,9 +303,10 @@ bool furi_hal_hid_kb_press(uint16_t button) {
     return hid_send_report(ReportIdKeyboard);
 }
 
-bool furi_hal_hid_kb_release(uint16_t button) {
-    for(uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
-        if(hid_report.keyboard.boot.btn[key_nb] == (button & 0xFF)) {
+bool furi_hal_hid_kb_release(uint16_t button)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
+        if (hid_report.keyboard.boot.btn[key_nb] == (button & 0xFF)) {
             hid_report.keyboard.boot.btn[key_nb] = 0;
             break;
         }
@@ -308,15 +315,17 @@ bool furi_hal_hid_kb_release(uint16_t button) {
     return hid_send_report(ReportIdKeyboard);
 }
 
-bool furi_hal_hid_kb_release_all(void) {
-    for(uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
+bool furi_hal_hid_kb_release_all(void)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_KB_MAX_KEYS; key_nb++) {
         hid_report.keyboard.boot.btn[key_nb] = 0;
     }
     hid_report.keyboard.boot.mods = 0;
     return hid_send_report(ReportIdKeyboard);
 }
 
-bool furi_hal_hid_mouse_move(int8_t dx, int8_t dy) {
+bool furi_hal_hid_mouse_move(int8_t dx, int8_t dy)
+{
     hid_report.mouse.x = dx;
     hid_report.mouse.y = dy;
     bool state = hid_send_report(ReportIdMouse);
@@ -325,26 +334,30 @@ bool furi_hal_hid_mouse_move(int8_t dx, int8_t dy) {
     return state;
 }
 
-bool furi_hal_hid_mouse_press(uint8_t button) {
+bool furi_hal_hid_mouse_press(uint8_t button)
+{
     hid_report.mouse.btn |= button;
     return hid_send_report(ReportIdMouse);
 }
 
-bool furi_hal_hid_mouse_release(uint8_t button) {
+bool furi_hal_hid_mouse_release(uint8_t button)
+{
     hid_report.mouse.btn &= ~button;
     return hid_send_report(ReportIdMouse);
 }
 
-bool furi_hal_hid_mouse_scroll(int8_t delta) {
+bool furi_hal_hid_mouse_scroll(int8_t delta)
+{
     hid_report.mouse.wheel = delta;
     bool state = hid_send_report(ReportIdMouse);
     hid_report.mouse.wheel = 0;
     return state;
 }
 
-bool furi_hal_hid_consumer_key_press(uint16_t button) {
-    for(uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
-        if(hid_report.consumer.btn[key_nb] == 0) {
+bool furi_hal_hid_consumer_key_press(uint16_t button)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
+        if (hid_report.consumer.btn[key_nb] == 0) {
             hid_report.consumer.btn[key_nb] = button;
             break;
         }
@@ -352,9 +365,10 @@ bool furi_hal_hid_consumer_key_press(uint16_t button) {
     return hid_send_report(ReportIdConsumer);
 }
 
-bool furi_hal_hid_consumer_key_release(uint16_t button) {
-    for(uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
-        if(hid_report.consumer.btn[key_nb] == button) {
+bool furi_hal_hid_consumer_key_release(uint16_t button)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
+        if (hid_report.consumer.btn[key_nb] == button) {
             hid_report.consumer.btn[key_nb] = 0;
             break;
         }
@@ -362,30 +376,34 @@ bool furi_hal_hid_consumer_key_release(uint16_t button) {
     return hid_send_report(ReportIdConsumer);
 }
 
-bool furi_hal_hid_consumer_key_release_all(void) {
-    for(uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
+bool furi_hal_hid_consumer_key_release_all(void)
+{
+    for (uint8_t key_nb = 0; key_nb < HID_CONSUMER_MAX_KEYS; key_nb++) {
         hid_report.consumer.btn[key_nb] = 0;
     }
     return hid_send_report(ReportIdConsumer);
 }
 
-static void* hid_set_string_descr(char* str) {
+static void *hid_set_string_descr(char *str)
+{
     furi_assert(str);
 
     size_t len = strlen(str);
-    struct usb_string_descriptor* dev_str_desc = malloc(len * 2 + 2);
+    struct usb_string_descriptor *dev_str_desc = malloc(len * 2 + 2);
     dev_str_desc->bLength = len * 2 + 2;
     dev_str_desc->bDescriptorType = USB_DTYPE_STRING;
-    for(size_t i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
         dev_str_desc->wString[i] = str[i];
 
     return dev_str_desc;
 }
 
-static void hid_init(usbd_device* dev, FuriHalUsbInterface* intf, void* ctx) {
+static void hid_init(usbd_device *dev, FuriHalUsbInterface *intf, void *ctx)
+{
     UNUSED(intf);
-    FuriHalUsbHidConfig* cfg = (FuriHalUsbHidConfig*)ctx;
-    if(hid_semaphore == NULL) hid_semaphore = furi_semaphore_alloc(1, 1);
+    FuriHalUsbHidConfig *cfg = (FuriHalUsbHidConfig *)ctx;
+    if (hid_semaphore == NULL)
+        hid_semaphore = furi_semaphore_alloc(1, 1);
     usb_dev = dev;
     hid_report.keyboard.report_id = ReportIdKeyboard;
     hid_report.mouse.report_id = ReportIdMouse;
@@ -398,16 +416,16 @@ static void hid_init(usbd_device* dev, FuriHalUsbInterface* intf, void* ctx) {
     usb_hid.dev_descr->idVendor = HID_VID_DEFAULT;
     usb_hid.dev_descr->idProduct = HID_PID_DEFAULT;
 
-    if(cfg != NULL) {
+    if (cfg != NULL) {
         usb_hid.dev_descr->idVendor = cfg->vid;
         usb_hid.dev_descr->idProduct = cfg->pid;
 
-        if(cfg->manuf[0] != '\0') {
+        if (cfg->manuf[0] != '\0') {
             usb_hid.str_manuf_descr = hid_set_string_descr(cfg->manuf);
             usb_hid.dev_descr->iManufacturer = UsbDevManuf;
         }
 
-        if(cfg->product[0] != '\0') {
+        if (cfg->product[0] != '\0') {
             usb_hid.str_prod_descr = hid_set_string_descr(cfg->product);
             usb_hid.dev_descr->iProduct = UsbDevProduct;
         }
@@ -419,7 +437,8 @@ static void hid_init(usbd_device* dev, FuriHalUsbInterface* intf, void* ctx) {
     usbd_connect(dev, true);
 }
 
-static void hid_deinit(usbd_device* dev) {
+static void hid_deinit(usbd_device *dev)
+{
     usbd_reg_config(dev, NULL);
     usbd_reg_control(dev, NULL);
 
@@ -427,58 +446,64 @@ static void hid_deinit(usbd_device* dev) {
     free(usb_hid.str_prod_descr);
 }
 
-static void hid_on_wakeup(usbd_device* dev) {
+static void hid_on_wakeup(usbd_device *dev)
+{
     UNUSED(dev);
-    if(!hid_connected) {
+    if (!hid_connected) {
         hid_connected = true;
-        if(callback != NULL) {
+        if (callback != NULL) {
             callback(true, cb_ctx);
         }
     }
 }
 
-static void hid_on_suspend(usbd_device* dev) {
+static void hid_on_suspend(usbd_device *dev)
+{
     UNUSED(dev);
-    if(hid_connected) {
+    if (hid_connected) {
         hid_connected = false;
         furi_semaphore_release(hid_semaphore);
-        if(callback != NULL) {
+        if (callback != NULL) {
             callback(false, cb_ctx);
         }
     }
 }
 
-static bool hid_send_report(uint8_t report_id) {
-    if((hid_semaphore == NULL) || (hid_connected == false)) return false;
-    if((boot_protocol == true) && (report_id != ReportIdKeyboard)) return false;
+static bool hid_send_report(uint8_t report_id)
+{
+    if ((hid_semaphore == NULL) || (hid_connected == false))
+        return false;
+    if ((boot_protocol == true) && (report_id != ReportIdKeyboard))
+        return false;
 
     FuriStatus status = furi_semaphore_acquire(hid_semaphore, HID_INTERVAL * 2);
-    if(status == FuriStatusErrorTimeout) {
+    if (status == FuriStatusErrorTimeout) {
         return false;
     }
     furi_check(status == FuriStatusOk);
-    if(hid_connected == false) {
+    if (hid_connected == false) {
         return false;
     }
-    if(boot_protocol == true) {
-        usbd_ep_write(
-            usb_dev, HID_EP_IN, &hid_report.keyboard.boot, sizeof(hid_report.keyboard.boot));
+    if (boot_protocol == true) {
+        usbd_ep_write(usb_dev, HID_EP_IN, &hid_report.keyboard.boot,
+                      sizeof(hid_report.keyboard.boot));
     } else {
-        if(report_id == ReportIdKeyboard)
+        if (report_id == ReportIdKeyboard)
             usbd_ep_write(usb_dev, HID_EP_IN, &hid_report.keyboard, sizeof(hid_report.keyboard));
-        else if(report_id == ReportIdMouse)
+        else if (report_id == ReportIdMouse)
             usbd_ep_write(usb_dev, HID_EP_IN, &hid_report.mouse, sizeof(hid_report.mouse));
-        else if(report_id == ReportIdConsumer)
+        else if (report_id == ReportIdConsumer)
             usbd_ep_write(usb_dev, HID_EP_IN, &hid_report.consumer, sizeof(hid_report.consumer));
     }
     return true;
 }
 
-static void hid_txrx_ep_callback(usbd_device* dev, uint8_t event, uint8_t ep) {
+static void hid_txrx_ep_callback(usbd_device *dev, uint8_t event, uint8_t ep)
+{
     UNUSED(dev);
-    if(event == usbd_evt_eptx) {
+    if (event == usbd_evt_eptx) {
         furi_semaphore_release(hid_semaphore);
-    } else if(boot_protocol == true) {
+    } else if (boot_protocol == true) {
         usbd_ep_read(usb_dev, ep, &led_state, sizeof(led_state));
     } else {
         struct HidReportLED leds;
@@ -488,8 +513,9 @@ static void hid_txrx_ep_callback(usbd_device* dev, uint8_t event, uint8_t ep) {
 }
 
 /* Configure endpoints */
-static usbd_respond hid_ep_config(usbd_device* dev, uint8_t cfg) {
-    switch(cfg) {
+static usbd_respond hid_ep_config(usbd_device *dev, uint8_t cfg)
+{
+    switch (cfg) {
     case 0:
         /* deconfiguring device */
         usbd_ep_deconfig(dev, HID_EP_OUT);
@@ -512,17 +538,18 @@ static usbd_respond hid_ep_config(usbd_device* dev, uint8_t cfg) {
 }
 
 /* Control requests handler */
-static usbd_respond hid_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_callback* callback) {
+static usbd_respond hid_control(usbd_device *dev, usbd_ctlreq *req, usbd_rqc_callback *callback)
+{
     UNUSED(callback);
     /* HID control requests */
-    if(((USB_REQ_RECIPIENT | USB_REQ_TYPE) & req->bmRequestType) ==
-           (USB_REQ_INTERFACE | USB_REQ_CLASS) &&
-       req->wIndex == 0) {
-        switch(req->bRequest) {
+    if (((USB_REQ_RECIPIENT | USB_REQ_TYPE) & req->bmRequestType) ==
+            (USB_REQ_INTERFACE | USB_REQ_CLASS) &&
+        req->wIndex == 0) {
+        switch (req->bRequest) {
         case USB_HID_SETIDLE:
             return usbd_ack;
         case USB_HID_GETREPORT:
-            if(boot_protocol == true) {
+            if (boot_protocol == true) {
                 dev->status.data_ptr = &hid_report.keyboard.boot;
                 dev->status.data_count = sizeof(hid_report.keyboard.boot);
             } else {
@@ -531,9 +558,9 @@ static usbd_respond hid_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_cal
             }
             return usbd_ack;
         case USB_HID_SETPROTOCOL:
-            if(req->wValue == 0)
+            if (req->wValue == 0)
                 boot_protocol = true;
-            else if(req->wValue == 1)
+            else if (req->wValue == 1)
                 boot_protocol = false;
             else
                 return usbd_fail;
@@ -542,17 +569,17 @@ static usbd_respond hid_control(usbd_device* dev, usbd_ctlreq* req, usbd_rqc_cal
             return usbd_fail;
         }
     }
-    if(((USB_REQ_RECIPIENT | USB_REQ_TYPE) & req->bmRequestType) ==
-           (USB_REQ_INTERFACE | USB_REQ_STANDARD) &&
-       req->wIndex == 0 && req->bRequest == USB_STD_GET_DESCRIPTOR) {
-        switch(req->wValue >> 8) {
+    if (((USB_REQ_RECIPIENT | USB_REQ_TYPE) & req->bmRequestType) ==
+            (USB_REQ_INTERFACE | USB_REQ_STANDARD) &&
+        req->wIndex == 0 && req->bRequest == USB_STD_GET_DESCRIPTOR) {
+        switch (req->wValue >> 8) {
         case USB_DTYPE_HID:
-            dev->status.data_ptr = (uint8_t*)&(hid_cfg_desc.intf_0.hid_desc);
+            dev->status.data_ptr = (uint8_t *)&(hid_cfg_desc.intf_0.hid_desc);
             dev->status.data_count = sizeof(hid_cfg_desc.intf_0.hid_desc);
             return usbd_ack;
         case USB_DTYPE_HID_REPORT:
             boot_protocol = false; /* BIOS does not read this */
-            dev->status.data_ptr = (uint8_t*)hid_report_desc;
+            dev->status.data_ptr = (uint8_t *)hid_report_desc;
             dev->status.data_count = sizeof(hid_report_desc);
             return usbd_ack;
         default:

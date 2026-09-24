@@ -6,17 +6,19 @@
 
 #define TAG "ISO14443_3A"
 
-const Iso14443_3aData* iso14443_3a_poller_get_data(Iso14443_3aPoller* instance) {
+const Iso14443_3aData *iso14443_3a_poller_get_data(Iso14443_3aPoller *instance)
+{
     furi_assert(instance);
     furi_assert(instance->data);
 
     return instance->data;
 }
 
-static Iso14443_3aPoller* iso14443_3a_poller_alloc(Nfc* nfc) {
+static Iso14443_3aPoller *iso14443_3a_poller_alloc(Nfc *nfc)
+{
     furi_assert(nfc);
 
-    Iso14443_3aPoller* instance = malloc(sizeof(Iso14443_3aPoller));
+    Iso14443_3aPoller *instance = malloc(sizeof(Iso14443_3aPoller));
     instance->nfc = nfc;
     instance->tx_buffer = bit_buffer_alloc(ISO14443_3A_POLLER_MAX_BUFFER_SIZE);
     instance->rx_buffer = bit_buffer_alloc(ISO14443_3A_POLLER_MAX_BUFFER_SIZE);
@@ -35,10 +37,11 @@ static Iso14443_3aPoller* iso14443_3a_poller_alloc(Nfc* nfc) {
     return instance;
 }
 
-static void iso14443_3a_poller_free_new(Iso14443_3aPoller* iso14443_3a_poller) {
+static void iso14443_3a_poller_free_new(Iso14443_3aPoller *iso14443_3a_poller)
+{
     furi_assert(iso14443_3a_poller);
 
-    Iso14443_3aPoller* instance = iso14443_3a_poller;
+    Iso14443_3aPoller *instance = iso14443_3a_poller;
     furi_assert(instance->tx_buffer);
     furi_assert(instance->rx_buffer);
     furi_assert(instance->data);
@@ -49,10 +52,9 @@ static void iso14443_3a_poller_free_new(Iso14443_3aPoller* iso14443_3a_poller) {
     free(instance);
 }
 
-static void iso14443_3a_poller_set_callback(
-    Iso14443_3aPoller* instance,
-    NfcGenericCallback callback,
-    void* context) {
+static void iso14443_3a_poller_set_callback(Iso14443_3aPoller *instance,
+                                            NfcGenericCallback callback, void *context)
+{
     furi_assert(instance);
     furi_assert(callback);
 
@@ -60,20 +62,21 @@ static void iso14443_3a_poller_set_callback(
     instance->context = context;
 }
 
-static NfcCommand iso14443_3a_poller_run(NfcGenericEvent event, void* context) {
+static NfcCommand iso14443_3a_poller_run(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.protocol == NfcProtocolInvalid);
     furi_assert(event.event_data);
 
-    Iso14443_3aPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    Iso14443_3aPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     NfcCommand command = NfcCommandContinue;
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
-        if(instance->state != Iso14443_3aPollerStateActivated) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
+        if (instance->state != Iso14443_3aPollerStateActivated) {
             Iso14443_3aData data = {};
             Iso14443_3aError error = iso14443_3a_poller_activate(instance, &data);
-            if(error == Iso14443_3aErrorNone) {
+            if (error == Iso14443_3aErrorNone) {
                 instance->state = Iso14443_3aPollerStateActivated;
                 instance->iso14443_3a_event.type = Iso14443_3aPollerEventTypeReady;
                 instance->iso14443_3a_event_data.error = error;
@@ -92,25 +95,26 @@ static NfcCommand iso14443_3a_poller_run(NfcGenericEvent event, void* context) {
         }
     }
 
-    if(command == NfcCommandReset) {
+    if (command == NfcCommandReset) {
         instance->state = Iso14443_3aPollerStateIdle;
     }
 
     return command;
 }
 
-static bool iso14443_3a_poller_detect(NfcGenericEvent event, void* context) {
+static bool iso14443_3a_poller_detect(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.event_data);
     furi_assert(event.instance);
     furi_assert(event.protocol == NfcProtocolInvalid);
 
     bool protocol_detected = false;
-    Iso14443_3aPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    Iso14443_3aPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     furi_assert(instance->state == Iso14443_3aPollerStateIdle);
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         Iso14443_3aError error = iso14443_3a_poller_activate(instance, NULL);
         protocol_detected = (error == Iso14443_3aErrorNone);
     }

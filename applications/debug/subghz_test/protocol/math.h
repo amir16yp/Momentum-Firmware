@@ -5,18 +5,18 @@
 #include <stddef.h>
 
 #define bit_read(value, bit) (((value) >> (bit)) & 0x01)
-#define bit_set(value, bit)           \
-    ({                                \
-        __typeof__(value) _one = (1); \
-        (value) |= (_one << (bit));   \
+#define bit_set(value, bit)                                                                        \
+    ({                                                                                             \
+        __typeof__(value) _one = (1);                                                              \
+        (value) |= (_one << (bit));                                                                \
     })
-#define bit_clear(value, bit)         \
-    ({                                \
-        __typeof__(value) _one = (1); \
-        (value) &= ~(_one << (bit));  \
+#define bit_clear(value, bit)                                                                      \
+    ({                                                                                             \
+        __typeof__(value) _one = (1);                                                              \
+        (value) &= ~(_one << (bit));                                                               \
     })
 #define bit_write(value, bit, bitvalue) (bitvalue ? bit_set(value, bit) : bit_clear(value, bit))
-#define DURATION_DIFF(x, y)             (((x) < (y)) ? ((y) - (x)) : ((x) - (y)))
+#define DURATION_DIFF(x, y) (((x) < (y)) ? ((y) - (x)) : ((x) - (y)))
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,11 +49,8 @@ uint8_t subghz_protocol_blocks_get_parity(uint64_t key, uint8_t bit_count);
  *
  * @return     CRC value
  */
-uint8_t subghz_protocol_blocks_crc4(
-    uint8_t const message[],
-    size_t size,
-    uint8_t polynomial,
-    uint8_t init);
+uint8_t subghz_protocol_blocks_crc4(uint8_t const message[], size_t size, uint8_t polynomial,
+                                    uint8_t init);
 
 /** CRC-7
  *
@@ -64,11 +61,8 @@ uint8_t subghz_protocol_blocks_crc4(
  *
  * @return     CRC value
  */
-uint8_t subghz_protocol_blocks_crc7(
-    uint8_t const message[],
-    size_t size,
-    uint8_t polynomial,
-    uint8_t init);
+uint8_t subghz_protocol_blocks_crc7(uint8_t const message[], size_t size, uint8_t polynomial,
+                                    uint8_t init);
 
 /** Generic Cyclic Redundancy Check CRC-8. Example polynomial: 0x31 = x8 + x5 +
  * x4 + 1 (x8 is implicit) Example polynomial: 0x80 = x8 + x7 (a normal
@@ -81,11 +75,8 @@ uint8_t subghz_protocol_blocks_crc7(
  *
  * @return     CRC value
  */
-uint8_t subghz_protocol_blocks_crc8(
-    uint8_t const message[],
-    size_t size,
-    uint8_t polynomial,
-    uint8_t init);
+uint8_t subghz_protocol_blocks_crc8(uint8_t const message[], size_t size, uint8_t polynomial,
+                                    uint8_t init);
 
 /** "Little-endian" Cyclic Redundancy Check CRC-8 LE Input and output are
  * reflected, i.e. least significant bit is shifted in first
@@ -97,11 +88,8 @@ uint8_t subghz_protocol_blocks_crc8(
  *
  * @return     CRC value
  */
-uint8_t subghz_protocol_blocks_crc8le(
-    uint8_t const message[],
-    size_t size,
-    uint8_t polynomial,
-    uint8_t init);
+uint8_t subghz_protocol_blocks_crc8le(uint8_t const message[], size_t size, uint8_t polynomial,
+                                      uint8_t init);
 
 /** CRC-16 LSB. Input and output are reflected, i.e. least significant bit is
  * shifted in first. Note that poly and init already need to be reflected
@@ -113,11 +101,8 @@ uint8_t subghz_protocol_blocks_crc8le(
  *
  * @return     CRC value
  */
-uint16_t subghz_protocol_blocks_crc16lsb(
-    uint8_t const message[],
-    size_t size,
-    uint16_t polynomial,
-    uint16_t init);
+uint16_t subghz_protocol_blocks_crc16lsb(uint8_t const message[], size_t size, uint16_t polynomial,
+                                         uint16_t init);
 
 /** CRC-16
  *
@@ -128,11 +113,8 @@ uint16_t subghz_protocol_blocks_crc16lsb(
  *
  * @return     CRC value
  */
-uint16_t subghz_protocol_blocks_crc16(
-    uint8_t const message[],
-    size_t size,
-    uint16_t polynomial,
-    uint16_t init);
+uint16_t subghz_protocol_blocks_crc16(uint8_t const message[], size_t size, uint16_t polynomial,
+                                      uint16_t init);
 
 /** Digest-8 by "LFSR-based Toeplitz hash"
  *
@@ -144,11 +126,8 @@ uint16_t subghz_protocol_blocks_crc16(
  *
  * @return     digest value
  */
-uint8_t subghz_protocol_blocks_lfsr_digest8(
-    uint8_t const message[],
-    size_t size,
-    uint8_t gen,
-    uint8_t key);
+uint8_t subghz_protocol_blocks_lfsr_digest8(uint8_t const message[], size_t size, uint8_t gen,
+                                            uint8_t key);
 
 /** Digest-8 by "LFSR-based Toeplitz hash", byte reflect, bit reflect
  *
@@ -160,11 +139,8 @@ uint8_t subghz_protocol_blocks_lfsr_digest8(
  *
  * @return     digest value
  */
-uint8_t subghz_protocol_blocks_lfsr_digest8_reflect(
-    uint8_t const message[],
-    size_t size,
-    uint8_t gen,
-    uint8_t key);
+uint8_t subghz_protocol_blocks_lfsr_digest8_reflect(uint8_t const message[], size_t size,
+                                                    uint8_t gen, uint8_t key);
 
 /** Digest-16 by "LFSR-based Toeplitz hash"
  *
@@ -176,11 +152,8 @@ uint8_t subghz_protocol_blocks_lfsr_digest8_reflect(
  *
  * @return     digest value
  */
-uint16_t subghz_protocol_blocks_lfsr_digest16(
-    uint8_t const message[],
-    size_t size,
-    uint16_t gen,
-    uint16_t key);
+uint16_t subghz_protocol_blocks_lfsr_digest16(uint8_t const message[], size_t size, uint16_t gen,
+                                              uint16_t key);
 
 /** Compute Addition of a number of bytes
  *

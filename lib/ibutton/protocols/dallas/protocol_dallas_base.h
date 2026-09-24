@@ -7,22 +7,22 @@
 
 #include <flipper_format/flipper_format.h>
 
-typedef bool (*iButtonProtocolDallasReadWriteFunc)(OneWireHost*, iButtonProtocolData*);
-typedef void (*iButtonProtocolDallasEmulateFunc)(OneWireSlave*, iButtonProtocolData*);
-typedef bool (*iButtonProtocolDallasSaveFunc)(FlipperFormat*, const iButtonProtocolData*);
-typedef bool (*iButtonProtocolDallasLoadFunc)(FlipperFormat*, uint32_t, iButtonProtocolData*);
-typedef void (*iButtonProtocolDallasRenderDataFunc)(FuriString*, const iButtonProtocolData*);
-typedef bool (*iButtonProtocolDallasIsValidFunc)(const iButtonProtocolData*);
-typedef void (
-    *iButtonProtocolDallasGetEditableDataFunc)(iButtonEditableData*, iButtonProtocolData*);
-typedef void (*iButtonProtocolDallasApplyEditsFunc)(iButtonProtocolData*);
+typedef bool (*iButtonProtocolDallasReadWriteFunc)(OneWireHost *, iButtonProtocolData *);
+typedef void (*iButtonProtocolDallasEmulateFunc)(OneWireSlave *, iButtonProtocolData *);
+typedef bool (*iButtonProtocolDallasSaveFunc)(FlipperFormat *, const iButtonProtocolData *);
+typedef bool (*iButtonProtocolDallasLoadFunc)(FlipperFormat *, uint32_t, iButtonProtocolData *);
+typedef void (*iButtonProtocolDallasRenderDataFunc)(FuriString *, const iButtonProtocolData *);
+typedef bool (*iButtonProtocolDallasIsValidFunc)(const iButtonProtocolData *);
+typedef void (*iButtonProtocolDallasGetEditableDataFunc)(iButtonEditableData *,
+                                                         iButtonProtocolData *);
+typedef void (*iButtonProtocolDallasApplyEditsFunc)(iButtonProtocolData *);
 
 typedef struct {
     const uint8_t family_code;
     const uint32_t features;
     const size_t data_size;
-    const char* manufacturer;
-    const char* name;
+    const char *manufacturer;
+    const char *name;
 
     iButtonProtocolDallasReadWriteFunc read;
     iButtonProtocolDallasReadWriteFunc write_id;

@@ -12,10 +12,10 @@ typedef enum {
 } FuriEventLoopTimerRequest;
 
 struct FuriEventLoopTimer {
-    FuriEventLoop* owner;
+    FuriEventLoop *owner;
 
     FuriEventLoopTimerCallback callback;
-    void* context;
+    void *context;
 
     uint32_t interval;
     uint32_t start_time;
@@ -36,8 +36,8 @@ struct FuriEventLoopTimer {
 ILIST_DEF(TimerList, FuriEventLoopTimer, M_POD_OPLIST)
 ILIST_DEF(TimerQueue, FuriEventLoopTimer, M_POD_OPLIST)
 
-uint32_t furi_event_loop_get_timer_wait_time(const FuriEventLoop* instance);
+uint32_t furi_event_loop_get_timer_wait_time(const FuriEventLoop *instance);
 
-void furi_event_loop_process_timer_queue(FuriEventLoop* instance);
+void furi_event_loop_process_timer_queue(FuriEventLoop *instance);
 
-bool furi_event_loop_process_expired_timers(FuriEventLoop* instance);
+bool furi_event_loop_process_expired_timers(FuriEventLoop *instance);

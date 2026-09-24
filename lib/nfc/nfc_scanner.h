@@ -37,8 +37,8 @@ typedef enum {
  * @brief Event data passed to the user callback.
  */
 typedef struct {
-    size_t protocol_num; /**< Number of detected protocols (one or more). */
-    NfcProtocol* protocols; /**< Pointer to the array of detected protocol identifiers. */
+    size_t protocol_num;    /**< Number of detected protocols (one or more). */
+    NfcProtocol *protocols; /**< Pointer to the array of detected protocol identifiers. */
 } NfcScannerEventData;
 
 /**
@@ -57,7 +57,7 @@ typedef struct {
  * @param[in] event occurred event, complete with type and data.
  * @param[in] context pointer to the context data provided in nfc_scanner_start() call.
  */
-typedef void (*NfcScannerCallback)(NfcScannerEvent event, void* context);
+typedef void (*NfcScannerCallback)(NfcScannerEvent event, void *context);
 
 /**
  * @brief Allocate an NfcScanner instance.
@@ -67,14 +67,14 @@ typedef void (*NfcScannerCallback)(NfcScannerEvent event, void* context);
  *
  * @see nfc.h
  */
-NfcScanner* nfc_scanner_alloc(Nfc* nfc);
+NfcScanner *nfc_scanner_alloc(Nfc *nfc);
 
 /**
  * @brief Delete an NfcScanner instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-void nfc_scanner_free(NfcScanner* instance);
+void nfc_scanner_free(NfcScanner *instance);
 
 /**
  * @brief Start an NfcScanner.
@@ -83,14 +83,14 @@ void nfc_scanner_free(NfcScanner* instance);
  * @param[in] callback pointer to the callback function (will be called upon a detection event).
  * @param[in] context pointer to the caller-specific context (will be passed to the callback).
  */
-void nfc_scanner_start(NfcScanner* instance, NfcScannerCallback callback, void* context);
+void nfc_scanner_start(NfcScanner *instance, NfcScannerCallback callback, void *context);
 
 /**
  * @brief Stop an NfcScanner.
  *
  * @param[in,out] instance pointer to the instance to be stopped.
  */
-void nfc_scanner_stop(NfcScanner* instance);
+void nfc_scanner_stop(NfcScanner *instance);
 
 #ifdef __cplusplus
 }

@@ -46,15 +46,15 @@ typedef enum {
 } U2fAppView;
 
 struct U2fApp {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    NotificationApp* notifications;
-    Widget* widget;
-    FuriTimer* timer;
-    U2fHid* u2f_hid;
-    U2fView* u2f_view;
-    U2fData* u2f_instance;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    NotificationApp *notifications;
+    Widget *widget;
+    FuriTimer *timer;
+    U2fHid *u2f_hid;
+    U2fView *u2f_view;
+    U2fData *u2f_instance;
     GpioCustomEvent event_cur;
     bool u2f_ready;
     U2fAppError error;

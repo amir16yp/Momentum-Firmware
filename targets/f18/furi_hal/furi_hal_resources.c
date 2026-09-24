@@ -238,25 +238,25 @@ const InputPin input_pins[] = {
 
 const size_t input_pins_count = COUNT_OF(input_pins);
 
-static void furi_hal_resources_init_input_pins(GpioMode mode) {
-    for(size_t i = 0; i < input_pins_count; i++) {
-        furi_hal_gpio_init(
-            input_pins[i].gpio,
-            mode,
-            (input_pins[i].inverted) ? GpioPullUp : GpioPullDown,
-            GpioSpeedLow);
+static void furi_hal_resources_init_input_pins(GpioMode mode)
+{
+    for (size_t i = 0; i < input_pins_count; i++) {
+        furi_hal_gpio_init(input_pins[i].gpio, mode,
+                           (input_pins[i].inverted) ? GpioPullUp : GpioPullDown, GpioSpeedLow);
     }
 }
 
-static void furi_hal_resources_init_gpio_pins(GpioMode mode) {
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(!gpio_pins[i].debug) {
+static void furi_hal_resources_init_gpio_pins(GpioMode mode)
+{
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (!gpio_pins[i].debug) {
             furi_hal_gpio_init(gpio_pins[i].pin, mode, GpioPullNo, GpioSpeedLow);
         }
     }
 }
 
-void furi_hal_resources_init_early(void) {
+void furi_hal_resources_init_early(void)
+{
     furi_hal_bus_enable(FuriHalBusGPIOA);
     furi_hal_bus_enable(FuriHalBusGPIOB);
     furi_hal_bus_enable(FuriHalBusGPIOC);
@@ -302,7 +302,8 @@ void furi_hal_resources_init_early(void) {
     furi_hal_resources_init_gpio_pins(GpioModeAnalog);
 }
 
-void furi_hal_resources_deinit_early(void) {
+void furi_hal_resources_deinit_early(void)
+{
     furi_hal_resources_init_input_pins(GpioModeAnalog);
     furi_hal_bus_disable(FuriHalBusGPIOA);
     furi_hal_bus_disable(FuriHalBusGPIOB);
@@ -312,7 +313,8 @@ void furi_hal_resources_deinit_early(void) {
     furi_hal_bus_disable(FuriHalBusGPIOH);
 }
 
-void furi_hal_resources_init(void) {
+void furi_hal_resources_init(void)
+{
     // Button pins
     furi_hal_resources_init_input_pins(GpioModeInterruptRiseFall);
 
@@ -346,27 +348,32 @@ void furi_hal_resources_init(void) {
     FURI_LOG_I(TAG, "Init OK");
 }
 
-int32_t furi_hal_resources_get_ext_pin_number(const GpioPin* gpio) {
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        if(gpio_pins[i].pin == gpio) {
+int32_t furi_hal_resources_get_ext_pin_number(const GpioPin *gpio)
+{
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        if (gpio_pins[i].pin == gpio) {
             return gpio_pins[i].number;
         }
     }
     return -1;
 }
 
-const GpioPinRecord* furi_hal_resources_pin_by_name(const char* name) {
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        const GpioPinRecord* record = &gpio_pins[i];
-        if(strcasecmp(name, record->name) == 0) return record;
+const GpioPinRecord *furi_hal_resources_pin_by_name(const char *name)
+{
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        const GpioPinRecord *record = &gpio_pins[i];
+        if (strcasecmp(name, record->name) == 0)
+            return record;
     }
     return NULL;
 }
 
-const GpioPinRecord* furi_hal_resources_pin_by_number(uint8_t number) {
-    for(size_t i = 0; i < gpio_pins_count; i++) {
-        const GpioPinRecord* record = &gpio_pins[i];
-        if(record->number == number) return record;
+const GpioPinRecord *furi_hal_resources_pin_by_number(uint8_t number)
+{
+    for (size_t i = 0; i < gpio_pins_count; i++) {
+        const GpioPinRecord *record = &gpio_pins[i];
+        if (record->number == number)
+            return record;
     }
     return NULL;
 }

@@ -7,15 +7,15 @@
 /*
  * Help
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/lacrosse_tx141x.c
- *  
+ *
  *     iiii iiii | bkcc tttt | tttt tttt | hhhh hhhh | cccc cccc | u - 41 bit
  *        or
  *     iiii iiii | bkcc tttt | tttt tttt | hhhh hhhh | cccc cccc | -40 bit
  * - i: identification; changes on battery switch
  * - c: lfsr_digest8_reflect;
- * - u: unknown; 
+ * - u: unknown;
  * - b: battery low; flag to indicate low battery voltage
- * - h: Humidity; 
+ * - h: Humidity;
  * - t: Temperature; in °F as binary number with one decimal place + 50 °F offset
  * - n: Channel; Channel number 1 - 3
  */
@@ -87,32 +87,37 @@ const SubGhzProtocol ws_protocol_lacrosse_tx141thbv2 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_lacrosse_tx141thbv2_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_lacrosse_tx141thbv2_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance =
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance =
         malloc(sizeof(WSProtocolDecoderLaCrosse_TX141THBv2));
     instance->base.protocol = &ws_protocol_lacrosse_tx141thbv2;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_lacrosse_tx141thbv2_free(void* context) {
+void ws_protocol_decoder_lacrosse_tx141thbv2_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_lacrosse_tx141thbv2_reset(void* context) {
+void ws_protocol_decoder_lacrosse_tx141thbv2_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
     instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepReset;
 }
 
 static bool
-    ws_protocol_lacrosse_tx141thbv2_check_crc(WSProtocolDecoderLaCrosse_TX141THBv2* instance) {
-    if(!instance->decoder.decode_data) return false;
+ws_protocol_lacrosse_tx141thbv2_check_crc(WSProtocolDecoderLaCrosse_TX141THBv2 *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
     uint64_t data = instance->decoder.decode_data;
-    if(instance->decoder.decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
+    if (instance->decoder.decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
         data >>= 1;
     }
     uint8_t msg[] = {data >> 32, data >> 24, data >> 16, data >> 8};
@@ -125,9 +130,10 @@ static bool
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_lacrosse_tx141thbv2_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_lacrosse_tx141thbv2_remote_controller(WSBlockGeneric *instance)
+{
     uint64_t data = instance->data;
-    if(instance->data_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
+    if (instance->data_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT) {
         data >>= 1;
     }
     instance->id = data >> 32;
@@ -142,18 +148,16 @@ static void ws_protocol_lacrosse_tx141thbv2_remote_controller(WSBlockGeneric* in
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static bool ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance,
-    uint32_t te_last,
-    uint32_t te_current) {
+static bool
+ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(WSProtocolDecoderLaCrosse_TX141THBv2 *instance,
+                                                uint32_t te_last, uint32_t te_current)
+{
     furi_assert(instance);
     bool ret = false;
-    if(DURATION_DIFF(
-           te_last + te_current,
-           ws_protocol_lacrosse_tx141thbv2_const.te_short +
-               ws_protocol_lacrosse_tx141thbv2_const.te_long) <
-       ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) {
-        if(te_last > te_current) {
+    if (DURATION_DIFF(te_last + te_current, ws_protocol_lacrosse_tx141thbv2_const.te_short +
+                                                ws_protocol_lacrosse_tx141thbv2_const.te_long) <
+        ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) {
+        if (te_last > te_current) {
             subghz_protocol_blocks_add_bit(&instance->decoder, 1);
         } else {
             subghz_protocol_blocks_add_bit(&instance->decoder, 0);
@@ -163,15 +167,16 @@ static bool ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
 
     return ret;
 }
-void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case LaCrosse_TX141THBv2DecoderStepReset:
-        if((level) &&
-           (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
-            ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2)) {
+        if ((level) &&
+            (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
+             ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2)) {
             instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepCheckPreambule;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -179,20 +184,19 @@ void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uin
         break;
 
     case LaCrosse_TX141THBv2DecoderStepCheckPreambule:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(
-                    instance->decoder.te_last,
-                    ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
-                ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) &&
-               (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
-                ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2)) {
-                //Found preambule
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
+                 ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) &&
+                (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
+                 ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2)) {
+                // Found preambule
                 instance->header_count++;
-            } else if(instance->header_count == 4) {
-                if(ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
-                       instance, instance->decoder.te_last, duration)) {
+            } else if (instance->header_count == 4) {
+                if (ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
+                        instance, instance->decoder.te_last, duration)) {
                     instance->decoder.decode_data = instance->decoder.decode_data & 1;
                     instance->decoder.decode_count_bit = 1;
                     instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepSaveDuration;
@@ -206,7 +210,7 @@ void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uin
         break;
 
     case LaCrosse_TX141THBv2DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepCheckDuration;
         } else {
@@ -215,21 +219,20 @@ void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uin
         break;
 
     case LaCrosse_TX141THBv2DecoderStepCheckDuration:
-        if(!level) {
-            if(((DURATION_DIFF(
-                     instance->decoder.te_last,
-                     ws_protocol_lacrosse_tx141thbv2_const.te_short * 3) <
-                 ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) &&
-                (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
-                 ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2))) {
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_lacrosse_tx141thbv2_const.min_count_bit_for_found) ||
-                   (instance->decoder.decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT)) {
-                    if(ws_protocol_lacrosse_tx141thbv2_check_crc(instance)) {
+        if (!level) {
+            if (((DURATION_DIFF(instance->decoder.te_last,
+                                ws_protocol_lacrosse_tx141thbv2_const.te_short * 3) <
+                  ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2) &&
+                 (DURATION_DIFF(duration, ws_protocol_lacrosse_tx141thbv2_const.te_short * 4) <
+                  ws_protocol_lacrosse_tx141thbv2_const.te_delta * 2))) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_lacrosse_tx141thbv2_const.min_count_bit_for_found) ||
+                    (instance->decoder.decode_count_bit == LACROSSE_TX141TH_BV2_BIT_COUNT)) {
+                    if (ws_protocol_lacrosse_tx141thbv2_check_crc(instance)) {
                         instance->generic.data = instance->decoder.decode_data;
                         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                         ws_protocol_lacrosse_tx141thbv2_remote_controller(&instance->generic);
-                        if(instance->base.callback)
+                        if (instance->base.callback)
                             instance->base.callback(&instance->base, instance->base.context);
                     }
                     instance->decoder.decode_data = 0;
@@ -238,8 +241,8 @@ void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uin
                     instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepCheckPreambule;
                     break;
                 }
-            } else if(ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
-                          instance, instance->decoder.te_last, duration)) {
+            } else if (ws_protocol_decoder_lacrosse_tx141thbv2_add_bit(
+                           instance, instance->decoder.te_last, duration)) {
                 instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepSaveDuration;
             } else {
                 instance->decoder.parser_step = LaCrosse_TX141THBv2DecoderStepReset;
@@ -251,46 +254,48 @@ void ws_protocol_decoder_lacrosse_tx141thbv2_feed(void* context, bool level, uin
     }
 }
 
-uint32_t ws_protocol_decoder_lacrosse_tx141thbv2_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_lacrosse_tx141thbv2_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_lacrosse_tx141thbv2_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus
+ws_protocol_decoder_lacrosse_tx141thbv2_serialize(void *context, FlipperFormat *flipper_format,
+                                                  SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_lacrosse_tx141thbv2_deserialize(
-    void* context,
-    FlipperFormat* flipper_format) {
+SubGhzProtocolStatus
+ws_protocol_decoder_lacrosse_tx141thbv2_deserialize(void *context, FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = ws_block_generic_deserialize(&instance->generic, flipper_format);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
-        if(instance->generic.data_count_bit !=
-               ws_protocol_lacrosse_tx141thbv2_const.min_count_bit_for_found &&
-           instance->generic.data_count_bit != LACROSSE_TX141TH_BV2_BIT_COUNT) {
+        if (instance->generic.data_count_bit !=
+                ws_protocol_lacrosse_tx141thbv2_const.min_count_bit_for_found &&
+            instance->generic.data_count_bit != LACROSSE_TX141TH_BV2_BIT_COUNT) {
             FURI_LOG_E(TAG, "Wrong number of bits in key");
             ret = SubGhzProtocolStatusErrorValueBitCount;
             break;
         }
-    } while(false);
+    } while (false);
     return ret;
 }
 
-void ws_protocol_decoder_lacrosse_tx141thbv2_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_lacrosse_tx141thbv2_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderLaCrosse_TX141THBv2* instance = context;
+    WSProtocolDecoderLaCrosse_TX141THBv2 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

@@ -1,26 +1,30 @@
 #include "archive_i.h"
 #include "helpers/archive_browser.h"
 
-static bool archive_custom_event_callback(void* context, uint32_t event) {
+static bool archive_custom_event_callback(void *context, uint32_t event)
+{
     furi_assert(context);
-    ArchiveApp* archive = context;
+    ArchiveApp *archive = context;
     return scene_manager_handle_custom_event(archive->scene_manager, event);
 }
 
-static bool archive_back_event_callback(void* context) {
+static bool archive_back_event_callback(void *context)
+{
     furi_assert(context);
-    ArchiveApp* archive = context;
+    ArchiveApp *archive = context;
     return scene_manager_handle_back_event(archive->scene_manager);
 }
 
-static void archive_tick_event_callback(void* context) {
+static void archive_tick_event_callback(void *context)
+{
     furi_assert(context);
-    ArchiveApp* archive = context;
+    ArchiveApp *archive = context;
     scene_manager_handle_tick_event(archive->scene_manager);
 }
 
-static ArchiveApp* archive_alloc(void) {
-    ArchiveApp* archive = malloc(sizeof(ArchiveApp));
+static ArchiveApp *archive_alloc(void)
+{
+    ArchiveApp *archive = malloc(sizeof(ArchiveApp));
 
     archive->gui = furi_record_open(RECORD_GUI);
     archive->loader = furi_record_open(RECORD_LOADER);
@@ -30,7 +34,7 @@ static ArchiveApp* archive_alloc(void) {
     archive->scene_manager = scene_manager_alloc(&archive_scene_handlers, archive);
     archive->view_dispatcher = view_dispatcher_alloc();
 
-    ViewDispatcher* view_dispatcher = archive->view_dispatcher;
+    ViewDispatcher *view_dispatcher = archive->view_dispatcher;
     view_dispatcher_set_event_callback_context(view_dispatcher, archive);
     view_dispatcher_set_custom_event_callback(view_dispatcher, archive_custom_event_callback);
     view_dispatcher_set_navigation_event_callback(view_dispatcher, archive_back_event_callback);
@@ -39,25 +43,23 @@ static ArchiveApp* archive_alloc(void) {
     archive->dialogs = furi_record_open(RECORD_DIALOGS);
 
     archive->text_input = text_input_alloc();
-    view_dispatcher_add_view(
-        view_dispatcher, ArchiveViewTextInput, text_input_get_view(archive->text_input));
+    view_dispatcher_add_view(view_dispatcher, ArchiveViewTextInput,
+                             text_input_get_view(archive->text_input));
 
     archive->widget = widget_alloc();
-    view_dispatcher_add_view(
-        archive->view_dispatcher, ArchiveViewWidget, widget_get_view(archive->widget));
+    view_dispatcher_add_view(archive->view_dispatcher, ArchiveViewWidget,
+                             widget_get_view(archive->widget));
 
     archive->view_stack = view_stack_alloc();
-    view_dispatcher_add_view(
-        view_dispatcher, ArchiveViewStack, view_stack_get_view(archive->view_stack));
+    view_dispatcher_add_view(view_dispatcher, ArchiveViewStack,
+                             view_stack_get_view(archive->view_stack));
 
     archive->browser = browser_alloc();
     with_view_model(
-        archive->browser->view,
-        ArchiveBrowserViewModel * model,
-        { model->archive = archive; },
+        archive->browser->view, ArchiveBrowserViewModel * model, { model->archive = archive; },
         true);
-    view_dispatcher_add_view(
-        archive->view_dispatcher, ArchiveViewBrowser, archive_browser_get_view(archive->browser));
+    view_dispatcher_add_view(archive->view_dispatcher, ArchiveViewBrowser,
+                             archive_browser_get_view(archive->browser));
 
     // Loading
     archive->loading = loading_alloc();
@@ -65,24 +67,25 @@ static ArchiveApp* archive_alloc(void) {
     return archive;
 }
 
-void archive_free(ArchiveApp* archive) {
+void archive_free(ArchiveApp *archive)
+{
     furi_assert(archive);
-    ViewDispatcher* view_dispatcher = archive->view_dispatcher;
+    ViewDispatcher *view_dispatcher = archive->view_dispatcher;
 
     scene_manager_set_scene_state(archive->scene_manager, ArchiveAppSceneInfo, false);
     scene_manager_set_scene_state(archive->scene_manager, ArchiveAppSceneSearch, false);
-    if(archive->info_thread) {
+    if (archive->info_thread) {
         furi_thread_join(archive->info_thread);
         furi_thread_free(archive->info_thread);
         archive->info_thread = NULL;
     }
-    if(archive->search_thread) {
+    if (archive->search_thread) {
         furi_thread_join(archive->search_thread);
         furi_thread_free(archive->search_thread);
         archive->search_thread = NULL;
     }
 
-    if(archive->browser->disk_image) {
+    if (archive->browser->disk_image) {
         storage_virtual_quit(furi_record_open(RECORD_STORAGE));
         furi_record_close(RECORD_STORAGE);
         storage_file_free(archive->browser->disk_image);
@@ -121,11 +124,12 @@ void archive_free(ArchiveApp* archive) {
     free(archive);
 }
 
-void archive_show_loading_popup(ArchiveApp* context, bool show) {
-    ViewStack* view_stack = context->view_stack;
-    Loading* loading = context->loading;
+void archive_show_loading_popup(ArchiveApp *context, bool show)
+{
+    ViewStack *view_stack = context->view_stack;
+    Loading *loading = context->loading;
 
-    if(show) {
+    if (show) {
         // Raise timer priority so that animations can play
         furi_timer_set_thread_priority(FuriTimerThreadPriorityElevated);
         view_stack_add_view(view_stack, loading_get_view(loading));
@@ -136,25 +140,22 @@ void archive_show_loading_popup(ArchiveApp* context, bool show) {
     }
 }
 
-int32_t archive_app(void* p) {
-    FuriString* path = (FuriString*)p;
+int32_t archive_app(void *p)
+{
+    FuriString *path = (FuriString *)p;
 
-    ArchiveApp* archive = archive_alloc();
-    view_dispatcher_attach_to_gui(
-        archive->view_dispatcher, archive->gui, ViewDispatcherTypeFullscreen);
+    ArchiveApp *archive = archive_alloc();
+    view_dispatcher_attach_to_gui(archive->view_dispatcher, archive->gui,
+                                  ViewDispatcherTypeFullscreen);
 
     // If we are sent a path from context, set it in the browser
-    if(path && !furi_string_empty(path)) {
+    if (path && !furi_string_empty(path)) {
         archive_set_tab(archive->browser, ArchiveTabBrowser);
         furi_string_set(archive->browser->path, path);
         archive->browser->is_root = true;
         archive_file_browser_set_path(
-            archive->browser,
-            archive->browser->path,
-            archive_get_tab_ext(ArchiveTabBrowser),
-            false,
-            !momentum_settings.show_hidden_files,
-            furi_string_get_cstr(path));
+            archive->browser, archive->browser->path, archive_get_tab_ext(ArchiveTabBrowser), false,
+            !momentum_settings.show_hidden_files, furi_string_get_cstr(path));
     }
 
     scene_manager_next_scene(archive->scene_manager, ArchiveAppSceneBrowser);

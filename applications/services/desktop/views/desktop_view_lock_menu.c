@@ -27,20 +27,19 @@ typedef enum {
     DesktopLockMenuIndexTotalCount
 } DesktopLockMenuIndex;
 
-void desktop_lock_menu_set_callback(
-    DesktopLockMenuView* lock_menu,
-    DesktopLockMenuViewCallback callback,
-    void* context) {
+void desktop_lock_menu_set_callback(DesktopLockMenuView *lock_menu,
+                                    DesktopLockMenuViewCallback callback, void *context)
+{
     furi_assert(lock_menu);
     furi_assert(callback);
     lock_menu->callback = callback;
     lock_menu->context = context;
 }
 
-void desktop_lock_menu_set_pin_state(DesktopLockMenuView* lock_menu, bool pin_is_set) {
+void desktop_lock_menu_set_pin_state(DesktopLockMenuView *lock_menu, bool pin_is_set)
+{
     with_view_model(
-        lock_menu->view,
-        DesktopLockMenuViewModel * model,
+        lock_menu->view, DesktopLockMenuViewModel * model,
         {
             model->pin_is_set = pin_is_set;
             model->lock_popup_index = pin_is_set; // Select with PIN by default if set
@@ -48,22 +47,22 @@ void desktop_lock_menu_set_pin_state(DesktopLockMenuView* lock_menu, bool pin_is
         true);
 }
 
-void desktop_lock_menu_set_stealth_mode_state(DesktopLockMenuView* lock_menu, bool stealth_mode) {
+void desktop_lock_menu_set_stealth_mode_state(DesktopLockMenuView *lock_menu, bool stealth_mode)
+{
     with_view_model(
-        lock_menu->view,
-        DesktopLockMenuViewModel * model,
-        { model->stealth_mode = stealth_mode; },
+        lock_menu->view, DesktopLockMenuViewModel * model, { model->stealth_mode = stealth_mode; },
         true);
 }
 
-void desktop_lock_menu_set_idx(DesktopLockMenuView* lock_menu, uint8_t idx) {
+void desktop_lock_menu_set_idx(DesktopLockMenuView *lock_menu, uint8_t idx)
+{
     furi_assert(idx < DesktopLockMenuIndexTotalCount);
-    with_view_model(
-        lock_menu->view, DesktopLockMenuViewModel * model, { model->idx = idx; }, true);
+    with_view_model(lock_menu->view, DesktopLockMenuViewModel * model, { model->idx = idx; }, true);
 }
 
-void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
-    DesktopLockMenuViewModel* m = model;
+void desktop_lock_menu_draw_callback(Canvas *canvas, void *model)
+{
+    DesktopLockMenuViewModel *m = model;
 
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontBatteryPercent);
@@ -73,11 +72,11 @@ void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
     bool enabled = false;
     uint8_t value = 0;
     int8_t total = 58;
-    const Icon* icon = NULL;
-    for(size_t i = 0; i < DesktopLockMenuIndexTotalCount; ++i) {
+    const Icon *icon = NULL;
+    for (size_t i = 0; i < DesktopLockMenuIndexTotalCount; ++i) {
         selected = m->idx == i;
         toggle = i < 6;
-        if(toggle) {
+        if (toggle) {
             x = 2 + 32 * (i / 2);
             y = 2 + 32 * (i % 2);
             w = 28;
@@ -91,7 +90,7 @@ void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
             value = 0;
         }
 
-        switch(i) {
+        switch (i) {
         case DesktopLockMenuIndexLefthandedMode:
             icon = &I_CC_LefthandedMode_16x16;
             enabled = furi_hal_rtc_is_flag_set(FuriHalRtcFlagHandOrient);
@@ -125,34 +124,28 @@ void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
             break;
         }
 
-        if(selected) {
+        if (selected) {
             elements_bold_rounded_frame(canvas, x - 1, y - 1, w + 1, h + 1);
         } else {
             canvas_draw_rframe(canvas, x, y, w, h, 5);
         }
 
-        if(toggle) {
-            if(enabled) {
+        if (toggle) {
+            if (enabled) {
                 canvas_draw_rbox(canvas, x, y, w, h, 5);
                 canvas_set_color(canvas, ColorWhite);
             }
-            canvas_draw_icon(
-                canvas,
-                x + (w - icon_get_width(icon)) / 2,
-                y + (h - icon_get_height(icon)) / 2,
-                icon);
-            if(enabled) {
+            canvas_draw_icon(canvas, x + (w - icon_get_width(icon)) / 2,
+                             y + (h - icon_get_height(icon)) / 2, icon);
+            if (enabled) {
                 canvas_set_color(canvas, ColorBlack);
             }
         } else {
-            canvas_draw_icon(
-                canvas,
-                x + (w - icon_get_width(icon)) / 2,
-                y + (h - icon_get_height(icon)) / 2,
-                icon);
+            canvas_draw_icon(canvas, x + (w - icon_get_width(icon)) / 2,
+                             y + (h - icon_get_height(icon)) / 2, icon);
             canvas_set_color(canvas, ColorXOR);
             canvas_draw_box(canvas, x + 1, y + 1 + value, w - 2, h - 2 - value);
-            if(selected) {
+            if (selected) {
                 canvas_set_color(canvas, ColorBlack);
             } else {
                 canvas_set_color(canvas, ColorWhite);
@@ -166,8 +159,8 @@ void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
         }
     }
 
-    if(m->show_lock_popup) {
-        if(momentum_settings.popup_overlay) {
+    if (m->show_lock_popup) {
+        if (momentum_settings.popup_overlay) {
             canvas_draw_overlay(canvas);
         }
         canvas_set_font(canvas, FontSecondary);
@@ -179,16 +172,18 @@ void desktop_lock_menu_draw_callback(Canvas* canvas, void* model) {
     }
 }
 
-View* desktop_lock_menu_get_view(DesktopLockMenuView* lock_menu) {
+View *desktop_lock_menu_get_view(DesktopLockMenuView *lock_menu)
+{
     furi_assert(lock_menu);
     return lock_menu->view;
 }
 
-bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
+bool desktop_lock_menu_input_callback(InputEvent *event, void *context)
+{
     furi_assert(event);
     furi_assert(context);
 
-    DesktopLockMenuView* lock_menu = context;
+    DesktopLockMenuView *lock_menu = context;
     uint8_t idx = 0;
     bool show_lock_popup = false;
     DesktopLockMenuPopupIndex lock_popup_index = 0;
@@ -196,56 +191,55 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
     bool consumed = true;
 
     with_view_model(
-        lock_menu->view,
-        DesktopLockMenuViewModel * model,
+        lock_menu->view, DesktopLockMenuViewModel * model,
         {
             show_lock_popup = model->show_lock_popup;
             stealth_mode = model->stealth_mode;
-            if((event->type == InputTypeShort) || (event->type == InputTypeRepeat)) {
-                if(model->show_lock_popup) {
-                    if(event->key == InputKeyUp) {
-                        if(model->lock_popup_index == 0) {
+            if ((event->type == InputTypeShort) || (event->type == InputTypeRepeat)) {
+                if (model->show_lock_popup) {
+                    if (event->key == InputKeyUp) {
+                        if (model->lock_popup_index == 0) {
                             model->lock_popup_index = DesktopLockMenuPopupIndexMAX - 1;
                         } else {
                             model->lock_popup_index--;
                         }
-                    } else if(event->key == InputKeyDown) {
-                        if(model->lock_popup_index == DesktopLockMenuPopupIndexMAX - 1) {
+                    } else if (event->key == InputKeyDown) {
+                        if (model->lock_popup_index == DesktopLockMenuPopupIndexMAX - 1) {
                             model->lock_popup_index = 0;
                         } else {
                             model->lock_popup_index++;
                         }
-                    } else if(event->key == InputKeyBack || event->key == InputKeyOk) {
+                    } else if (event->key == InputKeyBack || event->key == InputKeyOk) {
                         model->show_lock_popup = false;
                     }
                 } else {
-                    if(model->idx == DesktopLockMenuIndexLock && event->key == InputKeyOk) {
+                    if (model->idx == DesktopLockMenuIndexLock && event->key == InputKeyOk) {
                         model->show_lock_popup = true;
-                    } else if(model->idx < 6) {
-                        if(event->key == InputKeyUp || event->key == InputKeyDown) {
-                            if(model->idx % 2) {
+                    } else if (model->idx < 6) {
+                        if (event->key == InputKeyUp || event->key == InputKeyDown) {
+                            if (model->idx % 2) {
                                 model->idx--;
                             } else {
                                 model->idx++;
                             }
-                        } else if(event->key == InputKeyLeft) {
-                            if(model->idx < 2) {
+                        } else if (event->key == InputKeyLeft) {
+                            if (model->idx < 2) {
                                 model->idx = 7;
                             } else {
                                 model->idx -= 2;
                             }
-                        } else if(event->key == InputKeyRight) {
-                            if(model->idx >= 4) {
+                        } else if (event->key == InputKeyRight) {
+                            if (model->idx >= 4) {
                                 model->idx = 6;
                             } else {
                                 model->idx += 2;
                             }
                         }
                     } else {
-                        if(event->key == InputKeyLeft) {
+                        if (event->key == InputKeyLeft) {
                             model->idx--;
-                        } else if(event->key == InputKeyRight) {
-                            if(model->idx >= 7) {
+                        } else if (event->key == InputKeyRight) {
+                            if (model->idx >= 7) {
                                 model->idx = 1;
                             } else {
                                 model->idx++;
@@ -260,9 +254,9 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
         true);
 
     DesktopEvent desktop_event = 0;
-    if(show_lock_popup) {
-        if(event->key == InputKeyOk && event->type == InputTypeShort) {
-            switch(lock_popup_index) {
+    if (show_lock_popup) {
+        if (event->key == InputKeyOk && event->type == InputTypeShort) {
+            switch (lock_popup_index) {
             case DesktopLockMenuPopupIndexKeypad:
                 desktop_event = DesktopLockMenuEventLockKeypad;
                 break;
@@ -277,12 +271,12 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
             }
         }
     } else {
-        if(event->key == InputKeyBack) {
+        if (event->key == InputKeyBack) {
             consumed = false;
-        } else if(event->key == InputKeyOk && event->type == InputTypeShort) {
-            switch(idx) {
+        } else if (event->key == InputKeyOk && event->type == InputTypeShort) {
+            switch (idx) {
             case DesktopLockMenuIndexLefthandedMode:
-                if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagHandOrient)) {
+                if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagHandOrient)) {
                     furi_hal_rtc_reset_flag(FuriHalRtcFlagHandOrient);
                 } else {
                     furi_hal_rtc_set_flag(FuriHalRtcFlagHandOrient);
@@ -297,7 +291,7 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
                 break;
             case DesktopLockMenuIndexBluetooth:
                 lock_menu->bt->bt_settings.enabled = !lock_menu->bt->bt_settings.enabled;
-                if(lock_menu->bt->bt_settings.enabled) {
+                if (lock_menu->bt->bt_settings.enabled) {
                     furi_hal_bt_start_advertising();
                 } else {
                     furi_hal_bt_stop_advertising();
@@ -311,22 +305,22 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
                 desktop_event = DesktopLockMenuEventScreenSettings;
                 break;
             case DesktopLockMenuIndexVolume:
-                desktop_event = stealth_mode ? DesktopLockMenuEventStealthModeOff :
-                                               DesktopLockMenuEventStealthModeOn;
+                desktop_event = stealth_mode ? DesktopLockMenuEventStealthModeOff
+                                             : DesktopLockMenuEventStealthModeOn;
                 break;
             default:
                 break;
             }
-        } else if(idx >= 6 && (event->type == InputTypeShort || event->type == InputTypeRepeat)) {
+        } else if (idx >= 6 && (event->type == InputTypeShort || event->type == InputTypeRepeat)) {
             int8_t offset = 0;
-            if(event->key == InputKeyUp) {
+            if (event->key == InputKeyUp) {
                 offset = 1;
-            } else if(event->key == InputKeyDown) {
+            } else if (event->key == InputKeyDown) {
                 offset = -1;
             }
-            if(offset) {
+            if (offset) {
                 float value;
-                switch(idx) {
+                switch (idx) {
                 case DesktopLockMenuIndexBrightness:
                     value = lock_menu->notification->settings.display_brightness + 0.05 * offset;
                     lock_menu->notification->settings.display_brightness =
@@ -347,23 +341,22 @@ bool desktop_lock_menu_input_callback(InputEvent* event, void* context) {
             }
         }
     }
-    if(desktop_event) {
+    if (desktop_event) {
         lock_menu->callback(desktop_event, lock_menu->context);
     }
 
     return consumed;
 }
 
-DesktopLockMenuView* desktop_lock_menu_alloc(void) {
-    DesktopLockMenuView* lock_menu = malloc(sizeof(DesktopLockMenuView));
+DesktopLockMenuView *desktop_lock_menu_alloc(void)
+{
+    DesktopLockMenuView *lock_menu = malloc(sizeof(DesktopLockMenuView));
     lock_menu->bt = furi_record_open(RECORD_BT);
     lock_menu->notification = furi_record_open(RECORD_NOTIFICATION);
     lock_menu->view = view_alloc();
     view_allocate_model(lock_menu->view, ViewModelTypeLocking, sizeof(DesktopLockMenuViewModel));
     with_view_model(
-        lock_menu->view,
-        DesktopLockMenuViewModel * model,
-        { model->lock_menu = lock_menu; },
+        lock_menu->view, DesktopLockMenuViewModel * model, { model->lock_menu = lock_menu; },
         false);
     view_set_context(lock_menu->view, lock_menu);
     view_set_draw_callback(lock_menu->view, (ViewDrawCallback)desktop_lock_menu_draw_callback);
@@ -372,7 +365,8 @@ DesktopLockMenuView* desktop_lock_menu_alloc(void) {
     return lock_menu;
 }
 
-void desktop_lock_menu_free(DesktopLockMenuView* lock_menu_view) {
+void desktop_lock_menu_free(DesktopLockMenuView *lock_menu_view)
+{
     furi_assert(lock_menu_view);
 
     view_free(lock_menu_view->view);

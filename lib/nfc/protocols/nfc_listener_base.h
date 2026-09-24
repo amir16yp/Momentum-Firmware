@@ -36,15 +36,15 @@ extern "C" {
  * @param[in] data pointer to the protocol-specific data to use during emulation.
  * @returns pointer to the allocated listener instance.
  */
-typedef NfcGenericInstance* (
-    *NfcListenerAlloc)(NfcGenericInstance* base_listener, NfcDeviceData* data);
+typedef NfcGenericInstance *(*NfcListenerAlloc)(NfcGenericInstance *base_listener,
+                                                NfcDeviceData *data);
 
 /**
  * @brief Delete a protocol-specific listener instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-typedef void (*NfcListenerFree)(NfcGenericInstance* instance);
+typedef void (*NfcListenerFree)(NfcGenericInstance *instance);
 
 /**
  * @brief Set the callback function to handle events emitted by the listener instance.
@@ -55,10 +55,8 @@ typedef void (*NfcListenerFree)(NfcGenericInstance* instance);
  * @param[in] callback pointer to the user-defined callback function which will receive events.
  * @param[in] context pointer to the user-specific context (will be passed to the callback).
  */
-typedef void (*NfcListenerSetCallback)(
-    NfcGenericInstance* listener,
-    NfcGenericCallback callback,
-    void* context);
+typedef void (*NfcListenerSetCallback)(NfcGenericInstance *listener, NfcGenericCallback callback,
+                                       void *context);
 
 /**
  * @brief Emulate a supported NFC card with given device data.
@@ -67,7 +65,7 @@ typedef void (*NfcListenerSetCallback)(
  * @param[in,out] context pointer to the protocol-specific listener instance.
  * @returns command to be executed by the parent listener instance.
  */
-typedef NfcCommand (*NfcListenerRun)(NfcGenericEvent event, void* context);
+typedef NfcCommand (*NfcListenerRun)(NfcGenericEvent event, void *context);
 
 /**
  * @brief Get the protocol-specific data that was that was provided for emulation.
@@ -75,7 +73,7 @@ typedef NfcCommand (*NfcListenerRun)(NfcGenericEvent event, void* context);
  * @param[in] instance pointer to the protocol-specific listener instance.
  * @returns pointer to the NFC device data.
  */
-typedef const NfcDeviceData* (*NfcListenerGetData)(const NfcGenericInstance* instance);
+typedef const NfcDeviceData *(*NfcListenerGetData)(const NfcGenericInstance *instance);
 
 /**
  * @brief Generic NFC listener interface.
@@ -86,11 +84,11 @@ typedef const NfcDeviceData* (*NfcListenerGetData)(const NfcGenericInstance* ins
  * Additionally, see ${PROTOCOL_NAME}/${PROTOCOL_NAME}_listener.c for usage examples.
  */
 typedef struct {
-    NfcListenerAlloc alloc; /**< Pointer to the alloc() function. */
-    NfcListenerFree free; /**< Pointer to the free() function. */
+    NfcListenerAlloc alloc;              /**< Pointer to the alloc() function. */
+    NfcListenerFree free;                /**< Pointer to the free() function. */
     NfcListenerSetCallback set_callback; /**< Pointer to the set_callback() function. */
-    NfcListenerRun run; /**< Pointer to the run() function. */
-    NfcListenerGetData get_data; /**< Pointer to the get_data() function. */
+    NfcListenerRun run;                  /**< Pointer to the run() function. */
+    NfcListenerGetData get_data;         /**< Pointer to the get_data() function. */
 } NfcListenerBase;
 
 #ifdef __cplusplus

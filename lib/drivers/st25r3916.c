@@ -2,7 +2,8 @@
 
 #include <furi.h>
 
-void st25r3916_mask_irq(const FuriHalSpiBusHandle* handle, uint32_t mask) {
+void st25r3916_mask_irq(const FuriHalSpiBusHandle *handle, uint32_t mask)
+{
     furi_assert(handle);
 
     uint8_t irq_mask_regs[4] = {
@@ -14,7 +15,8 @@ void st25r3916_mask_irq(const FuriHalSpiBusHandle* handle, uint32_t mask) {
     st25r3916_write_burst_regs(handle, ST25R3916_REG_IRQ_MASK_MAIN, irq_mask_regs, 4);
 }
 
-uint32_t st25r3916_get_irq(const FuriHalSpiBusHandle* handle) {
+uint32_t st25r3916_get_irq(const FuriHalSpiBusHandle *handle)
+{
     furi_assert(handle);
 
     uint8_t irq_regs[4] = {};
@@ -32,7 +34,8 @@ uint32_t st25r3916_get_irq(const FuriHalSpiBusHandle* handle) {
     return irq;
 }
 
-void st25r3916_write_fifo(const FuriHalSpiBusHandle* handle, const uint8_t* buff, size_t bits) {
+void st25r3916_write_fifo(const FuriHalSpiBusHandle *handle, const uint8_t *buff, size_t bits)
+{
     furi_assert(handle);
     furi_assert(buff);
 
@@ -44,11 +47,9 @@ void st25r3916_write_fifo(const FuriHalSpiBusHandle* handle, const uint8_t* buff
     st25r3916_reg_write_fifo(handle, buff, bytes);
 }
 
-bool st25r3916_read_fifo(
-    const FuriHalSpiBusHandle* handle,
-    uint8_t* buff,
-    size_t buff_size,
-    size_t* buff_bits) {
+bool st25r3916_read_fifo(const FuriHalSpiBusHandle *handle, uint8_t *buff, size_t buff_size,
+                         size_t *buff_bits)
+{
     furi_assert(handle);
     furi_assert(buff);
 
@@ -58,27 +59,27 @@ bool st25r3916_read_fifo(
         uint8_t fifo_status[2] = {};
         st25r3916_read_burst_regs(handle, ST25R3916_REG_FIFO_STATUS1, fifo_status, 2);
 
-        uint16_t fifo_status_b9_b8 =
-            ((fifo_status[1] & ST25R3916_REG_FIFO_STATUS2_fifo_b_mask) >>
-             ST25R3916_REG_FIFO_STATUS2_fifo_b_shift);
+        uint16_t fifo_status_b9_b8 = ((fifo_status[1] & ST25R3916_REG_FIFO_STATUS2_fifo_b_mask) >>
+                                      ST25R3916_REG_FIFO_STATUS2_fifo_b_shift);
         size_t bytes = (fifo_status_b9_b8 << 8) | fifo_status[0];
 
-        uint8_t bits =
-            ((fifo_status[1] & ST25R3916_REG_FIFO_STATUS2_fifo_lb_mask) >>
-             ST25R3916_REG_FIFO_STATUS2_fifo_lb_shift);
+        uint8_t bits = ((fifo_status[1] & ST25R3916_REG_FIFO_STATUS2_fifo_lb_mask) >>
+                        ST25R3916_REG_FIFO_STATUS2_fifo_lb_shift);
 
-        if(bytes == 0) break;
-        if(bytes > buff_size) break;
+        if (bytes == 0)
+            break;
+        if (bytes > buff_size)
+            break;
 
         st25r3916_reg_read_fifo(handle, buff, bytes);
 
-        if(bits) {
+        if (bits) {
             *buff_bits = (bytes - 1) * 8 + bits;
         } else {
             *buff_bits = bytes * 8;
         }
         read_success = true;
-    } while(false);
+    } while (false);
 
     return read_success;
 }

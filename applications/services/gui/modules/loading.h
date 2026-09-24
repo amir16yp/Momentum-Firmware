@@ -14,13 +14,13 @@ typedef struct Loading Loading;
  *
  * @return     Loading View instance
  */
-Loading* loading_alloc(void);
+Loading *loading_alloc(void);
 
 /** Deinitialize and free Loading View
  *
  * @param      instance  Loading instance
  */
-void loading_free(Loading* instance);
+void loading_free(Loading *instance);
 
 /** Get Loading view
  *
@@ -28,7 +28,7 @@ void loading_free(Loading* instance);
  *
  * @return     View instance that can be used for embedding
  */
-View* loading_get_view(Loading* instance);
+View *loading_get_view(Loading *instance);
 
 #ifdef __cplusplus
 }

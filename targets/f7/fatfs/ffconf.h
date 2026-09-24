@@ -1,27 +1,27 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  *  FatFs - Generic FAT file system module  R0.12c (C)ChaN, 2017
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ *  FatFs - Generic FAT file system module  R0.12c (C)ChaN, 2017
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under Ultimate Liberty license
+ * SLA0044, the "License"; You may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at:
+ *                             www.st.com/SLA0044
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 #ifndef _FFCONF
 #define _FFCONF 68300 /* Revision ID */
 
 /*-----------------------------------------------------------------------------/
-/ Additional user header to be used  
+/ Additional user header to be used
 /-----------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------/
@@ -118,7 +118,7 @@
 /   950 - Traditional Chinese (DBCS)
 */
 
-#define _USE_LFN 2 /* 0 to 3 */
+#define _USE_LFN 2   /* 0 to 3 */
 #define _MAX_LFN 255 /* Maximum LFN length to handle (12 to 255) */
 /* The _USE_LFN switches the support of long file name (LFN).
 /
@@ -168,7 +168,7 @@
 
 /* USER CODE BEGIN Volumes */
 #define _STR_VOLUME_ID 0 /* 0:Use only 0-9 for drive ID, 1:Use strings for drive ID */
-#define _VOLUME_STRS   "SD"
+#define _VOLUME_STRS "SD"
 /* _STR_VOLUME_ID switches string support of volume ID.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
@@ -183,8 +183,8 @@
 /  When multi-partition is enabled (1), each logical drive number can be bound to
 /  arbitrary physical drive and partition listed in the VolToPart[]. Also f_fdisk()
 /  funciton will be available. */
-#define _MIN_SS          512 /* 512, 1024, 2048 or 4096 */
-#define _MAX_SS          512 /* 512, 1024, 2048 or 4096 */
+#define _MIN_SS 512 /* 512, 1024, 2048 or 4096 */
+#define _MAX_SS 512 /* 512, 1024, 2048 or 4096 */
 /* These options configure the range of sector size to be supported. (512, 1024,
 /  2048 or 4096) Always set both 512 for most systems, all type of memory cards and
 /  harddisk. But a larger value may be required for on-board flash memory and some
@@ -230,7 +230,7 @@
 /  defined by _NORTC_MON, _NORTC_MDAY and _NORTC_YEAR in local time.
 /  To enable timestamp function (_FS_NORTC = 0), get_fattime() function need to be
 /  added to the project to get current time form real-time clock. _NORTC_MON,
-/  _NORTC_MDAY and _NORTC_YEAR have no effect. 
+/  _NORTC_MDAY and _NORTC_YEAR have no effect.
 /  These options have no effect at read-only configuration (_FS_READONLY = 1). */
 
 #define _FS_LOCK 0 /* 0:Disable or >=1:Enable */
@@ -244,9 +244,9 @@
 /      can be opened simultaneously under file lock control. Note that the file
 /      lock control is independent of re-entrancy. */
 
-#define _FS_REENTRANT 0 /* 0:Disable or 1:Enable */
-#define _FS_TIMEOUT   1000 /* Timeout period in unit of time ticks */
-#define _SYNC_t       FuriMutex*
+#define _FS_REENTRANT 0  /* 0:Disable or 1:Enable */
+#define _FS_TIMEOUT 1000 /* Timeout period in unit of time ticks */
+#define _SYNC_t FuriMutex *
 /* The option _FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different
 /  volume is always re-entrant and volume control functions, f_mount(), f_mkfs()
@@ -268,7 +268,7 @@
 #if !defined(ff_malloc) && !defined(ff_free)
 #include <stdlib.h>
 #define ff_malloc malloc
-#define ff_free   free
+#define ff_free free
 #endif
 
 #endif /* _FFCONF */

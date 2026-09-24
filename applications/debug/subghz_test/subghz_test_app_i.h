@@ -19,14 +19,14 @@
 typedef struct SubGhzTestApp SubGhzTestApp;
 
 struct SubGhzTestApp {
-    Gui* gui;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    NotificationApp* notifications;
-    Submenu* submenu;
-    Widget* widget;
-    Popup* popup;
-    SubGhzTestStatic* subghz_test_static;
-    SubGhzTestCarrier* subghz_test_carrier;
-    SubGhzTestPacket* subghz_test_packet;
+    Gui *gui;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    NotificationApp *notifications;
+    Submenu *submenu;
+    Widget *widget;
+    Popup *popup;
+    SubGhzTestStatic *subghz_test_static;
+    SubGhzTestCarrier *subghz_test_carrier;
+    SubGhzTestPacket *subghz_test_packet;
 };

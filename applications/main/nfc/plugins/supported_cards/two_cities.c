@@ -35,7 +35,8 @@ static const MfClassicKeyPair two_cities_4k_keys[] = {
     {.a = 0xb27addfb64b0, .b = 0x152fd0c420a7}, {.a = 0x7259fa0197c6, .b = 0x5583698df085},
 };
 
-bool two_cities_verify(Nfc* nfc) {
+bool two_cities_verify(Nfc *nfc)
+{
     bool verified = false;
 
     do {
@@ -49,44 +50,46 @@ bool two_cities_verify(Nfc* nfc) {
         MfClassicAuthContext auth_ctx = {};
         MfClassicError error =
             mf_classic_poller_sync_auth(nfc, block_num, &key, MfClassicKeyTypeA, &auth_ctx);
-        if(error != MfClassicErrorNone) {
+        if (error != MfClassicErrorNone) {
             FURI_LOG_D(TAG, "Failed to read block %u: %d", block_num, error);
             break;
         }
 
         verified = true;
-    } while(false);
+    } while (false);
 
     return verified;
 }
 
-static bool two_cities_read(Nfc* nfc, NfcDevice* device) {
+static bool two_cities_read(Nfc *nfc, NfcDevice *device)
+{
     furi_assert(nfc);
     furi_assert(device);
 
     bool is_read = false;
 
-    MfClassicData* data = mf_classic_alloc();
+    MfClassicData *data = mf_classic_alloc();
     nfc_device_copy_data(device, NfcProtocolMfClassic, data);
 
     do {
         MfClassicType type = MfClassicTypeMini;
         MfClassicError error = mf_classic_poller_sync_detect_type(nfc, &type);
-        if(error != MfClassicErrorNone) break;
+        if (error != MfClassicErrorNone)
+            break;
 
         data->type = type;
         MfClassicDeviceKeys keys = {};
-        for(size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
-            bit_lib_num_to_bytes_be(
-                two_cities_4k_keys[i].a, sizeof(MfClassicKey), keys.key_a[i].data);
+        for (size_t i = 0; i < mf_classic_get_total_sectors_num(data->type); i++) {
+            bit_lib_num_to_bytes_be(two_cities_4k_keys[i].a, sizeof(MfClassicKey),
+                                    keys.key_a[i].data);
             FURI_BIT_SET(keys.key_a_mask, i);
-            bit_lib_num_to_bytes_be(
-                two_cities_4k_keys[i].b, sizeof(MfClassicKey), keys.key_b[i].data);
+            bit_lib_num_to_bytes_be(two_cities_4k_keys[i].b, sizeof(MfClassicKey),
+                                    keys.key_b[i].data);
             FURI_BIT_SET(keys.key_b_mask, i);
         }
 
         error = mf_classic_poller_sync_read(nfc, &keys, data);
-        if(error == MfClassicErrorNotPresent) {
+        if (error == MfClassicErrorNotPresent) {
             FURI_LOG_W(TAG, "Failed to read data");
             break;
         }
@@ -94,32 +97,34 @@ static bool two_cities_read(Nfc* nfc, NfcDevice* device) {
         nfc_device_set_data(device, NfcProtocolMfClassic, data);
 
         is_read = (error == MfClassicErrorNone);
-    } while(false);
+    } while (false);
 
     mf_classic_free(data);
 
     return is_read;
 }
 
-static bool two_cities_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool two_cities_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
     bool parsed = false;
 
     do {
         // Verify key
-        MfClassicSectorTrailer* sec_tr = mf_classic_get_sector_trailer_by_sector(data, 4);
+        MfClassicSectorTrailer *sec_tr = mf_classic_get_sector_trailer_by_sector(data, 4);
         uint64_t key = bit_lib_bytes_to_num_be(sec_tr->key_a.data, 6);
-        if(key != two_cities_4k_keys[4].a) break;
+        if (key != two_cities_4k_keys[4].a)
+            break;
 
         // =====
         // PLANTAIN
         // =====
 
         // Point to block 0 of sector 4, value 0
-        const uint8_t* temp_ptr = data->block[16].data;
+        const uint8_t *temp_ptr = data->block[16].data;
         // Read first 4 bytes of block 0 of sector 4 from last to first and convert them to uint32_t
         // 38 18 00 00 becomes 00 00 18 38, and equals to 6200 decimal
         uint32_t balance =
@@ -128,14 +133,15 @@ static bool two_cities_parse(const NfcDevice* device, FuriString* parsed_data) {
         // Point to block 0 of sector 0, value 0
         temp_ptr = data->block[0].data;
         // Read first 7 bytes of block 0 of sector 0 from last to first and convert them to uint64_t
-        // 04 31 16 8A 23 5C 80 becomes 80 5C 23 8A 16 31 04, and equals to 36130104729284868 decimal
+        // 04 31 16 8A 23 5C 80 becomes 80 5C 23 8A 16 31 04, and equals to 36130104729284868
+        // decimal
         uint8_t card_number_arr[7];
-        for(size_t i = 0; i < 7; i++) {
+        for (size_t i = 0; i < 7; i++) {
             card_number_arr[i] = temp_ptr[6 - i];
         }
         // Copy card number to uint64_t
         uint64_t card_number = 0;
-        for(size_t i = 0; i < 7; i++) {
+        for (size_t i = 0; i < 7; i++) {
             card_number = (card_number << 8) | card_number_arr[i];
         }
 
@@ -145,26 +151,22 @@ static bool two_cities_parse(const NfcDevice* device, FuriString* parsed_data) {
         // TROIKA
         // =====
 
-        const uint8_t* troika_temp_ptr = &data->block[33].data[5];
+        const uint8_t *troika_temp_ptr = &data->block[33].data[5];
         uint16_t troika_balance = ((troika_temp_ptr[0] << 8) | troika_temp_ptr[1]) / 25;
         troika_temp_ptr = &data->block[32].data[2];
         uint32_t troika_number = 0;
-        for(size_t i = 0; i < 4; i++) {
+        for (size_t i = 0; i < 4; i++) {
             troika_number <<= 8;
             troika_number |= troika_temp_ptr[i];
         }
         troika_number >>= 4;
 
-        furi_string_printf(
-            parsed_data,
-            "\e#Troika+Plantain\nPN: %lluX\nPB: %lu rur.\nTN: %lu\nTB: %u rur.\n",
-            card_number,
-            balance,
-            troika_number,
-            troika_balance);
+        furi_string_printf(parsed_data,
+                           "\e#Troika+Plantain\nPN: %lluX\nPB: %lu rur.\nTN: %lu\nTB: %u rur.\n",
+                           card_number, balance, troika_number, troika_balance);
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -185,6 +187,7 @@ static const FlipperAppPluginDescriptor two_cities_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* two_cities_plugin_ep(void) {
+const FlipperAppPluginDescriptor *two_cities_plugin_ep(void)
+{
     return &two_cities_plugin_descriptor;
 }

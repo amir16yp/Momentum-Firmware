@@ -9,44 +9,44 @@ extern "C" {
 
 #define MF_ULTRALIGHT_TEARING_FLAG_DEFAULT (0xBD)
 
-#define MF_ULTRALIGHT_CMD_GET_VERSION   (0x60)
-#define MF_ULTRALIGHT_CMD_READ_PAGE     (0x30)
-#define MF_ULTRALIGHT_CMD_FAST_READ     (0x3A)
+#define MF_ULTRALIGHT_CMD_GET_VERSION (0x60)
+#define MF_ULTRALIGHT_CMD_READ_PAGE (0x30)
+#define MF_ULTRALIGHT_CMD_FAST_READ (0x3A)
 #define MF_ULTRALIGHT_CMD_SECTOR_SELECT (0xC2)
-#define MF_ULTRALIGHT_CMD_COMP_WRITE    (0xA0)
-#define MF_ULTRALIGHT_CMD_WRITE_PAGE    (0xA2)
-#define MF_ULTRALIGHT_CMD_FAST_WRITE    (0xA6)
-#define MF_ULTRALIGHT_CMD_READ_SIG      (0x3C)
-#define MF_ULTRALIGHT_CMD_READ_CNT      (0x39)
-#define MF_ULTRALIGHT_CMD_INCR_CNT      (0xA5)
+#define MF_ULTRALIGHT_CMD_COMP_WRITE (0xA0)
+#define MF_ULTRALIGHT_CMD_WRITE_PAGE (0xA2)
+#define MF_ULTRALIGHT_CMD_FAST_WRITE (0xA6)
+#define MF_ULTRALIGHT_CMD_READ_SIG (0x3C)
+#define MF_ULTRALIGHT_CMD_READ_CNT (0x39)
+#define MF_ULTRALIGHT_CMD_INCR_CNT (0xA5)
 #define MF_ULTRALIGHT_CMD_CHECK_TEARING (0x3E)
-#define MF_ULTRALIGHT_CMD_PWD_AUTH      (0x1B)
-#define MF_ULTRALIGHT_CMD_AUTH          (0x1A)
-#define MF_ULTRALIGHT_CMD_VCSL          (0x4B)
+#define MF_ULTRALIGHT_CMD_PWD_AUTH (0x1B)
+#define MF_ULTRALIGHT_CMD_AUTH (0x1A)
+#define MF_ULTRALIGHT_CMD_VCSL (0x4B)
 
-#define MF_ULTRALIGHT_CMD_ACK      (0x0A)
-#define MF_ULTRALIGHT_CMD_NACK     (0x00)
+#define MF_ULTRALIGHT_CMD_ACK (0x0A)
+#define MF_ULTRALIGHT_CMD_NACK (0x00)
 #define MF_ULTRALIGHT_CMD_AUTH_NAK (0x04)
 
-#define MF_ULTRALIGHT_MAX_CNTR_VAL       (0x00FFFFFF)
-#define MF_ULTRALIGHT_MAX_PAGE_NUM       (510)
-#define MF_ULTRALIGHT_PAGE_SIZE          (4U)
-#define MF_ULTRALIGHT_SIGNATURE_SIZE     (32)
-#define MF_ULTRALIGHT_COUNTER_SIZE       (3)
-#define MF_ULTRALIGHT_COUNTER_NUM        (3)
-#define MF_ULTRALIGHT_TEARING_FLAG_SIZE  (1)
-#define MF_ULTRALIGHT_TEARING_FLAG_NUM   (3)
+#define MF_ULTRALIGHT_MAX_CNTR_VAL (0x00FFFFFF)
+#define MF_ULTRALIGHT_MAX_PAGE_NUM (510)
+#define MF_ULTRALIGHT_PAGE_SIZE (4U)
+#define MF_ULTRALIGHT_SIGNATURE_SIZE (32)
+#define MF_ULTRALIGHT_COUNTER_SIZE (3)
+#define MF_ULTRALIGHT_COUNTER_NUM (3)
+#define MF_ULTRALIGHT_TEARING_FLAG_SIZE (1)
+#define MF_ULTRALIGHT_TEARING_FLAG_NUM (3)
 #define MF_ULTRALIGHT_AUTH_PASSWORD_SIZE (4)
-#define MF_ULTRALIGHT_AUTH_PACK_SIZE     (2)
+#define MF_ULTRALIGHT_AUTH_PACK_SIZE (2)
 
-#define MF_ULTRALIGHT_C_AUTH_RESPONSE_SIZE      (9)
-#define MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE       (16)
-#define MF_ULTRALIGHT_C_AUTH_DATA_SIZE          (MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE)
-#define MF_ULTRALIGHT_C_AUTH_IV_BLOCK_SIZE      (8)
-#define MF_ULTRALIGHT_C_AUTH_RND_BLOCK_SIZE     (8)
+#define MF_ULTRALIGHT_C_AUTH_RESPONSE_SIZE (9)
+#define MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE (16)
+#define MF_ULTRALIGHT_C_AUTH_DATA_SIZE (MF_ULTRALIGHT_C_AUTH_DES_KEY_SIZE)
+#define MF_ULTRALIGHT_C_AUTH_IV_BLOCK_SIZE (8)
+#define MF_ULTRALIGHT_C_AUTH_RND_BLOCK_SIZE (8)
 #define MF_ULTRALIGHT_C_AUTH_RND_A_BLOCK_OFFSET (0)
 #define MF_ULTRALIGHT_C_AUTH_RND_B_BLOCK_OFFSET (8)
-#define MF_ULTRALIGHT_C_ENCRYPTED_PACK_SIZE     (MF_ULTRALIGHT_C_AUTH_DATA_SIZE + 1)
+#define MF_ULTRALIGHT_C_ENCRYPTED_PACK_SIZE (MF_ULTRALIGHT_C_AUTH_DATA_SIZE + 1)
 
 typedef enum {
     MfUltralightErrorNone,
@@ -147,10 +147,10 @@ typedef struct FURI_PACKED {
     union {
         uint8_t value;
         struct {
-            uint8_t rfui1                      : 2;
-            bool strg_mod_en                   : 1;
-            bool rfui2                         : 1;
-            uint8_t mirror_byte                : 2;
+            uint8_t rfui1 : 2;
+            bool strg_mod_en : 1;
+            bool rfui2 : 1;
+            uint8_t mirror_byte : 2;
             MfUltralightMirrorConf mirror_conf : 2;
         };
     } mirror;
@@ -160,12 +160,12 @@ typedef struct FURI_PACKED {
     union {
         uint8_t value;
         struct {
-            uint8_t authlim       : 3;
+            uint8_t authlim : 3;
             bool nfc_cnt_pwd_prot : 1;
-            bool nfc_cnt_en       : 1;
-            bool nfc_dis_sec1     : 1; // NTAG I2C Plus only
-            bool cfglck           : 1;
-            bool prot             : 1;
+            bool nfc_cnt_en : 1;
+            bool nfc_dis_sec1 : 1; // NTAG I2C Plus only
+            bool cfglck : 1;
+            bool prot : 1;
         };
     } access;
     uint8_t vctid;
@@ -176,7 +176,7 @@ typedef struct FURI_PACKED {
 } MfUltralightConfigPages;
 
 typedef struct {
-    Iso14443_3aData* iso14443_3a_data;
+    Iso14443_3aData *iso14443_3a_data;
     MfUltralightType type;
     MfUltralightVersion version;
     MfUltralightSignature signature;
@@ -190,32 +190,32 @@ typedef struct {
 
 extern const NfcDeviceBase nfc_device_mf_ultralight;
 
-MfUltralightData* mf_ultralight_alloc(void);
+MfUltralightData *mf_ultralight_alloc(void);
 
-void mf_ultralight_free(MfUltralightData* data);
+void mf_ultralight_free(MfUltralightData *data);
 
-void mf_ultralight_reset(MfUltralightData* data);
+void mf_ultralight_reset(MfUltralightData *data);
 
-void mf_ultralight_copy(MfUltralightData* data, const MfUltralightData* other);
+void mf_ultralight_copy(MfUltralightData *data, const MfUltralightData *other);
 
-bool mf_ultralight_verify(MfUltralightData* data, const FuriString* device_type);
+bool mf_ultralight_verify(MfUltralightData *data, const FuriString *device_type);
 
-bool mf_ultralight_load(MfUltralightData* data, FlipperFormat* ff, uint32_t version);
+bool mf_ultralight_load(MfUltralightData *data, FlipperFormat *ff, uint32_t version);
 
-bool mf_ultralight_save(const MfUltralightData* data, FlipperFormat* ff);
+bool mf_ultralight_save(const MfUltralightData *data, FlipperFormat *ff);
 
-bool mf_ultralight_is_equal(const MfUltralightData* data, const MfUltralightData* other);
+bool mf_ultralight_is_equal(const MfUltralightData *data, const MfUltralightData *other);
 
-const char*
-    mf_ultralight_get_device_name(const MfUltralightData* data, NfcDeviceNameType name_type);
+const char *mf_ultralight_get_device_name(const MfUltralightData *data,
+                                          NfcDeviceNameType name_type);
 
-const uint8_t* mf_ultralight_get_uid(const MfUltralightData* data, size_t* uid_len);
+const uint8_t *mf_ultralight_get_uid(const MfUltralightData *data, size_t *uid_len);
 
-bool mf_ultralight_set_uid(MfUltralightData* data, const uint8_t* uid, size_t uid_len);
+bool mf_ultralight_set_uid(MfUltralightData *data, const uint8_t *uid, size_t uid_len);
 
-Iso14443_3aData* mf_ultralight_get_base_data(const MfUltralightData* data);
+Iso14443_3aData *mf_ultralight_get_base_data(const MfUltralightData *data);
 
-MfUltralightType mf_ultralight_get_type_by_version(MfUltralightVersion* version);
+MfUltralightType mf_ultralight_get_type_by_version(MfUltralightVersion *version);
 
 uint16_t mf_ultralight_get_pages_total(MfUltralightType type);
 
@@ -231,35 +231,25 @@ bool mf_ultralight_is_page_pwd_or_pack(MfUltralightType type, uint16_t page_num)
 
 bool mf_ultralight_support_feature(const uint32_t feature_set, const uint32_t features_to_check);
 
-bool mf_ultralight_get_config_page(const MfUltralightData* data, MfUltralightConfigPages** config);
+bool mf_ultralight_get_config_page(const MfUltralightData *data, MfUltralightConfigPages **config);
 
-bool mf_ultralight_is_all_data_read(const MfUltralightData* data);
+bool mf_ultralight_is_all_data_read(const MfUltralightData *data);
 
-bool mf_ultralight_detect_protocol(const Iso14443_3aData* iso14443_3a_data);
+bool mf_ultralight_detect_protocol(const Iso14443_3aData *iso14443_3a_data);
 
-bool mf_ultralight_is_counter_configured(const MfUltralightData* data);
+bool mf_ultralight_is_counter_configured(const MfUltralightData *data);
 
-void mf_ultralight_3des_shift_data(uint8_t* const arr);
+void mf_ultralight_3des_shift_data(uint8_t *const arr);
 
-bool mf_ultralight_3des_key_valid(const MfUltralightData* data);
+bool mf_ultralight_3des_key_valid(const MfUltralightData *data);
 
-const uint8_t* mf_ultralight_3des_get_key(const MfUltralightData* data);
+const uint8_t *mf_ultralight_3des_get_key(const MfUltralightData *data);
 
-void mf_ultralight_3des_encrypt(
-    mbedtls_des3_context* ctx,
-    const uint8_t* ck,
-    const uint8_t* iv,
-    const uint8_t* input,
-    const uint8_t length,
-    uint8_t* out);
+void mf_ultralight_3des_encrypt(mbedtls_des3_context *ctx, const uint8_t *ck, const uint8_t *iv,
+                                const uint8_t *input, const uint8_t length, uint8_t *out);
 
-void mf_ultralight_3des_decrypt(
-    mbedtls_des3_context* ctx,
-    const uint8_t* ck,
-    const uint8_t* iv,
-    const uint8_t* input,
-    const uint8_t length,
-    uint8_t* out);
+void mf_ultralight_3des_decrypt(mbedtls_des3_context *ctx, const uint8_t *ck, const uint8_t *iv,
+                                const uint8_t *input, const uint8_t length, uint8_t *out);
 
 #ifdef __cplusplus
 }

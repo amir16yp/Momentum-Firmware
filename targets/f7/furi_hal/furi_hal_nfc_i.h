@@ -28,7 +28,7 @@ extern "C" {
  */
 typedef enum {
     FuriHalNfcEventInternalTypeAbort = (1U << 0), /**< Abort waiting for hardware events. */
-    FuriHalNfcEventInternalTypeIrq = (1U << 1), /**< NFC hardware interrupt has occurred. */
+    FuriHalNfcEventInternalTypeIrq = (1U << 1),   /**< NFC hardware interrupt has occurred. */
     FuriHalNfcEventInternalTypeTimerFwtExpired =
         (1U << 2), /**< Frame wait time timeout has expired. */
     FuriHalNfcEventInternalTypeTimerBlockTxExpired =
@@ -38,10 +38,10 @@ typedef enum {
 } FuriHalNfcEventInternalType;
 
 /** @brief Special bitmask value of all internal events. */
-#define FURI_HAL_NFC_EVENT_INTERNAL_ALL                                   \
-    ((FuriHalNfcEventInternalTypeAbort | FuriHalNfcEventInternalTypeIrq | \
-      FuriHalNfcEventInternalTypeTimerFwtExpired |                        \
-      FuriHalNfcEventInternalTypeTimerBlockTxExpired |                    \
+#define FURI_HAL_NFC_EVENT_INTERNAL_ALL                                                            \
+    ((FuriHalNfcEventInternalTypeAbort | FuriHalNfcEventInternalTypeIrq |                          \
+      FuriHalNfcEventInternalTypeTimerFwtExpired |                                                 \
+      FuriHalNfcEventInternalTypeTimerBlockTxExpired |                                             \
       FuriHalNfcEventInternalTypeTransparentDataReceived))
 
 /**
@@ -49,14 +49,15 @@ typedef enum {
  */
 typedef struct {
     FuriThreadId thread; /**< Identifier of the thread that will be receiving events. */
-    void* context; /**< Pointer to the user-provided context (will be passed to the event callback). */
+    void *context; /**< Pointer to the user-provided context (will be passed to the event callback).
+                    */
 } FuriHalNfcEventInternal;
 
 /**
  * @brief NFC HAL global state structure.
  */
 typedef struct {
-    FuriMutex* mutex; /**< Pointer to the mutex serving as global NFC HAL lock. */
+    FuriMutex *mutex;    /**< Pointer to the mutex serving as global NFC HAL lock. */
     FuriHalNfcMode mode; /**< Currently selected operating mode. */
     FuriHalNfcTech tech; /**< Currently selected NFC technology. */
 } FuriHalNfc;
@@ -104,7 +105,7 @@ void furi_hal_nfc_timers_deinit(void);
  * @param[in,out] handle pointer to the SPI handle associated with the NFC chip.
  * @returns bitmask of zero or more occurred interrupts.
  */
-uint32_t furi_hal_nfc_get_irq(const FuriHalSpiBusHandle* handle);
+uint32_t furi_hal_nfc_get_irq(const FuriHalSpiBusHandle *handle);
 
 /**
  * @brief Wait until a specified type of interrupt occurs.
@@ -114,10 +115,8 @@ uint32_t furi_hal_nfc_get_irq(const FuriHalSpiBusHandle* handle);
  * @param[in] timeout_ms maximum time to wait for an interrupt, in milliseconds.
  * @returns true if specified interrupt(s) have occured within timeout, false otherwise.
  */
-bool furi_hal_nfc_event_wait_for_specific_irq(
-    const FuriHalSpiBusHandle* handle,
-    uint32_t mask,
-    uint32_t timeout_ms);
+bool furi_hal_nfc_event_wait_for_specific_irq(const FuriHalSpiBusHandle *handle, uint32_t mask,
+                                              uint32_t timeout_ms);
 
 /**
  * @brief Wait for any event to occur.
@@ -137,7 +136,7 @@ FuriHalNfcEvent furi_hal_nfc_wait_event_common(uint32_t timeout_ms);
  * @param[in,out] handle pointer to the SPI handle associated with the NFC chip.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-FuriHalNfcError furi_hal_nfc_common_listener_rx_start(const FuriHalSpiBusHandle* handle);
+FuriHalNfcError furi_hal_nfc_common_listener_rx_start(const FuriHalSpiBusHandle *handle);
 
 /**
  * @brief Transmit data using on-chip FIFO.
@@ -149,10 +148,8 @@ FuriHalNfcError furi_hal_nfc_common_listener_rx_start(const FuriHalSpiBusHandle*
  * @param[in] tx_bits transmit data size, in bits.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-FuriHalNfcError furi_hal_nfc_common_fifo_tx(
-    const FuriHalSpiBusHandle* handle,
-    const uint8_t* tx_data,
-    size_t tx_bits);
+FuriHalNfcError furi_hal_nfc_common_fifo_tx(const FuriHalSpiBusHandle *handle,
+                                            const uint8_t *tx_data, size_t tx_bits);
 
 /**
  * @brief Receive data using on-chip FIFO.
@@ -165,11 +162,8 @@ FuriHalNfcError furi_hal_nfc_common_fifo_tx(
  * @param[out] rx_bits pointer to the variable to contain the received data size, in bits.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-FuriHalNfcError furi_hal_nfc_common_fifo_rx(
-    const FuriHalSpiBusHandle* handle,
-    uint8_t* rx_data,
-    size_t rx_data_size,
-    size_t* rx_bits);
+FuriHalNfcError furi_hal_nfc_common_fifo_rx(const FuriHalSpiBusHandle *handle, uint8_t *rx_data,
+                                            size_t rx_data_size, size_t *rx_bits);
 
 /**
  * @brief Transmit data in poller mode.
@@ -181,10 +175,8 @@ FuriHalNfcError furi_hal_nfc_common_fifo_rx(
  * @param[in] tx_bits transmit data size, in bits.
  * @returns FuriHalNfcErrorNone on success, any other error code on failure.
  */
-FuriHalNfcError furi_hal_nfc_poller_tx_common(
-    const FuriHalSpiBusHandle* handle,
-    const uint8_t* tx_data,
-    size_t tx_bits);
+FuriHalNfcError furi_hal_nfc_poller_tx_common(const FuriHalSpiBusHandle *handle,
+                                              const uint8_t *tx_data, size_t tx_bits);
 
 #ifdef __cplusplus
 }

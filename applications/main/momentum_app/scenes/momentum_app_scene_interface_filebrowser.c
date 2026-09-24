@@ -7,55 +7,58 @@ enum VarItemListIndex {
     VarItemListIndexFavoriteTimeout,
 };
 
-const char* const browser_path_names[BrowserPathModeCount] = {
+const char *const browser_path_names[BrowserPathModeCount] = {
     "OFF",
     "Current",
     "Brief",
     "Full",
 };
 
-void momentum_app_scene_interface_filebrowser_var_item_list_callback(void* context, uint32_t index) {
-    MomentumApp* app = context;
+void momentum_app_scene_interface_filebrowser_var_item_list_callback(void *context, uint32_t index)
+{
+    MomentumApp *app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, index);
 }
 
-static void momentum_app_scene_interface_filebrowser_sort_dirs_first_changed(VariableItem* item) {
-    MomentumApp* app = variable_item_get_context(item);
+static void momentum_app_scene_interface_filebrowser_sort_dirs_first_changed(VariableItem *item)
+{
+    MomentumApp *app = variable_item_get_context(item);
     bool value = variable_item_get_current_value_index(item);
     variable_item_set_current_value_text(item, value ? "ON" : "OFF");
     momentum_settings.sort_dirs_first = value;
     app->save_settings = true;
 }
 
-static void
-    momentum_app_scene_interface_filebrowser_show_hidden_files_changed(VariableItem* item) {
-    MomentumApp* app = variable_item_get_context(item);
+static void momentum_app_scene_interface_filebrowser_show_hidden_files_changed(VariableItem *item)
+{
+    MomentumApp *app = variable_item_get_context(item);
     bool value = variable_item_get_current_value_index(item);
     variable_item_set_current_value_text(item, value ? "ON" : "OFF");
     momentum_settings.show_hidden_files = value;
     app->save_settings = true;
 }
 
-static void
-    momentum_app_scene_interface_filebrowser_show_internal_tab_changed(VariableItem* item) {
-    MomentumApp* app = variable_item_get_context(item);
+static void momentum_app_scene_interface_filebrowser_show_internal_tab_changed(VariableItem *item)
+{
+    MomentumApp *app = variable_item_get_context(item);
     bool value = variable_item_get_current_value_index(item);
     variable_item_set_current_value_text(item, value ? "ON" : "OFF");
     momentum_settings.show_internal_tab = value;
     app->save_settings = true;
 }
 
-static void
-    momentum_app_scene_interface_filebrowser_browser_path_mode_changed(VariableItem* item) {
-    MomentumApp* app = variable_item_get_context(item);
+static void momentum_app_scene_interface_filebrowser_browser_path_mode_changed(VariableItem *item)
+{
+    MomentumApp *app = variable_item_get_context(item);
     uint8_t index = variable_item_get_current_value_index(item);
     variable_item_set_current_value_text(item, browser_path_names[index]);
     momentum_settings.browser_path_mode = index;
     app->save_settings = true;
 }
 
-static void momentum_app_scene_interface_filebrowser_favorite_timeout_changed(VariableItem* item) {
-    MomentumApp* app = variable_item_get_context(item);
+static void momentum_app_scene_interface_filebrowser_favorite_timeout_changed(VariableItem *item)
+{
+    MomentumApp *app = variable_item_get_context(item);
     uint32_t value = variable_item_get_current_value_index(item);
     char text[6];
     snprintf(text, sizeof(text), "%lu S", value);
@@ -64,54 +67,40 @@ static void momentum_app_scene_interface_filebrowser_favorite_timeout_changed(Va
     app->save_settings = true;
 }
 
-void momentum_app_scene_interface_filebrowser_on_enter(void* context) {
-    MomentumApp* app = context;
-    VariableItemList* var_item_list = app->var_item_list;
-    VariableItem* item;
+void momentum_app_scene_interface_filebrowser_on_enter(void *context)
+{
+    MomentumApp *app = context;
+    VariableItemList *var_item_list = app->var_item_list;
+    VariableItem *item;
 
-    item = variable_item_list_add(
-        var_item_list,
-        "Folders Above Files",
-        2,
-        momentum_app_scene_interface_filebrowser_sort_dirs_first_changed,
-        app);
+    item = variable_item_list_add(var_item_list, "Folders Above Files", 2,
+                                  momentum_app_scene_interface_filebrowser_sort_dirs_first_changed,
+                                  app);
     variable_item_set_current_value_index(item, momentum_settings.sort_dirs_first);
     variable_item_set_current_value_text(item, momentum_settings.sort_dirs_first ? "ON" : "OFF");
 
     item = variable_item_list_add(
-        var_item_list,
-        "Show Hidden Files",
-        2,
-        momentum_app_scene_interface_filebrowser_show_hidden_files_changed,
-        app);
+        var_item_list, "Show Hidden Files", 2,
+        momentum_app_scene_interface_filebrowser_show_hidden_files_changed, app);
     variable_item_set_current_value_index(item, momentum_settings.show_hidden_files);
     variable_item_set_current_value_text(item, momentum_settings.show_hidden_files ? "ON" : "OFF");
 
     item = variable_item_list_add(
-        var_item_list,
-        "Show Internal Tab",
-        2,
-        momentum_app_scene_interface_filebrowser_show_internal_tab_changed,
-        app);
+        var_item_list, "Show Internal Tab", 2,
+        momentum_app_scene_interface_filebrowser_show_internal_tab_changed, app);
     variable_item_set_current_value_index(item, momentum_settings.show_internal_tab);
     variable_item_set_current_value_text(item, momentum_settings.show_internal_tab ? "ON" : "OFF");
 
     item = variable_item_list_add(
-        var_item_list,
-        "Show Path",
-        BrowserPathModeCount,
-        momentum_app_scene_interface_filebrowser_browser_path_mode_changed,
-        app);
+        var_item_list, "Show Path", BrowserPathModeCount,
+        momentum_app_scene_interface_filebrowser_browser_path_mode_changed, app);
     variable_item_set_current_value_index(item, momentum_settings.browser_path_mode);
-    variable_item_set_current_value_text(
-        item, browser_path_names[momentum_settings.browser_path_mode]);
+    variable_item_set_current_value_text(item,
+                                         browser_path_names[momentum_settings.browser_path_mode]);
 
-    item = variable_item_list_add(
-        var_item_list,
-        "Favorite Timeout",
-        61,
-        momentum_app_scene_interface_filebrowser_favorite_timeout_changed,
-        app);
+    item = variable_item_list_add(var_item_list, "Favorite Timeout", 61,
+                                  momentum_app_scene_interface_filebrowser_favorite_timeout_changed,
+                                  app);
     variable_item_set_current_value_index(item, momentum_settings.favorite_timeout);
     char text[4];
     snprintf(text, sizeof(text), "%lu S", momentum_settings.favorite_timeout);
@@ -127,15 +116,16 @@ void momentum_app_scene_interface_filebrowser_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MomentumAppViewVarItemList);
 }
 
-bool momentum_app_scene_interface_filebrowser_on_event(void* context, SceneManagerEvent event) {
-    MomentumApp* app = context;
+bool momentum_app_scene_interface_filebrowser_on_event(void *context, SceneManagerEvent event)
+{
+    MomentumApp *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        scene_manager_set_scene_state(
-            app->scene_manager, MomentumAppSceneInterfaceFilebrowser, event.event);
+    if (event.type == SceneManagerEventTypeCustom) {
+        scene_manager_set_scene_state(app->scene_manager, MomentumAppSceneInterfaceFilebrowser,
+                                      event.event);
         consumed = true;
-        switch(event.event) {
+        switch (event.event) {
         default:
             break;
         }
@@ -144,7 +134,8 @@ bool momentum_app_scene_interface_filebrowser_on_event(void* context, SceneManag
     return consumed;
 }
 
-void momentum_app_scene_interface_filebrowser_on_exit(void* context) {
-    MomentumApp* app = context;
+void momentum_app_scene_interface_filebrowser_on_exit(void *context)
+{
+    MomentumApp *app = context;
     variable_item_list_reset(app->var_item_list);
 }

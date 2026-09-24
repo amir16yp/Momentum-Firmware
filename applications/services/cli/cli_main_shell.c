@@ -4,7 +4,8 @@
 #include <toolbox/cli/shell/cli_shell.h>
 #include <furi_hal_version.h>
 
-void cli_main_motd(void* context) {
+void cli_main_motd(void *context)
+{
     UNUSED(context);
     printf(ANSI_FLIPPER_BRAND_ORANGE
            "\r\n"
@@ -27,15 +28,13 @@ void cli_main_motd(void* context) {
            "Run `help` or `?` to list available commands\r\n"
            "\r\n" ANSI_RESET);
 
-    const Version* firmware_version = furi_hal_version_get_firmware_version();
-    if(firmware_version) {
-        printf(
-            "Firmware version: %s %s (%s%s built on %s)\r\n",
-            version_get_gitbranch(firmware_version),
-            version_get_version(firmware_version),
-            version_get_githash(firmware_version),
-            version_get_dirty_flag(firmware_version) ? "-dirty" : "",
-            version_get_builddate(firmware_version));
+    const Version *firmware_version = furi_hal_version_get_firmware_version();
+    if (firmware_version) {
+        printf("Firmware version: %s %s (%s%s built on %s)\r\n",
+               version_get_gitbranch(firmware_version), version_get_version(firmware_version),
+               version_get_githash(firmware_version),
+               version_get_dirty_flag(firmware_version) ? "-dirty" : "",
+               version_get_builddate(firmware_version));
     }
 }
 

@@ -3,16 +3,16 @@
 #include "subghz_txrx.h"
 
 struct SubGhzTxRx {
-    SubGhzWorker* worker;
+    SubGhzWorker *worker;
 
-    SubGhzEnvironment* environment;
-    SubGhzReceiver* receiver;
-    SubGhzTransmitter* transmitter;
-    SubGhzProtocolDecoderBase* decoder_result;
-    FlipperFormat* fff_data;
+    SubGhzEnvironment *environment;
+    SubGhzReceiver *receiver;
+    SubGhzTransmitter *transmitter;
+    SubGhzProtocolDecoderBase *decoder_result;
+    FlipperFormat *fff_data;
 
-    SubGhzRadioPreset* preset;
-    SubGhzSetting* setting;
+    SubGhzRadioPreset *preset;
+    SubGhzSetting *setting;
 
     uint8_t hopper_timeout;
     uint8_t hopper_idx_frequency;
@@ -21,11 +21,11 @@ struct SubGhzTxRx {
 
     SubGhzTxRxState txrx_state;
     SubGhzSpeakerState speaker_state;
-    const SubGhzDevice* radio_device;
+    const SubGhzDevice *radio_device;
     SubGhzRadioDeviceType radio_device_type;
 
     SubGhzTxRxNeedSaveCallback need_save_callback;
-    void* need_save_context;
+    void *need_save_context;
 
     bool debug_pin_state;
 };

@@ -4,19 +4,21 @@ enum PopupEvent {
     PopupEventExit,
 };
 
-static void findmy_scene_config_import_result_callback(void* context) {
-    FindMy* app = context;
+static void findmy_scene_config_import_result_callback(void *context)
+{
+    FindMy *app = context;
 
     view_dispatcher_send_custom_event(app->view_dispatcher, PopupEventExit);
 }
 
-void findmy_scene_config_import_result_on_enter(void* context) {
-    FindMy* app = context;
-    Popup* popup = app->popup;
+void findmy_scene_config_import_result_on_enter(void *context)
+{
+    FindMy *app = context;
+    Popup *popup = app->popup;
 
-    const char* error = (const char*)scene_manager_get_scene_state(
-        app->scene_manager, FindMySceneConfigImportResult);
-    if(error) {
+    const char *error = (const char *)scene_manager_get_scene_state(app->scene_manager,
+                                                                    FindMySceneConfigImportResult);
+    if (error) {
         popup_set_icon(popup, 83, 22, &I_WarningDolphinFlip_45x42);
         popup_set_header(popup, "Error!", 13, 22, AlignLeft, AlignBottom);
         popup_set_text(popup, error, 6, 26, AlignLeft, AlignTop);
@@ -35,16 +37,17 @@ void findmy_scene_config_import_result_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, FindMyViewPopup);
 }
 
-bool findmy_scene_config_import_result_on_event(void* context, SceneManagerEvent event) {
-    FindMy* app = context;
+bool findmy_scene_config_import_result_on_event(void *context, SceneManagerEvent event)
+{
+    FindMy *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        switch(event.event) {
+        switch (event.event) {
         case PopupEventExit:
-            scene_manager_search_and_switch_to_previous_scene(
-                app->scene_manager, FindMySceneConfig);
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager,
+                                                              FindMySceneConfig);
             break;
         default:
             break;
@@ -54,7 +57,8 @@ bool findmy_scene_config_import_result_on_event(void* context, SceneManagerEvent
     return consumed;
 }
 
-void findmy_scene_config_import_result_on_exit(void* context) {
-    FindMy* app = context;
+void findmy_scene_config_import_result_on_exit(void *context)
+{
+    FindMy *app = context;
     popup_reset(app->popup);
 }

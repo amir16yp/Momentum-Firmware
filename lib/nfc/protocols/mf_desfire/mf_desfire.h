@@ -8,33 +8,33 @@
 extern "C" {
 #endif
 
-#define MF_DESFIRE_CMD_GET_VERSION         (0x60)
-#define MF_DESFIRE_CMD_GET_FREE_MEMORY     (0x6E)
-#define MF_DESFIRE_CMD_GET_KEY_SETTINGS    (0x45)
-#define MF_DESFIRE_CMD_GET_KEY_VERSION     (0x64)
+#define MF_DESFIRE_CMD_GET_VERSION (0x60)
+#define MF_DESFIRE_CMD_GET_FREE_MEMORY (0x6E)
+#define MF_DESFIRE_CMD_GET_KEY_SETTINGS (0x45)
+#define MF_DESFIRE_CMD_GET_KEY_VERSION (0x64)
 #define MF_DESFIRE_CMD_GET_APPLICATION_IDS (0x6A)
-#define MF_DESFIRE_CMD_SELECT_APPLICATION  (0x5A)
-#define MF_DESFIRE_CMD_GET_FILE_IDS        (0x6F)
-#define MF_DESFIRE_CMD_GET_FILE_SETTINGS   (0xF5)
+#define MF_DESFIRE_CMD_SELECT_APPLICATION (0x5A)
+#define MF_DESFIRE_CMD_GET_FILE_IDS (0x6F)
+#define MF_DESFIRE_CMD_GET_FILE_SETTINGS (0xF5)
 
-#define MF_DESFIRE_CMD_CREATE_APPLICATION        (0xCA)
-#define MF_DESFIRE_CMD_CREATE_STD_DATA_FILE      (0xCD)
-#define MF_DESFIRE_CMD_CREATE_BACKUP_DATA_FILE   (0xCB)
-#define MF_DESFIRE_CMD_CREATE_VALUE_FILE         (0xCC)
+#define MF_DESFIRE_CMD_CREATE_APPLICATION (0xCA)
+#define MF_DESFIRE_CMD_CREATE_STD_DATA_FILE (0xCD)
+#define MF_DESFIRE_CMD_CREATE_BACKUP_DATA_FILE (0xCB)
+#define MF_DESFIRE_CMD_CREATE_VALUE_FILE (0xCC)
 #define MF_DESFIRE_CMD_CREATE_LINEAR_RECORD_FILE (0xC1)
 #define MF_DESFIRE_CMD_CREATE_CYCLIC_RECORD_FILE (0xC0)
 
-#define MF_DESFIRE_CMD_READ_DATA    (0xBD)
-#define MF_DESFIRE_CMD_GET_VALUE    (0x6C)
+#define MF_DESFIRE_CMD_READ_DATA (0xBD)
+#define MF_DESFIRE_CMD_GET_VALUE (0x6C)
 #define MF_DESFIRE_CMD_READ_RECORDS (0xBB)
 
-#define MF_DESFIRE_MAX_KEYS  (14)
+#define MF_DESFIRE_MAX_KEYS (14)
 #define MF_DESFIRE_MAX_FILES (32)
 
-#define MF_DESFIRE_UID_SIZE    (7)
-#define MF_DESFIRE_BATCH_SIZE  (5)
+#define MF_DESFIRE_UID_SIZE (7)
+#define MF_DESFIRE_BATCH_SIZE (5)
 #define MF_DESFIRE_APP_ID_SIZE (3)
-#define MF_DESFIRE_VALUE_SIZE  (4)
+#define MF_DESFIRE_VALUE_SIZE (4)
 
 typedef enum {
     MfDesfireTypeMF3ICD40,
@@ -145,7 +145,7 @@ typedef struct {
 } MfDesfireFileSettings;
 
 typedef struct {
-    SimpleArray* data;
+    SimpleArray *data;
 } MfDesfireFileData;
 
 typedef struct {
@@ -154,10 +154,10 @@ typedef struct {
 
 typedef struct MfDesfireApplication {
     MfDesfireKeySettings key_settings;
-    SimpleArray* key_versions;
-    SimpleArray* file_ids;
-    SimpleArray* file_settings;
-    SimpleArray* file_data;
+    SimpleArray *key_versions;
+    SimpleArray *file_ids;
+    SimpleArray *file_settings;
+    SimpleArray *file_data;
 } MfDesfireApplication;
 
 typedef enum {
@@ -170,54 +170,54 @@ typedef enum {
 } MfDesfireError;
 
 typedef struct {
-    Iso14443_4aData* iso14443_4a_data;
+    Iso14443_4aData *iso14443_4a_data;
     MfDesfireVersion version;
     MfDesfireFreeMemory free_memory;
     MfDesfireKeySettings master_key_settings;
-    SimpleArray* master_key_versions;
-    SimpleArray* application_ids;
-    SimpleArray* applications;
-    FuriString* device_name;
+    SimpleArray *master_key_versions;
+    SimpleArray *application_ids;
+    SimpleArray *applications;
+    FuriString *device_name;
 } MfDesfireData;
 
 extern const NfcDeviceBase nfc_device_mf_desfire;
 
 // Virtual methods
 
-MfDesfireData* mf_desfire_alloc(void);
+MfDesfireData *mf_desfire_alloc(void);
 
-void mf_desfire_free(MfDesfireData* data);
+void mf_desfire_free(MfDesfireData *data);
 
-void mf_desfire_reset(MfDesfireData* data);
+void mf_desfire_reset(MfDesfireData *data);
 
-void mf_desfire_copy(MfDesfireData* data, const MfDesfireData* other);
+void mf_desfire_copy(MfDesfireData *data, const MfDesfireData *other);
 
-bool mf_desfire_verify(MfDesfireData* data, const FuriString* device_type);
+bool mf_desfire_verify(MfDesfireData *data, const FuriString *device_type);
 
-bool mf_desfire_load(MfDesfireData* data, FlipperFormat* ff, uint32_t version);
+bool mf_desfire_load(MfDesfireData *data, FlipperFormat *ff, uint32_t version);
 
-bool mf_desfire_save(const MfDesfireData* data, FlipperFormat* ff);
+bool mf_desfire_save(const MfDesfireData *data, FlipperFormat *ff);
 
-bool mf_desfire_is_equal(const MfDesfireData* data, const MfDesfireData* other);
+bool mf_desfire_is_equal(const MfDesfireData *data, const MfDesfireData *other);
 
-const char* mf_desfire_get_device_name(const MfDesfireData* data, NfcDeviceNameType name_type);
+const char *mf_desfire_get_device_name(const MfDesfireData *data, NfcDeviceNameType name_type);
 
-const uint8_t* mf_desfire_get_uid(const MfDesfireData* data, size_t* uid_len);
+const uint8_t *mf_desfire_get_uid(const MfDesfireData *data, size_t *uid_len);
 
-bool mf_desfire_set_uid(MfDesfireData* data, const uint8_t* uid, size_t uid_len);
+bool mf_desfire_set_uid(MfDesfireData *data, const uint8_t *uid, size_t uid_len);
 
-Iso14443_4aData* mf_desfire_get_base_data(const MfDesfireData* data);
+Iso14443_4aData *mf_desfire_get_base_data(const MfDesfireData *data);
 
 // Getters and tests
 
-const MfDesfireApplication*
-    mf_desfire_get_application(const MfDesfireData* data, const MfDesfireApplicationId* app_id);
+const MfDesfireApplication *mf_desfire_get_application(const MfDesfireData *data,
+                                                       const MfDesfireApplicationId *app_id);
 
-const MfDesfireFileSettings*
-    mf_desfire_get_file_settings(const MfDesfireApplication* data, const MfDesfireFileId* file_id);
+const MfDesfireFileSettings *mf_desfire_get_file_settings(const MfDesfireApplication *data,
+                                                          const MfDesfireFileId *file_id);
 
-const MfDesfireFileData*
-    mf_desfire_get_file_data(const MfDesfireApplication* data, const MfDesfireFileId* file_id);
+const MfDesfireFileData *mf_desfire_get_file_data(const MfDesfireApplication *data,
+                                                  const MfDesfireFileId *file_id);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,8 @@
 /* gallagher.c - NFC supported cards plugin for Gallagher access control cards (New Zealand).
  * Author: Nick Mooney (nick@mooney.nz)
- * 
+ *
  * Reference: https://github.com/megabug/gallagher-research
-*/
+ */
 
 #include "nfc_supported_card_plugin.h"
 #include <flipper_application.h>
@@ -11,13 +11,14 @@
 
 #include <bit_lib.h>
 
-static bool gallagher_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool gallagher_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
 
-    const MfClassicData* data = nfc_device_get_data(device, NfcProtocolMfClassic);
+    const MfClassicData *data = nfc_device_get_data(device, NfcProtocolMfClassic);
 
-    if(!(data->type == MfClassicType1k || data->type == MfClassicType4k)) {
+    if (!(data->type == MfClassicType1k || data->type == MfClassicType4k)) {
         return false;
     }
 
@@ -27,21 +28,22 @@ static bool gallagher_parse(const NfcDevice* device, FuriString* parsed_data) {
         mf_classic_get_first_block_num_of_sector(GALLAGHER_CREDENTIAL_SECTOR);
 
     // Test 1: The first 8 bytes and the second 8 bytes should be bitwise inverses.
-    const uint8_t* credential_block_start_ptr =
+    const uint8_t *credential_block_start_ptr =
         &data->block[credential_sector_start_block_number].data[0];
     uint64_t cardholder_credential = bit_lib_bytes_to_num_be(credential_block_start_ptr, 8);
     uint64_t cardholder_credential_inverse =
         bit_lib_bytes_to_num_be(credential_block_start_ptr + 8, 8);
     // Due to endianness, this is testing the bytes in the wrong order,
     // but the result still should be correct.
-    if(cardholder_credential != ~cardholder_credential_inverse) {
+    if (cardholder_credential != ~cardholder_credential_inverse) {
         return false;
     }
 
-    // Test 2: The contents of the second block should be equal to the GALLAGHER_CARDAX_ASCII constant.
-    const uint8_t* cardax_block_start_ptr =
+    // Test 2: The contents of the second block should be equal to the GALLAGHER_CARDAX_ASCII
+    // constant.
+    const uint8_t *cardax_block_start_ptr =
         &data->block[credential_sector_start_block_number + 1].data[0];
-    if(memcmp(cardax_block_start_ptr, GALLAGHER_CARDAX_ASCII, MF_CLASSIC_BLOCK_SIZE) != 0) {
+    if (memcmp(cardax_block_start_ptr, GALLAGHER_CARDAX_ASCII, MF_CLASSIC_BLOCK_SIZE) != 0) {
         return false;
     }
 
@@ -50,21 +52,17 @@ static bool gallagher_parse(const NfcDevice* device, FuriString* parsed_data) {
     gallagher_deobfuscate_and_parse_credential(&credential, credential_block_start_ptr);
 
     char display_region = 'A';
-    // Per https://github.com/megabug/gallagher-research/blob/master/formats/cardholder/cardholder.md,
+    // Per
+    // https://github.com/megabug/gallagher-research/blob/master/formats/cardholder/cardholder.md,
     // regions are generally A-P.
-    if(credential.region < 16) {
+    if (credential.region < 16) {
         display_region = display_region + (char)credential.region;
     } else {
         display_region = '?';
     }
 
-    furi_string_cat_printf(
-        parsed_data,
-        "\e#Gallagher NZ\nFacility %c%u\nCard %lu (IL %u)",
-        display_region,
-        credential.facility,
-        credential.card,
-        credential.issue);
+    furi_string_cat_printf(parsed_data, "\e#Gallagher NZ\nFacility %c%u\nCard %lu (IL %u)",
+                           display_region, credential.facility, credential.card, credential.issue);
     return true;
 }
 
@@ -82,6 +80,7 @@ static const FlipperAppPluginDescriptor gallagher_plugin_descriptor = {
 };
 
 /* Plugin entry point */
-const FlipperAppPluginDescriptor* gallagher_plugin_ep(void) {
+const FlipperAppPluginDescriptor *gallagher_plugin_ep(void)
+{
     return &gallagher_plugin_descriptor;
 }

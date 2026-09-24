@@ -66,10 +66,10 @@ void furi_hal_clock_suspend_tick(void);
 void furi_hal_clock_resume_tick(void);
 
 /** Enable clock output on MCO pin
- * 
+ *
  * @param      source  MCO clock source
  * @param      div     MCO clock division
-*/
+ */
 void furi_hal_clock_mco_enable(FuriHalClockMcoSourceId source, FuriHalClockMcoDivisorId div);
 
 /** Disable clock output on MCO pin */

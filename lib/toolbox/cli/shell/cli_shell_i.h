@@ -12,7 +12,7 @@ typedef struct CliShell CliShell;
  * @brief Key combo handler
  * @return true if the event was handled, false otherwise
  */
-typedef bool (*CliShellKeyComboAction)(CliKeyCombo combo, void* context);
+typedef bool (*CliShellKeyComboAction)(CliKeyCombo combo, void *context);
 
 typedef struct {
     CliKeyCombo combo;
@@ -25,9 +25,9 @@ typedef struct {
     CliShellKeyComboRecord records[];
 } CliShellKeyComboSet;
 
-void cli_shell_execute_command(CliShell* cli_shell, FuriString* command);
+void cli_shell_execute_command(CliShell *cli_shell, FuriString *command);
 
-const char* cli_shell_get_prompt(CliShell* cli_shell);
+const char *cli_shell_get_prompt(CliShell *cli_shell);
 
 #ifdef __cplusplus
 }

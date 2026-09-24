@@ -1,10 +1,11 @@
 #include "infrared_protocol_kaseikyo_i.h"
 #include <core/check.h>
 
-void infrared_encoder_kaseikyo_reset(void* encoder_ptr, const InfraredMessage* message) {
+void infrared_encoder_kaseikyo_reset(void *encoder_ptr, const InfraredMessage *message)
+{
     furi_assert(encoder_ptr);
 
-    InfraredCommonEncoder* encoder = encoder_ptr;
+    InfraredCommonEncoder *encoder = encoder_ptr;
     infrared_common_encoder_reset(encoder);
 
     uint32_t address = message->address;
@@ -27,15 +28,17 @@ void infrared_encoder_kaseikyo_reset(void* encoder_ptr, const InfraredMessage* m
     encoder->bits_to_encode = encoder->protocol->databit_len[0];
 }
 
-void* infrared_encoder_kaseikyo_alloc(void) {
+void *infrared_encoder_kaseikyo_alloc(void)
+{
     return infrared_common_encoder_alloc(&infrared_protocol_kaseikyo);
 }
 
-void infrared_encoder_kaseikyo_free(void* encoder_ptr) {
+void infrared_encoder_kaseikyo_free(void *encoder_ptr)
+{
     infrared_common_encoder_free(encoder_ptr);
 }
 
-InfraredStatus
-    infrared_encoder_kaseikyo_encode(void* encoder_ptr, uint32_t* duration, bool* level) {
+InfraredStatus infrared_encoder_kaseikyo_encode(void *encoder_ptr, uint32_t *duration, bool *level)
+{
     return infrared_common_encode(encoder_ptr, duration, level);
 }

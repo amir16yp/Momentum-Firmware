@@ -33,7 +33,7 @@
 //
 static const struct {
     const MfDesfireApplicationId app;
-    const char* type;
+    const char *type;
 } clipper_types[] = {
     // Application advertised on classic, plastic cards.
     {.app = {.data = {0x90, 0x11, 0xf2}}, .type = "Card"},
@@ -44,7 +44,7 @@ static const size_t kNumCardTypes = sizeof(clipper_types) / sizeof(clipper_types
 
 struct IdMapping_struct {
     uint16_t id;
-    const char* name;
+    const char *name;
 };
 typedef struct IdMapping_struct IdMapping;
 
@@ -54,16 +54,11 @@ typedef struct IdMapping_struct IdMapping;
 // Known transportation agencies and their identifiers.
 //
 static const IdMapping agency_names[] = {
-    {.id = 0x0001, .name = "AC Transit"},
-    {.id = 0x0004, .name = "BART"},
-    {.id = 0x0006, .name = "Caltrain"},
-    {.id = 0x0008, .name = "CCTA"},
-    {.id = 0x000b, .name = "GGT"},
-    {.id = 0x000f, .name = "SamTrans"},
-    {.id = 0x0011, .name = "VTA"},
-    {.id = 0x0012, .name = "Muni"},
-    {.id = 0x0019, .name = "GG Ferry"},
-    {.id = 0x001b, .name = "SF Bay Ferry"},
+    {.id = 0x0001, .name = "AC Transit"}, {.id = 0x0004, .name = "BART"},
+    {.id = 0x0006, .name = "Caltrain"},   {.id = 0x0008, .name = "CCTA"},
+    {.id = 0x000b, .name = "GGT"},        {.id = 0x000f, .name = "SamTrans"},
+    {.id = 0x0011, .name = "VTA"},        {.id = 0x0012, .name = "Muni"},
+    {.id = 0x0019, .name = "GG Ferry"},   {.id = 0x001b, .name = "SF Bay Ferry"},
 };
 static const size_t kNumAgencies = COUNT(agency_names);
 
@@ -147,12 +142,9 @@ static const size_t kNumACTransitZones = COUNT(actransit_zones);
 // Instead of persisting individual Station IDs, Caltrain saves Zone numbers.
 // https://www.caltrain.com/stations-zones
 static const IdMapping caltrain_zones[] = {
-    {.id = 0x0001, .name = "Zone 1"},
-    {.id = 0x0002, .name = "Zone 2"},
-    {.id = 0x0003, .name = "Zone 3"},
-    {.id = 0x0004, .name = "Zone 4"},
-    {.id = 0x0005, .name = "Zone 5"},
-    {.id = 0x0006, .name = "Zone 6"},
+    {.id = 0x0001, .name = "Zone 1"}, {.id = 0x0002, .name = "Zone 2"},
+    {.id = 0x0003, .name = "Zone 3"}, {.id = 0x0004, .name = "Zone 4"},
+    {.id = 0x0005, .name = "Zone 5"}, {.id = 0x0006, .name = "Zone 6"},
 };
 
 static const size_t kNumCaltrainZones = COUNT(caltrain_zones);
@@ -162,7 +154,7 @@ static const size_t kNumCaltrainZones = COUNT(caltrain_zones);
 //
 static const struct {
     uint16_t agency_id;
-    const IdMapping* zone_map;
+    const IdMapping *zone_map;
     size_t zone_count;
 } agency_zone_map[] = {
     {.agency_id = 0x0001, .zone_map = actransit_zones, .zone_count = kNumACTransitZones},
@@ -188,150 +180,144 @@ struct ClipperCardInfo_struct {
 typedef struct ClipperCardInfo_struct ClipperCardInfo;
 
 // Forward declarations for helper functions.
-static void furi_string_cat_timestamp(
-    FuriString* str,
-    const char* date_hdr,
-    const char* time_hdr,
-    uint32_t tmst_1900);
-static bool get_file_contents(
-    const MfDesfireApplication* app,
-    const MfDesfireFileId* id,
-    MfDesfireFileType type,
-    size_t min_size,
-    const uint8_t** out);
-static bool decode_id_file(const uint8_t* ef8_data, ClipperCardInfo* info);
-static bool decode_cash_file(const uint8_t* ef2_data, ClipperCardInfo* info);
-static bool get_map_item(uint16_t id, const IdMapping* map, size_t sz, const char** out);
-static bool get_agency_zone_name(uint16_t agency_id, uint16_t zone_id, const char** out);
-static void
-    decode_usd(int16_t amount_cents, bool* out_is_negative, int16_t* out_usd, uint16_t* out_cents);
-static bool dump_ride_history(
-    const uint8_t* index_file,
-    const uint8_t* history_file,
-    size_t len,
-    FuriString* parsed_data);
-static bool dump_ride_event(const uint8_t* record, FuriString* parsed_data);
+static void furi_string_cat_timestamp(FuriString *str, const char *date_hdr, const char *time_hdr,
+                                      uint32_t tmst_1900);
+static bool get_file_contents(const MfDesfireApplication *app, const MfDesfireFileId *id,
+                              MfDesfireFileType type, size_t min_size, const uint8_t **out);
+static bool decode_id_file(const uint8_t *ef8_data, ClipperCardInfo *info);
+static bool decode_cash_file(const uint8_t *ef2_data, ClipperCardInfo *info);
+static bool get_map_item(uint16_t id, const IdMapping *map, size_t sz, const char **out);
+static bool get_agency_zone_name(uint16_t agency_id, uint16_t zone_id, const char **out);
+static void decode_usd(int16_t amount_cents, bool *out_is_negative, int16_t *out_usd,
+                       uint16_t *out_cents);
+static bool dump_ride_history(const uint8_t *index_file, const uint8_t *history_file, size_t len,
+                              FuriString *parsed_data);
+static bool dump_ride_event(const uint8_t *record, FuriString *parsed_data);
 
 // Unmarshal a 32-bit integer, big endian, unsigned
-static inline uint32_t get_u32be(const uint8_t* field) {
+static inline uint32_t get_u32be(const uint8_t *field)
+{
     return bit_lib_bytes_to_num_be(field, 4);
 }
 
 // Unmarshal a 16-bit integer, big endian, unsigned
-static uint16_t get_u16be(const uint8_t* field) {
+static uint16_t get_u16be(const uint8_t *field)
+{
     return bit_lib_bytes_to_num_be(field, 2);
 }
 
 // Unmarshal a 16-bit integer, big endian, signed, two's-complement
-static int16_t get_i16be(const uint8_t* field) {
+static int16_t get_i16be(const uint8_t *field)
+{
     uint16_t raw = get_u16be(field);
-    if(raw > 0x7fff)
+    if (raw > 0x7fff)
         return -((uint32_t)0x10000 - raw);
     else
         return raw;
 }
 
-static bool clipper_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool clipper_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
 
     bool parsed = false;
 
     do {
-        const MfDesfireData* data = nfc_device_get_data(device, NfcProtocolMfDesfire);
+        const MfDesfireData *data = nfc_device_get_data(device, NfcProtocolMfDesfire);
 
-        const MfDesfireApplication* app = NULL;
-        const char* device_description = NULL;
+        const MfDesfireApplication *app = NULL;
+        const char *device_description = NULL;
 
-        for(size_t i = 0; i < kNumCardTypes; i++) {
+        for (size_t i = 0; i < kNumCardTypes; i++) {
             app = mf_desfire_get_application(data, &clipper_types[i].app);
             device_description = clipper_types[i].type;
-            if(app != NULL) break;
+            if (app != NULL)
+                break;
         }
 
         // If no matching application was found, abort this parser.
-        if(app == NULL) break;
+        if (app == NULL)
+            break;
 
         ClipperCardInfo info;
-        const uint8_t* id_data;
-        if(!get_file_contents(
-               app, &clipper_identity_file_id, MfDesfireFileTypeStandard, 5, &id_data))
+        const uint8_t *id_data;
+        if (!get_file_contents(app, &clipper_identity_file_id, MfDesfireFileTypeStandard, 5,
+                               &id_data))
             break;
-        if(!decode_id_file(id_data, &info)) break;
+        if (!decode_id_file(id_data, &info))
+            break;
 
-        const uint8_t* cash_data;
-        if(!get_file_contents(app, &clipper_ecash_file_id, MfDesfireFileTypeBackup, 32, &cash_data))
+        const uint8_t *cash_data;
+        if (!get_file_contents(app, &clipper_ecash_file_id, MfDesfireFileTypeBackup, 32,
+                               &cash_data))
             break;
-        if(!decode_cash_file(cash_data, &info)) break;
+        if (!decode_cash_file(cash_data, &info))
+            break;
 
         int16_t balance_usd;
         uint16_t balance_cents;
         bool _balance_is_negative;
         decode_usd(info.balance_cents, &_balance_is_negative, &balance_usd, &balance_cents);
 
-        furi_string_cat_printf(
-            parsed_data,
-            "\e#Clipper\n"
-            "Serial: %" PRIu32 "\n"
-            "Balance: $%d.%02u\n"
-            "Type: %s\n"
-            "\e#Last Update\n",
-            info.serial_number,
-            balance_usd,
-            balance_cents,
-            device_description);
-        if(info.last_updated_tm_1900 != 0)
-            furi_string_cat_timestamp(
-                parsed_data, "Date: ", "\nTime: ", info.last_updated_tm_1900);
+        furi_string_cat_printf(parsed_data,
+                               "\e#Clipper\n"
+                               "Serial: %" PRIu32 "\n"
+                               "Balance: $%d.%02u\n"
+                               "Type: %s\n"
+                               "\e#Last Update\n",
+                               info.serial_number, balance_usd, balance_cents, device_description);
+        if (info.last_updated_tm_1900 != 0)
+            furi_string_cat_timestamp(parsed_data, "Date: ", "\nTime: ", info.last_updated_tm_1900);
         else
             furi_string_cat_str(parsed_data, "Never");
-        furi_string_cat_printf(
-            parsed_data,
-            "\nTerminal: 0x%04x\n"
-            "Transaction Id: %u\n"
-            "Counter: %u\n",
-            info.last_terminal_id,
-            info.last_txn_id,
-            info.counter);
+        furi_string_cat_printf(parsed_data,
+                               "\nTerminal: 0x%04x\n"
+                               "Transaction Id: %u\n"
+                               "Counter: %u\n",
+                               info.last_terminal_id, info.last_txn_id, info.counter);
 
         const uint8_t *history_index, *history;
 
-        if(!get_file_contents(
-               app, &clipper_histidx_file_id, MfDesfireFileTypeBackup, 16, &history_index))
+        if (!get_file_contents(app, &clipper_histidx_file_id, MfDesfireFileTypeBackup, 16,
+                               &history_index))
             break;
-        if(!get_file_contents(
-               app, &clipper_history_file_id, MfDesfireFileTypeStandard, 512, &history))
+        if (!get_file_contents(app, &clipper_history_file_id, MfDesfireFileTypeStandard, 512,
+                               &history))
             break;
 
-        if(!dump_ride_history(history_index, history, 512, parsed_data)) break;
+        if (!dump_ride_history(history_index, history, 512, parsed_data))
+            break;
 
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
 
-static bool get_file_contents(
-    const MfDesfireApplication* app,
-    const MfDesfireFileId* id,
-    MfDesfireFileType type,
-    size_t min_size,
-    const uint8_t** out) {
-    const MfDesfireFileSettings* settings = mf_desfire_get_file_settings(app, id);
-    if(settings == NULL) return false;
-    if(settings->type != type) return false;
+static bool get_file_contents(const MfDesfireApplication *app, const MfDesfireFileId *id,
+                              MfDesfireFileType type, size_t min_size, const uint8_t **out)
+{
+    const MfDesfireFileSettings *settings = mf_desfire_get_file_settings(app, id);
+    if (settings == NULL)
+        return false;
+    if (settings->type != type)
+        return false;
 
-    const MfDesfireFileData* file_data = mf_desfire_get_file_data(app, id);
-    if(file_data == NULL) return false;
+    const MfDesfireFileData *file_data = mf_desfire_get_file_data(app, id);
+    if (file_data == NULL)
+        return false;
 
-    if(simple_array_get_count(file_data->data) < min_size) return false;
+    if (simple_array_get_count(file_data->data) < min_size)
+        return false;
 
     *out = simple_array_cget_data(file_data->data);
 
     return true;
 }
 
-static bool decode_id_file(const uint8_t* ef8_data, ClipperCardInfo* info) {
+static bool decode_id_file(const uint8_t *ef8_data, ClipperCardInfo *info)
+{
     // Identity file (8)
     //
     // Byte view
@@ -354,7 +340,8 @@ static bool decode_id_file(const uint8_t* ef8_data, ClipperCardInfo* info) {
     return true;
 }
 
-static bool decode_cash_file(const uint8_t* ef2_data, ClipperCardInfo* info) {
+static bool decode_cash_file(const uint8_t *ef2_data, ClipperCardInfo *info)
+{
     // ECash file (2)
     //
     // Byte view
@@ -393,29 +380,31 @@ static bool decode_cash_file(const uint8_t* ef2_data, ClipperCardInfo* info) {
     return true;
 }
 
-static bool dump_ride_history(
-    const uint8_t* index_file,
-    const uint8_t* history_file,
-    size_t len,
-    FuriString* parsed_data) {
+static bool dump_ride_history(const uint8_t *index_file, const uint8_t *history_file, size_t len,
+                              FuriString *parsed_data)
+{
     static const size_t kRideRecordSize = 0x20;
 
-    for(size_t i = 0; i < 16; i++) {
+    for (size_t i = 0; i < 16; i++) {
         uint8_t record_num = index_file[i];
-        if(record_num == 0xff) break;
+        if (record_num == 0xff)
+            break;
 
         size_t record_offset = record_num * kRideRecordSize;
 
-        if(record_offset + kRideRecordSize > len) break;
+        if (record_offset + kRideRecordSize > len)
+            break;
 
-        const uint8_t* record = &history_file[record_offset];
-        if(!dump_ride_event(record, parsed_data)) break;
+        const uint8_t *record = &history_file[record_offset];
+        if (!dump_ride_event(record, parsed_data))
+            break;
     }
 
     return true;
 }
 
-static bool dump_ride_event(const uint8_t* record, FuriString* parsed_data) {
+static bool dump_ride_event(const uint8_t *record, FuriString *parsed_data)
+{
     // Ride record
     //
     //       0    1    2    3    4    5    6    7    8
@@ -445,15 +434,17 @@ static bool dump_ride_event(const uint8_t* record, FuriString* parsed_data) {
     // zone_on        U16BE    Id of boarding zone or station. Agency-specific.
     // zone_off       U16BE    Id of offboarding zone or station. Agency-
     //                         specific.
-    if(record[0] != 0x10) return false;
+    if (record[0] != 0x10)
+        return false;
 
     uint16_t agency_id = get_u16be(&record[2]);
-    if(agency_id == 0)
+    if (agency_id == 0)
         // Likely empty record. Skip.
         return false;
-    const char* agency_name;
+    const char *agency_name;
     bool ok = get_map_item(agency_id, agency_names, kNumAgencies, &agency_name);
-    if(!ok) agency_name = "Unknown";
+    if (!ok)
+        agency_name = "Unknown";
 
     uint16_t vehicle_id = get_u16be(&record[0x0a]);
 
@@ -469,31 +460,25 @@ static bool dump_ride_event(const uint8_t* record, FuriString* parsed_data) {
     uint16_t zone_id_off = get_u16be(&record[0x16]);
 
     const char *zone_on, *zone_off;
-    if(!get_agency_zone_name(agency_id, zone_id_on, &zone_on)) {
+    if (!get_agency_zone_name(agency_id, zone_id_on, &zone_on)) {
         zone_on = "Unknown";
     }
-    if(!get_agency_zone_name(agency_id, zone_id_off, &zone_off)) {
+    if (!get_agency_zone_name(agency_id, zone_id_off, &zone_off)) {
         zone_off = "Unknown";
     }
 
     furi_string_cat_str(parsed_data, "\e#Ride Record\n");
     furi_string_cat_timestamp(parsed_data, "Date: ", "\nTime: ", time_on_raw);
-    furi_string_cat_printf(
-        parsed_data,
-        "\n"
-        "Fare: $%d.%02u\n"
-        "Agency: %s (%04x)\n"
-        "On: %s (%04x)\n",
-        fare_usd,
-        fare_cents,
-        agency_name,
-        agency_id,
-        zone_on,
-        zone_id_on);
-    if(vehicle_id != 0) {
+    furi_string_cat_printf(parsed_data,
+                           "\n"
+                           "Fare: $%d.%02u\n"
+                           "Agency: %s (%04x)\n"
+                           "On: %s (%04x)\n",
+                           fare_usd, fare_cents, agency_name, agency_id, zone_on, zone_id_on);
+    if (vehicle_id != 0) {
         furi_string_cat_printf(parsed_data, "Vehicle id: %d\n", vehicle_id);
     }
-    if(time_off_raw != 0) {
+    if (time_off_raw != 0) {
         furi_string_cat_printf(parsed_data, "Off: %s (%04x)\n", zone_off, zone_id_off);
         furi_string_cat_timestamp(parsed_data, "Date Off: ", "\nTime Off: ", time_off_raw);
         furi_string_cat_str(parsed_data, "\n");
@@ -502,9 +487,10 @@ static bool dump_ride_event(const uint8_t* record, FuriString* parsed_data) {
     return true;
 }
 
-static bool get_map_item(uint16_t id, const IdMapping* map, size_t sz, const char** out) {
-    for(size_t i = 0; i < sz; i++) {
-        if(map[i].id == id) {
+static bool get_map_item(uint16_t id, const IdMapping *map, size_t sz, const char **out)
+{
+    for (size_t i = 0; i < sz; i++) {
+        if (map[i].id == id) {
             *out = map[i].name;
             return true;
         }
@@ -513,11 +499,12 @@ static bool get_map_item(uint16_t id, const IdMapping* map, size_t sz, const cha
     return false;
 }
 
-static bool get_agency_zone_name(uint16_t agency_id, uint16_t zone_id, const char** out) {
-    for(size_t i = 0; i < kNumAgencyZoneMaps; i++) {
-        if(agency_zone_map[i].agency_id == agency_id) {
-            return get_map_item(
-                zone_id, agency_zone_map[i].zone_map, agency_zone_map[i].zone_count, out);
+static bool get_agency_zone_name(uint16_t agency_id, uint16_t zone_id, const char **out)
+{
+    for (size_t i = 0; i < kNumAgencyZoneMaps; i++) {
+        if (agency_zone_map[i].agency_id == agency_id) {
+            return get_map_item(zone_id, agency_zone_map[i].zone_map, agency_zone_map[i].zone_count,
+                                out);
         }
     }
 
@@ -527,11 +514,12 @@ static bool get_agency_zone_name(uint16_t agency_id, uint16_t zone_id, const cha
 // Split a balance/fare amount from raw cents to dollars and cents portion,
 // automatically adjusting the cents portion so that it is always positive,
 // for easier display.
-static void
-    decode_usd(int16_t amount_cents, bool* out_is_negative, int16_t* out_usd, uint16_t* out_cents) {
+static void decode_usd(int16_t amount_cents, bool *out_is_negative, int16_t *out_usd,
+                       uint16_t *out_cents)
+{
     *out_usd = amount_cents / 100;
 
-    if(amount_cents >= 0) {
+    if (amount_cents >= 0) {
         *out_is_negative = false;
         *out_cents = amount_cents % 100;
     } else {
@@ -542,28 +530,21 @@ static void
 
 // Decode a raw 1900-based timestamp and append a human-readable form to a
 // FuriString.
-static void furi_string_cat_timestamp(
-    FuriString* str,
-    const char* date_hdr,
-    const char* time_hdr,
-    uint32_t tmst_1900) {
+static void furi_string_cat_timestamp(FuriString *str, const char *date_hdr, const char *time_hdr,
+                                      uint32_t tmst_1900)
+{
     DateTime tm;
     tmst_1900 -= 2208988800; // Clipper uses epoch from 1900, not 1970.
     datetime_timestamp_to_datetime(tmst_1900, &tm);
 
-    FuriString* date_str = furi_string_alloc();
+    FuriString *date_str = furi_string_alloc();
     locale_format_date(date_str, &tm, locale_get_date_format(), "-");
 
-    FuriString* time_str = furi_string_alloc();
+    FuriString *time_str = furi_string_alloc();
     locale_format_time(time_str, &tm, locale_get_time_format(), true);
 
-    furi_string_cat_printf(
-        str,
-        "%s%s%s%s (UTC)",
-        date_hdr,
-        furi_string_get_cstr(date_str),
-        time_hdr,
-        furi_string_get_cstr(time_str));
+    furi_string_cat_printf(str, "%s%s%s%s (UTC)", date_hdr, furi_string_get_cstr(date_str),
+                           time_hdr, furi_string_get_cstr(time_str));
 
     furi_string_free(date_str);
     furi_string_free(time_str);
@@ -585,6 +566,7 @@ static const FlipperAppPluginDescriptor clipper_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* clipper_plugin_ep(void) {
+const FlipperAppPluginDescriptor *clipper_plugin_ep(void)
+{
     return &clipper_plugin_descriptor;
 }

@@ -16,6 +16,6 @@ typedef enum {
 } iButtonProtocolFeature;
 
 typedef struct {
-    uint8_t* ptr;
+    uint8_t *ptr;
     size_t size;
 } iButtonEditableData;

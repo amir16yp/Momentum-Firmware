@@ -8,51 +8,41 @@ typedef struct {
     uint8_t height;
     Align horizontal;
     Align vertical;
-    FuriString* text;
+    FuriString *text;
     bool strip_to_dots;
 } GuiTextBoxModel;
 
-static void gui_text_box_draw(Canvas* canvas, WidgetElement* element) {
+static void gui_text_box_draw(Canvas *canvas, WidgetElement *element)
+{
     furi_assert(canvas);
     furi_assert(element);
-    GuiTextBoxModel* model = element->model;
+    GuiTextBoxModel *model = element->model;
 
-    if(furi_string_size(model->text)) {
-        elements_text_box(
-            canvas,
-            model->x,
-            model->y,
-            model->width,
-            model->height,
-            model->horizontal,
-            model->vertical,
-            furi_string_get_cstr(model->text),
-            model->strip_to_dots);
+    if (furi_string_size(model->text)) {
+        elements_text_box(canvas, model->x, model->y, model->width, model->height,
+                          model->horizontal, model->vertical, furi_string_get_cstr(model->text),
+                          model->strip_to_dots);
     }
 }
 
-static void gui_text_box_free(WidgetElement* gui_string) {
+static void gui_text_box_free(WidgetElement *gui_string)
+{
     furi_assert(gui_string);
 
-    GuiTextBoxModel* model = gui_string->model;
+    GuiTextBoxModel *model = gui_string->model;
     furi_string_free(model->text);
     free(gui_string->model);
     free(gui_string);
 }
 
-WidgetElement* widget_element_text_box_create(
-    uint8_t x,
-    uint8_t y,
-    uint8_t width,
-    uint8_t height,
-    Align horizontal,
-    Align vertical,
-    const char* text,
-    bool strip_to_dots) {
+WidgetElement *widget_element_text_box_create(uint8_t x, uint8_t y, uint8_t width, uint8_t height,
+                                              Align horizontal, Align vertical, const char *text,
+                                              bool strip_to_dots)
+{
     furi_assert(text);
 
     // Allocate and init model
-    GuiTextBoxModel* model = malloc(sizeof(GuiTextBoxModel));
+    GuiTextBoxModel *model = malloc(sizeof(GuiTextBoxModel));
     model->x = x;
     model->y = y;
     model->width = width;
@@ -63,7 +53,7 @@ WidgetElement* widget_element_text_box_create(
     model->strip_to_dots = strip_to_dots;
 
     // Allocate and init Element
-    WidgetElement* gui_string = malloc(sizeof(WidgetElement));
+    WidgetElement *gui_string = malloc(sizeof(WidgetElement));
     gui_string->parent = NULL;
     gui_string->input = NULL;
     gui_string->draw = gui_text_box_draw;
@@ -73,7 +63,8 @@ WidgetElement* widget_element_text_box_create(
     return gui_string;
 } //-V773
 
-void widget_element_text_box_set_text(WidgetElement* gui_string, const char* text) {
-    GuiTextBoxModel* model = gui_string->model;
+void widget_element_text_box_set_text(WidgetElement *gui_string, const char *text)
+{
+    GuiTextBoxModel *model = gui_string->model;
     furi_string_set(model->text, text);
 }

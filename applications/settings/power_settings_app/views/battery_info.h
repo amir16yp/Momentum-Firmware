@@ -3,7 +3,7 @@
 #include <gui/view.h>
 
 typedef struct {
-    View* view;
+    View *view;
     bool exit_to_about;
 } BatteryInfo;
 
@@ -18,10 +18,10 @@ typedef struct {
     bool alt;
 } BatteryInfoModel;
 
-BatteryInfo* battery_info_alloc(void);
+BatteryInfo *battery_info_alloc(void);
 
-void battery_info_free(BatteryInfo* battery_info);
+void battery_info_free(BatteryInfo *battery_info);
 
-View* battery_info_get_view(BatteryInfo* battery_info);
+View *battery_info_get_view(BatteryInfo *battery_info);
 
-void battery_info_set_data(BatteryInfo* battery_info, BatteryInfoModel* data);
+void battery_info_set_data(BatteryInfo *battery_info, BatteryInfoModel *data);

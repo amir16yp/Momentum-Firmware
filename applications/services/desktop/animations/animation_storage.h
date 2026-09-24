@@ -12,7 +12,7 @@
 typedef struct StorageAnimation StorageAnimation;
 
 typedef struct {
-    const char* name;
+    const char *name;
     uint8_t min_butthurt;
     uint8_t max_butthurt;
     uint8_t min_level;
@@ -21,7 +21,7 @@ typedef struct {
 } StorageAnimationManifestInfo;
 
 /** Container to return available animations list */
-LIST_DEF(StorageAnimationList, StorageAnimation*, M_PTR_OPLIST)
+LIST_DEF(StorageAnimationList, StorageAnimation *, M_PTR_OPLIST)
 #define M_OPL_StorageAnimationList_t() LIST_OPLIST(StorageAnimationList)
 
 /**
@@ -34,7 +34,7 @@ LIST_DEF(StorageAnimationList, StorageAnimation*, M_PTR_OPLIST)
  *
  * @list        list to fill with animations data
  */
-void animation_storage_fill_animation_list(StorageAnimationList_t* list);
+void animation_storage_fill_animation_list(StorageAnimationList_t *list);
 
 /**
  * Get bubble animation of storage animation.
@@ -46,7 +46,7 @@ void animation_storage_fill_animation_list(StorageAnimationList_t* list);
  * @storage_animation       animation from which extract bubble animation
  * @return                  bubble_animation, NULL if failed to cache data.
  */
-const BubbleAnimation* animation_storage_get_bubble_animation(StorageAnimation* storage_animation);
+const BubbleAnimation *animation_storage_get_bubble_animation(StorageAnimation *storage_animation);
 
 /**
  * Performs caching animation data (Bubble Animation)
@@ -54,7 +54,7 @@ const BubbleAnimation* animation_storage_get_bubble_animation(StorageAnimation* 
  *
  * @storage_animation       animation to cache
  */
-void animation_storage_cache_animation(StorageAnimation* storage_animation);
+void animation_storage_cache_animation(StorageAnimation *storage_animation);
 
 /**
  * Find animation by name.
@@ -63,7 +63,7 @@ void animation_storage_cache_animation(StorageAnimation* storage_animation);
  * @name        name of animation
  * @return      found animation. NULL if nothing found.
  */
-StorageAnimation* animation_storage_find_animation(const char* name);
+StorageAnimation *animation_storage_find_animation(const char *name);
 
 /**
  * Get meta information of storage animation.
@@ -73,7 +73,7 @@ StorageAnimation* animation_storage_find_animation(const char* name);
  * @storage_animation       item of whom we have to extract meta.
  * @return                  meta itself
  */
-StorageAnimationManifestInfo* animation_storage_get_meta(StorageAnimation* storage_animation);
+StorageAnimationManifestInfo *animation_storage_get_meta(StorageAnimation *storage_animation);
 
 /**
  * Free storage_animation, which previously acquired
@@ -81,7 +81,7 @@ StorageAnimationManifestInfo* animation_storage_get_meta(StorageAnimation* stora
  *
  * @storage_animation   item to free. NULL-ed after all.
  */
-void animation_storage_free_storage_animation(StorageAnimation** storage_animation);
+void animation_storage_free_storage_animation(StorageAnimation **storage_animation);
 
 /**
  * Has to be called at least 1 time to initialize runtime structures

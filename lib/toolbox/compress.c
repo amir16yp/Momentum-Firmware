@@ -23,13 +23,9 @@ const CompressConfigHeatshrink compress_config_heatshrink_default = {
 };
 
 /** Buffer size for input data */
-static bool compress_decode_internal(
-    heatshrink_decoder* decoder,
-    const uint8_t* data_in,
-    size_t data_in_size,
-    uint8_t* data_out,
-    size_t data_out_size,
-    size_t* data_res_size);
+static bool compress_decode_internal(heatshrink_decoder *decoder, const uint8_t *data_in,
+                                     size_t data_in_size, uint8_t *data_out, size_t data_out_size,
+                                     size_t *data_res_size);
 
 typedef struct {
     uint8_t is_compressed;
@@ -40,17 +36,17 @@ typedef struct {
 _Static_assert(sizeof(CompressHeader) == 4, "Incorrect CompressHeader size");
 
 struct CompressIcon {
-    heatshrink_decoder* decoder;
-    uint8_t* buffer;
+    heatshrink_decoder *decoder;
+    uint8_t *buffer;
     size_t buffer_size;
 };
 
-CompressIcon* compress_icon_alloc(size_t decode_buf_size) {
-    CompressIcon* instance = malloc(sizeof(CompressIcon));
-    instance->decoder = heatshrink_decoder_alloc(
-        COMPRESS_ICON_ENCODED_BUFF_SIZE,
-        COMPRESS_EXP_BUFF_SIZE_LOG,
-        COMPRESS_LOOKAHEAD_BUFF_SIZE_LOG);
+CompressIcon *compress_icon_alloc(size_t decode_buf_size)
+{
+    CompressIcon *instance = malloc(sizeof(CompressIcon));
+    instance->decoder =
+        heatshrink_decoder_alloc(COMPRESS_ICON_ENCODED_BUFF_SIZE, COMPRESS_EXP_BUFF_SIZE_LOG,
+                                 COMPRESS_LOOKAHEAD_BUFF_SIZE_LOG);
     heatshrink_decoder_reset(instance->decoder);
 
     instance->buffer_size = decode_buf_size + 4; /* To account for heatshrink's poller quirks */
@@ -59,47 +55,47 @@ CompressIcon* compress_icon_alloc(size_t decode_buf_size) {
     return instance;
 }
 
-void compress_icon_free(CompressIcon* instance) {
+void compress_icon_free(CompressIcon *instance)
+{
     furi_check(instance);
     free(instance->buffer);
     heatshrink_decoder_free(instance->decoder);
     free(instance);
 }
 
-void compress_icon_decode(CompressIcon* instance, const uint8_t* icon_data, uint8_t** output) {
+void compress_icon_decode(CompressIcon *instance, const uint8_t *icon_data, uint8_t **output)
+{
     furi_check(instance);
     furi_check(icon_data);
     furi_check(output);
 
-    CompressHeader* header = (CompressHeader*)icon_data;
-    if(header->is_compressed) {
+    CompressHeader *header = (CompressHeader *)icon_data;
+    if (header->is_compressed) {
         size_t decoded_size = 0;
         /* If decompression fails - check that decode_buf_size is large enough */
         furi_check(compress_decode_internal(
-            instance->decoder,
-            icon_data,
+            instance->decoder, icon_data,
             /* Decoder will check/process headers again - need to pass them */
-            sizeof(CompressHeader) + header->compressed_buff_size,
-            instance->buffer,
-            instance->buffer_size,
-            &decoded_size));
+            sizeof(CompressHeader) + header->compressed_buff_size, instance->buffer,
+            instance->buffer_size, &decoded_size));
         *output = instance->buffer;
     } else {
-        *output = (uint8_t*)&icon_data[1];
+        *output = (uint8_t *)&icon_data[1];
     }
 }
 
 struct Compress {
-    const void* config;
-    heatshrink_encoder* encoder;
-    heatshrink_decoder* decoder;
+    const void *config;
+    heatshrink_encoder *encoder;
+    heatshrink_decoder *decoder;
 };
 
-Compress* compress_alloc(CompressType type, const void* config) {
+Compress *compress_alloc(CompressType type, const void *config)
+{
     furi_check(type == CompressTypeHeatshrink);
     furi_check(config);
 
-    Compress* compress = malloc(sizeof(Compress));
+    Compress *compress = malloc(sizeof(Compress));
     compress->config = config;
     compress->encoder = NULL;
     compress->decoder = NULL;
@@ -107,25 +103,23 @@ Compress* compress_alloc(CompressType type, const void* config) {
     return compress;
 }
 
-void compress_free(Compress* compress) {
+void compress_free(Compress *compress)
+{
     furi_check(compress);
 
-    if(compress->encoder) {
+    if (compress->encoder) {
         heatshrink_encoder_free(compress->encoder);
     }
-    if(compress->decoder) {
+    if (compress->decoder) {
         heatshrink_decoder_free(compress->decoder);
     }
     free(compress);
 }
 
-static bool compress_encode_internal(
-    heatshrink_encoder* encoder,
-    uint8_t* data_in,
-    size_t data_in_size,
-    uint8_t* data_out,
-    size_t data_out_size,
-    size_t* data_res_size) {
+static bool compress_encode_internal(heatshrink_encoder *encoder, uint8_t *data_in,
+                                     size_t data_in_size, uint8_t *data_out, size_t data_out_size,
+                                     size_t *data_res_size)
+{
     furi_check(encoder);
     furi_check(data_in);
     furi_check(data_in_size);
@@ -141,52 +135,52 @@ static bool compress_encode_internal(
 
     heatshrink_encoder_reset(encoder);
     /* Sink data to encoding buffer */
-    while((sunk < data_in_size) && !encode_failed) {
+    while ((sunk < data_in_size) && !encode_failed) {
         sink_res =
             heatshrink_encoder_sink(encoder, &data_in[sunk], data_in_size - sunk, &sink_size);
-        if(sink_res != HSER_SINK_OK) {
+        if (sink_res != HSER_SINK_OK) {
             encode_failed = true;
             break;
         }
         sunk += sink_size;
         do {
-            poll_res = heatshrink_encoder_poll(
-                encoder, &data_out[res_buff_size], data_out_size - res_buff_size, &poll_size);
-            if(poll_res < 0) {
+            poll_res = heatshrink_encoder_poll(encoder, &data_out[res_buff_size],
+                                               data_out_size - res_buff_size, &poll_size);
+            if (poll_res < 0) {
                 encode_failed = true;
                 break;
             }
             res_buff_size += poll_size;
-        } while(poll_res == HSER_POLL_MORE);
+        } while (poll_res == HSER_POLL_MORE);
     }
 
     /* Notify sinking complete and poll encoded data */
     finish_res = heatshrink_encoder_finish(encoder);
-    if(finish_res < 0) {
+    if (finish_res < 0) {
         encode_failed = true;
     } else {
         do {
-            poll_res = heatshrink_encoder_poll(
-                encoder, &data_out[res_buff_size], data_out_size - res_buff_size, &poll_size);
-            if(poll_res < 0) {
+            poll_res = heatshrink_encoder_poll(encoder, &data_out[res_buff_size],
+                                               data_out_size - res_buff_size, &poll_size);
+            if (poll_res < 0) {
                 encode_failed = true;
                 break;
             }
             res_buff_size += poll_size;
             finish_res = heatshrink_encoder_finish(encoder);
-        } while(finish_res != HSER_FINISH_DONE);
+        } while (finish_res != HSER_FINISH_DONE);
     }
 
     bool result = true;
-    /* Write encoded data to output buffer if compression is efficient. Otherwise, write header and original data */
-    if(!encode_failed && (res_buff_size < data_in_size + 1)) {
-        CompressHeader header = {
-            .is_compressed = 0x01,
-            .reserved = 0x00,
-            .compressed_buff_size = res_buff_size - sizeof(CompressHeader)};
+    /* Write encoded data to output buffer if compression is efficient. Otherwise, write header and
+     * original data */
+    if (!encode_failed && (res_buff_size < data_in_size + 1)) {
+        CompressHeader header = {.is_compressed = 0x01,
+                                 .reserved = 0x00,
+                                 .compressed_buff_size = res_buff_size - sizeof(CompressHeader)};
         memcpy(data_out, &header, sizeof(header));
         *data_res_size = res_buff_size;
-    } else if(data_out_size > data_in_size) {
+    } else if (data_out_size > data_in_size) {
         data_out[0] = 0x00;
         memcpy(&data_out[1], data_in, data_in_size);
         *data_res_size = data_in_size + 1;
@@ -197,79 +191,75 @@ static bool compress_encode_internal(
     return result;
 }
 
-static inline bool compress_decoder_poll(
-    heatshrink_decoder* decoder,
-    uint8_t* decompressed_chunk,
-    size_t decomp_buffer_size,
-    CompressIoCallback write_cb,
-    void* write_context) {
+static inline bool compress_decoder_poll(heatshrink_decoder *decoder, uint8_t *decompressed_chunk,
+                                         size_t decomp_buffer_size, CompressIoCallback write_cb,
+                                         void *write_context)
+{
     HSD_poll_res poll_res;
     size_t poll_size;
 
     do {
         poll_res =
             heatshrink_decoder_poll(decoder, decompressed_chunk, decomp_buffer_size, &poll_size);
-        if(poll_res < 0) {
+        if (poll_res < 0) {
             return false;
         }
 
         size_t write_size = write_cb(write_context, decompressed_chunk, poll_size);
-        if(write_size != poll_size) {
+        if (write_size != poll_size) {
             return false;
         }
-    } while(poll_res == HSDR_POLL_MORE);
+    } while (poll_res == HSDR_POLL_MORE);
 
     return true;
 }
 
-static bool compress_decode_stream_internal(
-    heatshrink_decoder* decoder,
-    const size_t work_buffer_size,
-    CompressIoCallback read_cb,
-    void* read_context,
-    CompressIoCallback write_cb,
-    void* write_context) {
+static bool compress_decode_stream_internal(heatshrink_decoder *decoder,
+                                            const size_t work_buffer_size,
+                                            CompressIoCallback read_cb, void *read_context,
+                                            CompressIoCallback write_cb, void *write_context)
+{
     bool decode_failed = false;
     HSD_sink_res sink_res;
     HSD_finish_res finish_res;
     size_t read_size = 0;
     size_t sink_size = 0;
 
-    uint8_t* compressed_chunk = malloc(work_buffer_size);
-    uint8_t* decompressed_chunk = malloc(work_buffer_size);
+    uint8_t *compressed_chunk = malloc(work_buffer_size);
+    uint8_t *decompressed_chunk = malloc(work_buffer_size);
 
     /* Sink data to decoding buffer */
     do {
         read_size = read_cb(read_context, compressed_chunk, work_buffer_size);
 
         size_t sunk = 0;
-        while(sunk < read_size && !decode_failed) {
-            sink_res = heatshrink_decoder_sink(
-                decoder, &compressed_chunk[sunk], read_size - sunk, &sink_size);
-            if(sink_res < 0) {
+        while (sunk < read_size && !decode_failed) {
+            sink_res = heatshrink_decoder_sink(decoder, &compressed_chunk[sunk], read_size - sunk,
+                                               &sink_size);
+            if (sink_res < 0) {
                 decode_failed = true;
                 break;
             }
             sunk += sink_size;
 
-            if(!compress_decoder_poll(
-                   decoder, decompressed_chunk, work_buffer_size, write_cb, write_context)) {
+            if (!compress_decoder_poll(decoder, decompressed_chunk, work_buffer_size, write_cb,
+                                       write_context)) {
                 decode_failed = true;
                 break;
             }
         }
-    } while(!decode_failed && read_size);
+    } while (!decode_failed && read_size);
 
     /* Notify sinking complete and poll decoded data */
-    if(!decode_failed) {
-        while((finish_res = heatshrink_decoder_finish(decoder)) != HSDR_FINISH_DONE) {
-            if(finish_res < 0) {
+    if (!decode_failed) {
+        while ((finish_res = heatshrink_decoder_finish(decoder)) != HSDR_FINISH_DONE) {
+            if (finish_res < 0) {
                 decode_failed = true;
                 break;
             }
 
-            if(!compress_decoder_poll(
-                   decoder, decompressed_chunk, work_buffer_size, write_cb, write_context)) {
+            if (!compress_decoder_poll(decoder, decompressed_chunk, work_buffer_size, write_cb,
+                                       write_context)) {
                 decode_failed = true;
                 break;
             }
@@ -283,18 +273,19 @@ static bool compress_decode_stream_internal(
 }
 
 typedef struct {
-    uint8_t* data_ptr;
+    uint8_t *data_ptr;
     size_t data_size;
     bool is_source;
 } MemoryStreamState;
 
-static int32_t memory_stream_io_callback(void* context, uint8_t* ptr, size_t size) {
-    MemoryStreamState* state = (MemoryStreamState*)context;
+static int32_t memory_stream_io_callback(void *context, uint8_t *ptr, size_t size)
+{
+    MemoryStreamState *state = (MemoryStreamState *)context;
 
-    if(size > state->data_size) {
+    if (size > state->data_size) {
         size = state->data_size;
     }
-    if(state->is_source) {
+    if (state->is_source) {
         memcpy(ptr, state->data_ptr, size);
     } else {
         memcpy(state->data_ptr, ptr, size);
@@ -304,13 +295,10 @@ static int32_t memory_stream_io_callback(void* context, uint8_t* ptr, size_t siz
     return size;
 }
 
-static bool compress_decode_internal(
-    heatshrink_decoder* decoder,
-    const uint8_t* data_in,
-    size_t data_in_size,
-    uint8_t* data_out,
-    size_t data_out_size,
-    size_t* data_res_size) {
+static bool compress_decode_internal(heatshrink_decoder *decoder, const uint8_t *data_in,
+                                     size_t data_in_size, uint8_t *data_out, size_t data_out_size,
+                                     size_t *data_res_size)
+{
     furi_check(decoder);
     furi_check(data_in);
     furi_check(data_out);
@@ -318,10 +306,10 @@ static bool compress_decode_internal(
 
     bool result = false;
 
-    CompressHeader* header = (CompressHeader*)data_in;
-    if(header->is_compressed) {
+    CompressHeader *header = (CompressHeader *)data_in;
+    if (header->is_compressed) {
         MemoryStreamState compressed_context = {
-            .data_ptr = (uint8_t*)&data_in[sizeof(CompressHeader)],
+            .data_ptr = (uint8_t *)&data_in[sizeof(CompressHeader)],
             .data_size = header->compressed_buff_size,
             .is_source = true,
         };
@@ -331,16 +319,12 @@ static bool compress_decode_internal(
             .is_source = false,
         };
         heatshrink_decoder_reset(decoder);
-        if((result = compress_decode_stream_internal(
-                decoder,
-                COMPRESS_ICON_ENCODED_BUFF_SIZE,
-                memory_stream_io_callback,
-                &compressed_context,
-                memory_stream_io_callback,
-                &decompressed_context))) {
+        if ((result = compress_decode_stream_internal(
+                 decoder, COMPRESS_ICON_ENCODED_BUFF_SIZE, memory_stream_io_callback,
+                 &compressed_context, memory_stream_io_callback, &decompressed_context))) {
             *data_res_size = data_out_size - decompressed_context.data_size;
         }
-    } else if(data_out_size >= data_in_size - 1) {
+    } else if (data_out_size >= data_in_size - 1) {
         memcpy(data_out, &data_in[1], data_in_size);
         *data_res_size = data_in_size - 1;
         result = true;
@@ -351,65 +335,49 @@ static bool compress_decode_internal(
     return result;
 }
 
-bool compress_encode(
-    Compress* compress,
-    uint8_t* data_in,
-    size_t data_in_size,
-    uint8_t* data_out,
-    size_t data_out_size,
-    size_t* data_res_size) {
-    if(!compress->encoder) {
-        CompressConfigHeatshrink* hs_config = (CompressConfigHeatshrink*)compress->config;
+bool compress_encode(Compress *compress, uint8_t *data_in, size_t data_in_size, uint8_t *data_out,
+                     size_t data_out_size, size_t *data_res_size)
+{
+    if (!compress->encoder) {
+        CompressConfigHeatshrink *hs_config = (CompressConfigHeatshrink *)compress->config;
         compress->encoder =
             heatshrink_encoder_alloc(hs_config->window_sz2, hs_config->lookahead_sz2);
     }
-    return compress_encode_internal(
-        compress->encoder, data_in, data_in_size, data_out, data_out_size, data_res_size);
+    return compress_encode_internal(compress->encoder, data_in, data_in_size, data_out,
+                                    data_out_size, data_res_size);
 }
 
-bool compress_decode(
-    Compress* compress,
-    uint8_t* data_in,
-    size_t data_in_size,
-    uint8_t* data_out,
-    size_t data_out_size,
-    size_t* data_res_size) {
-    if(!compress->decoder) {
-        CompressConfigHeatshrink* hs_config = (CompressConfigHeatshrink*)compress->config;
+bool compress_decode(Compress *compress, uint8_t *data_in, size_t data_in_size, uint8_t *data_out,
+                     size_t data_out_size, size_t *data_res_size)
+{
+    if (!compress->decoder) {
+        CompressConfigHeatshrink *hs_config = (CompressConfigHeatshrink *)compress->config;
         compress->decoder = heatshrink_decoder_alloc(
             hs_config->input_buffer_sz, hs_config->window_sz2, hs_config->lookahead_sz2);
     }
-    return compress_decode_internal(
-        compress->decoder, data_in, data_in_size, data_out, data_out_size, data_res_size);
+    return compress_decode_internal(compress->decoder, data_in, data_in_size, data_out,
+                                    data_out_size, data_res_size);
 }
 
-bool compress_decode_streamed(
-    Compress* compress,
-    CompressIoCallback read_cb,
-    void* read_context,
-    CompressIoCallback write_cb,
-    void* write_context) {
-    CompressConfigHeatshrink* hs_config = (CompressConfigHeatshrink*)compress->config;
-    if(!compress->decoder) {
+bool compress_decode_streamed(Compress *compress, CompressIoCallback read_cb, void *read_context,
+                              CompressIoCallback write_cb, void *write_context)
+{
+    CompressConfigHeatshrink *hs_config = (CompressConfigHeatshrink *)compress->config;
+    if (!compress->decoder) {
         compress->decoder = heatshrink_decoder_alloc(
             hs_config->input_buffer_sz, hs_config->window_sz2, hs_config->lookahead_sz2);
     }
 
     heatshrink_decoder_reset(compress->decoder);
-    return compress_decode_stream_internal(
-        compress->decoder,
-        hs_config->input_buffer_sz,
-        read_cb,
-        read_context,
-        write_cb,
-        write_context);
+    return compress_decode_stream_internal(compress->decoder, hs_config->input_buffer_sz, read_cb,
+                                           read_context, write_cb, write_context);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
     struct uzlib_uncomp uzlib;
-    CompressStreamDecoder* sd;
+    CompressStreamDecoder *sd;
     uint32_t dict_sz;
     uint8_t dict[];
 } gzip_decoder;
@@ -423,22 +391,23 @@ struct CompressStreamDecoder {
     size_t stream_position;
     size_t decode_buffer_size;
     size_t decode_buffer_position;
-    uint8_t* decode_buffer;
+    uint8_t *decode_buffer;
     CompressIoCallback read_cb;
-    void* read_context;
+    void *read_context;
     CompressType type;
     union {
-        heatshrink_decoder* heatshrink;
-        gzip_decoder* gzip;
+        heatshrink_decoder *heatshrink;
+        gzip_decoder *gzip;
     } decoder;
 };
 
-static int gzip_decoder_read_cb(struct uzlib_uncomp* uzlib) {
-    gzip_decoder* gz_decoder = (gzip_decoder*)uzlib;
-    CompressStreamDecoder* sd = gz_decoder->sd;
+static int gzip_decoder_read_cb(struct uzlib_uncomp *uzlib)
+{
+    gzip_decoder *gz_decoder = (gzip_decoder *)uzlib;
+    CompressStreamDecoder *sd = gz_decoder->sd;
 
     int32_t read_size = sd->read_cb(sd->read_context, sd->decode_buffer, sd->decode_buffer_size);
-    if(read_size <= 0) {
+    if (read_size <= 0) {
         return -1;
     }
 
@@ -447,58 +416,57 @@ static int gzip_decoder_read_cb(struct uzlib_uncomp* uzlib) {
     return sd->decode_buffer[0];
 }
 
-static bool gzip_decoder_reset(gzip_decoder* gz_decoder) {
+static bool gzip_decoder_reset(gzip_decoder *gz_decoder)
+{
     uzlib_uncompress_init(&gz_decoder->uzlib, gz_decoder->dict, gz_decoder->dict_sz);
     gz_decoder->uzlib.source = 0;
     gz_decoder->uzlib.source_limit = 0;
     gz_decoder->uzlib.source_read_cb = gzip_decoder_read_cb;
 
     int32_t header_res = uzlib_gzip_parse_header(&gz_decoder->uzlib);
-    if(header_res != TINF_OK) {
+    if (header_res != TINF_OK) {
         return false;
     }
 
     return true;
 }
 
-CompressStreamDecoder* compress_stream_decoder_alloc(
-    CompressType type,
-    const void* config,
-    CompressIoCallback read_cb,
-    void* read_context) {
+CompressStreamDecoder *compress_stream_decoder_alloc(CompressType type, const void *config,
+                                                     CompressIoCallback read_cb, void *read_context)
+{
     furi_check(type < CompressTypeMAX);
     furi_check(config);
 
-    CompressStreamDecoder* instance = malloc(sizeof(CompressStreamDecoder));
+    CompressStreamDecoder *instance = malloc(sizeof(CompressStreamDecoder));
     instance->type = type;
     instance->stream_position = 0;
     instance->decode_buffer_position = 0;
     instance->read_cb = read_cb;
     instance->read_context = read_context;
 
-    if(type == CompressTypeHeatshrink) {
-        const CompressConfigHeatshrink* hs_config = config;
+    if (type == CompressTypeHeatshrink) {
+        const CompressConfigHeatshrink *hs_config = config;
         instance->decode_buffer_size = hs_config->input_buffer_sz;
         instance->decode_buffer = malloc(hs_config->input_buffer_sz);
 
-        heatshrink_decoder* hs_decoder = heatshrink_decoder_alloc(
+        heatshrink_decoder *hs_decoder = heatshrink_decoder_alloc(
             hs_config->input_buffer_sz, hs_config->window_sz2, hs_config->lookahead_sz2);
-        if(hs_decoder == NULL) {
+        if (hs_decoder == NULL) {
             free(instance->decode_buffer);
             free(instance);
             return NULL;
         }
         instance->decoder.heatshrink = hs_decoder;
 
-    } else if(type == CompressTypeGzip) {
-        const CompressConfigGzip* gz_config = config;
+    } else if (type == CompressTypeGzip) {
+        const CompressConfigGzip *gz_config = config;
         instance->decode_buffer_size = gz_config->input_buffer_sz;
         instance->decode_buffer = malloc(gz_config->input_buffer_sz);
 
-        gzip_decoder* gz_decoder = malloc(sizeof(gzip_decoder) + gz_config->dict_sz);
+        gzip_decoder *gz_decoder = malloc(sizeof(gzip_decoder) + gz_config->dict_sz);
         gz_decoder->sd = instance;
         gz_decoder->dict_sz = gz_config->dict_sz;
-        if(!gzip_decoder_reset(gz_decoder)) {
+        if (!gzip_decoder_reset(gz_decoder)) {
             free(gz_decoder);
             free(instance->decode_buffer);
             free(instance);
@@ -510,28 +478,29 @@ CompressStreamDecoder* compress_stream_decoder_alloc(
     return instance;
 }
 
-void compress_stream_decoder_free(CompressStreamDecoder* instance) {
+void compress_stream_decoder_free(CompressStreamDecoder *instance)
+{
     furi_check(instance);
-    if(instance->type == CompressTypeHeatshrink) {
+    if (instance->type == CompressTypeHeatshrink) {
         heatshrink_decoder_free(instance->decoder.heatshrink);
-    } else if(instance->type == CompressTypeGzip) {
+    } else if (instance->type == CompressTypeGzip) {
         free(instance->decoder.gzip);
     }
     free(instance->decode_buffer);
     free(instance);
 }
 
-static bool compress_decode_stream_chunk_heatshrink(
-    CompressStreamDecoder* sd,
-    uint8_t* decompressed_chunk,
-    size_t decomp_chunk_size) {
+static bool compress_decode_stream_chunk_heatshrink(CompressStreamDecoder *sd,
+                                                    uint8_t *decompressed_chunk,
+                                                    size_t decomp_chunk_size)
+{
     HSD_sink_res sink_res;
     HSD_poll_res poll_res;
 
-    /* 
-    First, try to output data from decoder to the output buffer. 
+    /*
+    First, try to output data from decoder to the output buffer.
     If the we could fill the output buffer, return
-    If the output buffer is not full, keep polling the decoder 
+    If the output buffer is not full, keep polling the decoder
         until it has no more data to output.
     Then, read more data from the input and sink it to the decoder.
     Repeat until the input is exhausted or output buffer is full.
@@ -544,62 +513,60 @@ static bool compress_decode_stream_chunk_heatshrink(
     do {
         do {
             size_t poll_size = 0;
-            poll_res = heatshrink_decoder_poll(
-                sd->decoder.heatshrink, decompressed_chunk, decomp_chunk_size, &poll_size);
-            if(poll_res < 0) {
+            poll_res = heatshrink_decoder_poll(sd->decoder.heatshrink, decompressed_chunk,
+                                               decomp_chunk_size, &poll_size);
+            if (poll_res < 0) {
                 return false;
             }
 
             decomp_chunk_size -= poll_size;
             decompressed_chunk += poll_size;
-        } while((poll_res == HSDR_POLL_MORE) && decomp_chunk_size);
+        } while ((poll_res == HSDR_POLL_MORE) && decomp_chunk_size);
 
-        if(!decomp_chunk_size) {
+        if (!decomp_chunk_size) {
             break;
         }
 
-        if(can_read_more && (sd->decode_buffer_position < sd->decode_buffer_size)) {
-            size_t read_size = sd->read_cb(
-                sd->read_context,
-                &sd->decode_buffer[sd->decode_buffer_position],
-                sd->decode_buffer_size - sd->decode_buffer_position);
+        if (can_read_more && (sd->decode_buffer_position < sd->decode_buffer_size)) {
+            size_t read_size =
+                sd->read_cb(sd->read_context, &sd->decode_buffer[sd->decode_buffer_position],
+                            sd->decode_buffer_size - sd->decode_buffer_position);
             sd->decode_buffer_position += read_size;
             can_read_more = read_size > 0;
         }
 
-        while(sd->decode_buffer_position && can_sink_more) {
+        while (sd->decode_buffer_position && can_sink_more) {
             size_t sink_size = 0;
-            sink_res = heatshrink_decoder_sink(
-                sd->decoder.heatshrink, sd->decode_buffer, sd->decode_buffer_position, &sink_size);
+            sink_res = heatshrink_decoder_sink(sd->decoder.heatshrink, sd->decode_buffer,
+                                               sd->decode_buffer_position, &sink_size);
             can_sink_more = sink_res == HSDR_SINK_OK;
-            if(sink_res < 0) {
+            if (sink_res < 0) {
                 failed = true;
                 break;
             }
             sd->decode_buffer_position -= sink_size;
 
             /* If some data was left in the buffer, move it to the beginning */
-            if(sink_size && sd->decode_buffer_position) {
-                memmove(
-                    sd->decode_buffer, &sd->decode_buffer[sink_size], sd->decode_buffer_position);
+            if (sink_size && sd->decode_buffer_position) {
+                memmove(sd->decode_buffer, &sd->decode_buffer[sink_size],
+                        sd->decode_buffer_position);
             }
         }
-    } while(!failed);
+    } while (!failed);
 
     return decomp_chunk_size == 0;
 }
 
-static bool compress_decode_stream_chunk_gzip(
-    CompressStreamDecoder* sd,
-    uint8_t* decompressed_chunk,
-    size_t decomp_chunk_size) {
-    struct uzlib_uncomp* uzlib = &sd->decoder.gzip->uzlib;
+static bool compress_decode_stream_chunk_gzip(CompressStreamDecoder *sd,
+                                              uint8_t *decompressed_chunk, size_t decomp_chunk_size)
+{
+    struct uzlib_uncomp *uzlib = &sd->decoder.gzip->uzlib;
     uzlib->dest = decompressed_chunk;
     uzlib->dest_limit = decompressed_chunk + decomp_chunk_size;
 
     /* Calls user-provided read_cb via uzlib->source_read_cb configured in gzip_decoder_reset() */
     int32_t res = uzlib_uncompress_chksum(uzlib);
-    if(res < 0) {
+    if (res < 0) {
         return false;
     }
 
@@ -607,54 +574,53 @@ static bool compress_decode_stream_chunk_gzip(
     return decomp_size == decomp_chunk_size;
 }
 
-static bool compress_decode_stream_chunk(
-    CompressStreamDecoder* sd,
-    uint8_t* decompressed_chunk,
-    size_t decomp_chunk_size) {
-    if(sd->type == CompressTypeHeatshrink) {
+static bool compress_decode_stream_chunk(CompressStreamDecoder *sd, uint8_t *decompressed_chunk,
+                                         size_t decomp_chunk_size)
+{
+    if (sd->type == CompressTypeHeatshrink) {
         return compress_decode_stream_chunk_heatshrink(sd, decompressed_chunk, decomp_chunk_size);
-    } else if(sd->type == CompressTypeGzip) {
+    } else if (sd->type == CompressTypeGzip) {
         return compress_decode_stream_chunk_gzip(sd, decompressed_chunk, decomp_chunk_size);
     }
     return false;
 }
 
-bool compress_stream_decoder_read(
-    CompressStreamDecoder* instance,
-    uint8_t* data_out,
-    size_t data_out_size) {
+bool compress_stream_decoder_read(CompressStreamDecoder *instance, uint8_t *data_out,
+                                  size_t data_out_size)
+{
     furi_check(instance);
     furi_check(data_out);
 
-    if(compress_decode_stream_chunk(instance, data_out, data_out_size)) {
+    if (compress_decode_stream_chunk(instance, data_out, data_out_size)) {
         instance->stream_position += data_out_size;
         return true;
     }
     return false;
 }
 
-bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t position) {
+bool compress_stream_decoder_seek(CompressStreamDecoder *instance, size_t position)
+{
     furi_check(instance);
 
     /* No action required */
-    if(position == instance->stream_position) {
+    if (position == instance->stream_position) {
         return true;
     }
 
-    /* Check if requested position is ahead of current position 
+    /* Check if requested position is ahead of current position
        we can't rewind the input stream */
     furi_check(position > instance->stream_position);
 
     /* Read and discard data up to requested position */
-    uint8_t* dummy_buffer = malloc(instance->decode_buffer_size);
+    uint8_t *dummy_buffer = malloc(instance->decode_buffer_size);
     bool success = true;
 
-    while(instance->stream_position < position) {
+    while (instance->stream_position < position) {
         size_t bytes_to_read = position - instance->stream_position;
-        if(bytes_to_read > instance->decode_buffer_size) {
+        if (bytes_to_read > instance->decode_buffer_size) {
             bytes_to_read = instance->decode_buffer_size;
         }
-        if(!compress_stream_decoder_read(instance, dummy_buffer, bytes_to_read)) {
+        if (!compress_stream_decoder_read(instance, dummy_buffer, bytes_to_read)) {
             success = false;
             break;
         }
@@ -664,19 +630,21 @@ bool compress_stream_decoder_seek(CompressStreamDecoder* instance, size_t positi
     return success;
 }
 
-size_t compress_stream_decoder_tell(CompressStreamDecoder* instance) {
+size_t compress_stream_decoder_tell(CompressStreamDecoder *instance)
+{
     furi_check(instance);
     return instance->stream_position;
 }
 
-bool compress_stream_decoder_rewind(CompressStreamDecoder* instance) {
+bool compress_stream_decoder_rewind(CompressStreamDecoder *instance)
+{
     furi_check(instance);
 
     /* Reset decoder and read buffer */
-    if(instance->type == CompressTypeHeatshrink) {
+    if (instance->type == CompressTypeHeatshrink) {
         heatshrink_decoder_reset(instance->decoder.heatshrink);
-    } else if(instance->type == CompressTypeGzip) {
-        if(!gzip_decoder_reset(instance->decoder.gzip)) {
+    } else if (instance->type == CompressTypeGzip) {
+        if (!gzip_decoder_reset(instance->decoder.gzip)) {
             return false;
         }
     }

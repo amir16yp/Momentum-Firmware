@@ -22,7 +22,7 @@ void furi_record_init(void);
  * @note       Thread safe. Create and destroy must be executed from the same
  *             thread.
  */
-bool furi_record_exists(const char* name);
+bool furi_record_exists(const char *name);
 
 /** Create record
  *
@@ -31,7 +31,7 @@ bool furi_record_exists(const char* name);
  * @note       Thread safe. Create and destroy must be executed from the same
  *             thread.
  */
-void furi_record_create(const char* name, void* data);
+void furi_record_create(const char *name, void *data);
 
 /** Destroy record
  *
@@ -42,7 +42,7 @@ void furi_record_create(const char* name, void* data);
  * @note       Thread safe. Create and destroy must be executed from the same
  *             thread.
  */
-bool furi_record_destroy(const char* name);
+bool furi_record_destroy(const char *name);
 
 /** Open record
  *
@@ -52,7 +52,7 @@ bool furi_record_destroy(const char* name);
  * @note       Thread safe. Open and close must be executed from the same
  *             thread. Suspends caller thread till record is available
  */
-FURI_RETURNS_NONNULL void* furi_record_open(const char* name);
+FURI_RETURNS_NONNULL void *furi_record_open(const char *name);
 
 /** Close record
  *
@@ -60,7 +60,7 @@ FURI_RETURNS_NONNULL void* furi_record_open(const char* name);
  * @note       Thread safe. Open and close must be executed from the same
  *             thread.
  */
-void furi_record_close(const char* name);
+void furi_record_close(const char *name);
 
 #ifdef __cplusplus
 }

@@ -65,11 +65,11 @@ typedef FlipperApplicationManifestEx FlipperApplicationManifest;
 
 /**
  * @brief Check if manifest is valid
- * 
- * @param manifest 
- * @return bool 
+ *
+ * @param manifest
+ * @return bool
  */
-bool flipper_application_manifest_is_valid(const FlipperApplicationManifest* manifest);
+bool flipper_application_manifest_is_valid(const FlipperApplicationManifest *manifest);
 
 /** Check if API Version declared in manifest is older than firmware ELF API interface
  *
@@ -78,9 +78,8 @@ bool flipper_application_manifest_is_valid(const FlipperApplicationManifest* man
  *
  * @return     bool
  */
-bool flipper_application_manifest_is_too_old(
-    const FlipperApplicationManifest* manifest,
-    const ElfApiInterface* api_interface);
+bool flipper_application_manifest_is_too_old(const FlipperApplicationManifest *manifest,
+                                             const ElfApiInterface *api_interface);
 
 /** Check if API Version declared in manifest is newer than firmware ELF API interface
  *
@@ -89,17 +88,16 @@ bool flipper_application_manifest_is_too_old(
  *
  * @return     bool
  */
-bool flipper_application_manifest_is_too_new(
-    const FlipperApplicationManifest* manifest,
-    const ElfApiInterface* api_interface);
+bool flipper_application_manifest_is_too_new(const FlipperApplicationManifest *manifest,
+                                             const ElfApiInterface *api_interface);
 
 /**
  * @brief Check if application is compatible with current hardware
- * 
+ *
  * @param manifest
- * @return bool 
+ * @return bool
  */
-bool flipper_application_manifest_is_target_compatible(const FlipperApplicationManifest* manifest);
+bool flipper_application_manifest_is_target_compatible(const FlipperApplicationManifest *manifest);
 
 #ifdef __cplusplus
 }

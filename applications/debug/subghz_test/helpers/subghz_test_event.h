@@ -1,7 +1,7 @@
 #pragma once
 
 typedef enum {
-    //SubGhzTestCustomEvent
+    // SubGhzTestCustomEvent
     SubGhzTestCustomEventStartId = 100,
     SubGhzTestCustomEventSceneShowOnlyRX,
 } SubGhzTestCustomEvent;

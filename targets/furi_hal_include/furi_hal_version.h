@@ -14,10 +14,11 @@
 extern "C" {
 #endif
 
-#define FURI_HAL_VERSION_NAME_LENGTH        (8)
-#define FURI_HAL_VERSION_ARRAY_NAME_LENGTH  (FURI_HAL_VERSION_NAME_LENGTH + 1)
-/** 31b BLE Adv - 3b flags - 2b name prefix - 4b service uuid - 3b tx power = 19, + 1b null terminator (not present in packet) */
-#define FURI_HAL_BT_ADV_NAME_LENGTH         (20)
+#define FURI_HAL_VERSION_NAME_LENGTH (8)
+#define FURI_HAL_VERSION_ARRAY_NAME_LENGTH (FURI_HAL_VERSION_NAME_LENGTH + 1)
+/** 31b BLE Adv - 3b flags - 2b name prefix - 4b service uuid - 3b tx power = 19, + 1b null
+ * terminator (not present in packet) */
+#define FURI_HAL_BT_ADV_NAME_LENGTH (20)
 /** BLE symbol + name */
 #define FURI_HAL_VERSION_DEVICE_NAME_LENGTH (1 + FURI_HAL_BT_ADV_NAME_LENGTH)
 
@@ -69,43 +70,43 @@ bool furi_hal_version_do_i_belong_here(void);
  *
  * @return     model name C-string
  */
-const char* furi_hal_version_get_model_name(void);
+const char *furi_hal_version_get_model_name(void);
 
 /** Get model name
  *
  * @return     model code C-string
  */
-const char* furi_hal_version_get_model_code(void);
+const char *furi_hal_version_get_model_code(void);
 
 /** Get FCC ID
  *
  * @return     FCC id as C-string
  */
-const char* furi_hal_version_get_fcc_id(void);
+const char *furi_hal_version_get_fcc_id(void);
 
 /** Get IC id
  *
  * @return     IC id as C-string
  */
-const char* furi_hal_version_get_ic_id(void);
+const char *furi_hal_version_get_ic_id(void);
 
 /** Get MIC id
  *
  * @return     MIC id as C-string
  */
-const char* furi_hal_version_get_mic_id(void);
+const char *furi_hal_version_get_mic_id(void);
 
 /** Get SRRC id
  *
  * @return     SRRC id as C-string
  */
-const char* furi_hal_version_get_srrc_id(void);
+const char *furi_hal_version_get_srrc_id(void);
 
 /** Get NCC id
  *
  * @return     NCC id as C-string
  */
-const char* furi_hal_version_get_ncc_id(void);
+const char *furi_hal_version_get_ncc_id(void);
 
 /** Get OTP version
  *
@@ -153,7 +154,7 @@ FuriHalVersionRegion furi_hal_version_get_hw_region(void);
  *
  * @return     Hardware Region name
  */
-const char* furi_hal_version_get_hw_region_name(void);
+const char *furi_hal_version_get_hw_region_name(void);
 
 /** Get hardware region (compatibility with Unleashed API)
  *
@@ -165,7 +166,7 @@ FuriHalVersionRegion furi_hal_version_get_hw_region_otp(void);
  *
  * @return     Hardware Region name
  */
-const char* furi_hal_version_get_hw_region_name_otp(void);
+const char *furi_hal_version_get_hw_region_name_otp(void);
 
 /** Get hardware display id
  *
@@ -183,35 +184,35 @@ uint32_t furi_hal_version_get_hw_timestamp(void);
  *
  * @return     Hardware Name C-string
  */
-const char* furi_hal_version_get_name_ptr(void);
+const char *furi_hal_version_get_name_ptr(void);
 
 /** Get pointer to target device name
  *
  * @return     Hardware Device Name C-string
  */
-const char* furi_hal_version_get_device_name_ptr(void);
+const char *furi_hal_version_get_device_name_ptr(void);
 
 /** Get pointer to target ble local device name
  *
  * @return     Ble Device Name C-string
  */
-const char* furi_hal_version_get_ble_local_device_name_ptr(void);
+const char *furi_hal_version_get_ble_local_device_name_ptr(void);
 
 /** Set flipper name
  */
-void furi_hal_version_set_name(const char* name);
+void furi_hal_version_set_name(const char *name);
 
 /** Get BLE MAC address
  *
  * @return     pointer to BLE MAC address
  */
-const uint8_t* furi_hal_version_get_ble_mac(void);
+const uint8_t *furi_hal_version_get_ble_mac(void);
 
 /** Get address of version structure of firmware.
  *
  * @return     Address of firmware version structure.
  */
-const struct Version* furi_hal_version_get_firmware_version(void);
+const struct Version *furi_hal_version_get_firmware_version(void);
 
 /** Get platform UID size in bytes
  *
@@ -223,9 +224,9 @@ size_t furi_hal_version_uid_size(void);
  *
  * @return     pointer to UID
  */
-const uint8_t* furi_hal_version_uid(void);
+const uint8_t *furi_hal_version_uid(void);
 
-const uint8_t* furi_hal_version_uid_default(void);
+const uint8_t *furi_hal_version_uid_default(void);
 
 #ifdef __cplusplus
 }

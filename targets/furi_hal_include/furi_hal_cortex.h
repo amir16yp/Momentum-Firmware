@@ -77,9 +77,9 @@ typedef enum {
 } FuriHalCortexCompFunction;
 
 /** Enable DWT comparator
- * 
+ *
  * Allows to programmatically set instruction/data breakpoints.
- * 
+ *
  * More details on how it works can be found in armv7m official documentation:
  * https://developer.arm.com/documentation/ddi0403/d/Debug-Architecture/ARMv7-M-Debug/The-Data-Watchpoint-and-Trace-unit/The-DWT-comparators
  * https://developer.arm.com/documentation/ddi0403/d/Debug-Architecture/ARMv7-M-Debug/The-Data-Watchpoint-and-Trace-unit/Comparator-Function-registers--DWT-FUNCTIONn
@@ -90,12 +90,8 @@ typedef enum {
  * @param[in]  mask      The mask
  * @param[in]  size      The size
  */
-void furi_hal_cortex_comp_enable(
-    FuriHalCortexComp comp,
-    FuriHalCortexCompFunction function,
-    uint32_t value,
-    uint32_t mask,
-    FuriHalCortexCompSize size);
+void furi_hal_cortex_comp_enable(FuriHalCortexComp comp, FuriHalCortexCompFunction function,
+                                 uint32_t value, uint32_t mask, FuriHalCortexCompSize size);
 
 /** Reset DWT comparator
  *

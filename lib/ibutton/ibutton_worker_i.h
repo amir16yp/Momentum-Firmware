@@ -1,7 +1,7 @@
 /**
  * @file ibutton_worker_i.h
- * 
- * iButton worker, internal definitions 
+ *
+ * iButton worker, internal definitions
  */
 
 #pragma once
@@ -17,9 +17,9 @@ extern "C" {
 
 typedef struct {
     const uint32_t quant;
-    void (*const start)(iButtonWorker* worker);
-    void (*const tick)(iButtonWorker* worker);
-    void (*const stop)(iButtonWorker* worker);
+    void (*const start)(iButtonWorker *worker);
+    void (*const tick)(iButtonWorker *worker);
+    void (*const stop)(iButtonWorker *worker);
 } iButtonWorkerModeType;
 
 typedef enum {
@@ -31,23 +31,23 @@ typedef enum {
 } iButtonWorkerMode;
 
 struct iButtonWorker {
-    iButtonKey* key;
-    iButtonProtocols* protocols;
+    iButtonKey *key;
+    iButtonProtocols *protocols;
     iButtonWorkerMode mode_index;
-    FuriMessageQueue* messages;
-    FuriThread* thread;
+    FuriMessageQueue *messages;
+    FuriThread *thread;
 
     iButtonWorkerReadCallback read_cb;
     iButtonWorkerWriteCallback write_cb;
     iButtonWorkerEmulateCallback emulate_cb;
 
-    void* cb_ctx;
+    void *cb_ctx;
 };
 
 extern const iButtonWorkerModeType ibutton_worker_modes[];
 
-void ibutton_worker_switch_mode(iButtonWorker* worker, iButtonWorkerMode mode);
-void ibutton_worker_notify_emulate(iButtonWorker* worker);
+void ibutton_worker_switch_mode(iButtonWorker *worker, iButtonWorkerMode mode);
+void ibutton_worker_notify_emulate(iButtonWorker *worker);
 
 #ifdef __cplusplus
 }

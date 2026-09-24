@@ -32,9 +32,9 @@ struct mjs_vals {
     mjs_val_t dataview_proto;
 
     /*
-   * The object against which the last `OP_GET` was invoked. Needed for
-   * "method invocation pattern".
-   */
+     * The object against which the last `OP_GET` was invoked. Needed for
+     * "method invocation pattern".
+     */
     mjs_val_t last_getprop_obj;
 };
 
@@ -44,16 +44,16 @@ struct mjs_bcode_part {
 
     /* Actual bcode data */
     struct {
-        const char* p; /* Memory chunk pointer */
-        size_t len; /* Memory chunk length */
+        const char *p; /* Memory chunk pointer */
+        size_t len;    /* Memory chunk length */
     } data;
 
     /*
-   * Result of evaluation (not parsing: if there is an error during parsing,
-   * the bcode is not even committed). It is used to determine whether we
-   * need to evaluate the file: if file was already evaluated, and the result
-   * was MJS_OK, then we won't evaluate it again. Otherwise, we will.
-   */
+     * Result of evaluation (not parsing: if there is an error during parsing,
+     * the bcode is not even committed). It is used to determine whether we
+     * need to evaluate the file: if file was already evaluated, and the result
+     * was MJS_OK, then we won't evaluate it again. Otherwise, we will.
+     */
     mjs_err_t exec_res : 4;
 
     /* If set, bcode data does not need to be freed */
@@ -67,23 +67,23 @@ struct mjs {
     struct mbuf stack;
     struct mbuf call_stack;
     struct mbuf arg_stack;
-    struct mbuf scopes; /* Scope objects */
-    struct mbuf loop_addresses; /* Addresses for breaks & continues */
-    struct mbuf owned_strings; /* Sequence of (varint len, char data[]) */
+    struct mbuf scopes;          /* Scope objects */
+    struct mbuf loop_addresses;  /* Addresses for breaks & continues */
+    struct mbuf owned_strings;   /* Sequence of (varint len, char data[]) */
     struct mbuf foreign_strings; /* Sequence of (varint len, char *data) */
     struct mbuf owned_values;
     struct mbuf json_visited_stack;
     struct mbuf array_buffers;
     struct mjs_vals vals;
-    char* error_msg;
-    char* stack_trace;
+    char *error_msg;
+    char *stack_trace;
     enum mjs_err error;
-    mjs_ffi_resolver_t* dlsym; /* Symbol resolver function for FFI */
-    void* dlsym_handle;
-    ffi_cb_args_t* ffi_cb_args; /* List of FFI args descriptors */
+    mjs_ffi_resolver_t *dlsym; /* Symbol resolver function for FFI */
+    void *dlsym_handle;
+    ffi_cb_args_t *ffi_cb_args; /* List of FFI args descriptors */
     size_t cur_bcode_offset;
     mjs_flags_poller_t exec_flags_poller;
-    void* context;
+    void *context;
 
     struct gc_arena object_arena;
     struct gc_arena property_arena;
@@ -99,19 +99,19 @@ struct mjs {
  */
 typedef uint32_t mjs_header_item_t;
 enum mjs_header_items {
-    MJS_HDR_ITEM_TOTAL_SIZE, /* Total size of the bcode (not counting the
-                                OP_BCODE_HEADER byte) */
+    MJS_HDR_ITEM_TOTAL_SIZE,   /* Total size of the bcode (not counting the
+                                  OP_BCODE_HEADER byte) */
     MJS_HDR_ITEM_BCODE_OFFSET, /* Offset to the start of the actual bcode (not
                                 counting the OP_BCODE_HEADER byte) */
-    MJS_HDR_ITEM_MAP_OFFSET, /* Offset to the start of offset-to-line_no mapping
-                                k*/
+    MJS_HDR_ITEM_MAP_OFFSET,   /* Offset to the start of offset-to-line_no mapping
+                                  k*/
 
     MJS_HDR_ITEMS_CNT
 };
 
 MJS_PRIVATE size_t mjs_get_func_addr(mjs_val_t v);
 
-MJS_PRIVATE int mjs_getretvalpos(struct mjs* mjs);
+MJS_PRIVATE int mjs_getretvalpos(struct mjs *mjs);
 
 MJS_PRIVATE enum mjs_type mjs_get_type(mjs_val_t v);
 
@@ -119,16 +119,16 @@ MJS_PRIVATE enum mjs_type mjs_get_type(mjs_val_t v);
  * Prints stack trace starting from the given bcode offset; other offsets
  * (if any) will be fetched from the call_stack.
  */
-MJS_PRIVATE void mjs_gen_stack_trace(struct mjs* mjs, size_t offset);
+MJS_PRIVATE void mjs_gen_stack_trace(struct mjs *mjs, size_t offset);
 
-MJS_PRIVATE mjs_val_t vtop(struct mbuf* m);
-MJS_PRIVATE size_t mjs_stack_size(const struct mbuf* m);
-MJS_PRIVATE mjs_val_t* vptr(struct mbuf* m, int idx);
-MJS_PRIVATE void push_mjs_val(struct mbuf* m, mjs_val_t v);
-MJS_PRIVATE mjs_val_t mjs_pop_val(struct mbuf* m);
-MJS_PRIVATE mjs_val_t mjs_pop(struct mjs* mjs);
-MJS_PRIVATE void mjs_push(struct mjs* mjs, mjs_val_t v);
-MJS_PRIVATE void mjs_die(struct mjs* mjs);
+MJS_PRIVATE mjs_val_t vtop(struct mbuf *m);
+MJS_PRIVATE size_t mjs_stack_size(const struct mbuf *m);
+MJS_PRIVATE mjs_val_t *vptr(struct mbuf *m, int idx);
+MJS_PRIVATE void push_mjs_val(struct mbuf *m, mjs_val_t v);
+MJS_PRIVATE mjs_val_t mjs_pop_val(struct mbuf *m);
+MJS_PRIVATE mjs_val_t mjs_pop(struct mjs *mjs);
+MJS_PRIVATE void mjs_push(struct mjs *mjs, mjs_val_t v);
+MJS_PRIVATE void mjs_die(struct mjs *mjs);
 
 #if defined(__cplusplus)
 }

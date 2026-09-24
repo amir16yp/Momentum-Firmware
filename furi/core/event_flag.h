@@ -16,13 +16,13 @@ typedef struct FuriEventFlag FuriEventFlag;
  *
  * @return     pointer to FuriEventFlag
  */
-FuriEventFlag* furi_event_flag_alloc(void);
+FuriEventFlag *furi_event_flag_alloc(void);
 
 /** Deallocate FuriEventFlag
  *
  * @param      instance  pointer to FuriEventFlag
  */
-void furi_event_flag_free(FuriEventFlag* instance);
+void furi_event_flag_free(FuriEventFlag *instance);
 
 /** Set flags
  *
@@ -36,7 +36,7 @@ void furi_event_flag_free(FuriEventFlag* instance);
  *
  * @return     Resulting flags(see warning) or error (FuriStatus)
  */
-uint32_t furi_event_flag_set(FuriEventFlag* instance, uint32_t flags);
+uint32_t furi_event_flag_set(FuriEventFlag *instance, uint32_t flags);
 
 /** Clear flags
  *
@@ -45,7 +45,7 @@ uint32_t furi_event_flag_set(FuriEventFlag* instance, uint32_t flags);
  *
  * @return     Resulting flags or error (FuriStatus)
  */
-uint32_t furi_event_flag_clear(FuriEventFlag* instance, uint32_t flags);
+uint32_t furi_event_flag_clear(FuriEventFlag *instance, uint32_t flags);
 
 /** Get flags
  *
@@ -53,7 +53,7 @@ uint32_t furi_event_flag_clear(FuriEventFlag* instance, uint32_t flags);
  *
  * @return     Resulting flags
  */
-uint32_t furi_event_flag_get(FuriEventFlag* instance);
+uint32_t furi_event_flag_get(FuriEventFlag *instance);
 
 /** Wait flags
  *
@@ -64,11 +64,8 @@ uint32_t furi_event_flag_get(FuriEventFlag* instance);
  *
  * @return     Resulting flags or error (FuriStatus)
  */
-uint32_t furi_event_flag_wait(
-    FuriEventFlag* instance,
-    uint32_t flags,
-    uint32_t options,
-    uint32_t timeout);
+uint32_t furi_event_flag_wait(FuriEventFlag *instance, uint32_t flags, uint32_t options,
+                              uint32_t timeout);
 
 #ifdef __cplusplus
 }

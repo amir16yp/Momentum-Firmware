@@ -8,23 +8,23 @@ extern "C" {
 
 /**
  * @brief Save protocol from dictionary to file
- * 
- * @param dict 
- * @param protocol 
- * @param filename 
- * @return true 
- * @return false 
+ *
+ * @param dict
+ * @param protocol
+ * @param filename
+ * @return true
+ * @return false
  */
-bool lfrfid_dict_file_save(ProtocolDict* dict, ProtocolId protocol, const char* filename);
+bool lfrfid_dict_file_save(ProtocolDict *dict, ProtocolId protocol, const char *filename);
 
 /**
  * @brief Load protocol from file to dictionary
- * 
- * @param dict 
- * @param filename 
- * @return ProtocolId 
+ *
+ * @param dict
+ * @param filename
+ * @return ProtocolId
  */
-ProtocolId lfrfid_dict_file_load(ProtocolDict* dict, const char* filename);
+ProtocolId lfrfid_dict_file_load(ProtocolDict *dict, const char *filename);
 
 #ifdef __cplusplus
 }

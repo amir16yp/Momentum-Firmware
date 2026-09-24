@@ -2,7 +2,8 @@
 
 #include <furi_hal_nfc.h>
 
-static void nfc_cli_field(PipeSide* pipe, FuriString* args, void* context) {
+static void nfc_cli_field(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(args);
     UNUSED(context);
 
@@ -12,7 +13,7 @@ static void nfc_cli_field(PipeSide* pipe, FuriString* args, void* context) {
     printf("Field is on. Don't leave device in this mode for too long.\r\n");
     printf("Press Ctrl+C to abort\r\n");
 
-    while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+    while (!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
         furi_delay_ms(50);
     }
 

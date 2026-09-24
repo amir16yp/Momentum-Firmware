@@ -1,7 +1,7 @@
 /**
  * @file lfrfid_worker_i.h
- * 
- * lfrfid worker, internal definitions 
+ *
+ * lfrfid worker, internal definitions
  */
 
 #pragma once
@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 typedef struct {
-    void (*const process)(LFRFIDWorker* worker);
+    void (*const process)(LFRFIDWorker *worker);
 } LFRFIDWorkerModeType;
 
 typedef enum {
@@ -29,13 +29,13 @@ typedef enum {
 } LFRFIDWorkerMode;
 
 struct LFRFIDWorker {
-    char* raw_filename;
+    char *raw_filename;
 
     LFRFIDWorkerMode mode_index;
-    void* mode_storage;
+    void *mode_storage;
 
-    FuriEventFlag* events;
-    FuriThread* thread;
+    FuriEventFlag *events;
+    FuriThread *thread;
 
     LFRFIDWorkerReadType read_type;
 
@@ -44,9 +44,9 @@ struct LFRFIDWorker {
     LFRFIDWorkerReadRawCallback read_raw_cb;
     LFRFIDWorkerEmulateRawCallback emulate_raw_cb;
 
-    void* cb_ctx;
+    void *cb_ctx;
 
-    ProtocolDict* protocols;
+    ProtocolDict *protocols;
     LFRFIDProtocol protocol;
 };
 
@@ -54,11 +54,11 @@ extern const LFRFIDWorkerModeType lfrfid_worker_modes[];
 
 /**
  * @brief Check for stop flag
- * 
- * @param worker 
- * @return bool 
+ *
+ * @param worker
+ * @return bool
  */
-bool lfrfid_worker_check_for_stop(LFRFIDWorker* worker);
+bool lfrfid_worker_check_for_stop(LFRFIDWorker *worker);
 
 #ifdef __cplusplus
 }

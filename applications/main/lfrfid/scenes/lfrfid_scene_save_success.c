@@ -1,8 +1,9 @@
 #include "../lfrfid_i.h"
 
-void lfrfid_scene_save_success_on_enter(void* context) {
-    LfRfid* app = context;
-    Popup* popup = app->popup;
+void lfrfid_scene_save_success_on_enter(void *context)
+{
+    LfRfid *app = context;
+    Popup *popup = app->popup;
 
     // Clear state of data enter scene
     scene_manager_set_scene_state(app->scene_manager, LfRfidSceneSaveData, 0);
@@ -17,11 +18,12 @@ void lfrfid_scene_save_success_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, LfRfidViewPopup);
 }
 
-bool lfrfid_scene_save_success_on_event(void* context, SceneManagerEvent event) {
-    LfRfid* app = context;
+bool lfrfid_scene_save_success_on_event(void *context, SceneManagerEvent event)
+{
+    LfRfid *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeBack || event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeBack || event.type == SceneManagerEventTypeCustom) {
         // Always return to SceneSelectKey from here
         scene_manager_search_and_switch_to_another_scene(app->scene_manager, LfRfidSceneSelectKey);
         consumed = true;
@@ -30,8 +32,9 @@ bool lfrfid_scene_save_success_on_event(void* context, SceneManagerEvent event) 
     return consumed;
 }
 
-void lfrfid_scene_save_success_on_exit(void* context) {
-    LfRfid* app = context;
+void lfrfid_scene_save_success_on_exit(void *context)
+{
+    LfRfid *app = context;
 
     popup_reset(app->popup);
 }

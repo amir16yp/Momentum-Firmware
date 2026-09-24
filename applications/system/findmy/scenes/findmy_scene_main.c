@@ -1,25 +1,28 @@
 #include "../findmy_i.h"
 
-void findmy_scene_main_callback(FindMyMainEvent event, void* context) {
+void findmy_scene_main_callback(FindMyMainEvent event, void *context)
+{
     furi_assert(context);
-    FindMy* app = context;
+    FindMy *app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, event);
 }
 
-void findmy_scene_main_on_enter(void* context) {
-    FindMy* app = context;
+void findmy_scene_main_on_enter(void *context)
+{
+    FindMy *app = context;
 
     findmy_main_set_callback(app->findmy_main, findmy_scene_main_callback, app);
     view_dispatcher_switch_to_view(app->view_dispatcher, FindMyViewMain);
 }
 
-bool findmy_scene_main_on_event(void* context, SceneManagerEvent event) {
-    FindMy* app = context;
+bool findmy_scene_main_on_event(void *context, SceneManagerEvent event)
+{
+    FindMy *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        switch(event.event) {
+        switch (event.event) {
         case FindMyMainEventToggle:
             findmy_toggle_beacon(app);
             break;
@@ -50,7 +53,8 @@ bool findmy_scene_main_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void findmy_scene_main_on_exit(void* context) {
-    FindMy* app = context;
+void findmy_scene_main_on_exit(void *context)
+{
+    FindMy *app = context;
     UNUSED(app);
 }

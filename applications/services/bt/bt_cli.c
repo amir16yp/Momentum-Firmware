@@ -10,60 +10,63 @@
 #include "bt_service/bt_settings_api_i.h"
 #include <profiles/serial_profile.h>
 
-static void bt_cli_command_hci_info(PipeSide* pipe, FuriString* args, void* context) {
+static void bt_cli_command_hci_info(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
-    FuriString* buffer;
+    FuriString *buffer;
     buffer = furi_string_alloc();
     furi_hal_bt_dump_state(buffer);
     printf("%s", furi_string_get_cstr(buffer));
     furi_string_free(buffer);
 }
 
-static void bt_cli_command_carrier_tx(PipeSide* pipe, FuriString* args, void* context) {
+static void bt_cli_command_carrier_tx(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(context);
     int channel = 0;
     int power = 0;
 
     do {
-        if(!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
+        if (!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
             printf("Incorrect or missing channel, expected int 0-39");
             break;
         }
-        if(!args_read_int_and_trim(args, &power) && (power < 0 || power > 6)) {
+        if (!args_read_int_and_trim(args, &power) && (power < 0 || power > 6)) {
             printf("Incorrect or missing power, expected int 0-6");
             break;
         }
 
-        Bt* bt = furi_record_open(RECORD_BT);
+        Bt *bt = furi_record_open(RECORD_BT);
         bt_disconnect(bt);
         furi_hal_bt_reinit();
         printf("Transmitting carrier at %d channel at %d dB power\r\n", channel, power);
         printf("Press CTRL+C to stop\r\n");
         furi_hal_bt_start_tone_tx(channel, 0x19 + power);
 
-        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+        while (!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             furi_delay_ms(250);
         }
         furi_hal_bt_stop_tone_tx();
 
         bt_profile_restore_default(bt);
         furi_record_close(RECORD_BT);
-    } while(false);
+    } while (false);
 }
 
-static void bt_cli_command_carrier_rx(PipeSide* pipe, FuriString* args, void* context) {
+static void bt_cli_command_carrier_rx(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(context);
     int channel = 0;
 
     do {
-        if(!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
+        if (!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
             printf("Incorrect or missing channel, expected int 0-39");
             break;
         }
 
-        Bt* bt = furi_record_open(RECORD_BT);
+        Bt *bt = furi_record_open(RECORD_BT);
         bt_disconnect(bt);
         furi_hal_bt_reinit();
         printf("Receiving carrier at %d channel\r\n", channel);
@@ -71,7 +74,7 @@ static void bt_cli_command_carrier_rx(PipeSide* pipe, FuriString* args, void* co
 
         furi_hal_bt_start_packet_rx(channel, 1);
 
-        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+        while (!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             furi_delay_ms(250);
             printf("RSSI: %6.1f dB\r", (double)furi_hal_bt_get_rssi());
             fflush(stdout);
@@ -81,21 +84,22 @@ static void bt_cli_command_carrier_rx(PipeSide* pipe, FuriString* args, void* co
 
         bt_profile_restore_default(bt);
         furi_record_close(RECORD_BT);
-    } while(false);
+    } while (false);
 }
 
-static void bt_cli_command_packet_tx(PipeSide* pipe, FuriString* args, void* context) {
+static void bt_cli_command_packet_tx(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(context);
     int channel = 0;
     int pattern = 0;
     int datarate = 1;
 
     do {
-        if(!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
+        if (!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
             printf("Incorrect or missing channel, expected int 0-39");
             break;
         }
-        if(!args_read_int_and_trim(args, &pattern) && (pattern < 0 || pattern > 5)) {
+        if (!args_read_int_and_trim(args, &pattern) && (pattern < 0 || pattern > 5)) {
             printf("Incorrect or missing pattern, expected int 0-5 \r\n");
             printf("0 - Pseudo-Random bit sequence 9\r\n");
             printf("1 - Pattern of alternating bits '11110000'\r\n");
@@ -105,23 +109,20 @@ static void bt_cli_command_packet_tx(PipeSide* pipe, FuriString* args, void* con
             printf("5 - Pattern of All '0' bits\r\n");
             break;
         }
-        if(!args_read_int_and_trim(args, &datarate) && (datarate < 1 || datarate > 2)) {
+        if (!args_read_int_and_trim(args, &datarate) && (datarate < 1 || datarate > 2)) {
             printf("Incorrect or missing datarate, expected int 1-2");
             break;
         }
 
-        Bt* bt = furi_record_open(RECORD_BT);
+        Bt *bt = furi_record_open(RECORD_BT);
         bt_disconnect(bt);
         furi_hal_bt_reinit();
-        printf(
-            "Transmitting %d pattern packet at %d channel at %d M datarate\r\n",
-            pattern,
-            channel,
-            datarate);
+        printf("Transmitting %d pattern packet at %d channel at %d M datarate\r\n", pattern,
+               channel, datarate);
         printf("Press CTRL+C to stop\r\n");
         furi_hal_bt_start_packet_tx(channel, pattern, datarate);
 
-        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+        while (!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             furi_delay_ms(250);
         }
         furi_hal_bt_stop_packet_test();
@@ -129,32 +130,33 @@ static void bt_cli_command_packet_tx(PipeSide* pipe, FuriString* args, void* con
 
         bt_profile_restore_default(bt);
         furi_record_close(RECORD_BT);
-    } while(false);
+    } while (false);
 }
 
-static void bt_cli_command_packet_rx(PipeSide* pipe, FuriString* args, void* context) {
+static void bt_cli_command_packet_rx(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(context);
     int channel = 0;
     int datarate = 1;
 
     do {
-        if(!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
+        if (!args_read_int_and_trim(args, &channel) && (channel < 0 || channel > 39)) {
             printf("Incorrect or missing channel, expected int 0-39");
             break;
         }
-        if(!args_read_int_and_trim(args, &datarate) && (datarate < 1 || datarate > 2)) {
+        if (!args_read_int_and_trim(args, &datarate) && (datarate < 1 || datarate > 2)) {
             printf("Incorrect or missing datarate, expected int 1-2");
             break;
         }
 
-        Bt* bt = furi_record_open(RECORD_BT);
+        Bt *bt = furi_record_open(RECORD_BT);
         bt_disconnect(bt);
         furi_hal_bt_reinit();
         printf("Receiving packets at %d channel at %d M datarate\r\n", channel, datarate);
         printf("Press CTRL+C to stop\r\n");
         furi_hal_bt_start_packet_rx(channel, datarate);
 
-        while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
+        while (!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             furi_delay_ms(250);
             printf("RSSI: %03.1f dB\r", (double)furi_hal_bt_get_rssi());
             fflush(stdout);
@@ -164,15 +166,16 @@ static void bt_cli_command_packet_rx(PipeSide* pipe, FuriString* args, void* con
 
         bt_profile_restore_default(bt);
         furi_record_close(RECORD_BT);
-    } while(false);
+    } while (false);
 }
 
-static void bt_cli_print_usage(void) {
+static void bt_cli_print_usage(void)
+{
     printf("Usage:\r\n");
     printf("bt <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
     printf("\thci_info\t - HCI info\r\n");
-    if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug) && furi_hal_bt_is_testing_supported()) {
+    if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug) && furi_hal_bt_is_testing_supported()) {
         printf("\ttx_carrier <channel:0-39> <power:0-6>\t - start tx carrier test\r\n");
         printf("\trx_carrier <channel:0-39>\t - start rx carrier test\r\n");
         printf(
@@ -181,47 +184,48 @@ static void bt_cli_print_usage(void) {
     }
 }
 
-static void execute(PipeSide* pipe, FuriString* args, void* context) {
+static void execute(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(context);
-    Bt* bt = furi_record_open(RECORD_BT);
+    Bt *bt = furi_record_open(RECORD_BT);
 
-    FuriString* cmd;
+    FuriString *cmd;
     cmd = furi_string_alloc();
     BtSettings bt_settings;
     bt_get_settings(bt, &bt_settings);
 
     do {
-        if(!args_read_string_and_trim(args, cmd)) {
+        if (!args_read_string_and_trim(args, cmd)) {
             bt_cli_print_usage();
             break;
         }
-        if(furi_string_cmp_str(cmd, "hci_info") == 0) {
+        if (furi_string_cmp_str(cmd, "hci_info") == 0) {
             bt_cli_command_hci_info(pipe, args, NULL);
             break;
         }
-        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug) && furi_hal_bt_is_testing_supported()) {
-            if(furi_string_cmp_str(cmd, "tx_carrier") == 0) {
+        if (furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug) && furi_hal_bt_is_testing_supported()) {
+            if (furi_string_cmp_str(cmd, "tx_carrier") == 0) {
                 bt_cli_command_carrier_tx(pipe, args, NULL);
                 break;
             }
-            if(furi_string_cmp_str(cmd, "rx_carrier") == 0) {
+            if (furi_string_cmp_str(cmd, "rx_carrier") == 0) {
                 bt_cli_command_carrier_rx(pipe, args, NULL);
                 break;
             }
-            if(furi_string_cmp_str(cmd, "tx_packet") == 0) {
+            if (furi_string_cmp_str(cmd, "tx_packet") == 0) {
                 bt_cli_command_packet_tx(pipe, args, NULL);
                 break;
             }
-            if(furi_string_cmp_str(cmd, "rx_packet") == 0) {
+            if (furi_string_cmp_str(cmd, "rx_packet") == 0) {
                 bt_cli_command_packet_rx(pipe, args, NULL);
                 break;
             }
         }
 
         bt_cli_print_usage();
-    } while(false);
+    } while (false);
 
-    if(bt_settings.enabled) {
+    if (bt_settings.enabled) {
         furi_hal_bt_start_advertising();
     }
 

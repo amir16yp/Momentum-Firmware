@@ -25,7 +25,7 @@ extern "C" {
  * caller owns the string data, and is responsible for not freeing it while it
  * is used.
  */
-mjs_val_t mjs_mk_string(struct mjs* mjs, const char* str, size_t len, int copy);
+mjs_val_t mjs_mk_string(struct mjs *mjs, const char *str, size_t len, int copy);
 
 /* Returns true if given value is a primitive string value */
 int mjs_is_string(mjs_val_t v);
@@ -47,7 +47,7 @@ int mjs_is_string(mjs_val_t v);
  * is why a pointer to a `mjs_val_t` is required. It also means that the string
  * data will become invalid once that `mjs_val_t` value goes out of scope.
  */
-const char* mjs_get_string(struct mjs* mjs, mjs_val_t* v, size_t* len);
+const char *mjs_get_string(struct mjs *mjs, mjs_val_t *v, size_t *len);
 
 /*
  * Returns a pointer to the string stored in `mjs_val_t`.
@@ -61,7 +61,7 @@ const char* mjs_get_string(struct mjs* mjs, mjs_val_t* v, size_t* len);
  * be NUL terminated. Out of these, those that don't include embedded NUL chars
  * are guaranteed to be C compatible.
  */
-const char* mjs_get_cstring(struct mjs* mjs, mjs_val_t* v);
+const char *mjs_get_cstring(struct mjs *mjs, mjs_val_t *v);
 
 /*
  * Returns the standard strcmp comparison code after comparing a JS string a
@@ -69,7 +69,7 @@ const char* mjs_get_cstring(struct mjs* mjs, mjs_val_t* v);
  * only if their length is equal, i.e. the len field doesn't imply strncmp
  * behaviour.
  */
-int mjs_strcmp(struct mjs* mjs, mjs_val_t* a, const char* b, size_t len);
+int mjs_strcmp(struct mjs *mjs, mjs_val_t *a, const char *b, size_t len);
 
 #if defined(__cplusplus)
 }

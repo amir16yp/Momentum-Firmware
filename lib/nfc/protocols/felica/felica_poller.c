@@ -9,24 +9,26 @@
 
 #define TAG "FelicaPoller"
 
-ARRAY_DEF(felica_service_array, FelicaService, M_POD_OPLIST); // -V658
-ARRAY_DEF(felica_area_array, FelicaArea, M_POD_OPLIST); // -V658
+ARRAY_DEF(felica_service_array, FelicaService, M_POD_OPLIST);          // -V658
+ARRAY_DEF(felica_area_array, FelicaArea, M_POD_OPLIST);                // -V658
 ARRAY_DEF(felica_public_block_array, FelicaPublicBlock, M_POD_OPLIST); // -V658
-ARRAY_DEF(felica_system_array, FelicaSystem, M_POD_OPLIST); // -V658
+ARRAY_DEF(felica_system_array, FelicaSystem, M_POD_OPLIST);            // -V658
 
-typedef NfcCommand (*FelicaPollerReadHandler)(FelicaPoller* instance);
+typedef NfcCommand (*FelicaPollerReadHandler)(FelicaPoller *instance);
 
-const FelicaData* felica_poller_get_data(FelicaPoller* instance) {
+const FelicaData *felica_poller_get_data(FelicaPoller *instance)
+{
     furi_assert(instance);
     furi_assert(instance->data);
 
     return instance->data;
 }
 
-static FelicaPoller* felica_poller_alloc(Nfc* nfc) {
+static FelicaPoller *felica_poller_alloc(Nfc *nfc)
+{
     furi_assert(nfc);
 
-    FelicaPoller* instance = malloc(sizeof(FelicaPoller));
+    FelicaPoller *instance = malloc(sizeof(FelicaPoller));
     instance->nfc = nfc;
     instance->tx_buffer = bit_buffer_alloc(FELICA_POLLER_MAX_BUFFER_SIZE);
     instance->rx_buffer = bit_buffer_alloc(FELICA_POLLER_MAX_BUFFER_SIZE);
@@ -50,7 +52,8 @@ static FelicaPoller* felica_poller_alloc(Nfc* nfc) {
     return instance;
 }
 
-static void felica_poller_free(FelicaPoller* instance) {
+static void felica_poller_free(FelicaPoller *instance)
+{
     furi_assert(instance);
 
     furi_assert(instance->tx_buffer);
@@ -64,8 +67,9 @@ static void felica_poller_free(FelicaPoller* instance) {
     free(instance);
 }
 
-static void
-    felica_poller_set_callback(FelicaPoller* instance, NfcGenericCallback callback, void* context) {
+static void felica_poller_set_callback(FelicaPoller *instance, NfcGenericCallback callback,
+                                       void *context)
+{
     furi_assert(instance);
     furi_assert(callback);
 
@@ -73,7 +77,8 @@ static void
     instance->context = context;
 }
 
-NfcCommand felica_poller_state_handler_idle(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_idle(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Idle");
     felica_reset(instance->data);
     instance->state = FelicaPollerStateActivated;
@@ -81,13 +86,14 @@ NfcCommand felica_poller_state_handler_idle(FelicaPoller* instance) {
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_activate(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_activate(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Activate");
 
     NfcCommand command = NfcCommandContinue;
 
     FelicaError error = felica_poller_activate(instance, instance->data);
-    if(error == FelicaErrorNone) {
+    if (error == FelicaErrorNone) {
         furi_hal_random_fill_buf(instance->data->data.fs.rc.data, FELICA_DATA_BLOCK_SIZE);
         felica_get_workflow_type(instance->data);
 
@@ -96,7 +102,7 @@ NfcCommand felica_poller_state_handler_activate(FelicaPoller* instance) {
 
         instance->callback(instance->general_event, instance->context);
 
-        switch(instance->data->workflow_type) {
+        switch (instance->data->workflow_type) {
         case FelicaStandard:
             instance->state = FelicaPollerStateListSystem;
             break;
@@ -110,10 +116,10 @@ NfcCommand felica_poller_state_handler_activate(FelicaPoller* instance) {
         }
 
         bool skip_auth = instance->auth.context.skip_auth;
-        if(!skip_auth) {
+        if (!skip_auth) {
             instance->state = FelicaPollerStateAuthenticateInternal;
         }
-    } else if(error != FelicaErrorTimeout) {
+    } else if (error != FelicaErrorTimeout) {
         instance->felica_event.type = FelicaPollerEventTypeError;
         instance->felica_event_data.error = error;
         instance->state = FelicaPollerStateReadFailed;
@@ -121,27 +127,28 @@ NfcCommand felica_poller_state_handler_activate(FelicaPoller* instance) {
     return command;
 }
 
-NfcCommand felica_poller_state_handler_list_system(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_list_system(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "List System");
 
     NfcCommand command = NfcCommandContinue;
 
-    FelicaListSystemCodeCommandResponse* response_system_code;
+    FelicaListSystemCodeCommandResponse *response_system_code;
     FelicaError error = felica_poller_list_system_code(instance, &response_system_code);
 
     instance->systems_total = response_system_code->system_count;
     simple_array_init(instance->data->systems, instance->systems_total);
-    uint8_t* system_codes = response_system_code->system_code;
+    uint8_t *system_codes = response_system_code->system_code;
 
-    for(uint8_t i = 0; i < instance->systems_total; i++) {
-        FelicaSystem* system = simple_array_get(instance->data->systems, i);
+    for (uint8_t i = 0; i < instance->systems_total; i++) {
+        FelicaSystem *system = simple_array_get(instance->data->systems, i);
         system->system_code = system_codes[i * 2] << 8 | system_codes[i * 2 + 1];
         system->system_code_idx = i;
     }
 
-    if(error == FelicaErrorNone) {
+    if (error == FelicaErrorNone) {
         instance->state = FelicaPollerStateSelectSystemIndex;
-    } else if(error != FelicaErrorTimeout) {
+    } else if (error != FelicaErrorTimeout) {
         instance->felica_event.type = FelicaPollerEventTypeError;
         instance->felica_event_data.error = error;
         instance->state = FelicaPollerStateReadFailed;
@@ -149,7 +156,8 @@ NfcCommand felica_poller_state_handler_list_system(FelicaPoller* instance) {
     return command;
 }
 
-NfcCommand felica_poller_state_handler_select_system_idx(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_select_system_idx(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Select System Index %d", instance->systems_read);
     uint8_t system_index_mask = instance->systems_read << 4;
     instance->data->idm.data[0] &= 0x0F;
@@ -159,16 +167,14 @@ NfcCommand felica_poller_state_handler_select_system_idx(FelicaPoller* instance)
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_auth_internal(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_auth_internal(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Auth Internal");
 
-    felica_calculate_session_key(
-        &instance->auth.des_context,
-        instance->auth.context.card_key.data,
-        instance->data->data.fs.rc.data,
-        instance->auth.session_key.data);
+    felica_calculate_session_key(&instance->auth.des_context, instance->auth.context.card_key.data,
+                                 instance->data->data.fs.rc.data, instance->auth.session_key.data);
 
-    switch(instance->data->workflow_type) {
+    switch (instance->data->workflow_type) {
     case FelicaStandard:
         instance->state = FelicaPollerStateTraverseStandardSystem;
         break;
@@ -182,82 +188,76 @@ NfcCommand felica_poller_state_handler_auth_internal(FelicaPoller* instance) {
     }
 
     uint8_t blocks[3] = {FELICA_BLOCK_INDEX_RC, 0, 0};
-    FelicaPollerWriteCommandResponse* tx_resp;
+    FelicaPollerWriteCommandResponse *tx_resp;
     do {
-        FelicaError error = felica_poller_write_blocks(
-            instance, 1, blocks, instance->data->data.fs.rc.data, &tx_resp);
-        if((error != FelicaErrorNone) || (tx_resp->SF1 != 0) || (tx_resp->SF2 != 0)) break;
+        FelicaError error = felica_poller_write_blocks(instance, 1, blocks,
+                                                       instance->data->data.fs.rc.data, &tx_resp);
+        if ((error != FelicaErrorNone) || (tx_resp->SF1 != 0) || (tx_resp->SF2 != 0))
+            break;
 
         blocks[0] = FELICA_BLOCK_INDEX_ID;
         blocks[1] = FELICA_BLOCK_INDEX_WCNT;
         blocks[2] = FELICA_BLOCK_INDEX_MAC_A;
-        FelicaPollerReadCommandResponse* rx_resp;
-        error = felica_poller_read_blocks(
-            instance, sizeof(blocks), blocks, FELICA_SERVICE_RO_ACCESS, &rx_resp);
-        if(error != FelicaErrorNone || rx_resp->SF1 != 0 || rx_resp->SF2 != 0) break;
+        FelicaPollerReadCommandResponse *rx_resp;
+        error = felica_poller_read_blocks(instance, sizeof(blocks), blocks,
+                                          FELICA_SERVICE_RO_ACCESS, &rx_resp);
+        if (error != FelicaErrorNone || rx_resp->SF1 != 0 || rx_resp->SF2 != 0)
+            break;
 
-        if(felica_check_mac(
-               &instance->auth.des_context,
-               instance->auth.session_key.data,
-               instance->data->data.fs.rc.data,
-               blocks,
-               rx_resp->block_count,
-               rx_resp->data)) {
+        if (felica_check_mac(&instance->auth.des_context, instance->auth.session_key.data,
+                             instance->data->data.fs.rc.data, blocks, rx_resp->block_count,
+                             rx_resp->data)) {
             instance->auth.context.auth_status.internal = true;
             instance->data->data.fs.wcnt.SF1 = 0;
             instance->data->data.fs.wcnt.SF2 = 0;
-            memcpy(
-                instance->data->data.fs.wcnt.data,
-                rx_resp->data + FELICA_DATA_BLOCK_SIZE,
-                FELICA_DATA_BLOCK_SIZE);
+            memcpy(instance->data->data.fs.wcnt.data, rx_resp->data + FELICA_DATA_BLOCK_SIZE,
+                   FELICA_DATA_BLOCK_SIZE);
             instance->state = FelicaPollerStateAuthenticateExternal;
         }
-    } while(false);
+    } while (false);
 
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_auth_external(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_auth_external(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Auth External");
     uint8_t blocks[2];
 
     instance->data->data.fs.state.data[0] = 1;
-    FelicaAuthentication* auth = &instance->auth;
-    felica_calculate_mac_write(
-        &auth->des_context,
-        auth->session_key.data,
-        instance->data->data.fs.rc.data,
-        instance->data->data.fs.wcnt.data,
-        instance->data->data.fs.state.data,
-        instance->data->data.fs.mac_a.data);
+    FelicaAuthentication *auth = &instance->auth;
+    felica_calculate_mac_write(&auth->des_context, auth->session_key.data,
+                               instance->data->data.fs.rc.data, instance->data->data.fs.wcnt.data,
+                               instance->data->data.fs.state.data,
+                               instance->data->data.fs.mac_a.data);
 
     memcpy(instance->data->data.fs.mac_a.data + 8, instance->data->data.fs.wcnt.data, 3); //-V1086
 
     uint8_t tx_data[FELICA_DATA_BLOCK_SIZE * 2];
     memcpy(tx_data, instance->data->data.fs.state.data, FELICA_DATA_BLOCK_SIZE);
-    memcpy(
-        tx_data + FELICA_DATA_BLOCK_SIZE,
-        instance->data->data.fs.mac_a.data,
-        FELICA_DATA_BLOCK_SIZE);
+    memcpy(tx_data + FELICA_DATA_BLOCK_SIZE, instance->data->data.fs.mac_a.data,
+           FELICA_DATA_BLOCK_SIZE);
 
     do {
         blocks[0] = FELICA_BLOCK_INDEX_STATE;
         blocks[1] = FELICA_BLOCK_INDEX_MAC_A;
-        FelicaPollerWriteCommandResponse* tx_resp;
+        FelicaPollerWriteCommandResponse *tx_resp;
         FelicaError error = felica_poller_write_blocks(instance, 2, blocks, tx_data, &tx_resp);
-        if(error != FelicaErrorNone || tx_resp->SF1 != 0 || tx_resp->SF2 != 0) break;
+        if (error != FelicaErrorNone || tx_resp->SF1 != 0 || tx_resp->SF2 != 0)
+            break;
 
-        FelicaPollerReadCommandResponse* rx_resp;
+        FelicaPollerReadCommandResponse *rx_resp;
         error = felica_poller_read_blocks(instance, 1, blocks, FELICA_SERVICE_RO_ACCESS, &rx_resp);
-        if(error != FelicaErrorNone || rx_resp->SF1 != 0 || rx_resp->SF2 != 0) break;
+        if (error != FelicaErrorNone || rx_resp->SF1 != 0 || rx_resp->SF2 != 0)
+            break;
 
         instance->data->data.fs.state.SF1 = 0;
         instance->data->data.fs.state.SF2 = 0;
         memcpy(instance->data->data.fs.state.data, rx_resp->data, FELICA_DATA_BLOCK_SIZE);
         instance->auth.context.auth_status.external = instance->data->data.fs.state.data[0];
-    } while(false);
+    } while (false);
 
-    switch(instance->data->workflow_type) {
+    switch (instance->data->workflow_type) {
     case FelicaStandard:
         instance->state = FelicaPollerStateTraverseStandardSystem;
         break;
@@ -273,53 +273,54 @@ NfcCommand felica_poller_state_handler_auth_external(FelicaPoller* instance) {
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_traverse_standard_system(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_traverse_standard_system(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Traverse Standard System");
 
-    FelicaListServiceCommandResponse* response;
+    FelicaListServiceCommandResponse *response;
 
     felica_service_array_t service_buffer;
     felica_service_array_init(service_buffer);
     felica_area_array_t area_buffer;
     felica_area_array_init(area_buffer);
 
-    for(uint16_t cursor = 0; cursor < 0xFFFF; cursor++) {
+    for (uint16_t cursor = 0; cursor < 0xFFFF; cursor++) {
         FelicaError error = felica_poller_list_service_by_cursor(instance, cursor, &response);
-        if(error != FelicaErrorNone) {
+        if (error != FelicaErrorNone) {
             FURI_LOG_E(TAG, "Error %d at cursor %04X", error, cursor);
             break;
         }
 
         uint8_t len = response->header.length;
-        const uint8_t* list_service_payload = response->data;
+        const uint8_t *list_service_payload = response->data;
         uint16_t code_begin = (uint16_t)(list_service_payload[0] | (list_service_payload[1] << 8));
 
-        if(len != 0x0C && len != 0x0E) {
+        if (len != 0x0C && len != 0x0E) {
             FURI_LOG_E(TAG, "Bad command resp length 0x%02X at cursor 0x%04X", len, cursor);
             break;
         }
 
-        if(code_begin == 0xFFFF) {
+        if (code_begin == 0xFFFF) {
             FURI_LOG_D(TAG, "Traverse complete");
             break;
         }
 
-        if(len == 0x0E) {
-            FelicaArea* area = felica_area_array_push_raw(area_buffer);
+        if (len == 0x0E) {
+            FelicaArea *area = felica_area_array_push_raw(area_buffer);
             memset(area, 0, sizeof *area);
             area->code = code_begin;
             area->first_idx = (uint16_t)felica_service_array_size(service_buffer);
             area->last_idx = 0;
         } else {
-            FelicaService* service = felica_service_array_push_raw(service_buffer);
+            FelicaService *service = felica_service_array_push_raw(service_buffer);
             memset(service, 0, sizeof *service);
             service->code = code_begin;
             service->attr = (uint8_t)(code_begin & 0x3F);
 
             FURI_LOG_D(TAG, "Service %04X", service->code);
 
-            if(felica_area_array_size(area_buffer)) {
-                FelicaArea* current_area = felica_area_array_back(area_buffer);
+            if (felica_area_array_size(area_buffer)) {
+                FelicaArea *current_area = felica_area_array_back(area_buffer);
                 current_area->last_idx = (uint16_t)(felica_service_array_size(service_buffer) - 1);
             }
         }
@@ -328,30 +329,24 @@ NfcCommand felica_poller_state_handler_traverse_standard_system(FelicaPoller* in
     const size_t service_num = felica_service_array_size(service_buffer);
     const size_t area_num = felica_area_array_size(area_buffer);
 
-    FelicaSystem* system = simple_array_get(instance->data->systems, instance->systems_read);
-    if(service_num) {
+    FelicaSystem *system = simple_array_get(instance->data->systems, instance->systems_read);
+    if (service_num) {
         simple_array_init(system->services, (uint32_t)service_num);
-        memcpy(
-            simple_array_get(system->services, 0),
-            service_buffer->ptr,
-            service_num * sizeof(FelicaService));
+        memcpy(simple_array_get(system->services, 0), service_buffer->ptr,
+               service_num * sizeof(FelicaService));
     } else {
         simple_array_reset(system->services);
     }
 
-    if(area_num) {
+    if (area_num) {
         simple_array_init(system->areas, (uint32_t)area_num);
-        memcpy(
-            simple_array_get(system->areas, 0), area_buffer->ptr, area_num * sizeof(FelicaArea));
+        memcpy(simple_array_get(system->areas, 0), area_buffer->ptr, area_num * sizeof(FelicaArea));
     } else {
         simple_array_reset(system->areas);
     }
 
-    FURI_LOG_I(
-        TAG,
-        "Services found: %lu, Areas found: %lu",
-        simple_array_get_count(system->services),
-        simple_array_get_count(system->areas));
+    FURI_LOG_I(TAG, "Services found: %lu, Areas found: %lu",
+               simple_array_get_count(system->services), simple_array_get_count(system->areas));
 
     felica_service_array_clear(service_buffer);
     felica_area_array_clear(area_buffer);
@@ -360,10 +355,11 @@ NfcCommand felica_poller_state_handler_traverse_standard_system(FelicaPoller* in
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Read Standard Blocks");
 
-    FelicaSystem* system = simple_array_get(instance->data->systems, instance->systems_read);
+    FelicaSystem *system = simple_array_get(instance->data->systems, instance->systems_read);
     const uint32_t service_count = simple_array_get_count(system->services);
 
     felica_public_block_array_t public_block_buffer;
@@ -372,24 +368,25 @@ NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller* instan
     bool have_read_anything = false;
     FelicaError error = FelicaErrorNone;
 
-    for(uint32_t i = 0; i < service_count; i++) {
-        const FelicaService* service = simple_array_get(system->services, i);
+    for (uint32_t i = 0; i < service_count; i++) {
+        const FelicaService *service = simple_array_get(system->services, i);
 
-        if((service->attr & FELICA_SERVICE_ATTRIBUTE_UNAUTH_READ) == 0) continue;
+        if ((service->attr & FELICA_SERVICE_ATTRIBUTE_UNAUTH_READ) == 0)
+            continue;
 
         uint8_t block_count = 1;
         uint8_t block_list[1] = {0};
-        FelicaPollerReadCommandResponse* response;
+        FelicaPollerReadCommandResponse *response;
         do {
-            error = felica_poller_read_blocks(
-                instance, block_count, block_list, service->code, &response);
+            error = felica_poller_read_blocks(instance, block_count, block_list, service->code,
+                                              &response);
 
-            if(error != FelicaErrorNone) {
+            if (error != FelicaErrorNone) {
                 break;
             }
 
-            if(response->SF1 == 0 && response->SF2 == 0) {
-                FelicaPublicBlock* public_block =
+            if (response->SF1 == 0 && response->SF2 == 0) {
+                FelicaPublicBlock *public_block =
                     felica_public_block_array_push_raw(public_block_buffer);
                 memset(public_block, 0, sizeof *public_block);
                 memcpy(public_block->block.data, response->data, FELICA_DATA_BLOCK_SIZE);
@@ -402,9 +399,9 @@ NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller* instan
             } else {
                 break; // No more blocks to read in this service, ok to continue for loop
             }
-        } while(block_list[0] < FELICA_STANDARD_MAX_BLOCK_COUNT);
+        } while (block_list[0] < FELICA_STANDARD_MAX_BLOCK_COUNT);
 
-        if(error != FelicaErrorNone) {
+        if (error != FelicaErrorNone) {
             instance->felica_event.type = FelicaPollerEventTypeError;
             instance->felica_event_data.error = error;
             instance->state = FelicaPollerStateReadFailed;
@@ -412,22 +409,20 @@ NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller* instan
         }
     }
 
-    if(error == FelicaErrorNone) {
+    if (error == FelicaErrorNone) {
         instance->systems_read++;
-        if(instance->systems_read == instance->systems_total) {
+        if (instance->systems_read == instance->systems_total) {
             instance->state = FelicaPollerStateReadSuccess;
         } else {
             instance->state = FelicaPollerStateSelectSystemIndex;
         }
     }
 
-    if(have_read_anything) {
+    if (have_read_anything) {
         const size_t n = felica_public_block_array_size(public_block_buffer);
         simple_array_init(system->public_blocks, (uint32_t)n);
-        memcpy(
-            simple_array_get(system->public_blocks, 0),
-            public_block_buffer->ptr,
-            n * sizeof(FelicaPublicBlock));
+        memcpy(simple_array_get(system->public_blocks, 0), public_block_buffer->ptr,
+               n * sizeof(FelicaPublicBlock));
     }
 
     felica_public_block_array_clear(public_block_buffer);
@@ -435,7 +430,8 @@ NfcCommand felica_poller_state_handler_read_standard_blocks(FelicaPoller* instan
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_read_lite_blocks(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_read_lite_blocks(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Read Lite Blocks");
 
     uint8_t block_count = 1;
@@ -443,27 +439,27 @@ NfcCommand felica_poller_state_handler_read_lite_blocks(FelicaPoller* instance) 
     block_list[0] = instance->block_index;
 
     instance->block_index++;
-    if(instance->block_index == FELICA_BLOCK_INDEX_REG + 1) {
+    if (instance->block_index == FELICA_BLOCK_INDEX_REG + 1) {
         instance->block_index = FELICA_BLOCK_INDEX_RC;
-    } else if(instance->block_index == FELICA_BLOCK_INDEX_MC + 1) {
+    } else if (instance->block_index == FELICA_BLOCK_INDEX_MC + 1) {
         instance->block_index = FELICA_BLOCK_INDEX_WCNT;
-    } else if(instance->block_index == FELICA_BLOCK_INDEX_STATE + 1) {
+    } else if (instance->block_index == FELICA_BLOCK_INDEX_STATE + 1) {
         instance->block_index = FELICA_BLOCK_INDEX_CRC_CHECK;
     }
 
-    FelicaPollerReadCommandResponse* response;
-    FelicaError error = felica_poller_read_blocks(
-        instance, block_count, block_list, FELICA_SERVICE_RO_ACCESS, &response);
-    if(error == FelicaErrorNone) {
+    FelicaPollerReadCommandResponse *response;
+    FelicaError error = felica_poller_read_blocks(instance, block_count, block_list,
+                                                  FELICA_SERVICE_RO_ACCESS, &response);
+    if (error == FelicaErrorNone) {
         block_count = (response->SF1 == 0) ? response->block_count : block_count;
-        uint8_t* data_ptr =
+        uint8_t *data_ptr =
             instance->data->data.dump + instance->data->blocks_total * sizeof(FelicaBlock);
 
         *data_ptr++ = response->SF1;
         *data_ptr++ = response->SF2;
 
-        if(response->SF1 == 0) {
-            uint8_t* response_data_ptr = response->data;
+        if (response->SF1 == 0) {
+            uint8_t *response_data_ptr = response->data;
             instance->data->blocks_read++;
             memcpy(data_ptr, response_data_ptr, FELICA_DATA_BLOCK_SIZE);
         } else {
@@ -471,7 +467,7 @@ NfcCommand felica_poller_state_handler_read_lite_blocks(FelicaPoller* instance) 
         }
         instance->data->blocks_total++;
 
-        if(instance->data->blocks_total == FELICA_BLOCKS_TOTAL_COUNT) {
+        if (instance->data->blocks_total == FELICA_BLOCKS_TOTAL_COUNT) {
             instance->state = FelicaPollerStateReadSuccess;
         }
     } else {
@@ -483,21 +479,20 @@ NfcCommand felica_poller_state_handler_read_lite_blocks(FelicaPoller* instance) 
     return NfcCommandContinue;
 }
 
-NfcCommand felica_poller_state_handler_read_success(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_read_success(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Read Success");
 
-    if((!instance->auth.context.auth_status.internal ||
-        !instance->auth.context.auth_status.external) &&
-       instance->data->workflow_type == FelicaLite) {
-        if(instance->data->blocks_read != 0) {
+    if ((!instance->auth.context.auth_status.internal ||
+         !instance->auth.context.auth_status.external) &&
+        instance->data->workflow_type == FelicaLite) {
+        if (instance->data->blocks_read != 0) {
             instance->data->blocks_read--;
         }
         instance->felica_event.type = FelicaPollerEventTypeIncomplete;
     } else {
-        memcpy(
-            instance->data->data.fs.ck.data,
-            instance->auth.context.card_key.data,
-            FELICA_DATA_BLOCK_SIZE);
+        memcpy(instance->data->data.fs.ck.data, instance->auth.context.card_key.data,
+               FELICA_DATA_BLOCK_SIZE);
         instance->felica_event.type = FelicaPollerEventTypeReady;
     }
 
@@ -507,7 +502,8 @@ NfcCommand felica_poller_state_handler_read_success(FelicaPoller* instance) {
     return instance->callback(instance->general_event, instance->context);
 }
 
-NfcCommand felica_poller_state_handler_read_failed(FelicaPoller* instance) {
+NfcCommand felica_poller_state_handler_read_failed(FelicaPoller *instance)
+{
     FURI_LOG_D(TAG, "Read Fail");
     instance->callback(instance->general_event, instance->context);
     instance->data->idm.data[0] &= 0x0F;
@@ -530,34 +526,36 @@ static const FelicaPollerReadHandler felica_poller_handler[FelicaPollerStateNum]
     [FelicaPollerStateReadFailed] = felica_poller_state_handler_read_failed,
 };
 
-static NfcCommand felica_poller_run(NfcGenericEvent event, void* context) {
+static NfcCommand felica_poller_run(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.protocol == NfcProtocolInvalid);
     furi_assert(event.event_data);
 
-    FelicaPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    FelicaPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     NfcCommand command = NfcCommandContinue;
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         command = felica_poller_handler[instance->state](instance);
     }
 
     return command;
 }
 
-static bool felica_poller_detect(NfcGenericEvent event, void* context) {
+static bool felica_poller_detect(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.event_data);
     furi_assert(event.instance);
     furi_assert(event.protocol == NfcProtocolInvalid);
 
     bool protocol_detected = false;
-    FelicaPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    FelicaPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     furi_assert(instance->state == FelicaPollerStateIdle);
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         FelicaError error = felica_poller_activate(instance, instance->data);
         protocol_detected = (error == FelicaErrorNone);
     }

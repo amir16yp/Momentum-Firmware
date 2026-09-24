@@ -26,8 +26,8 @@ extern "C" {
 
 /* Describes chunk of memory */
 struct mg_str {
-  const char *p; /* Memory chunk pointer */
-  size_t len;    /* Memory chunk length */
+    const char *p; /* Memory chunk pointer */
+    size_t len;    /* Memory chunk length */
 };
 
 /*
@@ -42,12 +42,18 @@ struct mg_str mg_mk_str(const char *s);
 struct mg_str mg_mk_str_n(const char *s, size_t len);
 
 /* Macro for initializing mg_str. */
-#define MG_MK_STR(str_literal) \
-  { str_literal, sizeof(str_literal) - 1 }
-#define MG_MK_STR_N(str_literal, len) \
-  { str_literal, len }
-#define MG_NULL_STR \
-  { NULL, 0 }
+#define MG_MK_STR(str_literal)                                                                     \
+    {                                                                                              \
+        str_literal, sizeof(str_literal) - 1                                                       \
+    }
+#define MG_MK_STR_N(str_literal, len)                                                              \
+    {                                                                                              \
+        str_literal, len                                                                           \
+    }
+#define MG_NULL_STR                                                                                \
+    {                                                                                              \
+        NULL, 0                                                                                    \
+    }
 
 /*
  * Cross-platform version of `strcmp()` where where first string is

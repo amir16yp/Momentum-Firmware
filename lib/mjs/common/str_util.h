@@ -60,42 +60,42 @@ extern "C" {
 /*
  * Equivalent of standard `strnlen()`.
  */
-size_t c_strnlen(const char* s, size_t maxlen);
+size_t c_strnlen(const char *s, size_t maxlen);
 
 /*
  * Equivalent of standard `snprintf()`.
  */
-int c_snprintf(char* buf, size_t buf_size, const char* format, ...) PRINTF_LIKE(3, 4);
+int c_snprintf(char *buf, size_t buf_size, const char *format, ...) PRINTF_LIKE(3, 4);
 
 /*
  * Equivalent of standard `vsnprintf()`.
  */
-int c_vsnprintf(char* buf, size_t buf_size, const char* format, va_list ap);
+int c_vsnprintf(char *buf, size_t buf_size, const char *format, va_list ap);
 
 /*
  * Find the first occurrence of find in s, where the search is limited to the
  * first slen characters of s.
  */
-const char* c_strnstr(const char* s, const char* find, size_t slen);
+const char *c_strnstr(const char *s, const char *find, size_t slen);
 
 /*
  * Stringify binary data. Output buffer size must be 2 * size_of_input + 1
  * because each byte of input takes 2 bytes in string representation
  * plus 1 byte for the terminating \0 character.
  */
-void cs_to_hex(char* to, const unsigned char* p, size_t len);
+void cs_to_hex(char *to, const unsigned char *p, size_t len);
 
 /*
  * Convert stringified binary data back to binary.
  * Does the reverse of `cs_to_hex()`.
  */
-void cs_from_hex(char* to, const char* p, size_t len);
+void cs_from_hex(char *to, const char *p, size_t len);
 
 #if CS_ENABLE_STRDUP
 /*
  * Equivalent of standard `strdup()`, defined if only `CS_ENABLE_STRDUP` is 1.
  */
-char* strdup(const char* src);
+char *strdup(const char *src);
 #endif
 
 #if CS_ENABLE_TO64
@@ -103,18 +103,18 @@ char* strdup(const char* src);
 /*
  * Simple string -> int64 conversion routine.
  */
-int64_t cs_to64(const char* s);
+int64_t cs_to64(const char *s);
 #endif
 
 /*
  * Cross-platform version of `strncasecmp()`.
  */
-int mg_ncasecmp(const char* s1, const char* s2, size_t len);
+int mg_ncasecmp(const char *s1, const char *s2, size_t len);
 
 /*
  * Cross-platform version of `strcasecmp()`.
  */
-int mg_casecmp(const char* s1, const char* s2);
+int mg_casecmp(const char *s1, const char *s2);
 
 /*
  * Prints message to the buffer. If the buffer is large enough to hold the
@@ -133,10 +133,10 @@ int mg_casecmp(const char* s1, const char* s2);
  *
  * The purpose of this is to avoid malloc-ing if generated strings are small.
  */
-int mg_asprintf(char** buf, size_t size, const char* fmt, ...) PRINTF_LIKE(3, 4);
+int mg_asprintf(char **buf, size_t size, const char *fmt, ...) PRINTF_LIKE(3, 4);
 
 /* Same as mg_asprintf, but takes varargs list. */
-int mg_avprintf(char** buf, size_t size, const char* fmt, va_list ap);
+int mg_avprintf(char **buf, size_t size, const char *fmt, va_list ap);
 
 /*
  * A helper function for traversing a comma separated list of values.
@@ -151,15 +151,15 @@ int mg_avprintf(char** buf, size_t size, const char* fmt, va_list ap);
  * The purpose of this function is to parse comma separated string without
  * any copying/memory allocation.
  */
-const char* mg_next_comma_list_entry(const char* list, struct mg_str* val, struct mg_str* eq_val);
+const char *mg_next_comma_list_entry(const char *list, struct mg_str *val, struct mg_str *eq_val);
 
 /*
  * Like `mg_next_comma_list_entry()`, but takes `list` as `struct mg_str`.
  * NB: Test return value's .p, not .len. On last itreation that yields result
  * .len will be 0 but .p will not. When finished, .p will be NULL.
  */
-struct mg_str
-    mg_next_comma_list_entry_n(struct mg_str list, struct mg_str* val, struct mg_str* eq_val);
+struct mg_str mg_next_comma_list_entry_n(struct mg_str list, struct mg_str *val,
+                                         struct mg_str *eq_val);
 
 /*
  * Matches 0-terminated string (mg_match_prefix) or string with given length
@@ -181,7 +181,7 @@ struct mg_str
  * mg_match_prefix("?*", len, "") == 0
  * ```
  */
-size_t mg_match_prefix(const char* pattern, int pattern_len, const char* str);
+size_t mg_match_prefix(const char *pattern, int pattern_len, const char *str);
 
 /*
  * Like `mg_match_prefix()`, but takes `pattern` and `str` as `struct mg_str`.

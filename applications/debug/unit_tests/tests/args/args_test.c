@@ -7,8 +7,9 @@ const uint32_t one_s = 1000 * one_ms;
 const uint32_t one_m = 60 * one_s;
 const uint32_t one_h = 60 * one_m;
 
-MU_TEST(args_read_duration_default_values_test) {
-    FuriString* args_string;
+MU_TEST(args_read_duration_default_values_test)
+{
+    FuriString *args_string;
     uint32_t value = 0;
 
     // Check default == NULL (ms)
@@ -47,8 +48,9 @@ MU_TEST(args_read_duration_default_values_test) {
     value = 0;
 }
 
-MU_TEST(args_read_duration_suffix_values_test) {
-    FuriString* args_string;
+MU_TEST(args_read_duration_suffix_values_test)
+{
+    FuriString *args_string;
     uint32_t value = 0;
 
     // Check ms
@@ -80,8 +82,9 @@ MU_TEST(args_read_duration_suffix_values_test) {
     value = 0;
 }
 
-MU_TEST(args_read_duration_values_test) {
-    FuriString* args_string;
+MU_TEST(args_read_duration_values_test)
+{
+    FuriString *args_string;
     uint32_t value = 0;
 
     // Check for ms
@@ -133,8 +136,9 @@ MU_TEST(args_read_duration_values_test) {
     furi_string_free(args_string);
 }
 
-MU_TEST(args_read_duration_errors_test) {
-    FuriString* args_string;
+MU_TEST(args_read_duration_errors_test)
+{
+    FuriString *args_string;
     uint32_t value = 0;
 
     // Check wrong suffix
@@ -196,14 +200,16 @@ MU_TEST(args_read_duration_errors_test) {
     furi_string_free(args_string);
 }
 
-MU_TEST_SUITE(toolbox_args_read_duration_suite) {
+MU_TEST_SUITE(toolbox_args_read_duration_suite)
+{
     MU_RUN_TEST(args_read_duration_default_values_test);
     MU_RUN_TEST(args_read_duration_suffix_values_test);
     MU_RUN_TEST(args_read_duration_values_test);
     MU_RUN_TEST(args_read_duration_errors_test);
 }
 
-int run_minunit_test_toolbox_args(void) {
+int run_minunit_test_toolbox_args(void)
+{
     MU_RUN_SUITE(toolbox_args_read_duration_suite);
     return MU_EXIT_CODE;
 }

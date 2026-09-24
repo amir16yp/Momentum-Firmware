@@ -20,12 +20,12 @@ typedef struct {
     uint32_t baudrate_cur;
 } UsbUartState;
 
-UsbUartBridge* usb_uart_enable(UsbUartConfig* cfg);
+UsbUartBridge *usb_uart_enable(UsbUartConfig *cfg);
 
-void usb_uart_disable(UsbUartBridge* usb_uart);
+void usb_uart_disable(UsbUartBridge *usb_uart);
 
-void usb_uart_set_config(UsbUartBridge* usb_uart, UsbUartConfig* cfg);
+void usb_uart_set_config(UsbUartBridge *usb_uart, UsbUartConfig *cfg);
 
-void usb_uart_get_config(UsbUartBridge* usb_uart, UsbUartConfig* cfg);
+void usb_uart_get_config(UsbUartBridge *usb_uart, UsbUartConfig *cfg);
 
-void usb_uart_get_state(UsbUartBridge* usb_uart, UsbUartState* st);
+void usb_uart_get_state(UsbUartBridge *usb_uart, UsbUartState *st);

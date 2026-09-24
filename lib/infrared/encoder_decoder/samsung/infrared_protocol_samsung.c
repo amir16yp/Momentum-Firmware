@@ -31,8 +31,9 @@ static const InfraredProtocolVariant infrared_protocol_variant_samsung32 = {
     .repeat_count = INFRARED_SAMSUNG_REPEAT_COUNT_MIN,
 };
 
-const InfraredProtocolVariant* infrared_protocol_samsung32_get_variant(InfraredProtocol protocol) {
-    if(protocol == InfraredProtocolSamsung32)
+const InfraredProtocolVariant *infrared_protocol_samsung32_get_variant(InfraredProtocol protocol)
+{
+    if (protocol == InfraredProtocolSamsung32)
         return &infrared_protocol_variant_samsung32;
     else
         return NULL;

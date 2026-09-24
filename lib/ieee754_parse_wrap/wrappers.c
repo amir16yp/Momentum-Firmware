@@ -5,10 +5,12 @@
 // call these functions, but with an actual locale structure which was taking up
 // lots of .data space (364 bytes).
 
-float __wrap_strtof(const char* in, char** tail) {
+float __wrap_strtof(const char *in, char **tail)
+{
     return strtof_l(in, tail, NULL);
 }
 
-double __wrap_strtod(const char* in, char** tail) {
+double __wrap_strtod(const char *in, char **tail)
+{
     return strtod_l(in, tail, NULL);
 }

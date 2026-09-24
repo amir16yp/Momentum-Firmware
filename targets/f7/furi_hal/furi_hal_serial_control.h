@@ -32,13 +32,13 @@ void furi_hal_serial_control_resume(void);
  *
  * @return     The Serial Interface Handle or null if interfaces is in use
  */
-FuriHalSerialHandle* furi_hal_serial_control_acquire(FuriHalSerialId serial_id);
+FuriHalSerialHandle *furi_hal_serial_control_acquire(FuriHalSerialId serial_id);
 
 /** Release Serial Interface Handler
  *
  * @param      handle  The handle
  */
-void furi_hal_serial_control_release(FuriHalSerialHandle* handle);
+void furi_hal_serial_control_release(FuriHalSerialHandle *handle);
 
 /** Acquire Serial Interface Handler
  *
@@ -50,7 +50,8 @@ bool furi_hal_serial_control_is_busy(FuriHalSerialId serial_id);
 
 /** Acquire Serial Interface Handler
  *
- * @param[in]  serial_id  The serial transceiver identifier. Use FuriHalSerialIdMax to disable logging.
+ * @param[in]  serial_id  The serial transceiver identifier. Use FuriHalSerialIdMax to disable
+ * logging.
  * @param[in]  baud_rate  The baud rate
  *
  * @return     The Serial Interface Handle or null if interfaces is in use
@@ -62,7 +63,7 @@ void furi_hal_serial_control_set_logging_config(FuriHalSerialId serial_id, uint3
  *
  * @param[in,out] context Pointer to the user-defined context object.
  */
-typedef void (*FuriHalSerialControlExpansionCallback)(void* context);
+typedef void (*FuriHalSerialControlExpansionCallback)(void *context);
 
 /**
  * @brief Enable expansion module detection for a given serial interface.
@@ -71,12 +72,12 @@ typedef void (*FuriHalSerialControlExpansionCallback)(void* context);
  *
  * @param[in] serial_id Identifier of the serial interface to be used.
  * @param[in] callback Pointer to the callback function to be called upon module detection.
- * @param[in,out] context Pointer to the user-defined context object. Will be passed to the callback function.
+ * @param[in,out] context Pointer to the user-defined context object. Will be passed to the callback
+ * function.
  */
-void furi_hal_serial_control_set_expansion_callback(
-    FuriHalSerialId serial_id,
-    FuriHalSerialControlExpansionCallback callback,
-    void* context);
+void furi_hal_serial_control_set_expansion_callback(FuriHalSerialId serial_id,
+                                                    FuriHalSerialControlExpansionCallback callback,
+                                                    void *context);
 
 #ifdef __cplusplus
 }

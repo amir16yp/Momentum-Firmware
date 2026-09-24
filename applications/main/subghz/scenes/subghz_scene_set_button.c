@@ -3,19 +3,21 @@
 
 #define TAG "SubGhzSetButton"
 
-void subghz_scene_set_button_byte_input_callback(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_button_byte_input_callback(void *context)
+{
+    SubGhz *subghz = context;
 
     view_dispatcher_send_custom_event(subghz->view_dispatcher, SubGhzCustomEventByteInputDone);
 }
 
-void subghz_scene_set_button_on_enter(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_button_on_enter(void *context)
+{
+    SubGhz *subghz = context;
 
-    uint8_t* byte_ptr = NULL;
+    uint8_t *byte_ptr = NULL;
     uint8_t byte_count = 0;
 
-    switch(subghz->gen_info->type) {
+    switch (subghz->gen_info->type) {
     case GenFaacSLH:
         byte_ptr = &subghz->gen_info->faac_slh.btn;
         byte_count = sizeof(subghz->gen_info->faac_slh.btn);
@@ -78,25 +80,21 @@ void subghz_scene_set_button_on_enter(void* context) {
     furi_assert(byte_count > 0);
 
     // Setup view
-    ByteInput* byte_input = subghz->byte_input;
+    ByteInput *byte_input = subghz->byte_input;
     byte_input_set_header_text(byte_input, "Enter BUTTON in hex");
-    byte_input_set_result_callback(
-        byte_input,
-        subghz_scene_set_button_byte_input_callback,
-        NULL,
-        subghz,
-        byte_ptr,
-        byte_count);
+    byte_input_set_result_callback(byte_input, subghz_scene_set_button_byte_input_callback, NULL,
+                                   subghz, byte_ptr, byte_count);
     view_dispatcher_switch_to_view(subghz->view_dispatcher, SubGhzViewIdByteInput);
 }
 
-bool subghz_scene_set_button_on_event(void* context, SceneManagerEvent event) {
-    SubGhz* subghz = context;
+bool subghz_scene_set_button_on_event(void *context, SceneManagerEvent event)
+{
+    SubGhz *subghz = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == SubGhzCustomEventByteInputDone) {
-            switch(subghz->gen_info->type) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event == SubGhzCustomEventByteInputDone) {
+            switch (subghz->gen_info->type) {
             case GenFaacSLH:
             case GenKeeloq:
             case GenKeeloqSeed:
@@ -127,8 +125,9 @@ bool subghz_scene_set_button_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void subghz_scene_set_button_on_exit(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_button_on_exit(void *context)
+{
+    SubGhz *subghz = context;
 
     // Clear view
     byte_input_set_result_callback(subghz->byte_input, NULL, NULL, NULL, NULL, 0);

@@ -1,14 +1,16 @@
 #include "../nfc_app_i.h"
 
-void nfc_scene_save_confirm_dialog_callback(DialogExResult result, void* context) {
-    NfcApp* nfc = context;
+void nfc_scene_save_confirm_dialog_callback(DialogExResult result, void *context)
+{
+    NfcApp *nfc = context;
 
     view_dispatcher_send_custom_event(nfc->view_dispatcher, result);
 }
 
-void nfc_scene_save_confirm_on_enter(void* context) {
-    NfcApp* nfc = context;
-    DialogEx* dialog_ex = nfc->dialog_ex;
+void nfc_scene_save_confirm_on_enter(void *context)
+{
+    NfcApp *nfc = context;
+    DialogEx *dialog_ex = nfc->dialog_ex;
 
     dialog_ex_set_left_button_text(dialog_ex, "Skip");
     dialog_ex_set_right_button_text(dialog_ex, "Save");
@@ -20,21 +22,22 @@ void nfc_scene_save_confirm_on_enter(void* context) {
     view_dispatcher_switch_to_view(nfc->view_dispatcher, NfcViewDialogEx);
 }
 
-bool nfc_scene_save_confirm_on_event(void* context, SceneManagerEvent event) {
-    NfcApp* nfc = context;
+bool nfc_scene_save_confirm_on_event(void *context, SceneManagerEvent event)
+{
+    NfcApp *nfc = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == DialogExResultRight) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event == DialogExResultRight) {
             scene_manager_next_scene(nfc->scene_manager, NfcSceneSaveName);
             consumed = true;
-        } else if(event.event == DialogExResultLeft) {
+        } else if (event.event == DialogExResultLeft) {
             NfcSceneSaveConfirmState scene_state =
                 scene_manager_get_scene_state(nfc->scene_manager, NfcSceneSaveConfirm);
 
-            NfcScene scene = scene_state == NfcSceneSaveConfirmStateCrackNonces ?
-                                 NfcSceneMfClassicMfkeyComplete :
-                                 NfcSceneMfClassicDetectReader;
+            NfcScene scene = scene_state == NfcSceneSaveConfirmStateCrackNonces
+                                 ? NfcSceneMfClassicMfkeyComplete
+                                 : NfcSceneMfClassicDetectReader;
 
             scene_manager_next_scene(nfc->scene_manager, scene);
             consumed = true;
@@ -43,8 +46,9 @@ bool nfc_scene_save_confirm_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void nfc_scene_save_confirm_on_exit(void* context) {
-    NfcApp* nfc = context;
+void nfc_scene_save_confirm_on_exit(void *context)
+{
+    NfcApp *nfc = context;
 
     // Clean view
     dialog_ex_reset(nfc->dialog_ex);

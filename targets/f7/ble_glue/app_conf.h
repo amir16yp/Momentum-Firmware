@@ -26,12 +26,12 @@
  * Define PHY
  */
 #define ALL_PHYS_PREFERENCE 0x00
-#define RX_2M_PREFERRED     0x02
-#define TX_2M_PREFERRED     0x02
-#define TX_1M               0x01
-#define TX_2M               0x02
-#define RX_1M               0x01
-#define RX_2M               0x02
+#define RX_2M_PREFERRED 0x02
+#define TX_2M_PREFERRED 0x02
+#define TX_1M 0x01
+#define TX_2M 0x02
+#define RX_1M 0x01
+#define RX_2M 0x02
 
 /******************************************************************************
  * BLE Stack
@@ -44,16 +44,17 @@
 
 /**
  * Maximum number of Services that can be stored in the GATT database.
- * Note that the GAP and GATT services are automatically added so this parameter should be 2 plus the number of user services
+ * Note that the GAP and GATT services are automatically added so this parameter should be 2 plus
+ * the number of user services
  */
 #define CFG_BLE_NUM_GATT_SERVICES 8
 
 /**
  * Maximum number of Attributes
- * (i.e. the number of characteristic + the number of characteristic values + the number of descriptors, excluding the services)
- * that can be stored in the GATT database.
- * Note that certain characteristics and relative descriptors are added automatically during device initialization
- * so this parameters should be 9 plus the number of user Attributes
+ * (i.e. the number of characteristic + the number of characteristic values + the number of
+ * descriptors, excluding the services) that can be stored in the GATT database. Note that certain
+ * characteristics and relative descriptors are added automatically during device initialization so
+ * this parameters should be 9 plus the number of user Attributes
  */
 #define CFG_BLE_NUM_GATT_ATTRIBUTES 68
 
@@ -64,7 +65,8 @@
 
 /**
  * Size of the storage area for Attribute values
- *  This value depends on the number of attributes used by application. In particular the sum of the following quantities (in octets) should be made for each attribute:
+ *  This value depends on the number of attributes used by application. In particular the sum of the
+ * following quantities (in octets) should be made for each attribute:
  *  - attribute value length
  *  - 5, if UUID is 16 bit; 19, if UUID is 128 bit
  *  - 2, if server configuration descriptor is used
@@ -82,7 +84,7 @@
 /**
  * Number of allocated memory blocks
  */
-#define CFG_BLE_MBLOCK_COUNT \
+#define CFG_BLE_MBLOCK_COUNT                                                                       \
     (BLE_MBLOCKS_CALC(CFG_BLE_PREPARE_WRITE_LIST_SIZE, CFG_BLE_MAX_ATT_MTU, CFG_BLE_NUM_LINK))
 
 /**
@@ -113,17 +115,19 @@
  *  1 : external high speed crystal HSE/32/32
  *  0 : external low speed crystal ( no calibration )
  */
-#define CFG_BLE_LSE_SOURCE                                                        \
-    SHCI_C2_BLE_INIT_CFG_BLE_LS_CLK_LSE | SHCI_C2_BLE_INIT_CFG_BLE_LS_OTHER_DEV | \
+#define CFG_BLE_LSE_SOURCE                                                                         \
+    SHCI_C2_BLE_INIT_CFG_BLE_LS_CLK_LSE | SHCI_C2_BLE_INIT_CFG_BLE_LS_OTHER_DEV |                  \
         SHCI_C2_BLE_INIT_CFG_BLE_LS_CALIB
 
 /**
- * Start up time of the high speed (16 or 32 MHz) crystal oscillator in units of 625/256 us (~2.44 us)
+ * Start up time of the high speed (16 or 32 MHz) crystal oscillator in units of 625/256 us (~2.44
+ * us)
  */
 #define CFG_BLE_HSE_STARTUP_TIME 0x148
 
 /**
- * Maximum duration of the connection event when the device is in Slave mode in units of 625/256 us (~2.44 us)
+ * Maximum duration of the connection event when the device is in Slave mode in units of 625/256 us
+ * (~2.44 us)
  */
 #define CFG_BLE_MAX_CONN_EVENT_LENGTH (0xFFFFFFFF)
 
@@ -163,38 +167,38 @@
  *          0: LE Power Class 2-3
  * other bits: reserved (shall be set to 0)
  */
-#define CFG_BLE_OPTIONS                                                                 \
-    (SHCI_C2_BLE_INIT_OPTIONS_LL_HOST | SHCI_C2_BLE_INIT_OPTIONS_WITH_SVC_CHANGE_DESC | \
-     SHCI_C2_BLE_INIT_OPTIONS_DEVICE_NAME_RO | SHCI_C2_BLE_INIT_OPTIONS_EXT_ADV |       \
+#define CFG_BLE_OPTIONS                                                                            \
+    (SHCI_C2_BLE_INIT_OPTIONS_LL_HOST | SHCI_C2_BLE_INIT_OPTIONS_WITH_SVC_CHANGE_DESC |            \
+     SHCI_C2_BLE_INIT_OPTIONS_DEVICE_NAME_RO | SHCI_C2_BLE_INIT_OPTIONS_EXT_ADV |                  \
      SHCI_C2_BLE_INIT_OPTIONS_CS_ALGO2 | SHCI_C2_BLE_INIT_OPTIONS_POWER_CLASS_2_3)
 
 /**
  * Queue length of BLE Event
- * This parameter defines the number of asynchronous events that can be stored in the HCI layer before
- * being reported to the application. When a command is sent to the BLE core coprocessor, the HCI layer
- * is waiting for the event with the Num_HCI_Command_Packets set to 1. The receive queue shall be large
- * enough to store all asynchronous events received in between.
- * When CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE is set to 27, this allow to store three 255 bytes long asynchronous events
- * between the HCI command and its event.
- * This parameter depends on the value given to CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE. When the queue size is to small,
- * the system may hang if the queue is full with asynchronous events and the HCI layer is still waiting
- * for a CC/CS event, In that case, the notification TL_BLE_HCI_ToNot() is called to indicate
- * to the application a HCI command did not receive its command event within 30s (Default HCI Timeout).
+ * This parameter defines the number of asynchronous events that can be stored in the HCI layer
+ * before being reported to the application. When a command is sent to the BLE core coprocessor, the
+ * HCI layer is waiting for the event with the Num_HCI_Command_Packets set to 1. The receive queue
+ * shall be large enough to store all asynchronous events received in between. When
+ * CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE is set to 27, this allow to store three 255 bytes long
+ * asynchronous events between the HCI command and its event. This parameter depends on the value
+ * given to CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE. When the queue size is to small, the system may hang
+ * if the queue is full with asynchronous events and the HCI layer is still waiting for a CC/CS
+ * event, In that case, the notification TL_BLE_HCI_ToNot() is called to indicate to the application
+ * a HCI command did not receive its command event within 30s (Default HCI Timeout).
  */
 #define CFG_TLBLE_EVT_QUEUE_LENGTH 5
 /**
- * This parameter should be set to fit most events received by the HCI layer. It defines the buffer size of each element
- * allocated in the queue of received events and can be used to optimize the amount of RAM allocated by the Memory Manager.
- * It should not exceed 255 which is the maximum HCI packet payload size (a greater value is a lost of memory as it will
- * never be used)
- * With the current wireless firmware implementation, this parameter shall be kept to 255
+ * This parameter should be set to fit most events received by the HCI layer. It defines the buffer
+ * size of each element allocated in the queue of received events and can be used to optimize the
+ * amount of RAM allocated by the Memory Manager. It should not exceed 255 which is the maximum HCI
+ * packet payload size (a greater value is a lost of memory as it will never be used) With the
+ * current wireless firmware implementation, this parameter shall be kept to 255
  *
  */
-#define CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE \
+#define CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE                                                          \
     255 /**< Set to 255 with the memory manager and the mailbox */
 
 #define TL_BLE_EVENT_FRAME_SIZE (TL_EVT_HDR_SIZE + CFG_TLBLE_MOST_EVENT_PAYLOAD_SIZE)
 
 /* Various defines for compatibility with -Wundef - thanks, ST */
-#define CFG_DEBUG_TRACE_FULL  0
+#define CFG_DEBUG_TRACE_FULL 0
 #define CFG_DEBUG_TRACE_LIGHT 0

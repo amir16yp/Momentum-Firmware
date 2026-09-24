@@ -8,8 +8,8 @@
 
 #define GAP_MS_TO_SCAN_INTERVAL(x) ((uint16_t)((x) / 0.625))
 
-// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement, which is 30 ms
-// Since we don't use flash controller anymore interval can be lowered to 20ms
+// AN5289: 4.7, in order to use flash controller interval must be at least 25ms + advertisement,
+// which is 30 ms Since we don't use flash controller anymore interval can be lowered to 20ms
 #define GAP_MIN_ADV_INTERVAL_MS (20U)
 
 typedef struct {
@@ -17,18 +17,19 @@ typedef struct {
     GapExtraBeaconState extra_beacon_state;
     uint8_t extra_beacon_data[EXTRA_BEACON_MAX_DATA_SIZE];
     uint8_t extra_beacon_data_len;
-    FuriMutex* state_mutex;
+    FuriMutex *state_mutex;
 } ExtraBeacon;
 
 static ExtraBeacon extra_beacon = {0};
 
-void gap_extra_beacon_init(void) {
-    if(extra_beacon.state_mutex) {
+void gap_extra_beacon_init(void)
+{
+    if (extra_beacon.state_mutex) {
         // Already initialized - restore state if needed
         FURI_LOG_I(TAG, "Restoring state");
-        gap_extra_beacon_set_data(
-            extra_beacon.extra_beacon_data, extra_beacon.extra_beacon_data_len);
-        if(extra_beacon.extra_beacon_state == GapExtraBeaconStateStarted) {
+        gap_extra_beacon_set_data(extra_beacon.extra_beacon_data,
+                                  extra_beacon.extra_beacon_data_len);
+        if (extra_beacon.extra_beacon_state == GapExtraBeaconStateStarted) {
             extra_beacon.extra_beacon_state = GapExtraBeaconStateStopped;
             gap_extra_beacon_set_config(&extra_beacon.last_config);
         }
@@ -43,19 +44,20 @@ void gap_extra_beacon_init(void) {
     }
 }
 
-bool gap_extra_beacon_set_config(const GapExtraBeaconConfig* config) {
+bool gap_extra_beacon_set_config(const GapExtraBeaconConfig *config)
+{
     furi_check(extra_beacon.state_mutex);
     furi_check(config);
 
     furi_check(config->min_adv_interval_ms <= config->max_adv_interval_ms);
     furi_check(config->min_adv_interval_ms >= GAP_MIN_ADV_INTERVAL_MS);
 
-    if(extra_beacon.extra_beacon_state != GapExtraBeaconStateStopped) {
+    if (extra_beacon.extra_beacon_state != GapExtraBeaconStateStopped) {
         return false;
     }
 
     furi_mutex_acquire(extra_beacon.state_mutex, FuriWaitForever);
-    if(config != &extra_beacon.last_config) {
+    if (config != &extra_beacon.last_config) {
         memcpy(&extra_beacon.last_config, config, sizeof(GapExtraBeaconConfig));
     }
     furi_mutex_release(extra_beacon.state_mutex);
@@ -63,25 +65,23 @@ bool gap_extra_beacon_set_config(const GapExtraBeaconConfig* config) {
     return true;
 }
 
-bool gap_extra_beacon_start(void) {
+bool gap_extra_beacon_start(void)
+{
     furi_check(extra_beacon.state_mutex);
     furi_check(extra_beacon.last_config.min_adv_interval_ms >= GAP_MIN_ADV_INTERVAL_MS);
 
-    if(extra_beacon.extra_beacon_state != GapExtraBeaconStateStopped) {
+    if (extra_beacon.extra_beacon_state != GapExtraBeaconStateStopped) {
         return false;
     }
 
     FURI_LOG_I(TAG, "Starting");
     furi_mutex_acquire(extra_beacon.state_mutex, FuriWaitForever);
-    const GapExtraBeaconConfig* config = &extra_beacon.last_config;
+    const GapExtraBeaconConfig *config = &extra_beacon.last_config;
     tBleStatus status = aci_gap_additional_beacon_start(
         GAP_MS_TO_SCAN_INTERVAL(config->min_adv_interval_ms),
-        GAP_MS_TO_SCAN_INTERVAL(config->max_adv_interval_ms),
-        (uint8_t)config->adv_channel_map,
-        config->address_type,
-        config->address,
-        (uint8_t)config->adv_power_level);
-    if(status) {
+        GAP_MS_TO_SCAN_INTERVAL(config->max_adv_interval_ms), (uint8_t)config->adv_channel_map,
+        config->address_type, config->address, (uint8_t)config->adv_power_level);
+    if (status) {
         FURI_LOG_E(TAG, "Failed to start: 0x%x", status);
         return false;
     }
@@ -92,17 +92,18 @@ bool gap_extra_beacon_start(void) {
     return true;
 }
 
-bool gap_extra_beacon_stop(void) {
+bool gap_extra_beacon_stop(void)
+{
     furi_check(extra_beacon.state_mutex);
 
-    if(extra_beacon.extra_beacon_state != GapExtraBeaconStateStarted) {
+    if (extra_beacon.extra_beacon_state != GapExtraBeaconStateStarted) {
         return false;
     }
 
     FURI_LOG_I(TAG, "Stopping");
     furi_mutex_acquire(extra_beacon.state_mutex, FuriWaitForever);
     tBleStatus status = aci_gap_additional_beacon_stop();
-    if(status) {
+    if (status) {
         FURI_LOG_E(TAG, "Failed to stop: 0x%x", status);
         return false;
     }
@@ -113,19 +114,20 @@ bool gap_extra_beacon_stop(void) {
     return true;
 }
 
-bool gap_extra_beacon_set_data(const uint8_t* data, uint8_t length) {
+bool gap_extra_beacon_set_data(const uint8_t *data, uint8_t length)
+{
     furi_check(extra_beacon.state_mutex);
     furi_check(data);
     furi_check(length <= EXTRA_BEACON_MAX_DATA_SIZE);
 
     furi_mutex_acquire(extra_beacon.state_mutex, FuriWaitForever);
-    if(data != extra_beacon.extra_beacon_data) {
+    if (data != extra_beacon.extra_beacon_data) {
         memcpy(extra_beacon.extra_beacon_data, data, length);
     }
     extra_beacon.extra_beacon_data_len = length;
 
     tBleStatus status = aci_gap_additional_beacon_set_data(length, data);
-    if(status) {
+    if (status) {
         FURI_LOG_E(TAG, "Failed updating adv data: %d", status);
         return false;
     }
@@ -134,7 +136,8 @@ bool gap_extra_beacon_set_data(const uint8_t* data, uint8_t length) {
     return true;
 }
 
-uint8_t gap_extra_beacon_get_data(uint8_t* data) {
+uint8_t gap_extra_beacon_get_data(uint8_t *data)
+{
     furi_check(extra_beacon.state_mutex);
     furi_check(data);
 
@@ -145,16 +148,18 @@ uint8_t gap_extra_beacon_get_data(uint8_t* data) {
     return extra_beacon.extra_beacon_data_len;
 }
 
-GapExtraBeaconState gap_extra_beacon_get_state(void) {
+GapExtraBeaconState gap_extra_beacon_get_state(void)
+{
     furi_check(extra_beacon.state_mutex);
 
     return extra_beacon.extra_beacon_state;
 }
 
-const GapExtraBeaconConfig* gap_extra_beacon_get_config(void) {
+const GapExtraBeaconConfig *gap_extra_beacon_get_config(void)
+{
     furi_check(extra_beacon.state_mutex);
 
-    if(extra_beacon.last_config.min_adv_interval_ms < GAP_MIN_ADV_INTERVAL_MS) {
+    if (extra_beacon.last_config.min_adv_interval_ms < GAP_MIN_ADV_INTERVAL_MS) {
         return NULL;
     }
 

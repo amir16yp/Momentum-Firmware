@@ -5,73 +5,75 @@
 
 #define TAG "SubGhzSetSerial"
 
-void subghz_scene_set_serial_byte_input_callback(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_serial_byte_input_callback(void *context)
+{
+    SubGhz *subghz = context;
 
     view_dispatcher_send_custom_event(subghz->view_dispatcher, SubGhzCustomEventByteInputDone);
 }
 
-void subghz_scene_set_serial_on_enter(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_serial_on_enter(void *context)
+{
+    SubGhz *subghz = context;
 
-    uint8_t* byte_ptr = NULL;
+    uint8_t *byte_ptr = NULL;
     uint8_t byte_count = 0;
 
-    switch(subghz->gen_info->type) {
+    switch (subghz->gen_info->type) {
     case GenFaacSLH:
-        byte_ptr = (uint8_t*)&subghz->gen_info->faac_slh.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->faac_slh.serial;
         byte_count = sizeof(subghz->gen_info->faac_slh.serial);
         break;
     case GenKeeloq:
-        byte_ptr = (uint8_t*)&subghz->gen_info->keeloq.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->keeloq.serial;
         byte_count = sizeof(subghz->gen_info->keeloq.serial);
         break;
     case GenCameAtomo:
-        byte_ptr = (uint8_t*)&subghz->gen_info->came_atomo.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->came_atomo.serial;
         byte_count = sizeof(subghz->gen_info->came_atomo.serial);
         break;
     case GenKeeloqSeed:
-        byte_ptr = (uint8_t*)&subghz->gen_info->keeloq_seed.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->keeloq_seed.serial;
         byte_count = sizeof(subghz->gen_info->keeloq_seed.serial);
         break;
     case GenAlutechAt4n:
-        byte_ptr = (uint8_t*)&subghz->gen_info->alutech_at_4n.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->alutech_at_4n.serial;
         byte_count = sizeof(subghz->gen_info->alutech_at_4n.serial);
         break;
     case GenSomfyTelis:
-        byte_ptr = (uint8_t*)&subghz->gen_info->somfy_telis.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->somfy_telis.serial;
         byte_count = sizeof(subghz->gen_info->somfy_telis.serial);
         break;
     case GenSomfyKeytis:
-        byte_ptr = (uint8_t*)&subghz->gen_info->somfy_keytis.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->somfy_keytis.serial;
         byte_count = sizeof(subghz->gen_info->somfy_keytis.serial);
         break;
     case GenKingGatesStylo4k:
-        byte_ptr = (uint8_t*)&subghz->gen_info->kinggates_stylo_4k.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->kinggates_stylo_4k.serial;
         byte_count = sizeof(subghz->gen_info->kinggates_stylo_4k.serial);
         break;
     case GenBenincaARC:
-        byte_ptr = (uint8_t*)&subghz->gen_info->beninca_arc.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->beninca_arc.serial;
         byte_count = sizeof(subghz->gen_info->beninca_arc.serial);
         break;
     case GenJarolift:
-        byte_ptr = (uint8_t*)&subghz->gen_info->jarolift.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->jarolift.serial;
         byte_count = sizeof(subghz->gen_info->jarolift.serial);
         break;
     case GenDitecGOL4:
-        byte_ptr = (uint8_t*)&subghz->gen_info->ditec_gol4.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->ditec_gol4.serial;
         byte_count = sizeof(subghz->gen_info->ditec_gol4.serial);
         break;
     case GenNiceFlorS:
-        byte_ptr = (uint8_t*)&subghz->gen_info->nice_flor_s.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->nice_flor_s.serial;
         byte_count = sizeof(subghz->gen_info->nice_flor_s.serial);
         break;
     case GenSecPlus2:
-        byte_ptr = (uint8_t*)&subghz->gen_info->sec_plus_2.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->sec_plus_2.serial;
         byte_count = sizeof(subghz->gen_info->sec_plus_2.serial);
         break;
     case GenPhoenixV2:
-        byte_ptr = (uint8_t*)&subghz->gen_info->phoenix_v2.serial;
+        byte_ptr = (uint8_t *)&subghz->gen_info->phoenix_v2.serial;
         byte_count = sizeof(subghz->gen_info->phoenix_v2.serial);
         break;
     // Not needed for these types
@@ -85,29 +87,25 @@ void subghz_scene_set_serial_on_enter(void* context) {
     furi_assert(byte_ptr);
     furi_assert(byte_count > 0);
 
-    *((uint32_t*)byte_ptr) = __bswap32(*((uint32_t*)byte_ptr)); // Convert
+    *((uint32_t *)byte_ptr) = __bswap32(*((uint32_t *)byte_ptr)); // Convert
 
     // Setup view
-    ByteInput* byte_input = subghz->byte_input;
+    ByteInput *byte_input = subghz->byte_input;
     byte_input_set_header_text(byte_input, "Enter SERIAL in hex");
-    byte_input_set_result_callback(
-        byte_input,
-        subghz_scene_set_serial_byte_input_callback,
-        NULL,
-        subghz,
-        byte_ptr,
-        byte_count);
+    byte_input_set_result_callback(byte_input, subghz_scene_set_serial_byte_input_callback, NULL,
+                                   subghz, byte_ptr, byte_count);
     view_dispatcher_switch_to_view(subghz->view_dispatcher, SubGhzViewIdByteInput);
 }
 
-bool subghz_scene_set_serial_on_event(void* context, SceneManagerEvent event) {
-    SubGhz* subghz = context;
+bool subghz_scene_set_serial_on_event(void *context, SceneManagerEvent event)
+{
+    SubGhz *subghz = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == SubGhzCustomEventByteInputDone) {
+    if (event.type == SceneManagerEventTypeCustom) {
+        if (event.event == SubGhzCustomEventByteInputDone) {
             // Swap bytes
-            switch(subghz->gen_info->type) {
+            switch (subghz->gen_info->type) {
             case GenFaacSLH:
                 subghz->gen_info->faac_slh.serial = __bswap32(subghz->gen_info->faac_slh.serial);
                 break;
@@ -169,7 +167,7 @@ bool subghz_scene_set_serial_on_event(void* context, SceneManagerEvent event) {
                 break;
             }
 
-            switch(subghz->gen_info->type) {
+            switch (subghz->gen_info->type) {
             case GenFaacSLH:
             case GenKeeloq:
             case GenKeeloqSeed:
@@ -202,8 +200,9 @@ bool subghz_scene_set_serial_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void subghz_scene_set_serial_on_exit(void* context) {
-    SubGhz* subghz = context;
+void subghz_scene_set_serial_on_exit(void *context)
+{
+    SubGhz *subghz = context;
 
     // Clear view
     byte_input_set_result_callback(subghz->byte_input, NULL, NULL, NULL, NULL, 0);

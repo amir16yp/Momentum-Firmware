@@ -28,16 +28,16 @@ typedef enum {
 } MfClassicListenerCommState;
 
 struct MfClassicListener {
-    Iso14443_3aListener* iso14443_3a_listener;
+    Iso14443_3aListener *iso14443_3a_listener;
     MfClassicListenerState state;
     MfClassicListenerCommState comm_state;
 
-    MfClassicData* data;
-    BitBuffer* tx_plain_buffer;
-    BitBuffer* tx_encrypted_buffer;
-    BitBuffer* rx_plain_buffer;
+    MfClassicData *data;
+    BitBuffer *tx_plain_buffer;
+    BitBuffer *tx_encrypted_buffer;
+    BitBuffer *rx_plain_buffer;
 
-    Crypto1* crypto;
+    Crypto1 *crypto;
     MfClassicAuthContext auth_context;
 
     // Write block context
@@ -52,7 +52,7 @@ struct MfClassicListener {
     MfClassicListenerEvent mfc_event;
     MfClassicListenerEventData mfc_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 
     bool cmd_in_progress;
     size_t current_cmd_idx;

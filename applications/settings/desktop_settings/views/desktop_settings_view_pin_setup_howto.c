@@ -10,12 +10,13 @@
 #include "desktop_settings_view_pin_setup_howto.h"
 
 struct DesktopSettingsViewPinSetupHowto {
-    View* view;
+    View *view;
     DesktopSettingsViewPinSetupHowtoDoneCallback callback;
-    void* context;
+    void *context;
 };
 
-static void desktop_settings_view_pin_setup_howto_draw(Canvas* canvas, void* model) {
+static void desktop_settings_view_pin_setup_howto_draw(Canvas *canvas, void *model)
+{
     furi_assert(canvas);
     UNUSED(model);
 
@@ -29,14 +30,15 @@ static void desktop_settings_view_pin_setup_howto_draw(Canvas* canvas, void* mod
     elements_multiline_text(canvas, 58, 24, "Prepare to use\narrows as\nPIN symbols");
 }
 
-static bool desktop_settings_view_pin_setup_howto_input(InputEvent* event, void* context) {
+static bool desktop_settings_view_pin_setup_howto_input(InputEvent *event, void *context)
+{
     furi_assert(event);
     furi_assert(context);
 
-    DesktopSettingsViewPinSetupHowto* instance = context;
+    DesktopSettingsViewPinSetupHowto *instance = context;
     bool consumed = false;
 
-    if((event->key == InputKeyRight) && (event->type == InputTypeShort)) {
+    if ((event->key == InputKeyRight) && (event->type == InputTypeShort)) {
         instance->callback(instance->context);
         consumed = true;
     }
@@ -45,17 +47,18 @@ static bool desktop_settings_view_pin_setup_howto_input(InputEvent* event, void*
 }
 
 void desktop_settings_view_pin_setup_howto_set_callback(
-    DesktopSettingsViewPinSetupHowto* instance,
-    DesktopSettingsViewPinSetupHowtoDoneCallback callback,
-    void* context) {
+    DesktopSettingsViewPinSetupHowto *instance,
+    DesktopSettingsViewPinSetupHowtoDoneCallback callback, void *context)
+{
     furi_assert(instance);
     furi_assert(callback);
     instance->callback = callback;
     instance->context = context;
 }
 
-DesktopSettingsViewPinSetupHowto* desktop_settings_view_pin_setup_howto_alloc(void) {
-    DesktopSettingsViewPinSetupHowto* view = malloc(sizeof(DesktopSettingsViewPinSetupHowto));
+DesktopSettingsViewPinSetupHowto *desktop_settings_view_pin_setup_howto_alloc(void)
+{
+    DesktopSettingsViewPinSetupHowto *view = malloc(sizeof(DesktopSettingsViewPinSetupHowto));
     view->view = view_alloc();
     view_set_context(view->view, view);
     view_set_draw_callback(view->view, desktop_settings_view_pin_setup_howto_draw);
@@ -64,14 +67,16 @@ DesktopSettingsViewPinSetupHowto* desktop_settings_view_pin_setup_howto_alloc(vo
     return view;
 }
 
-void desktop_settings_view_pin_setup_howto_free(DesktopSettingsViewPinSetupHowto* instance) {
+void desktop_settings_view_pin_setup_howto_free(DesktopSettingsViewPinSetupHowto *instance)
+{
     furi_assert(instance);
 
     view_free(instance->view);
     free(instance);
 }
 
-View* desktop_settings_view_pin_setup_howto_get_view(DesktopSettingsViewPinSetupHowto* instance) {
+View *desktop_settings_view_pin_setup_howto_get_view(DesktopSettingsViewPinSetupHowto *instance)
+{
     furi_assert(instance);
     return instance->view;
 }

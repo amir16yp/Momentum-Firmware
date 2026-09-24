@@ -12,18 +12,18 @@
 extern "C" {
 #endif
 
-#define STORAGE_INT_PATH_PREFIX        "/int"
-#define STORAGE_EXT_PATH_PREFIX        "/ext"
-#define STORAGE_ANY_PATH_PREFIX        "/any"
-#define STORAGE_MNT_PATH_PREFIX        "/mnt"
-#define STORAGE_APP_DATA_PATH_PREFIX   "/data"
+#define STORAGE_INT_PATH_PREFIX "/int"
+#define STORAGE_EXT_PATH_PREFIX "/ext"
+#define STORAGE_ANY_PATH_PREFIX "/any"
+#define STORAGE_MNT_PATH_PREFIX "/mnt"
+#define STORAGE_APP_DATA_PATH_PREFIX "/data"
 #define STORAGE_APP_ASSETS_PATH_PREFIX "/assets"
 
-#define INT_PATH(path)        STORAGE_INT_PATH_PREFIX "/" path
-#define EXT_PATH(path)        STORAGE_EXT_PATH_PREFIX "/" path
-#define ANY_PATH(path)        STORAGE_ANY_PATH_PREFIX "/" path
-#define MNT_PATH(path)        STORAGE_MNT_PATH_PREFIX "/" path
-#define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
+#define INT_PATH(path) STORAGE_INT_PATH_PREFIX "/" path
+#define EXT_PATH(path) STORAGE_EXT_PATH_PREFIX "/" path
+#define ANY_PATH(path) STORAGE_ANY_PATH_PREFIX "/" path
+#define MNT_PATH(path) STORAGE_MNT_PATH_PREFIX "/" path
+#define APP_DATA_PATH(path) STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path
 
 #define RECORD_STORAGE "storage"
@@ -36,7 +36,7 @@ typedef struct Storage Storage;
  * @param storage pointer to a storage API instance.
  * @return pointer to the created instance.
  */
-File* storage_file_alloc(Storage* storage);
+File *storage_file_alloc(Storage *storage);
 
 /**
  * @brief Free the file instance.
@@ -44,17 +44,17 @@ File* storage_file_alloc(Storage* storage);
  * If the file was open, calling this function will close it automatically.
  * @param file pointer to the file instance to be freed.
  */
-void storage_file_free(File* file);
+void storage_file_free(File *file);
 
 /**
  * @brief Enumeration of events emitted by the storage through the PubSub system.
  */
 typedef enum {
-    StorageEventTypeCardMount, /**< SD card was mounted. */
-    StorageEventTypeCardUnmount, /**< SD card was unmounted. */
+    StorageEventTypeCardMount,      /**< SD card was mounted. */
+    StorageEventTypeCardUnmount,    /**< SD card was unmounted. */
     StorageEventTypeCardMountError, /**< An error occurred during mounting of an SD card. */
-    StorageEventTypeFileClose, /**< A file was closed. */
-    StorageEventTypeDirClose, /**< A directory was closed. */
+    StorageEventTypeFileClose,      /**< A file was closed. */
+    StorageEventTypeDirClose,       /**< A directory was closed. */
 } StorageEventType;
 
 /**
@@ -72,7 +72,7 @@ typedef struct {
  * @param storage pointer to a storage API instance.
  * @return pointer to the pubsub instance.
  */
-FuriPubSub* storage_get_pubsub(Storage* storage);
+FuriPubSub *storage_get_pubsub(Storage *storage);
 
 /******************* File Functions *******************/
 
@@ -84,14 +84,11 @@ FuriPubSub* storage_get_pubsub(Storage* storage);
  * @param file pointer to the file instance to be opened.
  * @param path pointer to a zero-terminated string containing the path to the file to be opened.
  * @param access_mode access mode from FS_AccessMode.
- * @param open_mode open mode from FS_OpenMode 
+ * @param open_mode open mode from FS_OpenMode
  * @return true if the file was successfully opened, false otherwise.
  */
-bool storage_file_open(
-    File* file,
-    const char* path,
-    FS_AccessMode access_mode,
-    FS_OpenMode open_mode);
+bool storage_file_open(File *file, const char *path, FS_AccessMode access_mode,
+                       FS_OpenMode open_mode);
 
 /**
  * @brief Close the file.
@@ -99,7 +96,7 @@ bool storage_file_open(
  * @param file pointer to the file instance to be closed.
  * @return true if the file was successfully closed, false otherwise.
  */
-bool storage_file_close(File* file);
+bool storage_file_close(File *file);
 
 /**
  * @brief Check whether the file is open.
@@ -107,7 +104,7 @@ bool storage_file_close(File* file);
  * @param file pointer to the file instance in question.
  * @return true if the file is open, false otherwise.
  */
-bool storage_file_is_open(File* file);
+bool storage_file_is_open(File *file);
 
 /**
  * @brief Check whether a file instance represents a directory.
@@ -115,37 +112,40 @@ bool storage_file_is_open(File* file);
  * @param file pointer to the file instance in question.
  * @return true if the file instance represents a directory, false otherwise.
  */
-bool storage_file_is_dir(File* file);
+bool storage_file_is_dir(File *file);
 
 /**
  * @brief Read bytes from a file into a buffer.
  *
  * @param file pointer to the file instance to read from.
  * @param buff pointer to the buffer to be filled with read data.
- * @param bytes_to_read number of bytes to read. Must be less than or equal to the size of the buffer.
+ * @param bytes_to_read number of bytes to read. Must be less than or equal to the size of the
+ * buffer.
  * @return actual number of bytes read (may be fewer than requested).
  */
-size_t storage_file_read(File* file, void* buff, size_t bytes_to_read);
+size_t storage_file_read(File *file, void *buff, size_t bytes_to_read);
 
 /**
  * @brief Write bytes from a buffer to a file.
  *
  * @param file pointer to the file instance to write into.
  * @param buff pointer to the buffer containing the data to be written.
- * @param bytes_to_write number of bytes to write. Must be less than or equal to the size of the buffer.
+ * @param bytes_to_write number of bytes to write. Must be less than or equal to the size of the
+ * buffer.
  * @return actual number of bytes written (may be fewer than requested).
  */
-size_t storage_file_write(File* file, const void* buff, size_t bytes_to_write);
+size_t storage_file_write(File *file, const void *buff, size_t bytes_to_write);
 
 /**
  * @brief Change the current access position in a file.
  *
  * @param file pointer to the file instance in question.
  * @param offset access position offset (meaning depends on from_start parameter).
- * @param from_start if true, set the access position relative to the file start, otherwise relative to the current position.
+ * @param from_start if true, set the access position relative to the file start, otherwise relative
+ * to the current position.
  * @return success flag
  */
-bool storage_file_seek(File* file, uint32_t offset, bool from_start);
+bool storage_file_seek(File *file, uint32_t offset, bool from_start);
 
 /**
  * @brief Get the current access position.
@@ -153,7 +153,7 @@ bool storage_file_seek(File* file, uint32_t offset, bool from_start);
  * @param file pointer to the file instance in question.
  * @return current access position.
  */
-uint64_t storage_file_tell(File* file);
+uint64_t storage_file_tell(File *file);
 
 /**
  * @brief Expand the file (allocate space for it).
@@ -162,7 +162,7 @@ uint64_t storage_file_tell(File* file);
  * @param size amount of bytes bytes to allocate.
  * @return true if the file was successfully expanded, false otherwise.
  */
-bool storage_file_expand(File* file, uint64_t size);
+bool storage_file_expand(File *file, uint64_t size);
 
 /**
  * @brief Truncate the file size to the current access position.
@@ -170,7 +170,7 @@ bool storage_file_expand(File* file, uint64_t size);
  * @param file pointer to the file instance to be truncated.
  * @return true if the file was successfully truncated, false otherwise.
  */
-bool storage_file_truncate(File* file);
+bool storage_file_truncate(File *file);
 
 /**
  * @brief Get the file size.
@@ -178,7 +178,7 @@ bool storage_file_truncate(File* file);
  * @param file pointer to the file instance in question.
  * @return size of the file, in bytes.
  */
-uint64_t storage_file_size(File* file);
+uint64_t storage_file_size(File *file);
 
 /**
  * @brief Synchronise the file cache with the actual storage.
@@ -186,7 +186,7 @@ uint64_t storage_file_size(File* file);
  * @param file pointer to the file instance in question.
  * @return true if the file was successfully synchronised, false otherwise.
  */
-bool storage_file_sync(File* file);
+bool storage_file_sync(File *file);
 
 /**
  * @brief Check whether the current access position is at the end of the file.
@@ -194,16 +194,16 @@ bool storage_file_sync(File* file);
  * @param file pointer to a file instance in question.
  * @return bool true if the current access position is at the end of the file, false otherwise.
  */
-bool storage_file_eof(File* file);
+bool storage_file_eof(File *file);
 
 /**
  * @brief Check whether a file exists.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param path pointer to a zero-terminated string containing the path to the file in question.
  * @return true if the file exists, false otherwise.
  */
-bool storage_file_exists(Storage* storage, const char* path);
+bool storage_file_exists(Storage *storage, const char *path);
 
 /**
  * @brief Copy data from a source file to the destination file.
@@ -212,13 +212,13 @@ bool storage_file_exists(Storage* storage, const char* path);
  *
  * The requested amount of bytes will be copied from the current access position
  * in the source file to the current access position in the destination file.
- * 
+ *
  * @param source pointer to a source file instance.
  * @param destination pointer to a destination file instance.
  * @param size data size to be copied, in bytes.
  * @return true if the data was successfully copied, false otherwise.
  */
-bool storage_file_copy_to_file(File* source, File* destination, size_t size);
+bool storage_file_copy_to_file(File *source, File *destination, size_t size);
 
 /******************* Directory Functions *******************/
 
@@ -233,7 +233,7 @@ bool storage_file_copy_to_file(File* source, File* destination, size_t size);
  * @param path pointer to a zero-terminated string containing the path of the directory in question.
  * @return true if the directory was successfully opened, false otherwise.
  */
-bool storage_dir_open(File* file, const char* path);
+bool storage_dir_open(File *file, const char *path);
 
 /**
  * @brief Close the directory.
@@ -241,7 +241,7 @@ bool storage_dir_open(File* file, const char* path);
  * @param file pointer to a file instance representing the directory in question.
  * @return true if the directory was successfully closed, false otherwise.
  */
-bool storage_dir_close(File* file);
+bool storage_dir_close(File *file);
 
 /**
  * @brief Get the next item in the directory.
@@ -255,7 +255,7 @@ bool storage_dir_close(File* file);
  * @param name_length maximum capacity of the name buffer, in bytes.
  * @return true if the next item was successfully read, false otherwise.
  */
-bool storage_dir_read(File* file, FileInfo* fileinfo, char* name, uint16_t name_length);
+bool storage_dir_read(File *file, FileInfo *fileinfo, char *name, uint16_t name_length);
 
 /**
  * @brief Change the access position to first item in the directory.
@@ -263,16 +263,16 @@ bool storage_dir_read(File* file, FileInfo* fileinfo, char* name, uint16_t name_
  * @param file pointer to a file instance representing the directory in question.
  * @return true if the access position was successfully changed, false otherwise.
  */
-bool storage_dir_rewind(File* file);
+bool storage_dir_rewind(File *file);
 
 /**
  * @brief Check whether a directory exists.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param path pointer to a zero-terminated string containing the path of the directory in question.
  * @return true if the directory exists, false otherwise.
  */
-bool storage_dir_exists(Storage* storage, const char* path);
+bool storage_dir_exists(Storage *storage, const char *path);
 
 /******************* Common Functions *******************/
 
@@ -284,7 +284,7 @@ bool storage_dir_exists(Storage* storage, const char* path);
  * @param timestamp pointer to a value to contain the timestamp.
  * @return FSE_OK if the timestamp has been successfully received, any other error code on failure.
  */
-FS_Error storage_common_timestamp(Storage* storage, const char* path, uint32_t* timestamp);
+FS_Error storage_common_timestamp(Storage *storage, const char *path, uint32_t *timestamp);
 
 /**
  * @brief Get information about a file or a directory.
@@ -294,7 +294,7 @@ FS_Error storage_common_timestamp(Storage* storage, const char* path, uint32_t* 
  * @param fileinfo pointer to the FileInfo structure to contain the info (may be NULL).
  * @return FSE_OK if the info has been successfully received, any other error code on failure.
  */
-FS_Error storage_common_stat(Storage* storage, const char* path, FileInfo* fileinfo);
+FS_Error storage_common_stat(Storage *storage, const char *path, FileInfo *fileinfo);
 
 /**
  * @brief Remove a file or a directory.
@@ -304,9 +304,10 @@ FS_Error storage_common_stat(Storage* storage, const char* path, FileInfo* filei
  *
  * @param storage pointer to a storage API instance.
  * @param path pointer to a zero-terminated string containing the path of the item to be removed.
- * @return FSE_OK if the file or directory has been successfully removed, any other error code on failure.
+ * @return FSE_OK if the file or directory has been successfully removed, any other error code on
+ * failure.
  */
-FS_Error storage_common_remove(Storage* storage, const char* path);
+FS_Error storage_common_remove(Storage *storage, const char *path);
 
 /**
  * @brief Rename a file or a directory.
@@ -320,9 +321,10 @@ FS_Error storage_common_remove(Storage* storage, const char* path);
  * @param storage pointer to a storage API instance.
  * @param old_path pointer to a zero-terminated string containing the source path.
  * @param new_path pointer to a zero-terminated string containing the destination path.
- * @return FSE_OK if the file or directory has been successfully renamed, any other error code on failure.
+ * @return FSE_OK if the file or directory has been successfully renamed, any other error code on
+ * failure.
  */
-FS_Error storage_common_rename(Storage* storage, const char* old_path, const char* new_path);
+FS_Error storage_common_rename(Storage *storage, const char *old_path, const char *new_path);
 
 /**
  * @brief Rename a file or a directory.
@@ -336,9 +338,10 @@ FS_Error storage_common_rename(Storage* storage, const char* old_path, const cha
  * @param storage pointer to a storage API instance.
  * @param old_path pointer to a zero-terminated string containing the source path.
  * @param new_path pointer to a zero-terminated string containing the destination path.
- * @return FSE_OK if the file or directory has been successfully renamed, any other error code on failure.
+ * @return FSE_OK if the file or directory has been successfully renamed, any other error code on
+ * failure.
  */
-FS_Error storage_common_rename_safe(Storage* storage, const char* old_path, const char* new_path);
+FS_Error storage_common_rename_safe(Storage *storage, const char *old_path, const char *new_path);
 
 /**
  * @brief Copy the file to a new location.
@@ -350,7 +353,7 @@ FS_Error storage_common_rename_safe(Storage* storage, const char* old_path, cons
  * @param new_path pointer to a zero-terminated string containing the destination path.
  * @return FSE_OK if the file has been successfully copied, any other error code on failure.
  */
-FS_Error storage_common_copy(Storage* storage, const char* old_path, const char* new_path);
+FS_Error storage_common_copy(Storage *storage, const char *old_path, const char *new_path);
 
 /**
  * @brief Copy the contents of one directory into another and rename all conflicting files.
@@ -360,7 +363,7 @@ FS_Error storage_common_copy(Storage* storage, const char* old_path, const char*
  * @param new_path pointer to a zero-terminated string containing the destination path.
  * @return FSE_OK if the directories have been successfully merged, any other error code on failure.
  */
-FS_Error storage_common_merge(Storage* storage, const char* old_path, const char* new_path);
+FS_Error storage_common_merge(Storage *storage, const char *old_path, const char *new_path);
 
 /**
  * @brief Create a directory.
@@ -369,7 +372,7 @@ FS_Error storage_common_merge(Storage* storage, const char* old_path, const char
  * @param path pointer to a zero-terminated string containing the directory path.
  * @return FSE_OK if the directory has been successfully created, any other error code on failure.
  */
-FS_Error storage_common_mkdir(Storage* storage, const char* path);
+FS_Error storage_common_mkdir(Storage *storage, const char *path);
 
 /**
  * @brief Get the general information about the storage.
@@ -378,44 +381,42 @@ FS_Error storage_common_mkdir(Storage* storage, const char* path);
  * @param fs_path pointer to a zero-terminated string containing the path to the storage question.
  * @param total_space pointer to the value to contain the total capacity, in bytes.
  * @param free_space pointer to the value to contain the available space, in bytes.
- * @return FSE_OK if the information has been successfully received, any other error code on failure.
+ * @return FSE_OK if the information has been successfully received, any other error code on
+ * failure.
  */
-FS_Error storage_common_fs_info(
-    Storage* storage,
-    const char* fs_path,
-    uint64_t* total_space,
-    uint64_t* free_space);
+FS_Error storage_common_fs_info(Storage *storage, const char *fs_path, uint64_t *total_space,
+                                uint64_t *free_space);
 
 /**
  * @brief Parse aliases in a path and replace them with the real path.
  *
  * Necessary special directories will be created automatically if they did not exist.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param path pointer to a zero-terminated string containing the path in question.
  */
-void storage_common_resolve_path_and_ensure_app_directory(Storage* storage, FuriString* path);
+void storage_common_resolve_path_and_ensure_app_directory(Storage *storage, FuriString *path);
 
 /**
  * @brief Move the contents of source folder to destination one and rename all conflicting files.
  *
  * Source folder will be deleted if the migration was successful.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param source pointer to a zero-terminated string containing the source path.
  * @param dest pointer to a zero-terminated string containing the destination path.
  * @return FSE_OK if the migration was successfully completed, any other error code on failure.
  */
-FS_Error storage_common_migrate(Storage* storage, const char* source, const char* dest);
+FS_Error storage_common_migrate(Storage *storage, const char *source, const char *dest);
 
 /**
  * @brief Check whether a file or a directory exists.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param path pointer to a zero-terminated string containing the path in question.
  * @return true if a file or a directory exists, false otherwise.
  */
-bool storage_common_exists(Storage* storage, const char* path);
+bool storage_common_exists(Storage *storage, const char *path);
 
 /**
  * @brief Check whether two paths are equivalent.
@@ -433,21 +434,21 @@ bool storage_common_exists(Storage* storage, const char* path);
  * @param path2 pointer to a zero-terminated string containing the second path.
  * @return true if paths are equivalent, false otherwise.
  */
-bool storage_common_equivalent_path(Storage* storage, const char* path1, const char* path2);
+bool storage_common_equivalent_path(Storage *storage, const char *path1, const char *path2);
 
 /**
  * @brief Check whether a path is a subpath of another path.
- * 
+ *
  * This function respects storage-defined equivalence rules
  * (see `storage_common_equivalent_path`).
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param parent pointer to a zero-terminated string containing the parent path.
  * @param child pointer to a zero-terminated string containing the child path.
  * @return true if `child` is a subpath of `parent`, or if `child` is equivalent
  *         to `parent`; false otherwise.
  */
-bool storage_common_is_subdir(Storage* storage, const char* parent, const char* child);
+bool storage_common_is_subdir(Storage *storage, const char *parent, const char *child);
 
 /******************* Error Functions *******************/
 
@@ -455,9 +456,10 @@ bool storage_common_is_subdir(Storage* storage, const char* parent, const char* 
  * @brief Get the textual description of a numeric error identifier.
  *
  * @param error_id numeric identifier of the error in question.
- * @return pointer to a statically allocated zero-terminated string containing the respective error text.
+ * @return pointer to a statically allocated zero-terminated string containing the respective error
+ * text.
  */
-const char* storage_error_get_desc(FS_Error error_id);
+const char *storage_error_get_desc(FS_Error error_id);
 
 /**
  * @brief Get the numeric error identifier from a file instance.
@@ -467,7 +469,7 @@ const char* storage_error_get_desc(FS_Error error_id);
  * @param file pointer to the file instance in question (must NOT be NULL).
  * @return numeric identifier of the last error associated with the file instance.
  */
-FS_Error storage_file_get_error(File* file);
+FS_Error storage_file_get_error(File *file);
 
 /**
  * @brief Get the internal (storage-specific) numeric error identifier from a file instance.
@@ -477,7 +479,7 @@ FS_Error storage_file_get_error(File* file);
  * @param file pointer to the file instance in question (must NOT be NULL).
  * @return numeric identifier of the last internal error associated with the file instance.
  */
-int32_t storage_file_get_internal_error(File* file);
+int32_t storage_file_get_internal_error(File *file);
 
 /**
  * @brief Get the textual description of a the last error associated with a file instance.
@@ -485,9 +487,10 @@ int32_t storage_file_get_internal_error(File* file);
  * @warning It is not possible to get the error text after the file has been closed.
  *
  * @param file pointer to the file instance in question (must NOT be NULL).
- * @return pointer to a statically allocated zero-terminated string containing the respective error text.
+ * @return pointer to a statically allocated zero-terminated string containing the respective error
+ * text.
  */
-const char* storage_file_get_error_desc(File* file);
+const char *storage_file_get_error_desc(File *file);
 
 /******************* SD Card Functions *******************/
 
@@ -497,7 +500,7 @@ const char* storage_file_get_error_desc(File* file);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_format(Storage* storage);
+FS_Error storage_sd_format(Storage *storage);
 
 /**
  * @brief Unmount the SD card.
@@ -509,7 +512,7 @@ FS_Error storage_sd_format(Storage* storage);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_unmount(Storage* storage);
+FS_Error storage_sd_unmount(Storage *storage);
 
 /**
  * @brief Mount the SD card.
@@ -517,7 +520,7 @@ FS_Error storage_sd_unmount(Storage* storage);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully mounted, any other error code on failure.
  */
-FS_Error storage_sd_mount(Storage* storage);
+FS_Error storage_sd_mount(Storage *storage);
 
 /**
  * @brief Get SD card information.
@@ -526,7 +529,7 @@ FS_Error storage_sd_mount(Storage* storage);
  * @param info pointer to the info object to contain the requested information.
  * @return FSE_OK if the info was successfully received, any other error code on failure.
  */
-FS_Error storage_sd_info(Storage* storage, SDInfo* info);
+FS_Error storage_sd_info(Storage *storage, SDInfo *info);
 
 /**
  * @brief Get SD card status.
@@ -534,11 +537,11 @@ FS_Error storage_sd_info(Storage* storage, SDInfo* info);
  * @param storage pointer to a storage API instance.
  * @return storage status in the form of a numeric error identifier.
  */
-FS_Error storage_sd_status(Storage* storage);
+FS_Error storage_sd_status(Storage *storage);
 
 /************ Internal Storage Backup/Restore ************/
 
-typedef void (*StorageNameConverter)(FuriString*);
+typedef void (*StorageNameConverter)(FuriString *);
 
 /**
  * @brief Back up the internal storage contents to a *.tar archive.
@@ -547,7 +550,7 @@ typedef void (*StorageNameConverter)(FuriString*);
  * @param dstname pointer to a zero-terminated string containing the archive file path.
  * @return FSE_OK if the storage was successfully backed up, any other error code on failure.
  */
-FS_Error storage_int_backup(Storage* storage, const char* dstname);
+FS_Error storage_int_backup(Storage *storage, const char *dstname);
 
 /**
  * @brief Restore the internal storage contents from a *.tar archive.
@@ -557,8 +560,7 @@ FS_Error storage_int_backup(Storage* storage, const char* dstname);
  * @param converter pointer to a filename conversion function (may be NULL).
  * @return FSE_OK if the storage was successfully restored, any other error code on failure.
  */
-FS_Error
-    storage_int_restore(Storage* storage, const char* dstname, StorageNameConverter converter);
+FS_Error storage_int_restore(Storage *storage, const char *dstname, StorageNameConverter converter);
 
 /******************* FatFs Virtual Mount Functions *******************/
 
@@ -570,7 +572,7 @@ FS_Error
  * @return FSE_OK if the image was setup successfully.
  * @return FSE_ALREADY_OPEN if virtual API is already initialized.
  */
-FS_Error storage_virtual_init(Storage* storage, File* image);
+FS_Error storage_virtual_init(Storage *storage, File *image);
 
 /**
  * @brief Format the virtual image.
@@ -580,7 +582,7 @@ FS_Error storage_virtual_init(Storage* storage, File* image);
  * @return FSE_NOT_READY if virtual API is not initialized.
  * @return FSE_INTERNAL if an unknown error occurred.
  */
-FS_Error storage_virtual_format(Storage* storage);
+FS_Error storage_virtual_format(Storage *storage);
 
 /**
  * @brief Mount the virtual image to /mnt.
@@ -591,7 +593,7 @@ FS_Error storage_virtual_format(Storage* storage);
  * @return FSE_INVALID_PARAMETER if image has no supported filesystem.
  * @return FSE_INTERNAL if an unknown error occurred.
  */
-FS_Error storage_virtual_mount(Storage* storage);
+FS_Error storage_virtual_mount(Storage *storage);
 
 /**
  * @brief Unmount the virtual image from /mnt.
@@ -601,7 +603,7 @@ FS_Error storage_virtual_mount(Storage* storage);
  * @return FSE_NOT_READY if virtual API is not initialized.
  * @return FSE_INTERNAL if an unknown error occurred.
  */
-FS_Error storage_virtual_unmount(Storage* storage);
+FS_Error storage_virtual_unmount(Storage *storage);
 
 /**
  * @brief Quit virtual mount API, reset to allow new init.
@@ -610,7 +612,7 @@ FS_Error storage_virtual_unmount(Storage* storage);
  * @return FSE_OK if the image was unloaded successfully.
  * @return FSE_NOT_READY if virtual API is not initialized.
  */
-FS_Error storage_virtual_quit(Storage* storage);
+FS_Error storage_virtual_quit(Storage *storage);
 
 /***************** Simplified Functions ******************/
 
@@ -625,7 +627,7 @@ FS_Error storage_virtual_quit(Storage* storage);
  * @param path pointer to a zero-terminated string containing the item path.
  * @return true on success or if the item does not exist, false otherwise.
  */
-bool storage_simply_remove(Storage* storage, const char* path);
+bool storage_simply_remove(Storage *storage, const char *path);
 
 /**
  * @brief Recursively remove a file or a directory.
@@ -636,7 +638,7 @@ bool storage_simply_remove(Storage* storage, const char* path);
  * @param path pointer to a zero-terminated string containing the item path.
  * @return true on success or if the item does not exist, false otherwise.
  */
-bool storage_simply_remove_recursive(Storage* storage, const char* path);
+bool storage_simply_remove_recursive(Storage *storage, const char *path);
 
 /**
  * @brief Create a directory.
@@ -645,7 +647,7 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path);
  * @param path pointer to a zero-terminated string containing the directory path.
  * @return true on success or if directory does already exist, false otherwise.
  */
-bool storage_simply_mkdir(Storage* storage, const char* path);
+bool storage_simply_mkdir(Storage *storage, const char *path);
 
 /**
  * @brief Get the next free filename in a directory.
@@ -673,7 +675,7 @@ bool storage_simply_mkdir(Storage* storage, const char* path);
  *
  * @note If the resulting next file name length is greater than set by the max_len
  * parameter, the original filename will be returned instead.
- * 
+ *
  * @param storage pointer to a storage API instance.
  * @param dirname pointer to a zero-terminated string containing the directory path.
  * @param filename pointer to a zero-terminated string containing the file name.
@@ -681,13 +683,9 @@ bool storage_simply_mkdir(Storage* storage, const char* path);
  * @param nextfilename pointer to a dynamic string containing the resulting file name.
  * @param max_len maximum length of the new name.
  */
-void storage_get_next_filename(
-    Storage* storage,
-    const char* dirname,
-    const char* filename,
-    const char* fileextension,
-    FuriString* nextfilename,
-    uint8_t max_len);
+void storage_get_next_filename(Storage *storage, const char *dirname, const char *filename,
+                               const char *fileextension, FuriString *nextfilename,
+                               uint8_t max_len);
 
 #ifdef __cplusplus
 }

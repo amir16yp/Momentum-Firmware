@@ -11,23 +11,24 @@
 
 #include <furi_hal.h>
 
-typedef PACKED_STRUCT {
-    GPIO_TypeDef* port;
+typedef PACKED_STRUCT
+{
+    GPIO_TypeDef *port;
     uint16_t pin;
     uint8_t enable;
     uint8_t reserved;
 }
 APPD_GpioConfig_t;
 
-#define GPIO_NBR_OF_RF_SIGNALS           9
-#define GPIO_CFG_NBR_OF_FEATURES         34
-#define NBR_OF_TRACES_CONFIG_PARAMETERS  4
+#define GPIO_NBR_OF_RF_SIGNALS 9
+#define GPIO_CFG_NBR_OF_FEATURES 34
+#define NBR_OF_TRACES_CONFIG_PARAMETERS 4
 #define NBR_OF_GENERAL_CONFIG_PARAMETERS 4
 
 /**
  * THIS SHALL BE SET TO A VALUE DIFFERENT FROM 0 ONLY ON REQUEST FROM ST SUPPORT
  */
-#define BLE_DTB_CFG  0
+#define BLE_DTB_CFG 0
 // #define BLE_DTB_CFG 7
 #define SYS_DBG_CFG1 (SHCI_C2_DEBUG_OPTIONS_IPCORE_LP | SHCI_C2_DEBUG_OPTIONS_CPU2_STOP_EN)
 
@@ -36,8 +37,8 @@ PLACE_IN_SECTION("MB_MEM2")
 ALIGN(4) static SHCI_C2_DEBUG_TracesConfig_t APPD_TracesConfig = {0, 0, 0, 0};
 PLACE_IN_SECTION("MB_MEM2")
 ALIGN(4)
-static SHCI_C2_DEBUG_GeneralConfig_t APPD_GeneralConfig =
-    {BLE_DTB_CFG, SYS_DBG_CFG1, {0, 0}, 0, 0, 0, 0, 0};
+static SHCI_C2_DEBUG_GeneralConfig_t APPD_GeneralConfig = {
+    BLE_DTB_CFG, SYS_DBG_CFG1, {0, 0}, 0, 0, 0, 0, 0};
 
 /**
  * THE DEBUG ON GPIO FOR CPU2 IS INTENDED TO BE USED ONLY ON REQUEST FROM ST SUPPORT
@@ -93,15 +94,15 @@ static const APPD_GpioConfig_t aGpioConfigList[GPIO_CFG_NBR_OF_FEATURES] = {
  * New signals may be allocated at any location when requested by ST
  * The GPIO allocated to each signal depend on the BLE_DTB_CFG value and cannot be changed
  */
-#if(BLE_DTB_CFG == 7)
+#if (BLE_DTB_CFG == 7)
 static const APPD_GpioConfig_t aRfConfigList[GPIO_NBR_OF_RF_SIGNALS] = {
-    {GPIOB, LL_GPIO_PIN_2, 0, 0}, /* DTB10 - Tx/Rx SPI */
-    {GPIOB, LL_GPIO_PIN_7, 0, 0}, /* DTB11 - Tx/Tx SPI Clk */
-    {GPIOA, LL_GPIO_PIN_8, 0, 0}, /* DTB12 - Tx/Rx Ready & SPI Select */
-    {GPIOA, LL_GPIO_PIN_9, 0, 0}, /* DTB13 - Tx/Rx Start */
+    {GPIOB, LL_GPIO_PIN_2, 0, 0},  /* DTB10 - Tx/Rx SPI */
+    {GPIOB, LL_GPIO_PIN_7, 0, 0},  /* DTB11 - Tx/Tx SPI Clk */
+    {GPIOA, LL_GPIO_PIN_8, 0, 0},  /* DTB12 - Tx/Rx Ready & SPI Select */
+    {GPIOA, LL_GPIO_PIN_9, 0, 0},  /* DTB13 - Tx/Rx Start */
     {GPIOA, LL_GPIO_PIN_10, 0, 0}, /* DTB14 - FSM0 */
     {GPIOA, LL_GPIO_PIN_11, 0, 0}, /* DTB15 - FSM1 */
-    {GPIOB, LL_GPIO_PIN_8, 0, 0}, /* DTB16 - FSM2 */
+    {GPIOB, LL_GPIO_PIN_8, 0, 0},  /* DTB16 - FSM2 */
     {GPIOB, LL_GPIO_PIN_11, 0, 0}, /* DTB17 - FSM3 */
     {GPIOB, LL_GPIO_PIN_10, 0, 0}, /* DTB18 - FSM4 */
 };
@@ -110,19 +111,18 @@ static const APPD_GpioConfig_t aRfConfigList[GPIO_NBR_OF_RF_SIGNALS] = {
 static void APPD_SetCPU2GpioConfig(void);
 static void APPD_BleDtbCfg(void);
 
-void APPD_Init(void) {
+void APPD_Init(void)
+{
     APPD_SetCPU2GpioConfig();
     APPD_BleDtbCfg();
 }
 
-void APPD_EnableCPU2(void) {
+void APPD_EnableCPU2(void)
+{
     SHCI_C2_DEBUG_Init_Cmd_Packet_t DebugCmdPacket = {
         {{0, 0, 0}}, /**< Does not need to be initialized */
-        {(uint8_t*)aGpioConfigList,
-         (uint8_t*)&APPD_TracesConfig,
-         (uint8_t*)&APPD_GeneralConfig,
-         GPIO_CFG_NBR_OF_FEATURES,
-         NBR_OF_TRACES_CONFIG_PARAMETERS,
+        {(uint8_t *)aGpioConfigList, (uint8_t *)&APPD_TracesConfig, (uint8_t *)&APPD_GeneralConfig,
+         GPIO_CFG_NBR_OF_FEATURES, NBR_OF_TRACES_CONFIG_PARAMETERS,
          NBR_OF_GENERAL_CONFIG_PARAMETERS}};
 
     /**< Traces channel initialization */
@@ -143,7 +143,8 @@ void APPD_EnableCPU2(void) {
     return;
 }
 
-static void APPD_SetCPU2GpioConfig(void) {
+static void APPD_SetCPU2GpioConfig(void)
+{
     LL_GPIO_InitTypeDef gpio_config = {0};
     uint8_t local_loop;
     uint16_t gpioa_pin_list;
@@ -154,18 +155,18 @@ static void APPD_SetCPU2GpioConfig(void) {
     gpiob_pin_list = 0;
     gpioc_pin_list = 0;
 
-    for(local_loop = 0; local_loop < GPIO_CFG_NBR_OF_FEATURES; local_loop++) {
-        if(aGpioConfigList[local_loop].enable != 0) {
-            switch((uint32_t)aGpioConfigList[local_loop].port) {
-            case(uint32_t)GPIOA:
+    for (local_loop = 0; local_loop < GPIO_CFG_NBR_OF_FEATURES; local_loop++) {
+        if (aGpioConfigList[local_loop].enable != 0) {
+            switch ((uint32_t)aGpioConfigList[local_loop].port) {
+            case (uint32_t)GPIOA:
                 gpioa_pin_list |= aGpioConfigList[local_loop].pin;
                 break;
 
-            case(uint32_t)GPIOB:
+            case (uint32_t)GPIOB:
                 gpiob_pin_list |= aGpioConfigList[local_loop].pin;
                 break;
 
-            case(uint32_t)GPIOC:
+            case (uint32_t)GPIOC:
                 gpioc_pin_list |= aGpioConfigList[local_loop].pin;
                 break;
 
@@ -184,21 +185,21 @@ static void APPD_SetCPU2GpioConfig(void) {
     // gpio_config.Pin = LL_GPIO_PIN_15 | LL_GPIO_PIN_14 | LL_GPIO_PIN_13;
     // LL_GPIO_Init(GPIOA, &gpio_config);
 
-    if(gpioa_pin_list != 0) {
+    if (gpioa_pin_list != 0) {
         gpio_config.Pin = gpioa_pin_list;
         LL_C2_AHB2_GRP1_EnableClock(LL_C2_AHB2_GRP1_PERIPH_GPIOA);
         LL_GPIO_Init(GPIOA, &gpio_config);
         LL_GPIO_ResetOutputPin(GPIOA, gpioa_pin_list);
     }
 
-    if(gpiob_pin_list != 0) {
+    if (gpiob_pin_list != 0) {
         gpio_config.Pin = gpiob_pin_list;
         LL_C2_AHB2_GRP1_EnableClock(LL_C2_AHB2_GRP1_PERIPH_GPIOB);
         LL_GPIO_Init(GPIOB, &gpio_config);
         LL_GPIO_ResetOutputPin(GPIOB, gpiob_pin_list);
     }
 
-    if(gpioc_pin_list != 0) {
+    if (gpioc_pin_list != 0) {
         gpio_config.Pin = gpioc_pin_list;
         LL_C2_AHB2_GRP1_EnableClock(LL_C2_AHB2_GRP1_PERIPH_GPIOC);
         LL_GPIO_Init(GPIOC, &gpio_config);
@@ -206,8 +207,9 @@ static void APPD_SetCPU2GpioConfig(void) {
     }
 }
 
-static void APPD_BleDtbCfg(void) {
-#if(BLE_DTB_CFG != 0)
+static void APPD_BleDtbCfg(void)
+{
+#if (BLE_DTB_CFG != 0)
     LL_GPIO_InitTypeDef gpio_config = {0};
     uint8_t local_loop;
     uint16_t gpioa_pin_list;
@@ -216,13 +218,13 @@ static void APPD_BleDtbCfg(void) {
     gpioa_pin_list = 0;
     gpiob_pin_list = 0;
 
-    for(local_loop = 0; local_loop < GPIO_NBR_OF_RF_SIGNALS; local_loop++) {
-        if(aRfConfigList[local_loop].enable != 0) {
-            switch((uint32_t)aRfConfigList[local_loop].port) {
-            case(uint32_t)GPIOA:
+    for (local_loop = 0; local_loop < GPIO_NBR_OF_RF_SIGNALS; local_loop++) {
+        if (aRfConfigList[local_loop].enable != 0) {
+            switch ((uint32_t)aRfConfigList[local_loop].port) {
+            case (uint32_t)GPIOA:
                 gpioa_pin_list |= aRfConfigList[local_loop].pin;
                 break;
-            case(uint32_t)GPIOB:
+            case (uint32_t)GPIOB:
                 gpiob_pin_list |= aRfConfigList[local_loop].pin;
                 break;
             default:
@@ -238,13 +240,13 @@ static void APPD_BleDtbCfg(void) {
     gpio_config.Alternate = LL_GPIO_AF_6;
     gpio_config.Pin = LL_GPIO_PIN_15 | LL_GPIO_PIN_14 | LL_GPIO_PIN_13;
 
-    if(gpioa_pin_list != 0) {
+    if (gpioa_pin_list != 0) {
         gpio_config.Pin = gpioa_pin_list;
         LL_C2_AHB2_GRP1_EnableClock(LL_C2_AHB2_GRP1_PERIPH_GPIOA);
         LL_GPIO_Init(GPIOA, &gpio_config);
     }
 
-    if(gpiob_pin_list != 0) {
+    if (gpiob_pin_list != 0) {
         gpio_config.Pin = gpiob_pin_list;
         LL_C2_AHB2_GRP1_EnableClock(LL_C2_AHB2_GRP1_PERIPH_GPIOB);
         LL_GPIO_Init(GPIOB, &gpio_config);

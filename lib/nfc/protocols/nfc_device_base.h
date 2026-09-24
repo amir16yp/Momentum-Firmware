@@ -12,7 +12,7 @@ extern "C" {
  * @brief Verbosity level of the displayed NFC device name.
  */
 typedef enum {
-    NfcDeviceNameTypeFull, /**< Display full(verbose) name. */
+    NfcDeviceNameTypeFull,  /**< Display full(verbose) name. */
     NfcDeviceNameTypeShort, /**< Display shortened name. */
 } NfcDeviceNameType;
 

@@ -32,12 +32,13 @@ typedef struct NfcPoller NfcPoller;
  * An extended generic Nfc event contains protocol poller and it's parent protocol event data.
  * If protocol has no parent, then events are produced by Nfc instance.
  *
- * The parent_event_data field is protocol-specific and should be cast to the appropriate type before use.
+ * The parent_event_data field is protocol-specific and should be cast to the appropriate type
+ * before use.
  */
 typedef struct {
-    NfcGenericInstance* poller; /**< Pointer to the protocol poller. */
-    NfcGenericEventData*
-        parent_event_data /**< Pointer to the protocol's parent poller event data. */;
+    NfcGenericInstance *poller; /**< Pointer to the protocol poller. */
+    NfcGenericEventData
+        *parent_event_data /**< Pointer to the protocol's parent poller event data. */;
 } NfcGenericEventEx;
 
 /**
@@ -45,11 +46,13 @@ typedef struct {
  *
  * A function of this type must be passed as the callback parameter upon extended start of a poller.
  *
- * @param [in] event Nfc  extended generic event, passed by value, complete with protocol type and data.
- * @param [in,out] context pointer to the user-specific context (set when starting a poller/listener instance).
+ * @param [in] event Nfc  extended generic event, passed by value, complete with protocol type and
+ * data.
+ * @param [in,out] context pointer to the user-specific context (set when starting a poller/listener
+ * instance).
  * @returns the command which the event producer must execute.
  */
-typedef NfcCommand (*NfcGenericCallbackEx)(NfcGenericEventEx event, void* context);
+typedef NfcCommand (*NfcGenericCallbackEx)(NfcGenericEventEx event, void *context);
 
 /**
  * @brief Allocate an NfcPoller instance.
@@ -60,14 +63,14 @@ typedef NfcCommand (*NfcGenericCallbackEx)(NfcGenericEventEx event, void* contex
  *
  * @see nfc.h
  */
-NfcPoller* nfc_poller_alloc(Nfc* nfc, NfcProtocol protocol);
+NfcPoller *nfc_poller_alloc(Nfc *nfc, NfcProtocol protocol);
 
 /**
  * @brief Delete an NfcPoller instance.
  *
  * @param[in,out] instance pointer to the instance to be deleted.
  */
-void nfc_poller_free(NfcPoller* instance);
+void nfc_poller_free(NfcPoller *instance);
 
 /**
  * @brief Start an NfcPoller instance.
@@ -80,7 +83,7 @@ void nfc_poller_free(NfcPoller* instance);
  * @param[in] callback pointer to a user-defined callback function which will receive events.
  * @param[in] context pointer to a user-specific context (will be passed to the callback).
  */
-void nfc_poller_start(NfcPoller* instance, NfcGenericCallback callback, void* context);
+void nfc_poller_start(NfcPoller *instance, NfcGenericCallback callback, void *context);
 
 /**
  * @brief Start an NfcPoller instance in extended mode.
@@ -92,7 +95,7 @@ void nfc_poller_start(NfcPoller* instance, NfcGenericCallback callback, void* co
  * @param[in] callback pointer to a user-defined callback function which will receive events.
  * @param[in] context pointer to a user-specific context (will be passed to the callback).
  */
-void nfc_poller_start_ex(NfcPoller* instance, NfcGenericCallbackEx callback, void* context);
+void nfc_poller_start_ex(NfcPoller *instance, NfcGenericCallbackEx callback, void *context);
 
 /**
  * @brief Stop an NfcPoller instance.
@@ -101,7 +104,7 @@ void nfc_poller_start_ex(NfcPoller* instance, NfcGenericCallbackEx callback, voi
  *
  * @param[in,out] instance pointer to the instance to be stopped.
  */
-void nfc_poller_stop(NfcPoller* instance);
+void nfc_poller_stop(NfcPoller *instance);
 
 /**
  * @brief Detect whether there is a card supporting a particular protocol in the vicinity.
@@ -118,7 +121,7 @@ void nfc_poller_stop(NfcPoller* instance);
  * @param[in,out] instance pointer to the instance to perform the detection with.
  * @returns true if a supported card was detected, false otherwise.
  */
-bool nfc_poller_detect(NfcPoller* instance);
+bool nfc_poller_detect(NfcPoller *instance);
 
 /**
  * @brief Get the protocol identifier an NfcPoller instance was created with.
@@ -126,7 +129,7 @@ bool nfc_poller_detect(NfcPoller* instance);
  * @param[in] instance pointer to the instance to be queried.
  * @returns identifier of the protocol used by the instance.
  */
-NfcProtocol nfc_poller_get_protocol(const NfcPoller* instance);
+NfcProtocol nfc_poller_get_protocol(const NfcPoller *instance);
 
 /**
  * @brief Get the data that was that was gathered during the reading process.
@@ -134,7 +137,7 @@ NfcProtocol nfc_poller_get_protocol(const NfcPoller* instance);
  * @param[in] instance pointer to the instance to be queried.
  * @returns pointer to the NFC device data.
  */
-const NfcDeviceData* nfc_poller_get_data(const NfcPoller* instance);
+const NfcDeviceData *nfc_poller_get_data(const NfcPoller *instance);
 
 #ifdef __cplusplus
 }

@@ -2,23 +2,23 @@
 
 #include <nfc/protocols/nfc_generic_event.h>
 
-#define FELICA_LISTENER_READ_BLOCK_COUNT_MAX  (4U)
-#define FELICA_LISTENER_READ_BLOCK_COUNT_MIN  (1U)
+#define FELICA_LISTENER_READ_BLOCK_COUNT_MAX (4U)
+#define FELICA_LISTENER_READ_BLOCK_COUNT_MIN (1U)
 #define FELICA_LISTENER_WRITE_BLOCK_COUNT_MAX (2U)
 #define FELICA_LISTENER_WRITE_BLOCK_COUNT_MIN (1U)
 
-#define FELICA_MC_SP_REG_ALL_RW_BYTES_0_1    (0U)
-#define FELICA_MC_ALL_BYTE                   (2U)
-#define FELICA_MC_SYS_OP                     (3U)
-#define FELICA_MC_RF_PRM                     (4U)
-#define FELICA_MC_CKCKV_W_MAC_A              (5U)
-#define FELICA_MC_SP_REG_R_RESTR_BYTES_6_7   (6U)
-#define FELICA_MC_SP_REG_W_RESTR_BYTES_8_9   (8U)
+#define FELICA_MC_SP_REG_ALL_RW_BYTES_0_1 (0U)
+#define FELICA_MC_ALL_BYTE (2U)
+#define FELICA_MC_SYS_OP (3U)
+#define FELICA_MC_RF_PRM (4U)
+#define FELICA_MC_CKCKV_W_MAC_A (5U)
+#define FELICA_MC_SP_REG_R_RESTR_BYTES_6_7 (6U)
+#define FELICA_MC_SP_REG_W_RESTR_BYTES_8_9 (8U)
 #define FELICA_MC_SP_REG_W_MAC_A_BYTES_10_11 (10U)
-#define FELICA_MC_STATE_W_MAC_A              (12U)
-#define FELICA_MC_RESERVED_13                (13U)
-#define FELICA_MC_RESERVED_14                (14U)
-#define FELICA_MC_RESERVED_15                (15U)
+#define FELICA_MC_STATE_W_MAC_A (12U)
+#define FELICA_MC_RESERVED_13 (13U)
+#define FELICA_MC_RESERVED_14 (14U)
+#define FELICA_MC_RESERVED_15 (15U)
 
 typedef enum {
     Felica_ListenerStateIdle,
@@ -75,25 +75,21 @@ typedef struct {
  * Depending on requested block write behaviour can be different, therefore
  * different handlers are used.
  */
-typedef void (*FelicaCommandWriteBlockHandler)(
-    FelicaListener* instance,
-    const uint8_t block_number,
-    const FelicaBlockData* data_block);
+typedef void (*FelicaCommandWriteBlockHandler)(FelicaListener *instance, const uint8_t block_number,
+                                               const FelicaBlockData *data_block);
 
 /** Read command handler signature.
  *
  * Depending on requested block read behaviour can be different, therefore
  * different handlers are used.
  */
-typedef void (*FelicaCommanReadBlockHandler)(
-    FelicaListener* instance,
-    const uint8_t block_number,
-    const uint8_t resp_data_index,
-    FelicaListenerReadCommandResponse* response);
+typedef void (*FelicaCommanReadBlockHandler)(FelicaListener *instance, const uint8_t block_number,
+                                             const uint8_t resp_data_index,
+                                             FelicaListenerReadCommandResponse *response);
 
 struct FelicaListener {
-    Nfc* nfc;
-    FelicaData* data;
+    Nfc *nfc;
+    FelicaData *data;
     FelicaListenerState state;
     FelicaAuthentication auth;
     FelicaBlockData mc_shadow;
@@ -104,12 +100,12 @@ struct FelicaListener {
     uint8_t mac_calc_start;
     bool rc_written;
 
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
 
     NfcGenericEvent generic_event;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 /** Resets card authentication state after field off, also resets session key and
@@ -117,13 +113,13 @@ struct FelicaListener {
  *
  * @param      instance  pointer to the listener instance to be used.
  */
-void felica_listener_reset(FelicaListener* instance);
+void felica_listener_reset(FelicaListener *instance);
 
 /** Performs WCNT increasing in case of write operation.
  *
  * @param      data  pointer to Felica card data.
  */
-void felica_wcnt_increment(FelicaData* data);
+void felica_wcnt_increment(FelicaData *data);
 
 /** Compares IDm of card loaded for emulation with IDm from request.
  *
@@ -132,7 +128,7 @@ void felica_wcnt_increment(FelicaData* data);
  *
  * @return     True if IDms' are equal, otherwise false.
  */
-bool felica_listener_check_idm(const FelicaListener* instance, const FelicaIDm* request_idm);
+bool felica_listener_check_idm(const FelicaListener *instance, const FelicaIDm *request_idm);
 
 /** This is the first request validation function.
  *
@@ -149,9 +145,8 @@ bool felica_listener_check_idm(const FelicaListener* instance, const FelicaIDm* 
  * @return     True if block element list contains valid amount of data,
  *             otherwise false.
  */
-bool felica_listener_check_block_list_size(
-    FelicaListener* instance,
-    FelicaListenerGenericRequest* request);
+bool felica_listener_check_block_list_size(FelicaListener *instance,
+                                           FelicaListenerGenericRequest *request);
 
 /** Used to take first element from block element list.
  *
@@ -166,9 +161,9 @@ bool felica_listener_check_block_list_size(
  * @return     Pointer to the first element of the list or NULL if there is not
  *             enough bytes in the request.
  */
-const FelicaBlockListElement* felica_listener_block_list_item_get_first(
-    FelicaListener* instance,
-    const FelicaListenerRequest* request);
+const FelicaBlockListElement *
+felica_listener_block_list_item_get_first(FelicaListener *instance,
+                                          const FelicaListenerRequest *request);
 
 /** Used to take next element from block element list.
  *
@@ -181,9 +176,9 @@ const FelicaBlockListElement* felica_listener_block_list_item_get_first(
  * @return     Pointer to the next element of the list or NULL if there is not
  *             enough bytes in the request.
  */
-const FelicaBlockListElement* felica_listener_block_list_item_get_next(
-    FelicaListener* instance,
-    const FelicaBlockListElement* prev_item);
+const FelicaBlockListElement *
+felica_listener_block_list_item_get_next(FelicaListener *instance,
+                                         const FelicaBlockListElement *prev_item);
 
 /** Calculates pointer to data blocks in case of write operation, because block
  * list elements size can vary.
@@ -196,9 +191,9 @@ const FelicaBlockListElement* felica_listener_block_list_item_get_next(
  *
  * @return     Pointer to data blocks for write operation.
  */
-const FelicaListenerWriteBlockData* felica_listener_get_write_request_data_pointer(
-    const FelicaListener* const instance,
-    const FelicaListenerGenericRequest* const generic_request);
+const FelicaListenerWriteBlockData *felica_listener_get_write_request_data_pointer(
+    const FelicaListener *const instance,
+    const FelicaListenerGenericRequest *const generic_request);
 
 /** Function validates write request data and sets Felica SF1 and SF2 flags
  * directly to the response.
@@ -220,10 +215,8 @@ const FelicaListenerWriteBlockData* felica_listener_get_write_request_data_point
  *             information about the error.
  */
 bool felica_listener_validate_write_request_and_set_sf(
-    FelicaListener* instance,
-    const FelicaListenerWriteRequest* const request,
-    const FelicaListenerWriteBlockData* const data,
-    FelicaListenerWriteCommandResponse* response);
+    FelicaListener *instance, const FelicaListenerWriteRequest *const request,
+    const FelicaListenerWriteBlockData *const data, FelicaListenerWriteCommandResponse *response);
 
 /** Function validates read request data and sets Felica SF1 and SF2 flags
  * directly to the response.
@@ -246,9 +239,8 @@ bool felica_listener_validate_write_request_and_set_sf(
  *             information about the error.
  */
 bool felica_listener_validate_read_request_and_set_sf(
-    FelicaListener* instance,
-    const FelicaListenerReadRequest* const request,
-    FelicaCommandResponseHeader* resp_header);
+    FelicaListener *instance, const FelicaListenerReadRequest *const request,
+    FelicaCommandResponseHeader *resp_header);
 
 /** Function returns appropiate block handler for processing read operation
  * depending on number of block.
@@ -275,5 +267,5 @@ FelicaCommandWriteBlockHandler felica_listener_get_write_block_handler(const uin
  *
  * @return     error code or FelicaErrorNone.
  */
-FelicaError
-    felica_listener_frame_exchange(const FelicaListener* instance, const BitBuffer* tx_buffer);
+FelicaError felica_listener_frame_exchange(const FelicaListener *instance,
+                                           const BitBuffer *tx_buffer);

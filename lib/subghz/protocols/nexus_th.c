@@ -24,7 +24,7 @@
  * - const is always 1111 (0x0F)
  * - humidity is 8 bits
  * The sensors can be bought at Clas Ohlsen (Nexus) and Pearl (infactory/FreeTec).
- * 
+ *
  *  Generate test files: https://htotoo.github.io/FlipperSUBGenerator/nexus-th-generator/index.html
  */
 
@@ -57,9 +57,10 @@ typedef enum {
     Nexus_THDecoderStepCheckDuration,
 } Nexus_THDecoderStep;
 
-void* ws_protocol_encoder_nexus_th_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_encoder_nexus_th_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolEncoderNexus_TH* instance = malloc(sizeof(WSProtocolEncoderNexus_TH));
+    WSProtocolEncoderNexus_TH *instance = malloc(sizeof(WSProtocolEncoderNexus_TH));
 
     instance->base.protocol = &ws_protocol_nexus_th;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -71,83 +72,90 @@ void* ws_protocol_encoder_nexus_th_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void ws_protocol_encoder_nexus_th_free(void* context) {
+void ws_protocol_encoder_nexus_th_free(void *context)
+{
     furi_assert(context);
-    WSProtocolEncoderNexus_TH* instance = context;
+    WSProtocolEncoderNexus_TH *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
 
-void* ws_protocol_decoder_nexus_th_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_nexus_th_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderNexus_TH* instance = malloc(sizeof(WSProtocolDecoderNexus_TH));
+    WSProtocolDecoderNexus_TH *instance = malloc(sizeof(WSProtocolDecoderNexus_TH));
     instance->base.protocol = &ws_protocol_nexus_th;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_nexus_th_free(void* context) {
+void ws_protocol_decoder_nexus_th_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_nexus_th_reset(void* context) {
+void ws_protocol_decoder_nexus_th_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
     instance->decoder.parser_step = Nexus_THDecoderStepReset;
 }
 
-static bool ws_protocol_nexus_th_check(WSProtocolDecoderNexus_TH* instance) {
+static bool ws_protocol_nexus_th_check(WSProtocolDecoderNexus_TH *instance)
+{
     uint8_t type = (instance->decoder.decode_data >> 8) & 0x0F;
 
-    if(type != NEXUS_TH_CONST_DATA) return false;
-    if((instance->decoder.decode_data >> 4) == 0xffffffff) return false;
+    if (type != NEXUS_TH_CONST_DATA)
+        return false;
+    if ((instance->decoder.decode_data >> 4) == 0xffffffff)
+        return false;
 
-    if(!((instance->decoder.decode_data >> 23) & 1) &&
-       ((instance->decoder.decode_data >> 12) & 0x07FF) > 1000)
+    if (!((instance->decoder.decode_data >> 23) & 1) &&
+        ((instance->decoder.decode_data >> 12) & 0x07FF) > 1000)
         return false; // temp>100C
-    if(((instance->decoder.decode_data >> 23) & 1) &&
-       (~(instance->decoder.decode_data >> 12) & 0x07FF) > 500)
+    if (((instance->decoder.decode_data >> 23) & 1) &&
+        (~(instance->decoder.decode_data >> 12) & 0x07FF) > 500)
         return false; // temp<-50C
-    if((instance->decoder.decode_data & 0xFF) > 100) return false; // hum>100
+    if ((instance->decoder.decode_data & 0xFF) > 100)
+        return false; // hum>100
 
     // The nexus protocol will trigger on rubicson data, so calculate the rubicson crc and make sure
     // it doesn't match. By guesstimate it should generate a correct crc 1/255% of the times.
     // So less then 0.5% which should be acceptable.
     uint8_t msg_rubicson_crc[] = {
-        instance->decoder.decode_data >> 28,
-        instance->decoder.decode_data >> 20,
-        instance->decoder.decode_data >> 12,
-        0xf0,
+        instance->decoder.decode_data >> 28, instance->decoder.decode_data >> 20,
+        instance->decoder.decode_data >> 12, 0xf0,
         (instance->decoder.decode_data & 0xf0) | (instance->decoder.decode_data & 0x0f)};
 
-    if(subghz_protocol_blocks_crc8(msg_rubicson_crc, 5, 0x31, 0x6c) == 0)
+    if (subghz_protocol_blocks_crc8(msg_rubicson_crc, 5, 0x31, 0x6c) == 0)
         return false; // rubicson match, probably not a Nexus
 
     return true;
 }
 
-static bool ws_protocol_encoder_nexus_th_get_upload(WSProtocolEncoderNexus_TH* instance) {
+static bool ws_protocol_encoder_nexus_th_get_upload(WSProtocolEncoderNexus_TH *instance)
+{
     furi_assert(instance);
     size_t index = 0;
     size_t size_upload = (instance->generic.data_count_bit * 2) + 2;
-    if(size_upload > instance->encoder.size_upload) {
+    if (size_upload > instance->encoder.size_upload) {
         FURI_LOG_E(TAG, "Size upload exceeds allocated encoder buffer.");
         return false;
     } else {
         instance->encoder.size_upload = size_upload;
     }
 
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(!bit_read(instance->generic.data, i - 1)) {
-            //send bit 1
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (!bit_read(instance->generic.data, i - 1)) {
+            // send bit 1
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)ws_protocol_nexus_th_const.te_short);
             instance->encoder.upload[index++] =
                 level_duration_make(false, (uint32_t)ws_protocol_nexus_th_const.te_short * 2);
         } else {
-            //send bit 0
+            // send bit 0
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)ws_protocol_nexus_th_const.te_short);
             instance->encoder.upload[index++] =
@@ -163,55 +171,58 @@ static bool ws_protocol_encoder_nexus_th_get_upload(WSProtocolEncoderNexus_TH* i
     return true;
 }
 
-SubGhzProtocolStatus
-    ws_protocol_encoder_nexus_th_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_encoder_nexus_th_deserialize(void *context,
+                                                              FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolEncoderNexus_TH* instance = context;
+    WSProtocolEncoderNexus_TH *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = ws_block_generic_deserialize(&instance->generic, flipper_format);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
-        if((instance->generic.data_count_bit >
-            ws_protocol_nexus_th_const.min_count_bit_for_found + 1)) {
+        if ((instance->generic.data_count_bit >
+             ws_protocol_nexus_th_const.min_count_bit_for_found + 1)) {
             FURI_LOG_E(TAG, "Wrong number of bits in key");
             ret = SubGhzProtocolStatusErrorValueBitCount;
             break;
         }
-        //optional parameter parameter
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 12);
+        // optional parameter parameter
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   12);
 
-        if(!ws_protocol_encoder_nexus_th_get_upload(instance)) {
+        if (!ws_protocol_encoder_nexus_th_get_upload(instance)) {
             ret = SubGhzProtocolStatusErrorEncoderGetUpload;
             break;
         }
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-LevelDuration ws_protocol_encoder_nexus_th_yield(void* context) {
-    WSProtocolEncoderNexus_TH* instance = context;
+LevelDuration ws_protocol_encoder_nexus_th_yield(void *context)
+{
+    WSProtocolEncoderNexus_TH *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
+    if (++instance->encoder.front == instance->encoder.size_upload) {
         instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
     return ret;
 }
 
-void ws_protocol_encoder_nexus_th_stop(void* context) {
-    WSProtocolEncoderNexus_TH* instance = context;
+void ws_protocol_encoder_nexus_th_stop(void *context)
+{
+    WSProtocolEncoderNexus_TH *instance = context;
     instance->encoder.is_running = false;
 }
 
@@ -219,35 +230,37 @@ void ws_protocol_encoder_nexus_th_stop(void* context) {
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_nexus_th_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_nexus_th_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 28) & 0xFF;
     instance->battery_low = !((instance->data >> 27) & 1);
     instance->channel = ((instance->data >> 24) & 0x03) + 1;
     instance->btn = WS_NO_BTN;
-    if(!((instance->data >> 23) & 1)) {
+    if (!((instance->data >> 23) & 1)) {
         instance->temp = (float)((instance->data >> 12) & 0x07FF) / 10.0f;
     } else {
         instance->temp = (float)((~(instance->data >> 12) & 0x07FF) + 1) / -10.0f;
     }
 
     instance->humidity = instance->data & 0xFF;
-    if(instance->humidity > 95)
+    if (instance->humidity > 95)
         instance->humidity = 95;
-    else if(instance->humidity == 0)
+    else if (instance->humidity == 0)
         instance->humidity = WS_NO_HUMIDITY;
-    else if(instance->humidity < 20)
+    else if (instance->humidity < 20)
         instance->humidity = 20;
 }
 
-void ws_protocol_decoder_nexus_th_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_nexus_th_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Nexus_THDecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 8) <
-                        ws_protocol_nexus_th_const.te_delta * 4)) {
-            //Found sync
+        if ((!level) && (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 8) <
+                         ws_protocol_nexus_th_const.te_delta * 4)) {
+            // Found sync
             instance->decoder.parser_step = Nexus_THDecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -255,7 +268,7 @@ void ws_protocol_decoder_nexus_th_feed(void* context, bool level, uint32_t durat
         break;
 
     case Nexus_THDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Nexus_THDecoderStepCheckDuration;
         } else {
@@ -264,18 +277,18 @@ void ws_protocol_decoder_nexus_th_feed(void* context, bool level, uint32_t durat
         break;
 
     case Nexus_THDecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 8) <
-               ws_protocol_nexus_th_const.te_delta * 4) {
-                //Found sync
+        if (!level) {
+            if (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 8) <
+                ws_protocol_nexus_th_const.te_delta * 4) {
+                // Found sync
                 instance->decoder.parser_step = Nexus_THDecoderStepReset;
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_nexus_th_const.min_count_bit_for_found) &&
-                   ws_protocol_nexus_th_check(instance)) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_nexus_th_const.min_count_bit_for_found) &&
+                    ws_protocol_nexus_th_check(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_nexus_th_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                     instance->decoder.parser_step = Nexus_THDecoderStepCheckDuration;
                 }
@@ -283,18 +296,18 @@ void ws_protocol_decoder_nexus_th_feed(void* context, bool level, uint32_t durat
                 instance->decoder.decode_count_bit = 0;
 
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_nexus_th_const.te_short) <
-                 ws_protocol_nexus_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 2) <
-                 ws_protocol_nexus_th_const.te_delta * 2)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_nexus_th_const.te_short) <
+                        ws_protocol_nexus_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 2) <
+                        ws_protocol_nexus_th_const.te_delta * 2)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = Nexus_THDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_nexus_th_const.te_short) <
-                 ws_protocol_nexus_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 4) <
-                 ws_protocol_nexus_th_const.te_delta * 4)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_nexus_th_const.te_short) <
+                        ws_protocol_nexus_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_nexus_th_const.te_short * 4) <
+                        ws_protocol_nexus_th_const.te_delta * 4)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = Nexus_THDecoderStepSaveDuration;
             } else {
@@ -307,33 +320,36 @@ void ws_protocol_decoder_nexus_th_feed(void* context, bool level, uint32_t durat
     }
 }
 
-uint32_t ws_protocol_decoder_nexus_th_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_nexus_th_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderNexus_TH *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_nexus_th_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_nexus_th_serialize(void *context,
+                                                            FlipperFormat *flipper_format,
+                                                            SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_nexus_th_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_nexus_th_deserialize(void *context,
+                                                              FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_nexus_th_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_nexus_th_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_nexus_th_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderNexus_TH* instance = context;
+    WSProtocolDecoderNexus_TH *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }
 

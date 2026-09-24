@@ -18,14 +18,12 @@ typedef enum {
     ManchesterEncoderResultShortHigh = 0b11,
 } ManchesterEncoderResult;
 
-void manchester_encoder_reset(ManchesterEncoderState* state);
+void manchester_encoder_reset(ManchesterEncoderState *state);
 
-bool manchester_encoder_advance(
-    ManchesterEncoderState* state,
-    const bool curr_bit,
-    ManchesterEncoderResult* result);
+bool manchester_encoder_advance(ManchesterEncoderState *state, const bool curr_bit,
+                                ManchesterEncoderResult *result);
 
-ManchesterEncoderResult manchester_encoder_finish(ManchesterEncoderState* state);
+ManchesterEncoderResult manchester_encoder_finish(ManchesterEncoderState *state);
 
 #ifdef __cplusplus
 }

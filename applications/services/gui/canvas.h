@@ -91,7 +91,7 @@ typedef struct Canvas Canvas;
  *
  * @return     pointer to buffer
  */
-uint8_t* canvas_get_buffer(Canvas* canvas);
+uint8_t *canvas_get_buffer(Canvas *canvas);
 
 /** Get canvas buffer size.
  *
@@ -99,19 +99,19 @@ uint8_t* canvas_get_buffer(Canvas* canvas);
  *
  * @return     size of canvas in bytes
  */
-size_t canvas_get_buffer_size(const Canvas* canvas);
+size_t canvas_get_buffer_size(const Canvas *canvas);
 
 /** Reset canvas drawing tools configuration
  *
  * @param      canvas  Canvas instance
  */
-void canvas_reset(Canvas* canvas);
+void canvas_reset(Canvas *canvas);
 
 /** Commit canvas. Send buffer to display
  *
  * @param      canvas  Canvas instance
  */
-void canvas_commit(Canvas* canvas);
+void canvas_commit(Canvas *canvas);
 
 /** Get Canvas width
  *
@@ -119,7 +119,7 @@ void canvas_commit(Canvas* canvas);
  *
  * @return     width in pixels.
  */
-size_t canvas_width(const Canvas* canvas);
+size_t canvas_width(const Canvas *canvas);
 
 /** Get Canvas height
  *
@@ -127,7 +127,7 @@ size_t canvas_width(const Canvas* canvas);
  *
  * @return     height in pixels.
  */
-size_t canvas_height(const Canvas* canvas);
+size_t canvas_height(const Canvas *canvas);
 
 /** Get current font height
  *
@@ -135,7 +135,7 @@ size_t canvas_height(const Canvas* canvas);
  *
  * @return     height in pixels.
  */
-size_t canvas_current_font_height(const Canvas* canvas);
+size_t canvas_current_font_height(const Canvas *canvas);
 
 /** Get current font width
  *
@@ -143,7 +143,7 @@ size_t canvas_current_font_height(const Canvas* canvas);
  *
  * @return     width in pixels.
  */
-size_t canvas_current_font_width(const Canvas* canvas);
+size_t canvas_current_font_width(const Canvas *canvas);
 
 /** Get font parameters
  *
@@ -152,47 +152,47 @@ size_t canvas_current_font_width(const Canvas* canvas);
  *
  * @return     pointer to CanvasFontParameters structure
  */
-const CanvasFontParameters* canvas_get_font_params(const Canvas* canvas, Font font);
+const CanvasFontParameters *canvas_get_font_params(const Canvas *canvas, Font font);
 
 /** Clear canvas
  *
  * @param      canvas  Canvas instance
  */
-void canvas_clear(Canvas* canvas);
+void canvas_clear(Canvas *canvas);
 
 /** Set drawing color
  *
  * @param      canvas  Canvas instance
  * @param      color   Color
  */
-void canvas_set_color(Canvas* canvas, Color color);
+void canvas_set_color(Canvas *canvas, Color color);
 
 /** Set font swap Argument String Rotation Description
  *
  * @param      canvas  Canvas instance
  * @param      dir     Direction font
  */
-void canvas_set_font_direction(Canvas* canvas, CanvasDirection dir);
+void canvas_set_font_direction(Canvas *canvas, CanvasDirection dir);
 
 /** Invert drawing color
  *
  * @param      canvas  Canvas instance
  */
-void canvas_invert_color(Canvas* canvas);
+void canvas_invert_color(Canvas *canvas);
 
 /** Set drawing font
  *
  * @param      canvas  Canvas instance
  * @param      font    Font
  */
-void canvas_set_font(Canvas* canvas, Font font);
+void canvas_set_font(Canvas *canvas, Font font);
 
 /** Set custom drawing font
  *
  * @param      canvas  Canvas instance
  * @param      font    Pointer to u8g2 const uint8_t* font array
  */
-void canvas_set_custom_u8g2_font(Canvas* canvas, const uint8_t* font);
+void canvas_set_custom_u8g2_font(Canvas *canvas, const uint8_t *font);
 
 /** Draw string at position of baseline defined by x, y.
  *
@@ -201,7 +201,7 @@ void canvas_set_custom_u8g2_font(Canvas* canvas, const uint8_t* font);
  * @param      y       anchor point y coordinate
  * @param      str     C-string
  */
-void canvas_draw_str(Canvas* canvas, int32_t x, int32_t y, const char* str);
+void canvas_draw_str(Canvas *canvas, int32_t x, int32_t y, const char *str);
 
 /** Draw aligned string defined by x, y.
  *
@@ -215,13 +215,8 @@ void canvas_draw_str(Canvas* canvas, int32_t x, int32_t y, const char* str);
  * @param      vertical    vertical alignment
  * @param      str         C-string
  */
-void canvas_draw_str_aligned(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    Align horizontal,
-    Align vertical,
-    const char* str);
+void canvas_draw_str_aligned(Canvas *canvas, int32_t x, int32_t y, Align horizontal, Align vertical,
+                             const char *str);
 
 /** Get string width
  *
@@ -230,7 +225,7 @@ void canvas_draw_str_aligned(
  *
  * @return     width in pixels.
  */
-uint16_t canvas_string_width(Canvas* canvas, const char* str);
+uint16_t canvas_string_width(Canvas *canvas, const char *str);
 
 /** Get glyph width
  *
@@ -239,7 +234,7 @@ uint16_t canvas_string_width(Canvas* canvas, const char* str);
  *
  * @return     width in pixels
  */
-size_t canvas_glyph_width(Canvas* canvas, uint16_t symbol);
+size_t canvas_glyph_width(Canvas *canvas, uint16_t symbol);
 
 /** Draw bitmap picture at position defined by x,y.
  *
@@ -250,13 +245,8 @@ size_t canvas_glyph_width(Canvas* canvas, uint16_t symbol);
  * @param      height                  height of bitmap
  * @param      compressed_bitmap_data  compressed bitmap data
  */
-void canvas_draw_bitmap(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    const uint8_t* compressed_bitmap_data);
+void canvas_draw_bitmap(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        const uint8_t *compressed_bitmap_data);
 
 /** Draw icon at position defined by x,y with rotation and flip.
  *
@@ -266,12 +256,8 @@ void canvas_draw_bitmap(
  * @param      icon      Icon instance
  * @param      rotation  IconRotation
  */
-void canvas_draw_icon_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    const Icon* icon,
-    IconRotation rotation);
+void canvas_draw_icon_ex(Canvas *canvas, int32_t x, int32_t y, const Icon *icon,
+                         IconRotation rotation);
 
 /** Draw animation at position defined by x,y.
  *
@@ -283,11 +269,8 @@ void canvas_draw_icon_ex(
  * @param      y               y coordinate
  * @param      icon_animation  IconAnimation instance
  */
-void canvas_draw_icon_animation(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    IconAnimation* icon_animation);
+void canvas_draw_icon_animation(Canvas *canvas, int32_t x, int32_t y,
+                                IconAnimation *icon_animation);
 
 /** Draw animation at position defined by x,y with scaling.
  *
@@ -301,13 +284,8 @@ void canvas_draw_icon_animation(
  * @param      height_scale    Scaled (%) height of the icon (1–100%)
  * @param      icon_animation  IconAnimation instance
  */
-void canvas_draw_icon_animation_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    int32_t width_scale,
-    int32_t height_scale,
-    IconAnimation* icon_animation);
+void canvas_draw_icon_animation_ex(Canvas *canvas, int32_t x, int32_t y, int32_t width_scale,
+                                   int32_t height_scale, IconAnimation *icon_animation);
 
 /** Draw icon at position defined by x,y.
  *
@@ -316,7 +294,7 @@ void canvas_draw_icon_animation_ex(
  * @param      y       y coordinate
  * @param      icon    Icon instance
  */
-void canvas_draw_icon(Canvas* canvas, int32_t x, int32_t y, const Icon* icon);
+void canvas_draw_icon(Canvas *canvas, int32_t x, int32_t y, const Icon *icon);
 
 /** Draw XBM bitmap
  *
@@ -327,13 +305,8 @@ void canvas_draw_icon(Canvas* canvas, int32_t x, int32_t y, const Icon* icon);
  * @param[in]  height  bitmap height
  * @param      bitmap  pointer to XBM bitmap data
  */
-void canvas_draw_xbm(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    const uint8_t* bitmap);
+void canvas_draw_xbm(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                     const uint8_t *bitmap);
 
 /** Draw rotated XBM bitmap
  *
@@ -345,14 +318,8 @@ void canvas_draw_xbm(
  * @param[in]  rotation     bitmap rotation
  * @param      bitmap_data  pointer to XBM bitmap data
  */
-void canvas_draw_xbm_ex(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    IconRotation rotation,
-    const uint8_t* bitmap_data);
+void canvas_draw_xbm_ex(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        IconRotation rotation, const uint8_t *bitmap_data);
 
 /** Draw dot at x,y
  *
@@ -360,13 +327,13 @@ void canvas_draw_xbm_ex(
  * @param      x       x coordinate
  * @param      y       y coordinate
  */
-void canvas_draw_dot(Canvas* canvas, int32_t x, int32_t y);
+void canvas_draw_dot(Canvas *canvas, int32_t x, int32_t y);
 
 /** Draw overlay
  *
  * @param      canvas  Canvas instance
  */
-void canvas_draw_overlay(Canvas* canvas);
+void canvas_draw_overlay(Canvas *canvas);
 
 /** Draw box of width, height at x,y
  *
@@ -376,7 +343,7 @@ void canvas_draw_overlay(Canvas* canvas);
  * @param      width   box width
  * @param      height  box height
  */
-void canvas_draw_box(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height);
+void canvas_draw_box(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height);
 
 /** Draw frame of width, height at x,y
  *
@@ -386,7 +353,7 @@ void canvas_draw_box(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t 
  * @param      width   frame width
  * @param      height  frame height
  */
-void canvas_draw_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height);
+void canvas_draw_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height);
 
 /** Draw line from x1,y1 to x2,y2
  *
@@ -396,7 +363,7 @@ void canvas_draw_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_
  * @param      x2      x2 coordinate
  * @param      y2      y2 coordinate
  */
-void canvas_draw_line(Canvas* canvas, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
+void canvas_draw_line(Canvas *canvas, int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 
 /** Draw circle at x,y with radius r
  *
@@ -405,7 +372,7 @@ void canvas_draw_line(Canvas* canvas, int32_t x1, int32_t y1, int32_t x2, int32_
  * @param      y       y coordinate
  * @param      radius  radius
  */
-void canvas_draw_circle(Canvas* canvas, int32_t x, int32_t y, size_t radius);
+void canvas_draw_circle(Canvas *canvas, int32_t x, int32_t y, size_t radius);
 
 /** Draw disc at x,y with radius r
  *
@@ -414,7 +381,7 @@ void canvas_draw_circle(Canvas* canvas, int32_t x, int32_t y, size_t radius);
  * @param      y       y coordinate
  * @param      radius  radius
  */
-void canvas_draw_disc(Canvas* canvas, int32_t x, int32_t y, size_t radius);
+void canvas_draw_disc(Canvas *canvas, int32_t x, int32_t y, size_t radius);
 
 /** Draw triangle with given base and height lengths and their intersection
  * coordinate
@@ -426,13 +393,8 @@ void canvas_draw_disc(Canvas* canvas, int32_t x, int32_t y, size_t radius);
  * @param      height  length of triangle height
  * @param      dir     CanvasDirection triangle orientation
  */
-void canvas_draw_triangle(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t base,
-    size_t height,
-    CanvasDirection dir);
+void canvas_draw_triangle(Canvas *canvas, int32_t x, int32_t y, size_t base, size_t height,
+                          CanvasDirection dir);
 
 /** Draw glyph
  *
@@ -441,14 +403,14 @@ void canvas_draw_triangle(
  * @param      y       y coordinate
  * @param      ch      character
  */
-void canvas_draw_glyph(Canvas* canvas, int32_t x, int32_t y, uint16_t ch);
+void canvas_draw_glyph(Canvas *canvas, int32_t x, int32_t y, uint16_t ch);
 
 /** Set transparency mode
  *
  * @param      canvas  Canvas instance
  * @param      alpha   transparency mode
  */
-void canvas_set_bitmap_mode(Canvas* canvas, bool alpha);
+void canvas_set_bitmap_mode(Canvas *canvas, bool alpha);
 
 /** Draw rounded-corner frame of width, height at x,y, with round value radius
  *
@@ -459,13 +421,8 @@ void canvas_set_bitmap_mode(Canvas* canvas, bool alpha);
  * @param      height  frame height
  * @param      radius  frame corner radius
  */
-void canvas_draw_rframe(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    size_t radius);
+void canvas_draw_rframe(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                        size_t radius);
 
 /** Draw rounded-corner box of width, height at x,y, with round value radius
  *
@@ -476,13 +433,8 @@ void canvas_draw_rframe(
  * @param      height  box height
  * @param      radius  box corner radius
  */
-void canvas_draw_rbox(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    size_t radius);
+void canvas_draw_rbox(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                      size_t radius);
 
 #ifdef __cplusplus
 }

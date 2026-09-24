@@ -15,11 +15,15 @@
 
 typedef uintptr_t mjs_val_t;
 typedef int mjs_err_t;
-typedef struct { bool stopped; } FuriEventLoop;
-typedef struct { bool taken; } FuriSemaphore;
+typedef struct {
+    bool stopped;
+} FuriEventLoop;
+typedef struct {
+    bool taken;
+} FuriSemaphore;
 typedef enum { JsEventLoopObjectTypeSemaphore, JsEventLoopObjectTypeQueue } JsEventLoopObjectType;
 struct mjs {
-    mjs_val_t* roots[4];
+    mjs_val_t *roots[4];
     mjs_val_t returned[2];
     size_t returned_count;
     mjs_val_t expected_payload;
@@ -28,44 +32,54 @@ struct mjs {
     unsigned calls;
 };
 typedef struct {
-    FuriEventLoop* event_loop;
+    FuriEventLoop *event_loop;
     JsEventLoopObjectType object_type;
-    struct mjs* mjs;
+    struct mjs *mjs;
     mjs_val_t callback;
-    mjs_val_t* arguments;
+    mjs_val_t *arguments;
     size_t arity;
-    mjs_val_t (*transformer)(struct mjs*, void*, void*);
-    void* transformer_context;
+    mjs_val_t (*transformer)(struct mjs *, void *, void *);
+    void *transformer_context;
 } JsEventLoopCallbackContext;
 
-static mjs_err_t mjs_apply(struct mjs* mjs, mjs_val_t* result, mjs_val_t callback,
-    mjs_val_t this_value, size_t arity, mjs_val_t* args) {
+static mjs_err_t mjs_apply(struct mjs *mjs, mjs_val_t *result, mjs_val_t callback,
+                           mjs_val_t this_value, size_t arity, mjs_val_t *args)
+{
     assert(callback == 99 && this_value == MJS_UNDEFINED && arity == 4);
-    for(size_t i = 0; i < arity; i++) assert(mjs->roots[i] == &args[i]);
+    for (size_t i = 0; i < arity; i++)
+        assert(mjs->roots[i] == &args[i]);
     assert(args[1] == mjs->expected_payload);
     mjs->calls++;
     *result = 100;
     return mjs->error;
 }
-static size_t mjs_array_length(struct mjs* mjs, mjs_val_t result) {
+static size_t mjs_array_length(struct mjs *mjs, mjs_val_t result)
+{
     assert(result == 100);
     return mjs->returned_count;
 }
-static mjs_val_t mjs_array_get(struct mjs* mjs, mjs_val_t result, size_t index) {
+static mjs_val_t mjs_array_get(struct mjs *mjs, mjs_val_t result, size_t index)
+{
     assert(result == 100 && index < mjs->returned_count);
     return mjs->returned[index];
 }
-static unsigned js_flags_wait(struct mjs* mjs, unsigned flags, unsigned timeout) {
+static unsigned js_flags_wait(struct mjs *mjs, unsigned flags, unsigned timeout)
+{
     assert(flags == ThreadEventStop && timeout == 0);
     return mjs->stop_requested ? ThreadEventStop : 0;
 }
-static void furi_event_loop_stop(FuriEventLoop* loop) { loop->stopped = true; }
-static int furi_semaphore_acquire(FuriSemaphore* sem, unsigned timeout) {
+static void furi_event_loop_stop(FuriEventLoop *loop)
+{
+    loop->stopped = true;
+}
+static int furi_semaphore_acquire(FuriSemaphore *sem, unsigned timeout)
+{
     assert(timeout == 0);
     sem->taken = true;
     return FuriStatusOk;
 }
-static mjs_val_t transform(struct mjs* mjs, void* object, void* context) {
+static mjs_val_t transform(struct mjs *mjs, void *object, void *context)
+{
     assert(object == context);
     /* The payload slot stays registered even while the transformer runs. */
     assert(mjs->roots[1] && *mjs->roots[1] == MJS_UNDEFINED);
@@ -73,17 +87,24 @@ static mjs_val_t transform(struct mjs* mjs, void* object, void* context) {
 }
 /* PRODUCTION_CODE */
 
-int main(void) {
+int main(void)
+{
     struct mjs mjs = {.returned = {7, 8}, .returned_count = 2, .expected_payload = 12345};
     FuriEventLoop loop = {0};
     mjs_val_t args[] = {1, MJS_UNDEFINED, 3, 4};
-    for(size_t i = 0; i < 4; i++) mjs.roots[i] = &args[i];
+    for (size_t i = 0; i < 4; i++)
+        mjs.roots[i] = &args[i];
     JsEventLoopCallbackContext context = {
-        .event_loop = &loop, .object_type = JsEventLoopObjectTypeQueue,
-        .mjs = &mjs, .callback = 99, .arguments = args, .arity = 4,
-        .transformer = transform, .transformer_context = &mjs,
+        .event_loop = &loop,
+        .object_type = JsEventLoopObjectTypeQueue,
+        .mjs = &mjs,
+        .callback = 99,
+        .arguments = args,
+        .arity = 4,
+        .transformer = transform,
+        .transformer_context = &mjs,
     };
-    for(unsigned i = 0; i < 1000; i++) {
+    for (unsigned i = 0; i < 1000; i++) {
         js_event_loop_callback(&mjs, &context);
         assert(args[1] == MJS_UNDEFINED && args[2] == 7 && args[3] == 8);
         assert(!loop.stopped);

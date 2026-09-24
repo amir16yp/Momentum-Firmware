@@ -34,7 +34,7 @@ typedef struct {
     uint16_t manufacturing_year;
 } SDInfo;
 
-const char* sd_api_get_fs_type_text(SDFsType fs_type);
+const char *sd_api_get_fs_type_text(SDFsType fs_type);
 
 #ifdef __cplusplus
 }

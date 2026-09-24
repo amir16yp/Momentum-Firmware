@@ -5,7 +5,7 @@
 /*
  * Help
  * https://github.com/merbanan/rtl_433/blob/master/src/devices/gt_wt_02.c
- * 
+ *
  *  GT-WT-02 sensor on 433.92MHz.
  * Example and frame description provided by https://github.com/ludwich66
  *    [01] {37} 34 00 ed 47 60 : 00110100 00000000 11101101 01000111 01100000
@@ -27,8 +27,8 @@
  * - H = Humidity = 7 Bit bin2dez 00-99, Display LL=10%, Display HH=110% (Range 20-90%)
  * - X = Checksum, sum modulo 64
  * A Lidl AURIO (from 12/2018) with PCB marking YJ-T12 V02 has two extra bits in front.
- * 
-*/
+ *
+ */
 
 static const SubGhzBlockConst ws_protocol_gt_wt_02_const = {
     .te_short = 500,
@@ -94,31 +94,36 @@ const SubGhzProtocol ws_protocol_gt_wt_02 = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_gt_wt_02_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_gt_wt_02_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderGT_WT02* instance = malloc(sizeof(WSProtocolDecoderGT_WT02));
+    WSProtocolDecoderGT_WT02 *instance = malloc(sizeof(WSProtocolDecoderGT_WT02));
     instance->base.protocol = &ws_protocol_gt_wt_02;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_gt_wt_02_free(void* context) {
+void ws_protocol_decoder_gt_wt_02_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_gt_wt_02_reset(void* context) {
+void ws_protocol_decoder_gt_wt_02_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
     instance->decoder.parser_step = GT_WT02DecoderStepReset;
 }
 
-static bool ws_protocol_gt_wt_02_check(WSProtocolDecoderGT_WT02* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_gt_wt_02_check(WSProtocolDecoderGT_WT02 *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
     uint8_t sum = (instance->decoder.decode_data >> 5) & 0xe;
     uint64_t temp_data = instance->decoder.decode_data >> 9;
-    for(uint8_t i = 0; i < 7; i++) {
+    for (uint8_t i = 0; i < 7; i++) {
         sum += (temp_data >> (i * 4)) & 0xF;
     }
     return ((uint8_t)(instance->decoder.decode_data & 0x3F) == (sum & 0x3F));
@@ -128,34 +133,36 @@ static bool ws_protocol_gt_wt_02_check(WSProtocolDecoderGT_WT02* instance) {
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_gt_wt_02_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_gt_wt_02_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 29) & 0xFF;
     instance->battery_low = (instance->data >> 28) & 1;
     instance->btn = (instance->data >> 27) & 1;
     instance->channel = ((instance->data >> 25) & 0x3) + 1;
 
-    if(!((instance->data >> 24) & 1)) {
+    if (!((instance->data >> 24) & 1)) {
         instance->temp = (float)((instance->data >> 13) & 0x07FF) / 10.0f;
     } else {
         instance->temp = (float)((~(instance->data >> 13) & 0x07FF) + 1) / -10.0f;
     }
 
     instance->humidity = (instance->data >> 6) & 0x7F;
-    if(instance->humidity <= 10) // actually the sensors sends 10 below working range of 20%
+    if (instance->humidity <= 10) // actually the sensors sends 10 below working range of 20%
         instance->humidity = 0;
-    else if(instance->humidity > 90) // actually the sensors sends 110 above working range of 90%
+    else if (instance->humidity > 90) // actually the sensors sends 110 above working range of 90%
         instance->humidity = 100;
 }
 
-void ws_protocol_decoder_gt_wt_02_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_gt_wt_02_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case GT_WT02DecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_short * 18) <
-                        ws_protocol_gt_wt_02_const.te_delta * 8)) {
-            //Found syncPrefix
+        if ((!level) && (DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_short * 18) <
+                         ws_protocol_gt_wt_02_const.te_delta * 8)) {
+            // Found syncPrefix
             instance->decoder.parser_step = GT_WT02DecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -163,7 +170,7 @@ void ws_protocol_decoder_gt_wt_02_feed(void* context, bool level, uint32_t durat
         break;
 
     case GT_WT02DecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = GT_WT02DecoderStepCheckDuration;
         } else {
@@ -172,34 +179,32 @@ void ws_protocol_decoder_gt_wt_02_feed(void* context, bool level, uint32_t durat
         break;
 
     case GT_WT02DecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(instance->decoder.te_last, ws_protocol_gt_wt_02_const.te_short) <
-               ws_protocol_gt_wt_02_const.te_delta) {
-                if(DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_short * 18) <
-                   ws_protocol_gt_wt_02_const.te_delta * 8) {
-                    //Found syncPostfix
+        if (!level) {
+            if (DURATION_DIFF(instance->decoder.te_last, ws_protocol_gt_wt_02_const.te_short) <
+                ws_protocol_gt_wt_02_const.te_delta) {
+                if (DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_short * 18) <
+                    ws_protocol_gt_wt_02_const.te_delta * 8) {
+                    // Found syncPostfix
                     instance->decoder.parser_step = GT_WT02DecoderStepReset;
-                    if((instance->decoder.decode_count_bit ==
-                        ws_protocol_gt_wt_02_const.min_count_bit_for_found) &&
-                       ws_protocol_gt_wt_02_check(instance)) {
+                    if ((instance->decoder.decode_count_bit ==
+                         ws_protocol_gt_wt_02_const.min_count_bit_for_found) &&
+                        ws_protocol_gt_wt_02_check(instance)) {
                         instance->generic.data = instance->decoder.decode_data;
                         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                         ws_protocol_gt_wt_02_remote_controller(&instance->generic);
-                        if(instance->base.callback)
+                        if (instance->base.callback)
                             instance->base.callback(&instance->base, instance->base.context);
-                    } else if(instance->decoder.decode_count_bit == 1) {
+                    } else if (instance->decoder.decode_count_bit == 1) {
                         instance->decoder.parser_step = GT_WT02DecoderStepSaveDuration;
                     }
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_long) <
-                    ws_protocol_gt_wt_02_const.te_delta * 2) {
+                } else if (DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_long) <
+                           ws_protocol_gt_wt_02_const.te_delta * 2) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = GT_WT02DecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_long * 2) <
-                    ws_protocol_gt_wt_02_const.te_delta * 4) {
+                } else if (DURATION_DIFF(duration, ws_protocol_gt_wt_02_const.te_long * 2) <
+                           ws_protocol_gt_wt_02_const.te_delta * 4) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = GT_WT02DecoderStepSaveDuration;
                 } else {
@@ -215,32 +220,35 @@ void ws_protocol_decoder_gt_wt_02_feed(void* context, bool level, uint32_t durat
     }
 }
 
-uint32_t ws_protocol_decoder_gt_wt_02_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_gt_wt_02_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderGT_WT02 *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_gt_wt_02_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_gt_wt_02_serialize(void *context,
+                                                            FlipperFormat *flipper_format,
+                                                            SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_gt_wt_02_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_gt_wt_02_deserialize(void *context,
+                                                              FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_gt_wt_02_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_gt_wt_02_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_gt_wt_02_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderGT_WT02* instance = context;
+    WSProtocolDecoderGT_WT02 *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

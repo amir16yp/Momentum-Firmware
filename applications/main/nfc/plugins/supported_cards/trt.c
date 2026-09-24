@@ -7,19 +7,20 @@
 #include <nfc/protocols/mf_ultralight/mf_ultralight.h>
 #include <bit_lib.h>
 
-#define TAG                       "TrtParser"
-#define LATEST_SALE_MARKER        0x02
+#define TAG "TrtParser"
+#define LATEST_SALE_MARKER 0x02
 #define FULL_SALE_TIME_STAMP_PAGE 0x09
-#define BALANCE_PAGE              0x08
-#define SALE_RECORD_TIME_STAMP_A  0x0C
-#define SALE_RECORD_TIME_STAMP_B  0x0E
-#define SALE_YEAR_OFFSET          2000
+#define BALANCE_PAGE 0x08
+#define SALE_RECORD_TIME_STAMP_A 0x0C
+#define SALE_RECORD_TIME_STAMP_B 0x0E
+#define SALE_YEAR_OFFSET 2000
 
-static bool trt_parse(const NfcDevice* device, FuriString* parsed_data) {
+static bool trt_parse(const NfcDevice *device, FuriString *parsed_data)
+{
     furi_assert(device);
     furi_assert(parsed_data);
 
-    const MfUltralightData* data = nfc_device_get_data(device, NfcProtocolMfUltralight);
+    const MfUltralightData *data = nfc_device_get_data(device, NfcProtocolMfUltralight);
 
     bool parsed = false;
 
@@ -27,22 +28,22 @@ static bool trt_parse(const NfcDevice* device, FuriString* parsed_data) {
         uint8_t latest_sale_page = 0;
 
         // Look for sale record signature
-        if(data->page[SALE_RECORD_TIME_STAMP_A].data[0] == LATEST_SALE_MARKER) {
+        if (data->page[SALE_RECORD_TIME_STAMP_A].data[0] == LATEST_SALE_MARKER) {
             latest_sale_page = SALE_RECORD_TIME_STAMP_A;
-        } else if(data->page[SALE_RECORD_TIME_STAMP_B].data[0] == LATEST_SALE_MARKER) {
+        } else if (data->page[SALE_RECORD_TIME_STAMP_B].data[0] == LATEST_SALE_MARKER) {
             latest_sale_page = SALE_RECORD_TIME_STAMP_B;
         } else {
             break;
         }
 
         // Check if the sale record was backed up
-        const uint8_t* partial_record_pointer = &data->page[latest_sale_page - 1].data[0];
-        const uint8_t* full_record_pointer = &data->page[FULL_SALE_TIME_STAMP_PAGE].data[0];
+        const uint8_t *partial_record_pointer = &data->page[latest_sale_page - 1].data[0];
+        const uint8_t *full_record_pointer = &data->page[FULL_SALE_TIME_STAMP_PAGE].data[0];
         uint32_t latest_sale_record = bit_lib_get_bits_32(partial_record_pointer, 3, 20);
         uint32_t latest_sale_full_record = bit_lib_get_bits_32(full_record_pointer, 0, 27);
-        if(latest_sale_record != (latest_sale_full_record & 0xFFFFF))
+        if (latest_sale_record != (latest_sale_full_record & 0xFFFFF))
             break; // check if the copy matches
-        if((latest_sale_record == 0) || (latest_sale_full_record == 0))
+        if ((latest_sale_record == 0) || (latest_sale_full_record == 0))
             break; // prevent false positive
 
         // Parse date
@@ -62,16 +63,10 @@ static bool trt_parse(const NfcDevice* device, FuriString* parsed_data) {
         furi_string_cat_printf(parsed_data, "\e#TRT Tianjin Metro\n");
         furi_string_cat_printf(parsed_data, "Single-Use Ticket\n");
         furi_string_cat_printf(parsed_data, "Balance: %u.%02u RMB\n", balance_yuan, balance_cent);
-        furi_string_cat_printf(
-            parsed_data,
-            "Sale Date: \n%04u-%02d-%02d %02d:%02d",
-            sale_year,
-            sale_month,
-            sale_day,
-            sale_hour,
-            sale_minute);
+        furi_string_cat_printf(parsed_data, "Sale Date: \n%04u-%02d-%02d %02d:%02d", sale_year,
+                               sale_month, sale_day, sale_hour, sale_minute);
         parsed = true;
-    } while(false);
+    } while (false);
 
     return parsed;
 }
@@ -92,6 +87,7 @@ static const FlipperAppPluginDescriptor trt_plugin_descriptor = {
 };
 
 /* Plugin entry point - must return a pointer to const descriptor  */
-const FlipperAppPluginDescriptor* trt_plugin_ep(void) {
+const FlipperAppPluginDescriptor *trt_plugin_ep(void)
+{
     return &trt_plugin_descriptor;
 }

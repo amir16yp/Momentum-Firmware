@@ -6,22 +6,22 @@
 
 #define GALLAGHER_CLOCK_PER_BIT (32)
 
-#define GALLAGHER_ENCODED_BIT_SIZE   (96)
-#define GALLAGHER_ENCODED_BYTE_SIZE  ((GALLAGHER_ENCODED_BIT_SIZE) / 8)
-#define GALLAGHER_PREAMBLE_BIT_SIZE  (16)
+#define GALLAGHER_ENCODED_BIT_SIZE (96)
+#define GALLAGHER_ENCODED_BYTE_SIZE ((GALLAGHER_ENCODED_BIT_SIZE) / 8)
+#define GALLAGHER_PREAMBLE_BIT_SIZE (16)
 #define GALLAGHER_PREAMBLE_BYTE_SIZE ((GALLAGHER_PREAMBLE_BIT_SIZE) / 8)
-#define GALLAGHER_ENCODED_BYTE_FULL_SIZE \
+#define GALLAGHER_ENCODED_BYTE_FULL_SIZE                                                           \
     (GALLAGHER_ENCODED_BYTE_SIZE + GALLAGHER_PREAMBLE_BYTE_SIZE)
 #define GALLAGHER_DECODED_DATA_SIZE 8
 
-#define GALLAGHER_READ_SHORT_TIME  (128)
-#define GALLAGHER_READ_LONG_TIME   (256)
+#define GALLAGHER_READ_SHORT_TIME (128)
+#define GALLAGHER_READ_LONG_TIME (256)
 #define GALLAGHER_READ_JITTER_TIME (60)
 
-#define GALLAGHER_READ_SHORT_TIME_LOW  (GALLAGHER_READ_SHORT_TIME - GALLAGHER_READ_JITTER_TIME)
+#define GALLAGHER_READ_SHORT_TIME_LOW (GALLAGHER_READ_SHORT_TIME - GALLAGHER_READ_JITTER_TIME)
 #define GALLAGHER_READ_SHORT_TIME_HIGH (GALLAGHER_READ_SHORT_TIME + GALLAGHER_READ_JITTER_TIME)
-#define GALLAGHER_READ_LONG_TIME_LOW   (GALLAGHER_READ_LONG_TIME - GALLAGHER_READ_JITTER_TIME)
-#define GALLAGHER_READ_LONG_TIME_HIGH  (GALLAGHER_READ_LONG_TIME + GALLAGHER_READ_JITTER_TIME)
+#define GALLAGHER_READ_LONG_TIME_LOW (GALLAGHER_READ_LONG_TIME - GALLAGHER_READ_JITTER_TIME)
+#define GALLAGHER_READ_LONG_TIME_HIGH (GALLAGHER_READ_LONG_TIME + GALLAGHER_READ_JITTER_TIME)
 
 typedef struct {
     uint8_t data[GALLAGHER_DECODED_DATA_SIZE];
@@ -33,20 +33,24 @@ typedef struct {
     ManchesterState decoder_manchester_state;
 } ProtocolGallagher;
 
-ProtocolGallagher* protocol_gallagher_alloc(void) {
-    ProtocolGallagher* proto = malloc(sizeof(ProtocolGallagher));
-    return (void*)proto;
+ProtocolGallagher *protocol_gallagher_alloc(void)
+{
+    ProtocolGallagher *proto = malloc(sizeof(ProtocolGallagher));
+    return (void *)proto;
 }
 
-void protocol_gallagher_free(ProtocolGallagher* protocol) {
+void protocol_gallagher_free(ProtocolGallagher *protocol)
+{
     free(protocol);
 }
 
-uint8_t* protocol_gallagher_get_data(ProtocolGallagher* protocol) {
+uint8_t *protocol_gallagher_get_data(ProtocolGallagher *protocol)
+{
     return protocol->data;
 }
 
-static void protocol_gallagher_scramble(uint8_t* data, size_t length) {
+static void protocol_gallagher_scramble(uint8_t *data, size_t length)
+{
     const uint8_t lut[] = {
         0xa3, 0xb0, 0x80, 0xc6, 0xb2, 0xf4, 0x5c, 0x6c, 0x81, 0xf1, 0xbb, 0xeb, 0x55, 0x67, 0x3c,
         0x05, 0x1a, 0x0e, 0x61, 0xf6, 0x22, 0xce, 0xaa, 0x8f, 0xbd, 0x3b, 0x1f, 0x5e, 0x44, 0x04,
@@ -66,12 +70,13 @@ static void protocol_gallagher_scramble(uint8_t* data, size_t length) {
         0x35, 0x3e, 0x2c, 0x76, 0xc9, 0xde, 0x1c, 0x4b, 0xd1, 0xed, 0x14, 0xc5, 0xad, 0xe9, 0x64,
         0x4a, 0xec, 0x8d, 0xf7, 0x10, 0x43, 0x78, 0x15, 0x87, 0xe4, 0xd7, 0x92, 0xe1, 0xee, 0xe3,
         0x90};
-    for(size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         data[i] = lut[data[i]];
     }
 }
 
-static void protocol_gallagher_descramble(uint8_t* data, size_t length) {
+static void protocol_gallagher_descramble(uint8_t *data, size_t length)
+{
     const uint8_t lut[] = {
         0x2f, 0x6e, 0xdd, 0xdf, 0x1d, 0x0f, 0xb0, 0x76, 0xad, 0xaf, 0x7f, 0xbb, 0x77, 0x85, 0x11,
         0x6d, 0xf4, 0xd2, 0x84, 0x42, 0xeb, 0xf7, 0x34, 0x55, 0x4a, 0x3a, 0x10, 0x71, 0xe7, 0xa1,
@@ -92,12 +97,13 @@ static void protocol_gallagher_descramble(uint8_t* data, size_t length) {
         0xbd, 0x09, 0xb5, 0x5b, 0x05, 0x86, 0x13, 0xf3, 0x24, 0xc5, 0x3f, 0x44, 0x72, 0x7c, 0x7e,
         0x36};
 
-    for(size_t i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         data[i] = lut[data[i]];
     }
 }
 
-static void protocol_gallagher_decode(ProtocolGallagher* protocol) {
+static void protocol_gallagher_decode(ProtocolGallagher *protocol)
+{
     bit_lib_remove_bit_every_nth(protocol->encoded_data, 16, 9 * 8, 9);
     protocol_gallagher_descramble(protocol->encoded_data + 2, 8);
 
@@ -123,15 +129,18 @@ static void protocol_gallagher_decode(ProtocolGallagher* protocol) {
     protocol->data[4] = (uint8_t)(card >>= 8);
 }
 
-static bool protocol_gallagher_can_be_decoded(ProtocolGallagher* protocol) {
+static bool protocol_gallagher_can_be_decoded(ProtocolGallagher *protocol)
+{
     // check 16 bits preamble
-    if(bit_lib_get_bits_16(protocol->encoded_data, 0, 16) != 0b0111111111101010) return false;
+    if (bit_lib_get_bits_16(protocol->encoded_data, 0, 16) != 0b0111111111101010)
+        return false;
 
     // check next 16 bits preamble
-    if(bit_lib_get_bits_16(protocol->encoded_data, 96, 16) != 0b0111111111101010) return false;
+    if (bit_lib_get_bits_16(protocol->encoded_data, 96, 16) != 0b0111111111101010)
+        return false;
 
     uint8_t checksum_arr[8] = {0};
-    for(int i = 0, pos = 0; i < 8; i++) {
+    for (int i = 0, pos = 0; i < 8; i++) {
         // Following the preamble, every 9th bit is a checksum-bit for the preceding byte
         pos = 16 + (9 * i);
         checksum_arr[i] = bit_lib_get_bits(protocol->encoded_data, pos, 8);
@@ -140,48 +149,49 @@ static bool protocol_gallagher_can_be_decoded(ProtocolGallagher* protocol) {
     uint8_t calc_crc = bit_lib_crc8(checksum_arr, 8, 0x7, 0x2c, false, false, 0x00);
 
     // crc
-    if(crc != calc_crc) return false;
+    if (crc != calc_crc)
+        return false;
 
     return true;
 }
 
-void protocol_gallagher_decoder_start(ProtocolGallagher* protocol) {
+void protocol_gallagher_decoder_start(ProtocolGallagher *protocol)
+{
     memset(protocol->encoded_data, 0, GALLAGHER_ENCODED_BYTE_FULL_SIZE);
-    manchester_advance(
-        protocol->decoder_manchester_state,
-        ManchesterEventReset,
-        &protocol->decoder_manchester_state,
-        NULL);
+    manchester_advance(protocol->decoder_manchester_state, ManchesterEventReset,
+                       &protocol->decoder_manchester_state, NULL);
 }
 
-bool protocol_gallagher_decoder_feed(ProtocolGallagher* protocol, bool level, uint32_t duration) {
+bool protocol_gallagher_decoder_feed(ProtocolGallagher *protocol, bool level, uint32_t duration)
+{
     bool result = false;
 
     ManchesterEvent event = ManchesterEventReset;
 
-    if(duration > GALLAGHER_READ_SHORT_TIME_LOW && duration < GALLAGHER_READ_SHORT_TIME_HIGH) {
-        if(!level) {
+    if (duration > GALLAGHER_READ_SHORT_TIME_LOW && duration < GALLAGHER_READ_SHORT_TIME_HIGH) {
+        if (!level) {
             event = ManchesterEventShortHigh;
         } else {
             event = ManchesterEventShortLow;
         }
-    } else if(duration > GALLAGHER_READ_LONG_TIME_LOW && duration < GALLAGHER_READ_LONG_TIME_HIGH) {
-        if(!level) {
+    } else if (duration > GALLAGHER_READ_LONG_TIME_LOW &&
+               duration < GALLAGHER_READ_LONG_TIME_HIGH) {
+        if (!level) {
             event = ManchesterEventLongHigh;
         } else {
             event = ManchesterEventLongLow;
         }
     }
 
-    if(event != ManchesterEventReset) {
+    if (event != ManchesterEventReset) {
         bool data;
-        bool data_ok = manchester_advance(
-            protocol->decoder_manchester_state, event, &protocol->decoder_manchester_state, &data);
+        bool data_ok = manchester_advance(protocol->decoder_manchester_state, event,
+                                          &protocol->decoder_manchester_state, &data);
 
-        if(data_ok) {
+        if (data_ok) {
             bit_lib_push_bit(protocol->encoded_data, GALLAGHER_ENCODED_BYTE_FULL_SIZE, data);
 
-            if(protocol_gallagher_can_be_decoded(protocol)) {
+            if (protocol_gallagher_can_be_decoded(protocol)) {
                 protocol_gallagher_decode(protocol);
                 result = true;
             }
@@ -191,7 +201,8 @@ bool protocol_gallagher_decoder_feed(ProtocolGallagher* protocol, bool level, ui
     return result;
 }
 
-bool protocol_gallagher_encoder_start(ProtocolGallagher* protocol) {
+bool protocol_gallagher_encoder_start(ProtocolGallagher *protocol)
+{
     // Preamble
     bit_lib_set_bits(protocol->encoded_data, 0, 0b01111111, 8);
     bit_lib_set_bits(protocol->encoded_data, 8, 0b11101010, 8);
@@ -214,7 +225,7 @@ bool protocol_gallagher_encoder_start(ProtocolGallagher* protocol) {
     // Gallagher scramble
     protocol_gallagher_scramble(payload, 8);
 
-    for(int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         // data byte
         bit_lib_set_bits(protocol->encoded_data, 16 + (i * 9), payload[i], 8);
 
@@ -229,11 +240,12 @@ bool protocol_gallagher_encoder_start(ProtocolGallagher* protocol) {
     return true;
 }
 
-LevelDuration protocol_gallagher_encoder_yield(ProtocolGallagher* protocol) {
+LevelDuration protocol_gallagher_encoder_yield(ProtocolGallagher *protocol)
+{
     bool level = bit_lib_get_bit(protocol->encoded_data, protocol->encoded_data_index);
     uint32_t duration = GALLAGHER_CLOCK_PER_BIT / 2;
 
-    if(protocol->encoded_polarity) {
+    if (protocol->encoded_polarity) {
         protocol->encoded_polarity = false;
     } else {
         level = !level;
@@ -245,8 +257,9 @@ LevelDuration protocol_gallagher_encoder_yield(ProtocolGallagher* protocol) {
     return level_duration_make(level, duration);
 }
 
-bool protocol_gallagher_write_data(ProtocolGallagher* protocol, void* data) {
-    LFRFIDWriteRequest* request = (LFRFIDWriteRequest*)data;
+bool protocol_gallagher_write_data(ProtocolGallagher *protocol, void *data)
+{
+    LFRFIDWriteRequest *request = (LFRFIDWriteRequest *)data;
     bool result = false;
 
     // Correct protocol data by redecoding
@@ -255,20 +268,19 @@ bool protocol_gallagher_write_data(ProtocolGallagher* protocol, void* data) {
 
     protocol_gallagher_encoder_start(protocol);
 
-    if(request->write_type == LFRFIDWriteTypeT5577) {
-        request->t5577.block[0] =
-            (LFRFID_T5577_MODULATION_MANCHESTER | LFRFID_T5577_BITRATE_RF_32 |
-             (3 << LFRFID_T5577_MAXBLOCK_SHIFT));
+    if (request->write_type == LFRFIDWriteTypeT5577) {
+        request->t5577.block[0] = (LFRFID_T5577_MODULATION_MANCHESTER | LFRFID_T5577_BITRATE_RF_32 |
+                                   (3 << LFRFID_T5577_MAXBLOCK_SHIFT));
         request->t5577.block[1] = bit_lib_get_bits_32(protocol->encoded_data, 0, 32);
         request->t5577.block[2] = bit_lib_get_bits_32(protocol->encoded_data, 32, 32);
         request->t5577.block[3] = bit_lib_get_bits_32(protocol->encoded_data, 64, 32);
         request->t5577.blocks_to_write = 4;
         result = true;
-    } else if(request->write_type == LFRFIDWriteTypeEM4305) {
+    } else if (request->write_type == LFRFIDWriteTypeEM4305) {
         request->em4305.word[4] =
             (EM4x05_MODULATION_MANCHESTER | EM4x05_SET_BITRATE(32) | (7 << EM4x05_MAXBLOCK_SHIFT));
         uint32_t encoded_data_reversed[3] = {0};
-        for(uint8_t i = 0; i < (32 * 3); i++) {
+        for (uint8_t i = 0; i < (32 * 3); i++) {
             encoded_data_reversed[i / 32] =
                 (encoded_data_reversed[i / 32] << 1) |
                 (bit_lib_get_bit(protocol->encoded_data, ((32 * 3) - i)) & 1);
@@ -282,41 +294,36 @@ bool protocol_gallagher_write_data(ProtocolGallagher* protocol, void* data) {
     return result;
 }
 
-static void protocol_gallagher_render_data_internal(
-    ProtocolGallagher* protocol,
-    FuriString* result,
-    bool brief) {
+static void protocol_gallagher_render_data_internal(ProtocolGallagher *protocol, FuriString *result,
+                                                    bool brief)
+{
     uint8_t region = bit_lib_get_bits(protocol->data, 0, 4);
     uint8_t issue_level = bit_lib_get_bits(protocol->data, 4, 4);
     uint32_t fc = bit_lib_get_bits_32(protocol->data, 8, 24);
     uint32_t card_id = bit_lib_get_bits_32(protocol->data, 32, 32);
 
-    if(brief) {
-        furi_string_printf(
-            result,
-            "FC: %lu\n"
-            "Card: %lu",
-            fc,
-            card_id);
+    if (brief) {
+        furi_string_printf(result,
+                           "FC: %lu\n"
+                           "Card: %lu",
+                           fc, card_id);
     } else {
-        furi_string_printf(
-            result,
-            "FC: %lu\n"
-            "Card: %lu\n"
-            "Region: %u\n"
-            "Issue Level: %u",
-            fc,
-            card_id,
-            region,
-            issue_level);
+        furi_string_printf(result,
+                           "FC: %lu\n"
+                           "Card: %lu\n"
+                           "Region: %u\n"
+                           "Issue Level: %u",
+                           fc, card_id, region, issue_level);
     }
 }
 
-void protocol_gallagher_render_data(ProtocolGallagher* protocol, FuriString* result) {
+void protocol_gallagher_render_data(ProtocolGallagher *protocol, FuriString *result)
+{
     protocol_gallagher_render_data_internal(protocol, result, false);
 }
 
-void protocol_gallagher_render_brief_data(ProtocolGallagher* protocol, FuriString* result) {
+void protocol_gallagher_render_brief_data(ProtocolGallagher *protocol, FuriString *result)
+{
     protocol_gallagher_render_data_internal(protocol, result, true);
 }
 

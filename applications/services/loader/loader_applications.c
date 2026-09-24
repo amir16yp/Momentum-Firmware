@@ -18,24 +18,26 @@
 #endif
 
 struct LoaderApplications {
-    FuriThread* thread;
-    void (*closed_cb)(void*);
-    void* context;
+    FuriThread *thread;
+    void (*closed_cb)(void *);
+    void *context;
 };
 
-static int32_t loader_applications_thread(void* p);
+static int32_t loader_applications_thread(void *p);
 
-LoaderApplications* loader_applications_alloc(void (*closed_cb)(void*), void* context) {
-    LoaderApplications* loader_applications = malloc(sizeof(LoaderApplications));
+LoaderApplications *loader_applications_alloc(void (*closed_cb)(void *), void *context)
+{
+    LoaderApplications *loader_applications = malloc(sizeof(LoaderApplications));
     loader_applications->thread =
-        furi_thread_alloc_ex(TAG, 768, loader_applications_thread, (void*)loader_applications);
+        furi_thread_alloc_ex(TAG, 768, loader_applications_thread, (void *)loader_applications);
     loader_applications->closed_cb = closed_cb;
     loader_applications->context = context;
     furi_thread_start(loader_applications->thread);
     return loader_applications;
 }
 
-void loader_applications_free(LoaderApplications* loader_applications) {
+void loader_applications_free(LoaderApplications *loader_applications)
+{
     furi_assert(loader_applications);
     furi_thread_join(loader_applications->thread);
     furi_thread_free(loader_applications->thread);
@@ -43,18 +45,19 @@ void loader_applications_free(LoaderApplications* loader_applications) {
 }
 
 typedef struct {
-    FuriString* file_path;
-    DialogsApp* dialogs;
-    Storage* storage;
-    Loader* loader;
+    FuriString *file_path;
+    DialogsApp *dialogs;
+    Storage *storage;
+    Loader *loader;
 
-    Gui* gui;
-    ViewHolder* view_holder;
-    Loading* loading;
+    Gui *gui;
+    ViewHolder *view_holder;
+    Loading *loading;
 } LoaderApplicationsApp;
 
-static LoaderApplicationsApp* loader_applications_app_alloc(void) {
-    LoaderApplicationsApp* app = malloc(sizeof(LoaderApplicationsApp)); //-V799
+static LoaderApplicationsApp *loader_applications_app_alloc(void)
+{
+    LoaderApplicationsApp *app = malloc(sizeof(LoaderApplicationsApp)); //-V799
     app->file_path = furi_string_alloc_set(EXT_PATH("apps"));
     app->dialogs = furi_record_open(RECORD_DIALOGS);
     app->storage = furi_record_open(RECORD_STORAGE);
@@ -69,7 +72,8 @@ static LoaderApplicationsApp* loader_applications_app_alloc(void) {
     return app;
 } //-V773
 
-static void loader_applications_app_free(LoaderApplicationsApp* app) {
+static void loader_applications_app_free(LoaderApplicationsApp *app)
+{
     furi_assert(app);
 
     view_holder_free(app->view_holder);
@@ -83,16 +87,14 @@ static void loader_applications_app_free(LoaderApplicationsApp* app) {
     free(app);
 }
 
-static bool loader_applications_item_callback(
-    FuriString* path,
-    void* context,
-    uint8_t** icon_ptr,
-    FuriString* item_name) {
-    LoaderApplicationsApp* loader_applications_app = context;
+static bool loader_applications_item_callback(FuriString *path, void *context, uint8_t **icon_ptr,
+                                              FuriString *item_name)
+{
+    LoaderApplicationsApp *loader_applications_app = context;
     furi_assert(loader_applications_app);
-    if(furi_string_end_with(path, ".fap")) {
-        return flipper_application_load_name_and_icon(
-            path, loader_applications_app->storage, icon_ptr, item_name);
+    if (furi_string_end_with(path, ".fap")) {
+        return flipper_application_load_name_and_icon(path, loader_applications_app->storage,
+                                                      icon_ptr, item_name);
     } else {
         path_extract_filename(path, item_name, false);
         memcpy(*icon_ptr, icon_get_frame_data(&I_js_script_10px, 0), FAP_MANIFEST_MAX_ICON_SIZE);
@@ -100,7 +102,8 @@ static bool loader_applications_item_callback(
     }
 }
 
-static bool loader_applications_select_app(LoaderApplicationsApp* loader_applications_app) {
+static bool loader_applications_select_app(LoaderApplicationsApp *loader_applications_app)
+{
     const DialogsFileBrowserOptions browser_options = {
         .extension = ".fap|.js",
         .skip_assets = true,
@@ -111,39 +114,39 @@ static bool loader_applications_select_app(LoaderApplicationsApp* loader_applica
         .base_path = EXT_PATH("apps"),
     };
 
-    return dialog_file_browser_show(
-        loader_applications_app->dialogs,
-        loader_applications_app->file_path,
-        loader_applications_app->file_path,
-        &browser_options);
+    return dialog_file_browser_show(loader_applications_app->dialogs,
+                                    loader_applications_app->file_path,
+                                    loader_applications_app->file_path, &browser_options);
 }
 
 #define APPLICATION_STOP_EVENT 1
 
-static void loader_pubsub_callback(const void* message, void* context) {
-    const LoaderEvent* event = message;
+static void loader_pubsub_callback(const void *message, void *context)
+{
+    const LoaderEvent *event = message;
     const FuriThreadId thread_id = (FuriThreadId)context;
 
-    if(event->type == LoaderEventTypeNoMoreAppsInQueue) {
+    if (event->type == LoaderEventTypeNoMoreAppsInQueue) {
         furi_thread_flags_set(thread_id, APPLICATION_STOP_EVENT);
     }
 }
 
-static void
-    loader_applications_start_app(LoaderApplicationsApp* app, const char* name, const char* args) {
-    if(!furi_string_start_with_str(app->file_path, EXT_PATH("apps/Games/")) &&
-       !furi_string_start_with_str(app->file_path, EXT_PATH("apps/Media/"))) {
+static void loader_applications_start_app(LoaderApplicationsApp *app, const char *name,
+                                          const char *args)
+{
+    if (!furi_string_start_with_str(app->file_path, EXT_PATH("apps/Games/")) &&
+        !furi_string_start_with_str(app->file_path, EXT_PATH("apps/Media/"))) {
         dolphin_deed(DolphinDeedPluginInternalStart);
     }
 
     // load app
     FuriThreadId thread_id = furi_thread_get_current_id();
-    FuriPubSubSubscription* subscription =
+    FuriPubSubSubscription *subscription =
         furi_pubsub_subscribe(loader_get_pubsub(app->loader), loader_pubsub_callback, thread_id);
 
     LoaderStatus status = loader_start_with_gui_error(app->loader, name, args);
 
-    if(status == LoaderStatusOk) {
+    if (status == LoaderStatusOk) {
         furi_thread_flags_wait(APPLICATION_STOP_EVENT, FuriFlagWaitAny, FuriWaitForever);
     }
 
@@ -151,19 +154,19 @@ static void
     furi_thread_flags_clear(APPLICATION_STOP_EVENT);
 }
 
-static int32_t loader_applications_thread(void* p) {
-    LoaderApplications* loader_applications = p;
-    LoaderApplicationsApp* app = loader_applications_app_alloc();
+static int32_t loader_applications_thread(void *p)
+{
+    LoaderApplications *loader_applications = p;
+    LoaderApplicationsApp *app = loader_applications_app_alloc();
 
     // start loading animation
     view_holder_set_view(app->view_holder, loading_get_view(app->loading));
 
-    while(loader_applications_select_app(app)) {
-        if(!furi_string_end_with(app->file_path, ".js")) {
+    while (loader_applications_select_app(app)) {
+        if (!furi_string_end_with(app->file_path, ".js")) {
             loader_applications_start_app(app, furi_string_get_cstr(app->file_path), NULL);
         } else {
-            loader_applications_start_app(
-                app, JS_RUNNER_APP, furi_string_get_cstr(app->file_path));
+            loader_applications_start_app(app, JS_RUNNER_APP, furi_string_get_cstr(app->file_path));
         }
     }
 
@@ -172,7 +175,7 @@ static int32_t loader_applications_thread(void* p) {
 
     loader_applications_app_free(app);
 
-    if(loader_applications->closed_cb) {
+    if (loader_applications->closed_cb) {
         loader_applications->closed_cb(loader_applications->context);
     }
 

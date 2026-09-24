@@ -5,19 +5,21 @@
 
 #define TAG "ST25TBPoller"
 
-typedef NfcCommand (*St25tbPollerStateHandler)(St25tbPoller* instance);
+typedef NfcCommand (*St25tbPollerStateHandler)(St25tbPoller *instance);
 
-const St25tbData* st25tb_poller_get_data(St25tbPoller* instance) {
+const St25tbData *st25tb_poller_get_data(St25tbPoller *instance)
+{
     furi_assert(instance);
     furi_assert(instance->data);
 
     return instance->data;
 }
 
-static St25tbPoller* st25tb_poller_alloc(Nfc* nfc) {
+static St25tbPoller *st25tb_poller_alloc(Nfc *nfc)
+{
     furi_assert(nfc);
 
-    St25tbPoller* instance = malloc(sizeof(St25tbPoller));
+    St25tbPoller *instance = malloc(sizeof(St25tbPoller));
     instance->nfc = nfc;
     instance->state = St25tbPollerStateSelect;
     instance->tx_buffer = bit_buffer_alloc(ST25TB_POLLER_MAX_BUFFER_SIZE);
@@ -38,7 +40,8 @@ static St25tbPoller* st25tb_poller_alloc(Nfc* nfc) {
     return instance;
 }
 
-static void st25tb_poller_free(St25tbPoller* instance) {
+static void st25tb_poller_free(St25tbPoller *instance)
+{
     furi_assert(instance);
 
     furi_assert(instance->tx_buffer);
@@ -51,8 +54,9 @@ static void st25tb_poller_free(St25tbPoller* instance) {
     free(instance);
 }
 
-static void
-    st25tb_poller_set_callback(St25tbPoller* instance, NfcGenericCallback callback, void* context) {
+static void st25tb_poller_set_callback(St25tbPoller *instance, NfcGenericCallback callback,
+                                       void *context)
+{
     furi_assert(instance);
     furi_assert(callback);
 
@@ -60,12 +64,13 @@ static void
     instance->context = context;
 }
 
-static NfcCommand st25tb_poller_select_handler(St25tbPoller* instance) {
+static NfcCommand st25tb_poller_select_handler(St25tbPoller *instance)
+{
     NfcCommand command = NfcCommandContinue;
 
     do {
         St25tbError error = st25tb_poller_select(instance, NULL);
-        if(error != St25tbErrorNone) {
+        if (error != St25tbErrorNone) {
             instance->state = St25tbPollerStateFailure;
             instance->st25tb_event_data.error = error;
             break;
@@ -75,22 +80,22 @@ static NfcCommand st25tb_poller_select_handler(St25tbPoller* instance) {
         instance->st25tb_event.data->ready.type = instance->data->type;
         command = instance->callback(instance->general_event, instance->context);
         instance->state = St25tbPollerStateRequestMode;
-    } while(false);
+    } while (false);
 
     return command;
 }
 
-static NfcCommand st25tb_poller_request_mode_handler(St25tbPoller* instance) {
+static NfcCommand st25tb_poller_request_mode_handler(St25tbPoller *instance)
+{
     NfcCommand command = NfcCommandContinue;
     instance->st25tb_event.type = St25tbPollerEventTypeRequestMode;
     command = instance->callback(instance->general_event, instance->context);
 
-    St25tbPollerEventDataModeRequest* mode_request_data =
-        &instance->st25tb_event_data.mode_request;
+    St25tbPollerEventDataModeRequest *mode_request_data = &instance->st25tb_event_data.mode_request;
 
     furi_check(mode_request_data->mode < St25tbPollerModeNum);
 
-    if(mode_request_data->mode == St25tbPollerModeRead) {
+    if (mode_request_data->mode == St25tbPollerModeRead) {
         instance->state = St25tbPollerStateRead;
         instance->poller_ctx.read.current_block = 0;
     } else {
@@ -103,16 +108,17 @@ static NfcCommand st25tb_poller_request_mode_handler(St25tbPoller* instance) {
     return command;
 }
 
-static NfcCommand st25tb_poller_read_handler(St25tbPoller* instance) {
+static NfcCommand st25tb_poller_read_handler(St25tbPoller *instance)
+{
     St25tbError error = St25tbErrorNone;
 
     do {
         uint8_t total_blocks = st25tb_get_block_count(instance->data->type);
-        uint8_t* current_block = &instance->poller_ctx.read.current_block;
-        if(*current_block == total_blocks) {
-            error = st25tb_poller_read_block(
-                instance, &instance->data->system_otp_block, ST25TB_SYSTEM_OTP_BLOCK);
-            if(error != St25tbErrorNone) {
+        uint8_t *current_block = &instance->poller_ctx.read.current_block;
+        if (*current_block == total_blocks) {
+            error = st25tb_poller_read_block(instance, &instance->data->system_otp_block,
+                                             ST25TB_SYSTEM_OTP_BLOCK);
+            if (error != St25tbErrorNone) {
                 FURI_LOG_E(TAG, "Failed to read OTP block");
                 instance->state = St25tbPollerStateFailure;
                 instance->st25tb_event_data.error = error;
@@ -122,9 +128,9 @@ static NfcCommand st25tb_poller_read_handler(St25tbPoller* instance) {
                 break;
             }
         } else {
-            error = st25tb_poller_read_block(
-                instance, &instance->data->blocks[*current_block], *current_block);
-            if(error != St25tbErrorNone) {
+            error = st25tb_poller_read_block(instance, &instance->data->blocks[*current_block],
+                                             *current_block);
+            if (error != St25tbErrorNone) {
                 FURI_LOG_E(TAG, "Failed to read block %d", *current_block);
                 instance->state = St25tbPollerStateFailure;
                 instance->st25tb_event_data.error = error;
@@ -133,17 +139,18 @@ static NfcCommand st25tb_poller_read_handler(St25tbPoller* instance) {
 
             *current_block += 1;
         }
-    } while(false);
+    } while (false);
 
     return NfcCommandContinue;
 }
 
-static NfcCommand st25tb_poller_write_handler(St25tbPoller* instance) {
-    St25tbPollerWriteContext* write_ctx = &instance->poller_ctx.write;
+static NfcCommand st25tb_poller_write_handler(St25tbPoller *instance)
+{
+    St25tbPollerWriteContext *write_ctx = &instance->poller_ctx.write;
     St25tbError error =
         st25tb_poller_write_block(instance, write_ctx->block_data, write_ctx->block_number);
 
-    if(error == St25tbErrorNone) {
+    if (error == St25tbErrorNone) {
         instance->state = St25tbPollerStateSuccess;
     } else {
         instance->state = St25tbPollerStateFailure;
@@ -153,7 +160,8 @@ static NfcCommand st25tb_poller_write_handler(St25tbPoller* instance) {
     return NfcCommandContinue;
 }
 
-NfcCommand st25tb_poller_success_handler(St25tbPoller* instance) {
+NfcCommand st25tb_poller_success_handler(St25tbPoller *instance)
+{
     NfcCommand command = NfcCommandContinue;
     instance->st25tb_event.type = St25tbPollerEventTypeSuccess;
     command = instance->callback(instance->general_event, instance->context);
@@ -163,7 +171,8 @@ NfcCommand st25tb_poller_success_handler(St25tbPoller* instance) {
     return command;
 }
 
-NfcCommand st25tb_poller_failure_handler(St25tbPoller* instance) {
+NfcCommand st25tb_poller_failure_handler(St25tbPoller *instance)
+{
     NfcCommand command = NfcCommandContinue;
     instance->st25tb_event.type = St25tbPollerEventTypeFailure;
     command = instance->callback(instance->general_event, instance->context);
@@ -182,36 +191,38 @@ static const St25tbPollerStateHandler st25tb_poller_state_handlers[St25tbPollerS
     [St25tbPollerStateFailure] = st25tb_poller_failure_handler,
 };
 
-static NfcCommand st25tb_poller_run(NfcGenericEvent event, void* context) {
+static NfcCommand st25tb_poller_run(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.protocol == NfcProtocolInvalid);
     furi_assert(event.event_data);
 
-    St25tbPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    St25tbPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     NfcCommand command = NfcCommandContinue;
 
     furi_assert(instance->state < St25tbPollerStateNum);
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         command = st25tb_poller_state_handlers[instance->state](instance);
     }
 
     return command;
 }
 
-static bool st25tb_poller_detect(NfcGenericEvent event, void* context) {
+static bool st25tb_poller_detect(NfcGenericEvent event, void *context)
+{
     furi_assert(context);
     furi_assert(event.event_data);
     furi_assert(event.instance);
     furi_assert(event.protocol == NfcProtocolInvalid);
 
     bool protocol_detected = false;
-    St25tbPoller* instance = context;
-    NfcEvent* nfc_event = event.event_data;
+    St25tbPoller *instance = context;
+    NfcEvent *nfc_event = event.event_data;
     furi_assert(instance->state == St25tbPollerStateSelect);
 
-    if(nfc_event->type == NfcEventTypePollerReady) {
+    if (nfc_event->type == NfcEventTypePollerReady) {
         St25tbError error = st25tb_poller_initiate(instance, NULL);
         protocol_detected = (error == St25tbErrorNone);
     }

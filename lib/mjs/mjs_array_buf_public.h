@@ -26,11 +26,11 @@ int mjs_is_data_view(mjs_val_t v);
 
 int mjs_is_typed_array(mjs_val_t v);
 
-mjs_val_t mjs_mk_array_buf(struct mjs* mjs, char* data, size_t buf_len);
+mjs_val_t mjs_mk_array_buf(struct mjs *mjs, char *data, size_t buf_len);
 
-char* mjs_array_buf_get_ptr(struct mjs* mjs, mjs_val_t buf, size_t* bytelen);
+char *mjs_array_buf_get_ptr(struct mjs *mjs, mjs_val_t buf, size_t *bytelen);
 
-mjs_val_t mjs_dataview_get_buf(struct mjs* mjs, mjs_val_t obj);
+mjs_val_t mjs_dataview_get_buf(struct mjs *mjs, mjs_val_t obj);
 
 #if defined(__cplusplus)
 }

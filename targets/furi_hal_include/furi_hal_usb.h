@@ -9,18 +9,18 @@ extern "C" {
 typedef struct FuriHalUsbInterface FuriHalUsbInterface;
 
 struct FuriHalUsbInterface {
-    void (*init)(usbd_device* dev, FuriHalUsbInterface* intf, void* ctx);
-    void (*deinit)(usbd_device* dev);
-    void (*wakeup)(usbd_device* dev);
-    void (*suspend)(usbd_device* dev);
+    void (*init)(usbd_device *dev, FuriHalUsbInterface *intf, void *ctx);
+    void (*deinit)(usbd_device *dev);
+    void (*wakeup)(usbd_device *dev);
+    void (*suspend)(usbd_device *dev);
 
-    struct usb_device_descriptor* dev_descr;
+    struct usb_device_descriptor *dev_descr;
 
-    void* str_manuf_descr;
-    void* str_prod_descr;
-    void* str_serial_descr;
+    void *str_manuf_descr;
+    void *str_prod_descr;
+    void *str_serial_descr;
 
-    void* cfg_descr;
+    void *cfg_descr;
 };
 
 /** USB device interface modes */
@@ -37,7 +37,7 @@ typedef enum {
     FuriHalUsbStateEventDescriptorRequest,
 } FuriHalUsbStateEvent;
 
-typedef void (*FuriHalUsbStateCallback)(FuriHalUsbStateEvent state, void* context);
+typedef void (*FuriHalUsbStateCallback)(FuriHalUsbStateEvent state, void *context);
 
 /** USB device low-level initialization
  */
@@ -49,13 +49,13 @@ void furi_hal_usb_init(void);
  * @param      ctx context passed to device mode init function
  * @return     true - mode switch started, false - mode switch is locked
  */
-bool furi_hal_usb_set_config(FuriHalUsbInterface* new_if, void* ctx);
+bool furi_hal_usb_set_config(FuriHalUsbInterface *new_if, void *ctx);
 
 /** Get USB device configuration
  *
  * @return    current USB device mode
  */
-FuriHalUsbInterface* furi_hal_usb_get_config(void);
+FuriHalUsbInterface *furi_hal_usb_get_config(void);
 
 /** Lock USB device mode switch
  */
@@ -66,7 +66,7 @@ void furi_hal_usb_lock(void);
 void furi_hal_usb_unlock(void);
 
 /** Check if USB device mode switch locked
- * 
+ *
  * @return    lock state
  */
 bool furi_hal_usb_is_locked(void);
@@ -81,7 +81,7 @@ void furi_hal_usb_enable(void);
 
 /** Set USB state callback
  */
-void furi_hal_usb_set_state_callback(FuriHalUsbStateCallback cb, void* ctx);
+void furi_hal_usb_set_state_callback(FuriHalUsbStateCallback cb, void *ctx);
 
 /** Restart USB device
  */

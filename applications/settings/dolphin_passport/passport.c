@@ -10,38 +10,40 @@
 #include <momentum/momentum.h>
 
 typedef struct {
-    FuriSemaphore* semaphore;
-    DolphinStats* stats;
-    ViewPort* view_port;
+    FuriSemaphore *semaphore;
+    DolphinStats *stats;
+    ViewPort *view_port;
     bool progress_total;
 } PassportContext;
 
-static void input_callback(InputEvent* input, void* _ctx) {
-    PassportContext* ctx = _ctx;
+static void input_callback(InputEvent *input, void *_ctx)
+{
+    PassportContext *ctx = _ctx;
 
-    if((input->type == InputTypeShort) && (input->key == InputKeyOk)) {
+    if ((input->type == InputTypeShort) && (input->key == InputKeyOk)) {
         ctx->progress_total = !ctx->progress_total;
         view_port_update(ctx->view_port);
     }
 
-    if((input->type == InputTypeShort) && (input->key == InputKeyBack)) {
+    if ((input->type == InputTypeShort) && (input->key == InputKeyBack)) {
         furi_semaphore_release(ctx->semaphore);
     }
 }
 
-static void render_callback(Canvas* canvas, void* _ctx) {
-    PassportContext* ctx = _ctx;
-    DolphinStats* stats = ctx->stats;
+static void render_callback(Canvas *canvas, void *_ctx)
+{
+    PassportContext *ctx = _ctx;
+    DolphinStats *stats = ctx->stats;
 
     char level_str[12];
     char xp_str[12];
-    const char* mood_str = NULL;
-    const Icon* portrait = NULL;
+    const char *mood_str = NULL;
+    const Icon *portrait = NULL;
 
-    if(stats->butthurt <= 4) {
+    if (stats->butthurt <= 4) {
         portrait = &I_passport_happy_46x49;
         mood_str = "Mood: Happy";
-    } else if(stats->butthurt <= 9) {
+    } else if (stats->butthurt <= 9) {
         portrait = &I_passport_okay_46x49;
         mood_str = "Mood: Okay";
     } else {
@@ -55,7 +57,7 @@ static void render_callback(Canvas* canvas, void* _ctx) {
 
     uint32_t xp_have = 0;
     uint32_t xp_target = 0;
-    if(ctx->progress_total) {
+    if (ctx->progress_total) {
         xp_have = stats->icounter;
         xp_target = DOLPHIN_LEVELS[DOLPHIN_LEVEL_COUNT - 1];
     } else {
@@ -63,7 +65,7 @@ static void render_callback(Canvas* canvas, void* _ctx) {
         xp_target = xp_to_levelup + xp_above_last_levelup;
     }
 
-    if(stats->level == DOLPHIN_LEVEL_COUNT + 1) {
+    if (stats->level == DOLPHIN_LEVEL_COUNT + 1) {
         xp_progress = 0;
     } else {
         xp_progress = (xp_target - xp_have) * 64 / xp_target;
@@ -76,13 +78,13 @@ static void render_callback(Canvas* canvas, void* _ctx) {
     furi_assert((stats->level > 0) && (stats->level <= DOLPHIN_LEVEL_COUNT + 1));
     canvas_draw_icon(canvas, 11, 2, portrait);
 
-    const char* my_name = furi_hal_version_get_name_ptr();
+    const char *my_name = furi_hal_version_get_name_ptr();
     snprintf(level_str, sizeof(level_str), "Level: %hu", stats->level);
     canvas_draw_str(canvas, 59, 10, my_name ? my_name : "Unknown");
     canvas_draw_str(canvas, 59, 22, mood_str);
     canvas_draw_str(canvas, 59, 34, level_str);
 
-    if(stats->level == DOLPHIN_LEVEL_COUNT + 1) {
+    if (stats->level == DOLPHIN_LEVEL_COUNT + 1) {
         snprintf(xp_str, sizeof(xp_str), "Max Level!");
     } else {
         snprintf(xp_str, sizeof(xp_str), "%lu/%lu", xp_have, xp_target);
@@ -96,14 +98,15 @@ static void render_callback(Canvas* canvas, void* _ctx) {
     canvas_set_color(canvas, ColorBlack);
 }
 
-int32_t passport_app(void* p) {
+int32_t passport_app(void *p)
+{
     UNUSED(p);
-    FuriSemaphore* semaphore = furi_semaphore_alloc(1, 0);
-    ViewPort* view_port = view_port_alloc();
+    FuriSemaphore *semaphore = furi_semaphore_alloc(1, 0);
+    ViewPort *view_port = view_port_alloc();
 
-    Dolphin* dolphin = furi_record_open(RECORD_DOLPHIN);
+    Dolphin *dolphin = furi_record_open(RECORD_DOLPHIN);
     DolphinStats stats = dolphin_stats(dolphin);
-    PassportContext* ctx = malloc(sizeof(PassportContext));
+    PassportContext *ctx = malloc(sizeof(PassportContext));
     ctx->stats = &stats;
     ctx->view_port = view_port;
     ctx->semaphore = semaphore;
@@ -111,7 +114,7 @@ int32_t passport_app(void* p) {
     furi_record_close(RECORD_DOLPHIN);
     view_port_draw_callback_set(view_port, render_callback, ctx);
     view_port_input_callback_set(view_port, input_callback, ctx);
-    Gui* gui = furi_record_open(RECORD_GUI);
+    Gui *gui = furi_record_open(RECORD_GUI);
     gui_add_view_port(gui, view_port, GuiLayerFullscreen);
     view_port_update(view_port);
 

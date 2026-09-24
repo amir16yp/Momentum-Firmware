@@ -18,7 +18,7 @@ extern "C" {
  * @brief Enumeration of possible timer types.
  */
 typedef enum {
-    FuriEventLoopTimerTypeOnce = 0, /**< One-shot timer. */
+    FuriEventLoopTimerTypeOnce = 0,     /**< One-shot timer. */
     FuriEventLoopTimerTypePeriodic = 1, /**< Repeating timer. */
 } FuriEventLoopTimerType;
 
@@ -32,7 +32,7 @@ typedef enum {
  *
  * @param[in,out] context pointer to a user-specific object that was provided during timer creation
  */
-typedef void (*FuriEventLoopTimerCallback)(void* context);
+typedef void (*FuriEventLoopTimerCallback)(void *context);
 
 /**
  * @brief Opaque event loop timer type.
@@ -48,11 +48,9 @@ typedef struct FuriEventLoopTimer FuriEventLoopTimer;
  * @param[in,out] context pointer to a user-specific object (will be passed to the callback)
  * @returns pointer to the created timer instance
  */
-FuriEventLoopTimer* furi_event_loop_timer_alloc(
-    FuriEventLoop* instance,
-    FuriEventLoopTimerCallback callback,
-    FuriEventLoopTimerType type,
-    void* context);
+FuriEventLoopTimer *furi_event_loop_timer_alloc(FuriEventLoop *instance,
+                                                FuriEventLoopTimerCallback callback,
+                                                FuriEventLoopTimerType type, void *context);
 
 /**
  * @brief Delete an event loop timer instance.
@@ -63,7 +61,7 @@ FuriEventLoopTimer* furi_event_loop_timer_alloc(
  *
  * @param[in,out] timer pointer to the timer instance to be deleted
  */
-void furi_event_loop_timer_free(FuriEventLoopTimer* timer);
+void furi_event_loop_timer_free(FuriEventLoopTimer *timer);
 
 /**
  * @brief Start a timer or restart it with a new interval.
@@ -71,14 +69,14 @@ void furi_event_loop_timer_free(FuriEventLoopTimer* timer);
  * @param[in,out] timer pointer to the timer instance to be (re)started
  * @param[in] interval timer interval in ticks
  */
-void furi_event_loop_timer_start(FuriEventLoopTimer* timer, uint32_t interval);
+void furi_event_loop_timer_start(FuriEventLoopTimer *timer, uint32_t interval);
 
 /**
  * @brief Restart a timer with the previously set interval.
  *
  * @param[in,out] timer pointer to the timer instance to be restarted
  */
-void furi_event_loop_timer_restart(FuriEventLoopTimer* timer);
+void furi_event_loop_timer_restart(FuriEventLoopTimer *timer);
 
 /**
  * @brief Stop a timer without firing its callback.
@@ -87,7 +85,7 @@ void furi_event_loop_timer_restart(FuriEventLoopTimer* timer);
  *
  * @param[in,out] timer pointer to the timer instance to be stopped
  */
-void furi_event_loop_timer_stop(FuriEventLoopTimer* timer);
+void furi_event_loop_timer_stop(FuriEventLoopTimer *timer);
 
 /**
  * @brief Get the time remaining before the timer becomes expires.
@@ -97,7 +95,7 @@ void furi_event_loop_timer_stop(FuriEventLoopTimer* timer);
  * @param[in] timer pointer to the timer to be queried
  * @returns remaining time in ticks
  */
-uint32_t furi_event_loop_timer_get_remaining_time(const FuriEventLoopTimer* timer);
+uint32_t furi_event_loop_timer_get_remaining_time(const FuriEventLoopTimer *timer);
 
 /**
  * @brief Get the timer interval.
@@ -105,7 +103,7 @@ uint32_t furi_event_loop_timer_get_remaining_time(const FuriEventLoopTimer* time
  * @param[in] timer pointer to the timer to be queried
  * @returns timer interval in ticks
  */
-uint32_t furi_event_loop_timer_get_interval(const FuriEventLoopTimer* timer);
+uint32_t furi_event_loop_timer_get_interval(const FuriEventLoopTimer *timer);
 
 /**
  * @brief Check if the timer is currently running.
@@ -114,7 +112,7 @@ uint32_t furi_event_loop_timer_get_interval(const FuriEventLoopTimer* timer);
  * @param[in] timer pointer to the timer to be queried
  * @returns true if the timer is running, false otherwise
  */
-bool furi_event_loop_timer_is_running(const FuriEventLoopTimer* timer);
+bool furi_event_loop_timer_is_running(const FuriEventLoopTimer *timer);
 
 #ifdef __cplusplus
 }

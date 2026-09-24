@@ -5,21 +5,23 @@
 
 #define TAG "StdioTest"
 
-#define CONTEXT_MAGIC ((void*)0xDEADBEEF)
+#define CONTEXT_MAGIC ((void *)0xDEADBEEF)
 
 // stdin
 
 static char mock_in[256];
 static size_t mock_in_len, mock_in_pos;
 
-static void set_mock_in(const char* str) {
+static void set_mock_in(const char *str)
+{
     size_t len = strlen(str);
     strcpy(mock_in, str);
     mock_in_len = len;
     mock_in_pos = 0;
 }
 
-static size_t mock_in_cb(char* buffer, size_t size, FuriWait wait, void* context) {
+static size_t mock_in_cb(char *buffer, size_t size, FuriWait wait, void *context)
+{
     UNUSED(wait);
     furi_check(context == CONTEXT_MAGIC);
     size_t remaining = mock_in_len - mock_in_pos;
@@ -29,9 +31,10 @@ static size_t mock_in_cb(char* buffer, size_t size, FuriWait wait, void* context
     return size;
 }
 
-void test_stdin(void) {
+void test_stdin(void)
+{
     FuriThreadStdinReadCallback in_cb;
-    void* in_ctx;
+    void *in_ctx;
     furi_thread_get_stdin_callback(&in_cb, &in_ctx);
     furi_thread_set_stdin_callback(mock_in_cb, CONTEXT_MAGIC);
     char buf[256];
@@ -70,19 +73,21 @@ void test_stdin(void) {
 
 // stdout
 
-static FuriString* mock_out;
+static FuriString *mock_out;
 static FuriThreadStdoutWriteCallback original_out_cb;
-static void* original_out_ctx;
+static void *original_out_ctx;
 
-static void mock_out_cb(const char* data, size_t size, void* context) {
+static void mock_out_cb(const char *data, size_t size, void *context)
+{
     furi_check(context == CONTEXT_MAGIC);
     // there's no furi_string_cat_strn :(
-    for(size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         furi_string_push_back(mock_out, data[i]);
     }
 }
 
-static void assert_and_clear_mock_out(const char* expected) {
+static void assert_and_clear_mock_out(const char *expected)
+{
     // return the original stdout callback for the duration of the check
     // if the check fails, we don't want the error to end up in our buffer,
     // we want to be able to see it!
@@ -93,7 +98,8 @@ static void assert_and_clear_mock_out(const char* expected) {
     furi_string_reset(mock_out);
 }
 
-void test_stdout(void) {
+void test_stdout(void)
+{
     furi_thread_get_stdout_callback(&original_out_cb, &original_out_ctx);
     furi_thread_set_stdout_callback(mock_out_cb, CONTEXT_MAGIC);
     mock_out = furi_string_alloc();

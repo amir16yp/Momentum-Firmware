@@ -20,17 +20,17 @@ typedef enum {
 } Iso15693_3PollerState;
 
 struct Iso15693_3Poller {
-    Nfc* nfc;
+    Nfc *nfc;
     Iso15693_3PollerState state;
-    Iso15693_3Data* data;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    Iso15693_3Data *data;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
 
     NfcGenericEvent general_event;
     Iso15693_3PollerEvent iso15693_3_event;
     Iso15693_3PollerEventData iso15693_3_event_data;
     NfcGenericCallback callback;
-    void* context;
+    void *context;
 };
 
 #ifdef __cplusplus

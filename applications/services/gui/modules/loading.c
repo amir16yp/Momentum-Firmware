@@ -11,15 +11,16 @@
 #include <stdint.h>
 
 struct Loading {
-    View* view;
+    View *view;
 };
 
 typedef struct {
-    IconAnimation* icon;
+    IconAnimation *icon;
 } LoadingModel;
 
-static void loading_draw_callback(Canvas* canvas, void* _model) {
-    LoadingModel* model = (LoadingModel*)_model;
+static void loading_draw_callback(Canvas *canvas, void *_model)
+{
+    LoadingModel *model = (LoadingModel *)_model;
 
     canvas_set_color(canvas, ColorWhite);
     canvas_draw_box(canvas, 0, 0, canvas_width(canvas), canvas_height(canvas));
@@ -33,16 +34,18 @@ static void loading_draw_callback(Canvas* canvas, void* _model) {
     canvas_draw_icon_animation(canvas, x, y, model->icon);
 }
 
-static bool loading_input_callback(InputEvent* event, void* context) {
+static bool loading_input_callback(InputEvent *event, void *context)
+{
     UNUSED(event);
     furi_assert(context);
     return true;
 }
 
-static void loading_enter_callback(void* context) {
+static void loading_enter_callback(void *context)
+{
     furi_assert(context);
-    Loading* instance = context;
-    LoadingModel* model = view_get_model(instance->view);
+    Loading *instance = context;
+    LoadingModel *model = view_get_model(instance->view);
     /* using Loading View in conjunction with several
      * Stack View obligates to reassign
      * Update callback, as it can be rewritten
@@ -52,19 +55,21 @@ static void loading_enter_callback(void* context) {
     view_commit_model(instance->view, false);
 }
 
-static void loading_exit_callback(void* context) {
+static void loading_exit_callback(void *context)
+{
     furi_assert(context);
-    Loading* instance = context;
-    LoadingModel* model = view_get_model(instance->view);
+    Loading *instance = context;
+    LoadingModel *model = view_get_model(instance->view);
     icon_animation_stop(model->icon);
     view_commit_model(instance->view, false);
 }
 
-Loading* loading_alloc(void) {
-    Loading* instance = malloc(sizeof(Loading));
+Loading *loading_alloc(void)
+{
+    Loading *instance = malloc(sizeof(Loading));
     instance->view = view_alloc();
     view_allocate_model(instance->view, ViewModelTypeLocking, sizeof(LoadingModel));
-    LoadingModel* model = view_get_model(instance->view);
+    LoadingModel *model = view_get_model(instance->view);
     model->icon = icon_animation_alloc(&A_Loading_24);
     view_tie_icon_animation(instance->view, model->icon);
     view_commit_model(instance->view, false);
@@ -78,10 +83,11 @@ Loading* loading_alloc(void) {
     return instance;
 }
 
-void loading_free(Loading* instance) {
+void loading_free(Loading *instance)
+{
     furi_check(instance);
 
-    LoadingModel* model = view_get_model(instance->view);
+    LoadingModel *model = view_get_model(instance->view);
     icon_animation_free(model->icon);
     view_commit_model(instance->view, false);
 
@@ -90,7 +96,8 @@ void loading_free(Loading* instance) {
     free(instance);
 }
 
-View* loading_get_view(Loading* instance) {
+View *loading_get_view(Loading *instance)
+{
     furi_check(instance);
     return instance->view;
 }

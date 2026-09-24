@@ -23,24 +23,24 @@
 #include <expansion/expansion.h>
 
 struct GpioApp {
-    Expansion* expansion;
-    Gui* gui;
-    NotificationApp* notifications;
-    ViewDispatcher* view_dispatcher;
-    SceneManager* scene_manager;
-    Widget* widget;
-    DialogEx* dialog;
-    Power* power;
+    Expansion *expansion;
+    Gui *gui;
+    NotificationApp *notifications;
+    ViewDispatcher *view_dispatcher;
+    SceneManager *scene_manager;
+    Widget *widget;
+    DialogEx *dialog;
+    Power *power;
 
-    VariableItemList* var_item_list;
-    VariableItem* var_item_flow;
-    GpioTest* gpio_test;
-    GpioUsbUart* gpio_usb_uart;
-    GPIOItems* gpio_items;
-    UsbUartBridge* usb_uart_bridge;
-    GpioI2CScanner* gpio_i2c_scanner;
-    GpioI2CSfp* gpio_i2c_sfp;
-    UsbUartConfig* usb_uart_cfg;
+    VariableItemList *var_item_list;
+    VariableItem *var_item_flow;
+    GpioTest *gpio_test;
+    GpioUsbUart *gpio_usb_uart;
+    GPIOItems *gpio_items;
+    UsbUartBridge *usb_uart_bridge;
+    GpioI2CScanner *gpio_i2c_scanner;
+    GpioI2CSfp *gpio_i2c_sfp;
+    UsbUartConfig *usb_uart_cfg;
 };
 
 typedef enum {

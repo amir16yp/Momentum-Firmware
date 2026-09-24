@@ -19,16 +19,16 @@ typedef struct Rpc Rpc;
 typedef struct RpcSession RpcSession;
 
 /** Callback to send to client any data (e.g. response to command) */
-typedef void (*RpcSendBytesCallback)(void* context, uint8_t* bytes, size_t bytes_len);
+typedef void (*RpcSendBytesCallback)(void *context, uint8_t *bytes, size_t bytes_len);
 /** Callback to notify client that buffer is empty */
-typedef void (*RpcBufferIsEmptyCallback)(void* context);
+typedef void (*RpcBufferIsEmptyCallback)(void *context);
 /** Callback to notify transport layer that close_session command
  * is received. Any other actions lays on transport layer.
  * No destruction or session close performed. */
-typedef void (*RpcSessionClosedCallback)(void* context);
+typedef void (*RpcSessionClosedCallback)(void *context);
 /** Callback to notify transport layer that session was closed
  * and all operations were finished */
-typedef void (*RpcSessionTerminatedCallback)(void* context);
+typedef void (*RpcSessionTerminatedCallback)(void *context);
 
 /** RPC owner */
 typedef enum {
@@ -44,7 +44,7 @@ typedef enum {
  * @param   session     pointer to RpcSession descriptor
  * @return              session owner
  */
-RpcOwner rpc_session_get_owner(RpcSession* session);
+RpcOwner rpc_session_get_owner(RpcSession *session);
 
 /** Open RPC session
  *
@@ -64,7 +64,7 @@ RpcOwner rpc_session_get_owner(RpcSession* session);
  * @return          pointer to RpcSession descriptor, or
  *                  NULL if RPC is busy and can't open session now
  */
-RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner);
+RpcSession *rpc_session_open(Rpc *rpc, RpcOwner owner);
 
 /** Close RPC session
  * It is guaranteed that no callbacks will be called
@@ -73,14 +73,14 @@ RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner);
  *
  * @param   session     pointer to RpcSession descriptor
  */
-void rpc_session_close(RpcSession* session);
+void rpc_session_close(RpcSession *session);
 
 /** Set session context for callbacks to pass
  *
  * @param   session     pointer to RpcSession descriptor
  * @param   context     context to pass to callbacks
  */
-void rpc_session_set_context(RpcSession* session, void* context);
+void rpc_session_set_context(RpcSession *session, void *context);
 
 /** Set callback to send bytes to client
  *  WARN: It's forbidden to call RPC API within RpcSendBytesCallback
@@ -88,7 +88,7 @@ void rpc_session_set_context(RpcSession* session, void* context);
  * @param   session     pointer to RpcSession descriptor
  * @param   callback    callback to send bytes to client (can be NULL)
  */
-void rpc_session_set_send_bytes_callback(RpcSession* session, RpcSendBytesCallback callback);
+void rpc_session_set_send_bytes_callback(RpcSession *session, RpcSendBytesCallback callback);
 
 /** Set callback to notify that buffer is empty
  *
@@ -96,9 +96,8 @@ void rpc_session_set_send_bytes_callback(RpcSession* session, RpcSendBytesCallba
  * @param   callback    callback to notify client that buffer is empty (can be NULL)
  * @param   context     context to pass to callback
  */
-void rpc_session_set_buffer_is_empty_callback(
-    RpcSession* session,
-    RpcBufferIsEmptyCallback callback);
+void rpc_session_set_buffer_is_empty_callback(RpcSession *session,
+                                              RpcBufferIsEmptyCallback callback);
 
 /** Set callback to be called when RPC command to close session is received
  *  WARN: It's forbidden to call RPC API within RpcSessionClosedCallback
@@ -106,16 +105,15 @@ void rpc_session_set_buffer_is_empty_callback(
  * @param   session     pointer to RpcSession descriptor
  * @param   callback    callback to inform about RPC close session command (can be NULL)
  */
-void rpc_session_set_close_callback(RpcSession* session, RpcSessionClosedCallback callback);
+void rpc_session_set_close_callback(RpcSession *session, RpcSessionClosedCallback callback);
 
 /** Set callback to be called when RPC session is closed
  *
  * @param   session     pointer to RpcSession descriptor
  * @param   callback    callback to inform about RPC session state
  */
-void rpc_session_set_terminated_callback(
-    RpcSession* session,
-    RpcSessionTerminatedCallback callback);
+void rpc_session_set_terminated_callback(RpcSession *session,
+                                         RpcSessionTerminatedCallback callback);
 
 /** Give bytes to RPC service to decode them and perform command
  *
@@ -126,7 +124,7 @@ void rpc_session_set_terminated_callback(
  *
  * @return              actually consumed bytes
  */
-size_t rpc_session_feed(RpcSession* session, const uint8_t* buffer, size_t size, uint32_t timeout);
+size_t rpc_session_feed(RpcSession *session, const uint8_t *buffer, size_t size, uint32_t timeout);
 
 /** Get available size of RPC buffer
  *
@@ -134,14 +132,14 @@ size_t rpc_session_feed(RpcSession* session, const uint8_t* buffer, size_t size,
  *
  * @return              bytes available in buffer
  */
-size_t rpc_session_get_available_size(RpcSession* session);
+size_t rpc_session_get_available_size(RpcSession *session);
 
 /** Get number of open RPC sessions
  *
  * @param   rpc     instance
  * @return          sessions count
  */
-size_t rpc_get_sessions_count(Rpc* rpc);
+size_t rpc_get_sessions_count(Rpc *rpc);
 
 #ifdef __cplusplus
 }

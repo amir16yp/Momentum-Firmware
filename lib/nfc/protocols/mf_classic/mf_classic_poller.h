@@ -20,32 +20,35 @@ typedef enum {
 
     MfClassicPollerEventTypeRequestReadSector, /**< Poller requests data to read sector. */
 
-    MfClassicPollerEventTypeRequestSectorTrailer, /**< Poller requests sector trailer for writing block. */
-    MfClassicPollerEventTypeRequestWriteBlock, /**< Poller requests data to write block. */
+    MfClassicPollerEventTypeRequestSectorTrailer, /**< Poller requests sector trailer for writing
+                                                     block. */
+    MfClassicPollerEventTypeRequestWriteBlock,    /**< Poller requests data to write block. */
 
-    MfClassicPollerEventTypeRequestKey, /**< Poller requests key for sector authentication. */
-    MfClassicPollerEventTypeNextSector, /**< Poller switches to next sector during dictionary attack. */
-    MfClassicPollerEventTypeDataUpdate, /**< Poller updates data. */
-    MfClassicPollerEventTypeFoundKeyA, /**< Poller found key A. */
-    MfClassicPollerEventTypeFoundKeyB, /**< Poller found key B. */
+    MfClassicPollerEventTypeRequestKey,     /**< Poller requests key for sector authentication. */
+    MfClassicPollerEventTypeNextSector,     /**< Poller switches to next sector during dictionary
+                                               attack. */
+    MfClassicPollerEventTypeDataUpdate,     /**< Poller updates data. */
+    MfClassicPollerEventTypeFoundKeyA,      /**< Poller found key A. */
+    MfClassicPollerEventTypeFoundKeyB,      /**< Poller found key B. */
     MfClassicPollerEventTypeKeyAttackStart, /**< Poller starts key attack. */
-    MfClassicPollerEventTypeKeyAttackStop, /**< Poller stops key attack. */
-    MfClassicPollerEventTypeKeyAttackNextSector, /**< Poller switches to next sector during key attack. */
+    MfClassicPollerEventTypeKeyAttackStop,  /**< Poller stops key attack. */
+    MfClassicPollerEventTypeKeyAttackNextSector, /**< Poller switches to next sector during key
+                                                    attack. */
 
     MfClassicPollerEventTypeCardDetected, /**< Poller detected card. */
-    MfClassicPollerEventTypeCardLost, /**< Poller lost card. */
-    MfClassicPollerEventTypeSuccess, /**< Poller succeeded. */
-    MfClassicPollerEventTypeFail, /**< Poller failed. */
+    MfClassicPollerEventTypeCardLost,     /**< Poller lost card. */
+    MfClassicPollerEventTypeSuccess,      /**< Poller succeeded. */
+    MfClassicPollerEventTypeFail,         /**< Poller failed. */
 } MfClassicPollerEventType;
 
 /**
  * @brief MfClassic poller mode.
  */
 typedef enum {
-    MfClassicPollerModeRead, /**< Poller reading mode. */
-    MfClassicPollerModeWrite, /**< Poller writing mode. */
+    MfClassicPollerModeRead,               /**< Poller reading mode. */
+    MfClassicPollerModeWrite,              /**< Poller writing mode. */
     MfClassicPollerModeDictAttackStandard, /**< Poller dictionary attack mode. */
-    MfClassicPollerModeDictAttackCUID, /**< Poller CUID dictionary attack mode. */
+    MfClassicPollerModeDictAttackCUID,     /**< Poller CUID dictionary attack mode. */
     MfClassicPollerModeDictAttackEnhanced, /**< Poller enhanced dictionary attack mode. */
 } MfClassicPollerMode;
 
@@ -53,15 +56,22 @@ typedef enum {
  * @brief MfClassic poller nested attack phase.
  */
 typedef enum {
-    MfClassicNestedPhaseNone, /**< No nested attack has taken place yet. */
-    MfClassicNestedPhaseAnalyzePRNG, /**< Analyze nonces produced by the PRNG to determine if they fit a weak PRNG */
-    MfClassicNestedPhaseDictAttack, /**< Search keys which match the expected PRNG properties and parity for collected nonces */
-    MfClassicNestedPhaseDictAttackVerify, /**< Verify candidate keys by authenticating to the sector with the key */
-    MfClassicNestedPhaseDictAttackResume, /**< Resume nested dictionary attack from the last tested (invalid) key */
-    MfClassicNestedPhaseCalibrate, /**< Perform necessary calculations to recover the plaintext nonce during later collection phase (weak PRNG tags only) */
-    MfClassicNestedPhaseRecalibrate, /**< Collect the next plaintext static encrypted nonce for backdoor static encrypted nonce nested attack */
-    MfClassicNestedPhaseCollectNtEnc, /**< Log nonces collected during nested authentication for key recovery */
-    MfClassicNestedPhaseFinished, /**< Nested attack has finished */
+    MfClassicNestedPhaseNone,        /**< No nested attack has taken place yet. */
+    MfClassicNestedPhaseAnalyzePRNG, /**< Analyze nonces produced by the PRNG to determine if they
+                                        fit a weak PRNG */
+    MfClassicNestedPhaseDictAttack,  /**< Search keys which match the expected PRNG properties and
+                                        parity for collected nonces */
+    MfClassicNestedPhaseDictAttackVerify, /**< Verify candidate keys by authenticating to the sector
+                                             with the key */
+    MfClassicNestedPhaseDictAttackResume, /**< Resume nested dictionary attack from the last tested
+                                             (invalid) key */
+    MfClassicNestedPhaseCalibrate,    /**< Perform necessary calculations to recover the plaintext
+                                         nonce during later collection phase (weak PRNG tags only) */
+    MfClassicNestedPhaseRecalibrate,  /**< Collect the next plaintext static encrypted nonce for
+                                         backdoor static encrypted nonce nested attack */
+    MfClassicNestedPhaseCollectNtEnc, /**< Log nonces collected during nested authentication for key
+                                         recovery */
+    MfClassicNestedPhaseFinished,     /**< Nested attack has finished */
 } MfClassicNestedPhase;
 
 /**
@@ -69,9 +79,9 @@ typedef enum {
  */
 typedef enum {
     MfClassicPrngTypeUnknown, // Tag not yet tested
-    MfClassicPrngTypeNoTag, // No tag detected during test
-    MfClassicPrngTypeWeak, // Weak PRNG, standard Nested
-    MfClassicPrngTypeHard, // Hard PRNG, Hardnested
+    MfClassicPrngTypeNoTag,   // No tag detected during test
+    MfClassicPrngTypeWeak,    // Weak PRNG, standard Nested
+    MfClassicPrngTypeHard,    // Hard PRNG, Hardnested
 } MfClassicPrngType;
 
 /**
@@ -79,10 +89,10 @@ typedef enum {
  */
 typedef enum {
     MfClassicBackdoorUnknown, // Tag not yet tested
-    MfClassicBackdoorNone, // No observed backdoor
-    MfClassicBackdoorAuth1, // Tag responds to v1 auth backdoor
-    MfClassicBackdoorAuth2, // Tag responds to v2 auth backdoor (sometimes static encrypted)
-    MfClassicBackdoorAuth3, // Tag responds to v3 auth backdoor (static encrypted nonce)
+    MfClassicBackdoorNone,    // No observed backdoor
+    MfClassicBackdoorAuth1,   // Tag responds to v1 auth backdoor
+    MfClassicBackdoorAuth2,   // Tag responds to v2 auth backdoor (sometimes static encrypted)
+    MfClassicBackdoorAuth3,   // Tag responds to v3 auth backdoor (static encrypted nonce)
 } MfClassicBackdoor;
 
 /**
@@ -91,8 +101,8 @@ typedef enum {
  * This instance of this structure must be filled on MfClassicPollerEventTypeRequestMode event.
  */
 typedef struct {
-    MfClassicPollerMode mode; /**< Mode to be used by poller. */
-    const MfClassicData* data; /**< Data to be used by poller. */
+    MfClassicPollerMode mode;  /**< Mode to be used by poller. */
+    const MfClassicData *data; /**< Data to be used by poller. */
 } MfClassicPollerEventDataRequestMode;
 
 /**
@@ -112,13 +122,13 @@ typedef struct {
  * MfClassicPollerEventTypeDataUpdate event.
  */
 typedef struct {
-    uint8_t sectors_read; /**< Number of sectors read. */
-    uint8_t keys_found; /**< Number of keys found. */
-    uint8_t current_sector; /**< Current sector number. */
+    uint8_t sectors_read;              /**< Number of sectors read. */
+    uint8_t keys_found;                /**< Number of keys found. */
+    uint8_t current_sector;            /**< Current sector number. */
     MfClassicNestedPhase nested_phase; /**< Nested attack phase. */
-    MfClassicPrngType prng_type; /**< PRNG (weak or hard). */
-    MfClassicBackdoor backdoor; /**< Backdoor type. */
-    uint16_t nested_target_key; /**< Target key for nested attack. */
+    MfClassicPrngType prng_type;       /**< PRNG (weak or hard). */
+    MfClassicBackdoor backdoor;        /**< Backdoor type. */
+    uint16_t nested_target_key;        /**< Target key for nested attack. */
     uint16_t
         msb_count; /**< Number of unique most significant bytes seen during Hardnested attack. */
 } MfClassicPollerEventDataUpdate;
@@ -129,9 +139,9 @@ typedef struct {
  * The instance of this structure must be filled on MfClassicPollerEventTypeRequestKey event.
  */
 typedef struct {
-    MfClassicKey key; /**< Key to be used by poller. */
+    MfClassicKey key;          /**< Key to be used by poller. */
     MfClassicKeyType key_type; /**< Key type (A or B) for CUID dict attack mode. */
-    bool key_provided; /**< Flag indicating if key is provided. */
+    bool key_provided;         /**< Flag indicating if key is provided. */
 } MfClassicPollerEventDataKeyRequest;
 
 /**
@@ -140,21 +150,22 @@ typedef struct {
  * The instance of this structure must be filled on MfClassicPollerEventTypeRequestReadSector event.
  */
 typedef struct {
-    uint8_t sector_num; /**< Sector number to be read. */
-    MfClassicKey key; /**< Key to be used by poller. */
+    uint8_t sector_num;        /**< Sector number to be read. */
+    MfClassicKey key;          /**< Key to be used by poller. */
     MfClassicKeyType key_type; /**< Key type to be used by poller. */
-    bool key_provided; /**< Flag indicating if key is provided. */
+    bool key_provided;         /**< Flag indicating if key is provided. */
 } MfClassicPollerEventDataReadSectorRequest;
 
 /**
  * @brief MfClassic poller sector trailer request event data.
  *
- * The instance of this structure must be filled on MfClassicPollerEventTypeRequestSectorTrailer event.
+ * The instance of this structure must be filled on MfClassicPollerEventTypeRequestSectorTrailer
+ * event.
  */
 typedef struct {
-    uint8_t sector_num; /**< Sector number to be read. */
+    uint8_t sector_num;            /**< Sector number to be read. */
     MfClassicBlock sector_trailer; /**< Sector trailer to be used by poller. */
-    bool sector_trailer_provided; /**< Flag indicating if sector trailer is provided. */
+    bool sector_trailer_provided;  /**< Flag indicating if sector trailer is provided. */
 } MfClassicPollerEventDataSectorTrailerRequest;
 
 /**
@@ -163,9 +174,9 @@ typedef struct {
  * The instance of this structure must be filled on MfClassicPollerEventTypeRequestWriteBlock event.
  */
 typedef struct {
-    uint8_t block_num; /**< Block number to be written. */
+    uint8_t block_num;          /**< Block number to be written. */
     MfClassicBlock write_block; /**< Block to be written. */
-    bool write_block_provided; /**< Flag indicating if block is provided. */
+    bool write_block_provided;  /**< Flag indicating if block is provided. */
 } MfClassicPollerEventDataWriteBlockRequest;
 
 /**
@@ -183,14 +194,15 @@ typedef struct {
  */
 typedef union {
     MfClassicError error; /**< Error code on MfClassicPollerEventTypeFail event. */
-    MfClassicPollerEventDataRequestMode poller_mode; /**< Poller mode context. */
+    MfClassicPollerEventDataRequestMode poller_mode;               /**< Poller mode context. */
     MfClassicPollerEventDataDictAttackNextSector next_sector_data; /**< Next sector context. */
-    MfClassicPollerEventDataKeyRequest key_request_data; /**< Key request context. */
-    MfClassicPollerEventDataUpdate data_update; /**< Data update context. */
+    MfClassicPollerEventDataKeyRequest key_request_data;           /**< Key request context. */
+    MfClassicPollerEventDataUpdate data_update;                    /**< Data update context. */
     MfClassicPollerEventDataReadSectorRequest
-        read_sector_request_data; /**< Read sector request context. */
+        read_sector_request_data;                      /**< Read sector request context. */
     MfClassicPollerEventKeyAttackData key_attack_data; /**< Key attack context. */
-    MfClassicPollerEventDataSectorTrailerRequest sec_tr_data; /**< Sector trailer request context. */
+    MfClassicPollerEventDataSectorTrailerRequest
+        sec_tr_data; /**< Sector trailer request context. */
     MfClassicPollerEventDataWriteBlockRequest write_block_data; /**< Write block request context. */
 } MfClassicPollerEventData;
 
@@ -200,8 +212,8 @@ typedef union {
  * Upon emission of an event, an instance of this struct will be passed to the callback.
  */
 typedef struct {
-    MfClassicPollerEventType type; /**< Event type. */
-    MfClassicPollerEventData* data; /**< Pointer to event specific data. */
+    MfClassicPollerEventType type;  /**< Event type. */
+    MfClassicPollerEventData *data; /**< Pointer to event specific data. */
 } MfClassicPollerEvent;
 
 /**
@@ -218,12 +230,9 @@ typedef struct {
  * @param[in] backdoor_auth flag indicating if backdoor authentication is used.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_get_nt(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicKeyType key_type,
-    MfClassicNt* nt,
-    bool backdoor_auth);
+MfClassicError mf_classic_poller_get_nt(MfClassicPoller *instance, uint8_t block_num,
+                                        MfClassicKeyType key_type, MfClassicNt *nt,
+                                        bool backdoor_auth);
 
 /**
  * @brief Collect tag nonce during nested authentication.
@@ -239,12 +248,9 @@ MfClassicError mf_classic_poller_get_nt(
  * @param[in] backdoor_auth flag indicating if backdoor authentication is used.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_get_nt_nested(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicKeyType key_type,
-    MfClassicNt* nt,
-    bool backdoor_auth);
+MfClassicError mf_classic_poller_get_nt_nested(MfClassicPoller *instance, uint8_t block_num,
+                                               MfClassicKeyType key_type, MfClassicNt *nt,
+                                               bool backdoor_auth);
 
 /**
  * @brief Perform authentication.
@@ -262,13 +268,9 @@ MfClassicError mf_classic_poller_get_nt_nested(
  * @param[in] backdoor_auth flag indicating if backdoor authentication is used.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_auth(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicKey* key,
-    MfClassicKeyType key_type,
-    MfClassicAuthContext* data,
-    bool backdoor_auth);
+MfClassicError mf_classic_poller_auth(MfClassicPoller *instance, uint8_t block_num,
+                                      MfClassicKey *key, MfClassicKeyType key_type,
+                                      MfClassicAuthContext *data, bool backdoor_auth);
 
 /**
  * @brief Perform nested authentication.
@@ -286,14 +288,10 @@ MfClassicError mf_classic_poller_auth(
  * @param[in] early_ret return immediately after receiving encrypted nonce.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_auth_nested(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicKey* key,
-    MfClassicKeyType key_type,
-    MfClassicAuthContext* data,
-    bool backdoor_auth,
-    bool early_ret);
+MfClassicError mf_classic_poller_auth_nested(MfClassicPoller *instance, uint8_t block_num,
+                                             MfClassicKey *key, MfClassicKeyType key_type,
+                                             MfClassicAuthContext *data, bool backdoor_auth,
+                                             bool early_ret);
 
 /**
  * @brief Halt the tag.
@@ -305,7 +303,7 @@ MfClassicError mf_classic_poller_auth_nested(
  * @param[in, out] instance pointer to the instance to be used in the transaction.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_halt(MfClassicPoller* instance);
+MfClassicError mf_classic_poller_halt(MfClassicPoller *instance);
 
 /**
  * @brief Read block from tag.
@@ -317,10 +315,8 @@ MfClassicError mf_classic_poller_halt(MfClassicPoller* instance);
  * @param[out] data pointer to the MfClassicBlock structure to be filled with block data.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_read_block(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicBlock* data);
+MfClassicError mf_classic_poller_read_block(MfClassicPoller *instance, uint8_t block_num,
+                                            MfClassicBlock *data);
 
 /**
  * @brief Write block to tag.
@@ -332,10 +328,8 @@ MfClassicError mf_classic_poller_read_block(
  * @param[in] data pointer to the MfClassicBlock structure to be written.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_write_block(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicBlock* data);
+MfClassicError mf_classic_poller_write_block(MfClassicPoller *instance, uint8_t block_num,
+                                             MfClassicBlock *data);
 
 /**
  * @brief Perform value command on tag.
@@ -351,11 +345,8 @@ MfClassicError mf_classic_poller_write_block(
  * @param[in] data value to be used for value command.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_value_cmd(
-    MfClassicPoller* instance,
-    uint8_t block_num,
-    MfClassicValueCommand cmd,
-    int32_t data);
+MfClassicError mf_classic_poller_value_cmd(MfClassicPoller *instance, uint8_t block_num,
+                                           MfClassicValueCommand cmd, int32_t data);
 
 /**
  * @brief Transfer internal transfer block to tag.
@@ -368,7 +359,7 @@ MfClassicError mf_classic_poller_value_cmd(
  * @param[in] block_num block number to be used for value command.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_value_transfer(MfClassicPoller* instance, uint8_t block_num);
+MfClassicError mf_classic_poller_value_transfer(MfClassicPoller *instance, uint8_t block_num);
 
 /**
  * @brief Transmit and receive Iso14443_3a standard frames in poller mode.
@@ -384,11 +375,9 @@ MfClassicError mf_classic_poller_value_transfer(MfClassicPoller* instance, uint8
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_send_standard_frame(
-    MfClassicPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt_fc);
+MfClassicError mf_classic_poller_send_standard_frame(MfClassicPoller *instance,
+                                                     const BitBuffer *tx_buffer,
+                                                     BitBuffer *rx_buffer, uint32_t fwt_fc);
 
 /**
  * @brief Transmit and receive Iso14443_3a frames in poller mode.
@@ -404,11 +393,8 @@ MfClassicError mf_classic_poller_send_standard_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_send_frame(
-    MfClassicPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt_fc);
+MfClassicError mf_classic_poller_send_frame(MfClassicPoller *instance, const BitBuffer *tx_buffer,
+                                            BitBuffer *rx_buffer, uint32_t fwt_fc);
 
 /**
  * @brief Transmit and receive Iso14443_3a frames with custom parity bits in poller mode.
@@ -427,14 +413,13 @@ MfClassicError mf_classic_poller_send_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_send_custom_parity_frame(
-    MfClassicPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt_fc);
+MfClassicError mf_classic_poller_send_custom_parity_frame(MfClassicPoller *instance,
+                                                          const BitBuffer *tx_buffer,
+                                                          BitBuffer *rx_buffer, uint32_t fwt_fc);
 
 /**
- * @brief Transmit and receive Mifare Classic encrypted frames with custom parity bits in poller mode.
+ * @brief Transmit and receive Mifare Classic encrypted frames with custom parity bits in poller
+ * mode.
  *
  * Must ONLY be used inside the callback function.
  *
@@ -447,11 +432,9 @@ MfClassicError mf_classic_poller_send_custom_parity_frame(
  * @param[in] fwt frame wait time (response timeout), in carrier cycles.
  * @return MfClassicErrorNone on success, an error code on failure.
  */
-MfClassicError mf_classic_poller_send_encrypted_frame(
-    MfClassicPoller* instance,
-    const BitBuffer* tx_buffer,
-    BitBuffer* rx_buffer,
-    uint32_t fwt_fc);
+MfClassicError mf_classic_poller_send_encrypted_frame(MfClassicPoller *instance,
+                                                      const BitBuffer *tx_buffer,
+                                                      BitBuffer *rx_buffer, uint32_t fwt_fc);
 
 #ifdef __cplusplus
 }

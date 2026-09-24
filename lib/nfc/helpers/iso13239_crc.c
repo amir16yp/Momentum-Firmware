@@ -2,22 +2,22 @@
 
 #include <core/check.h>
 
-#define ISO13239_CRC_INIT_DEFAULT  (0xFFFFU)
+#define ISO13239_CRC_INIT_DEFAULT (0xFFFFU)
 #define ISO13239_CRC_INIT_PICOPASS (0xE012U)
 
-static uint16_t
-    iso13239_crc_calculate(Iso13239CrcType type, const uint8_t* data, size_t data_size) {
+static uint16_t iso13239_crc_calculate(Iso13239CrcType type, const uint8_t *data, size_t data_size)
+{
     uint16_t crc;
 
-    if(type == Iso13239CrcTypeDefault) {
+    if (type == Iso13239CrcTypeDefault) {
         crc = ISO13239_CRC_INIT_DEFAULT;
-    } else if(type == Iso13239CrcTypePicopass) {
+    } else if (type == Iso13239CrcTypePicopass) {
         crc = ISO13239_CRC_INIT_PICOPASS;
     } else {
         furi_crash("Wrong ISO13239 CRC type");
     }
 
-    for(size_t i = 0; i < data_size; ++i) {
+    for (size_t i = 0; i < data_size; ++i) {
         // Byte-wise update for the reflected 0x1021 polynomial (0x8408).
         uint8_t byte = data[i] ^ (uint8_t)crc;
         byte ^= byte << 4;
@@ -27,33 +27,37 @@ static uint16_t
     return type == Iso13239CrcTypePicopass ? crc : ~crc;
 }
 
-void iso13239_crc_append(Iso13239CrcType type, BitBuffer* buf) {
+void iso13239_crc_append(Iso13239CrcType type, BitBuffer *buf)
+{
     furi_check(buf);
 
-    const uint8_t* data = bit_buffer_get_data(buf);
+    const uint8_t *data = bit_buffer_get_data(buf);
     const size_t data_size = bit_buffer_get_size_bytes(buf);
 
     const uint16_t crc = iso13239_crc_calculate(type, data, data_size);
-    bit_buffer_append_bytes(buf, (const uint8_t*)&crc, ISO13239_CRC_SIZE);
+    bit_buffer_append_bytes(buf, (const uint8_t *)&crc, ISO13239_CRC_SIZE);
 }
 
-bool iso13239_crc_check(Iso13239CrcType type, const BitBuffer* buf) {
+bool iso13239_crc_check(Iso13239CrcType type, const BitBuffer *buf)
+{
     furi_check(buf);
 
     const size_t data_size = bit_buffer_get_size_bytes(buf);
-    if(data_size <= ISO13239_CRC_SIZE) return false;
+    if (data_size <= ISO13239_CRC_SIZE)
+        return false;
 
     uint16_t crc_received;
-    bit_buffer_write_bytes_mid(
-        buf, &crc_received, data_size - ISO13239_CRC_SIZE, ISO13239_CRC_SIZE);
+    bit_buffer_write_bytes_mid(buf, &crc_received, data_size - ISO13239_CRC_SIZE,
+                               ISO13239_CRC_SIZE);
 
-    const uint8_t* data = bit_buffer_get_data(buf);
+    const uint8_t *data = bit_buffer_get_data(buf);
     const uint16_t crc_calc = iso13239_crc_calculate(type, data, data_size - ISO13239_CRC_SIZE);
 
     return crc_calc == crc_received;
 }
 
-void iso13239_crc_trim(BitBuffer* buf) {
+void iso13239_crc_trim(BitBuffer *buf)
+{
     furi_check(buf);
 
     const size_t data_size = bit_buffer_get_size_bytes(buf);

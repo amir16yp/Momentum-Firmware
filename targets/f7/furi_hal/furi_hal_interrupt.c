@@ -18,14 +18,14 @@
 #define FURI_HAL_INTERRUPT_ACCOUNT_END()
 #else
 #define FURI_HAL_INTERRUPT_ACCOUNT_START() const uint32_t _isr_start = DWT->CYCCNT;
-#define FURI_HAL_INTERRUPT_ACCOUNT_END()                    \
-    const uint32_t _time_in_isr = DWT->CYCCNT - _isr_start; \
+#define FURI_HAL_INTERRUPT_ACCOUNT_END()                                                           \
+    const uint32_t _time_in_isr = DWT->CYCCNT - _isr_start;                                        \
     furi_hal_interrupt.counter_time_in_isr_total += _time_in_isr;
 #endif
 
 typedef struct {
     FuriHalInterruptISR isr;
-    void* context;
+    void *context;
 } FuriHalInterruptISRPair;
 
 typedef struct {
@@ -85,8 +85,9 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     [FuriHalInterruptIdLpUart1] = LPUART1_IRQn,
 };
 
-FURI_ALWAYS_INLINE static void furi_hal_interrupt_call(FuriHalInterruptId index) {
-    const FuriHalInterruptISRPair* isr_descr = &furi_hal_interrupt.isr[index];
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_call(FuriHalInterruptId index)
+{
+    const FuriHalInterruptISRPair *isr_descr = &furi_hal_interrupt.isr[index];
     furi_check(isr_descr->isr);
 
     FURI_HAL_INTERRUPT_ACCOUNT_START();
@@ -94,33 +95,37 @@ FURI_ALWAYS_INLINE static void furi_hal_interrupt_call(FuriHalInterruptId index)
     FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
-FURI_ALWAYS_INLINE static void
-    furi_hal_interrupt_enable(FuriHalInterruptId index, uint16_t priority) {
-    NVIC_SetPriority(
-        furi_hal_interrupt_irqn[index],
-        NVIC_EncodePriority(NVIC_GetPriorityGrouping(), priority, 0));
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_enable(FuriHalInterruptId index,
+                                                         uint16_t priority)
+{
+    NVIC_SetPriority(furi_hal_interrupt_irqn[index],
+                     NVIC_EncodePriority(NVIC_GetPriorityGrouping(), priority, 0));
     NVIC_EnableIRQ(furi_hal_interrupt_irqn[index]);
 }
 
-FURI_ALWAYS_INLINE static void furi_hal_interrupt_clear_pending(FuriHalInterruptId index) {
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_clear_pending(FuriHalInterruptId index)
+{
     NVIC_ClearPendingIRQ(furi_hal_interrupt_irqn[index]);
 }
 
-FURI_ALWAYS_INLINE static void furi_hal_interrupt_get_pending(FuriHalInterruptId index) {
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_get_pending(FuriHalInterruptId index)
+{
     NVIC_GetPendingIRQ(furi_hal_interrupt_irqn[index]);
 }
 
-FURI_ALWAYS_INLINE static void furi_hal_interrupt_set_pending(FuriHalInterruptId index) {
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_set_pending(FuriHalInterruptId index)
+{
     NVIC_SetPendingIRQ(furi_hal_interrupt_irqn[index]);
 }
 
-FURI_ALWAYS_INLINE static void furi_hal_interrupt_disable(FuriHalInterruptId index) {
+FURI_ALWAYS_INLINE static void furi_hal_interrupt_disable(FuriHalInterruptId index)
+{
     NVIC_DisableIRQ(furi_hal_interrupt_irqn[index]);
 }
 
-void furi_hal_interrupt_init(void) {
-    NVIC_SetPriority(
-        TAMP_STAMP_LSECSS_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
+void furi_hal_interrupt_init(void)
+{
+    NVIC_SetPriority(TAMP_STAMP_LSECSS_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
     NVIC_EnableIRQ(TAMP_STAMP_LSECSS_IRQn);
 
     NVIC_SetPriority(SVCall_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
@@ -143,25 +148,23 @@ void furi_hal_interrupt_init(void) {
     FURI_LOG_I(TAG, "Init OK");
 }
 
-void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void* context) {
+void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void *context)
+{
     furi_hal_interrupt_set_isr_ex(index, FuriHalInterruptPriorityNormal, isr, context);
 }
 
-void furi_hal_interrupt_set_isr_ex(
-    FuriHalInterruptId index,
-    FuriHalInterruptPriority priority,
-    FuriHalInterruptISR isr,
-    void* context) {
+void furi_hal_interrupt_set_isr_ex(FuriHalInterruptId index, FuriHalInterruptPriority priority,
+                                   FuriHalInterruptISR isr, void *context)
+{
     furi_check(index < FuriHalInterruptIdMax);
-    furi_check(
-        (priority >= FuriHalInterruptPriorityLowest &&
-         priority <= FuriHalInterruptPriorityHighest) ||
-        priority == FuriHalInterruptPriorityKamiSama);
+    furi_check((priority >= FuriHalInterruptPriorityLowest &&
+                priority <= FuriHalInterruptPriorityHighest) ||
+               priority == FuriHalInterruptPriorityKamiSama);
 
     uint16_t real_priority = FURI_HAL_INTERRUPT_DEFAULT_PRIORITY - priority;
 
-    FuriHalInterruptISRPair* isr_descr = &furi_hal_interrupt.isr[index];
-    if(isr) {
+    FuriHalInterruptISRPair *isr_descr = &furi_hal_interrupt.isr[index];
+    if (isr) {
         // Pre ISR set
         furi_check(isr_descr->isr == NULL);
     } else {
@@ -174,7 +177,7 @@ void furi_hal_interrupt_set_isr_ex(
     isr_descr->context = context;
     __DMB();
 
-    if(isr) {
+    if (isr) {
         // Post ISR set
         furi_hal_interrupt_clear_pending(index);
         furi_hal_interrupt_enable(index, real_priority);
@@ -184,93 +187,114 @@ void furi_hal_interrupt_set_isr_ex(
 }
 
 /* Timer 2 */
-void TIM2_IRQHandler(void) {
+void TIM2_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdTIM2);
 }
 
 /* Timer 1 Update */
-void TIM1_UP_TIM16_IRQHandler(void) {
+void TIM1_UP_TIM16_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdTim1UpTim16);
 }
 
-void TIM1_TRG_COM_TIM17_IRQHandler(void) {
+void TIM1_TRG_COM_TIM17_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdTim1TrgComTim17);
 }
 
-void TIM1_CC_IRQHandler(void) {
+void TIM1_CC_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdTim1Cc);
 }
 
 /* DMA 1 */
-void DMA1_Channel1_IRQHandler(void) {
+void DMA1_Channel1_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch1);
 }
 
-void DMA1_Channel2_IRQHandler(void) {
+void DMA1_Channel2_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch2);
 }
 
-void DMA1_Channel3_IRQHandler(void) {
+void DMA1_Channel3_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch3);
 }
 
-void DMA1_Channel4_IRQHandler(void) {
+void DMA1_Channel4_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch4);
 }
 
-void DMA1_Channel5_IRQHandler(void) {
+void DMA1_Channel5_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch5);
 }
 
-void DMA1_Channel6_IRQHandler(void) {
+void DMA1_Channel6_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch6);
 }
 
-void DMA1_Channel7_IRQHandler(void) {
+void DMA1_Channel7_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma1Ch7);
 }
 
 /* DMA 2 */
-void DMA2_Channel1_IRQHandler(void) {
+void DMA2_Channel1_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch1);
 }
 
-void DMA2_Channel2_IRQHandler(void) {
+void DMA2_Channel2_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch2);
 }
 
-void DMA2_Channel3_IRQHandler(void) {
+void DMA2_Channel3_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch3);
 }
 
-void DMA2_Channel4_IRQHandler(void) {
+void DMA2_Channel4_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch4);
 }
 
-void DMA2_Channel5_IRQHandler(void) {
+void DMA2_Channel5_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch5);
 }
 
-void DMA2_Channel6_IRQHandler(void) {
+void DMA2_Channel6_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch6);
 }
 
-void DMA2_Channel7_IRQHandler(void) {
+void DMA2_Channel7_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdDma2Ch7);
 }
 
-void RTC_Alarm_IRQHandler(void) {
+void RTC_Alarm_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdRtcAlarm);
 }
 
-void HSEM_IRQHandler(void) {
+void HSEM_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdHsem);
 }
 
-void TAMP_STAMP_LSECSS_IRQHandler(void) {
-    if(LL_RCC_IsActiveFlag_LSECSS()) {
+void TAMP_STAMP_LSECSS_IRQHandler(void)
+{
+    if (LL_RCC_IsActiveFlag_LSECSS()) {
         LL_RCC_ClearFlag_LSECSS();
-        if(!LL_RCC_LSE_IsReady()) {
+        if (!LL_RCC_LSE_IsReady()) {
             FURI_LOG_E(TAG, "LSE CSS fired: resetting system");
             NVIC_SystemReset();
         } else {
@@ -279,33 +303,37 @@ void TAMP_STAMP_LSECSS_IRQHandler(void) {
     }
 }
 
-void RCC_IRQHandler(void) {
+void RCC_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdRcc);
 }
 
-void NMI_Handler(void) {
-    if(LL_RCC_IsActiveFlag_HSECSS()) {
+void NMI_Handler(void)
+{
+    if (LL_RCC_IsActiveFlag_HSECSS()) {
         LL_RCC_ClearFlag_HSECSS();
         FURI_LOG_E(TAG, "HSE CSS fired: resetting system");
         NVIC_SystemReset();
     }
 }
 
-void HardFault_Handler(void) {
+void HardFault_Handler(void)
+{
     furi_crash("HardFault");
 }
 
-void MemManage_Handler(void) {
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_MMARVALID_Pos)) {
+void MemManage_Handler(void)
+{
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_MMARVALID_Pos)) {
         uint32_t memfault_address = SCB->MMFAR;
-        if(memfault_address < (1024 * 1024)) {
+        if (memfault_address < (1024 * 1024)) {
             // from 0x00 to 1MB, see FuriHalMpuRegionNULL
             furi_crash("NULL pointer dereference");
         } else {
             // write or read of MPU region 1 (FuriHalMpuRegionThreadStack)
             furi_crash("MPU fault, possibly stack overflow");
         }
-    } else if(FURI_BIT(SCB->CFSR, SCB_CFSR_MSTKERR_Pos)) {
+    } else if (FURI_BIT(SCB->CFSR, SCB_CFSR_MSTKERR_Pos)) {
         // push to stack on MPU region 1 (FuriHalMpuRegionThreadStack)
         furi_crash("MemManage fault, possibly stack overflow");
     }
@@ -313,33 +341,34 @@ void MemManage_Handler(void) {
     furi_crash("MemManage");
 }
 
-void BusFault_Handler(void) {
+void BusFault_Handler(void)
+{
     furi_log_puts("\r\n" _FURI_LOG_CLR_E "Bus fault:\r\n");
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_LSPERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_LSPERR_Pos)) {
         furi_log_puts(" - lazy stacking for exception entry\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_STKERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_STKERR_Pos)) {
         furi_log_puts(" - stacking for exception entry\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_UNSTKERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_UNSTKERR_Pos)) {
         furi_log_puts(" - unstacking for exception return\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_IMPRECISERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_IMPRECISERR_Pos)) {
         furi_log_puts(" - imprecise data access\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_PRECISERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_PRECISERR_Pos)) {
         furi_log_puts(" - precise data access\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_IBUSERR_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_IBUSERR_Pos)) {
         furi_log_puts(" - instruction\r\n");
     }
 
-    if(FURI_BIT(SCB->CFSR, SCB_CFSR_BFARVALID_Pos)) {
+    if (FURI_BIT(SCB->CFSR, SCB_CFSR_BFARVALID_Pos)) {
         uint32_t busfault_address = SCB->BFAR;
         furi_log_puts(" -- at 0x");
 
@@ -349,7 +378,7 @@ void BusFault_Handler(void) {
 
         furi_log_puts("\r\n");
 
-        if(busfault_address == (uint32_t)NULL) {
+        if (busfault_address == (uint32_t)NULL) {
             furi_log_puts(" -- NULL pointer dereference\r\n");
         }
     }
@@ -358,11 +387,13 @@ void BusFault_Handler(void) {
     furi_crash("BusFault");
 }
 
-void UsageFault_Handler(void) {
+void UsageFault_Handler(void)
+{
     furi_crash("UsageFault");
 }
 
-void DebugMon_Handler(void) {
+void DebugMon_Handler(void)
+{
 }
 
 #include "usbd_core.h"
@@ -372,13 +403,15 @@ extern usbd_device udev;
 extern void HW_IPCC_Tx_Handler(void);
 extern void HW_IPCC_Rx_Handler(void);
 
-void SysTick_Handler(void) {
+void SysTick_Handler(void)
+{
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     furi_hal_os_tick();
     FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
-void USB_LP_IRQHandler(void) {
+void USB_LP_IRQHandler(void)
+{
 #ifndef FURI_RAM_EXEC
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     usbd_poll(&udev);
@@ -386,7 +419,8 @@ void USB_LP_IRQHandler(void) {
 #endif
 }
 
-void USB_HP_IRQHandler(void) { //-V524
+void USB_HP_IRQHandler(void)
+{ //-V524
 #ifndef FURI_RAM_EXEC
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     usbd_poll(&udev);
@@ -394,43 +428,51 @@ void USB_HP_IRQHandler(void) { //-V524
 #endif
 }
 
-void IPCC_C1_TX_IRQHandler(void) {
+void IPCC_C1_TX_IRQHandler(void)
+{
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     HW_IPCC_Tx_Handler();
     FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
-void IPCC_C1_RX_IRQHandler(void) {
+void IPCC_C1_RX_IRQHandler(void)
+{
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     HW_IPCC_Rx_Handler();
     FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
-void FPU_IRQHandler(void) {
+void FPU_IRQHandler(void)
+{
     furi_crash("FpuFault");
 }
 
-void LPTIM1_IRQHandler(void) {
+void LPTIM1_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdLpTim1);
 }
 
-void LPTIM2_IRQHandler(void) {
+void LPTIM2_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdLpTim2);
 }
 
-void USART1_IRQHandler(void) {
+void USART1_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdUart1);
 }
 
-void LPUART1_IRQHandler(void) {
+void LPUART1_IRQHandler(void)
+{
     furi_hal_interrupt_call(FuriHalInterruptIdLpUart1);
 }
 
 // Potential space-saver for updater build
-const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
+const char *furi_hal_interrupt_get_name(uint8_t exception_number)
+{
     int32_t id = (int32_t)exception_number - 16;
 
-    switch(id) {
+    switch (id) {
     case -14:
         return "NMI";
     case -13:
@@ -580,6 +622,7 @@ const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
     }
 }
 
-uint32_t furi_hal_interrupt_get_time_in_isr_total(void) {
+uint32_t furi_hal_interrupt_get_time_in_isr_total(void)
+{
     return furi_hal_interrupt.counter_time_in_isr_total;
 }

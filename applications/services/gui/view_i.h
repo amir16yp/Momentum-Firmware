@@ -9,7 +9,7 @@
 #include <furi.h>
 
 typedef struct {
-    FuriMutex* mutex;
+    FuriMutex *mutex;
     uint8_t data[];
 } ViewModelLocking;
 
@@ -25,40 +25,40 @@ struct View {
     ViewOrientation orientation;
 
     ViewUpdateCallback update_callback;
-    void* update_callback_context;
+    void *update_callback_context;
 
-    void* model;
-    void* context;
+    void *model;
+    void *context;
 
     ViewAsciiCallback ascii_callback;
 };
 
 /** Initialize View (for internal use) */
-void view_init(View* view);
+void view_init(View *view);
 
 /** IconAnimation tie callback */
-void view_icon_animation_callback(IconAnimation* instance, void* context);
+void view_icon_animation_callback(IconAnimation *instance, void *context);
 
 /** Unlock model */
-void view_unlock_model(View* view);
+void view_unlock_model(View *view);
 
 /** Draw Callback for View dispatcher */
-void view_draw(View* view, Canvas* canvas);
+void view_draw(View *view, Canvas *canvas);
 
 /** Input Callback for View dispatcher */
-bool view_input(View* view, InputEvent* event);
+bool view_input(View *view, InputEvent *event);
 
 /** Ascii Callback for View dispatcher */
-bool view_ascii(View* view, AsciiEvent* event);
+bool view_ascii(View *view, AsciiEvent *event);
 
 /** Custom Callback for View dispatcher */
-bool view_custom(View* view, uint32_t event);
+bool view_custom(View *view, uint32_t event);
 
 /** Previous Callback for View dispatcher */
-uint32_t view_previous(View* view);
+uint32_t view_previous(View *view);
 
 /** Enter Callback for View dispatcher */
-void view_enter(View* view);
+void view_enter(View *view);
 
 /** Exit Callback for View dispatcher */
-void view_exit(View* view);
+void view_exit(View *view);

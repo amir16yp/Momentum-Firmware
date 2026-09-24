@@ -1,12 +1,14 @@
 #include "../lfrfid_i.h"
 
-void lfrfid_scene_rpc_on_enter(void* context) {
-    LfRfid* app = context;
+void lfrfid_scene_rpc_on_enter(void *context)
+{
+    LfRfid *app = context;
     app->rpc_state = LfRfidRpcStateIdle;
 }
 
-static void lfrfid_rpc_start_emulation(LfRfid* app) {
-    Popup* popup = app->popup;
+static void lfrfid_rpc_start_emulation(LfRfid *app)
+{
+    Popup *popup = app->popup;
 
     lfrfid_text_store_set(app, "emulating\n%s", furi_string_get_cstr(app->file_name));
 
@@ -24,23 +26,24 @@ static void lfrfid_rpc_start_emulation(LfRfid* app) {
     app->rpc_state = LfRfidRpcStateEmulating;
 }
 
-bool lfrfid_scene_rpc_on_event(void* context, SceneManagerEvent event) {
-    LfRfid* app = context;
+bool lfrfid_scene_rpc_on_event(void *context, SceneManagerEvent event)
+{
+    LfRfid *app = context;
     bool consumed = false;
 
-    if(event.type == SceneManagerEventTypeCustom) {
+    if (event.type == SceneManagerEventTypeCustom) {
         consumed = true;
-        if(event.event == LfRfidEventExit) {
+        if (event.event == LfRfidEventExit) {
             rpc_system_app_confirm(app->rpc_ctx, true);
             scene_manager_stop(app->scene_manager);
             view_dispatcher_stop(app->view_dispatcher);
-        } else if(event.event == LfRfidEventRpcSessionClose) {
+        } else if (event.event == LfRfidEventRpcSessionClose) {
             scene_manager_stop(app->scene_manager);
             view_dispatcher_stop(app->view_dispatcher);
-        } else if(event.event == LfRfidEventRpcLoadFile) {
+        } else if (event.event == LfRfidEventRpcLoadFile) {
             bool result = false;
-            if(app->rpc_state == LfRfidRpcStateIdle) {
-                if(lfrfid_load_key_data(app, app->file_path, false)) {
+            if (app->rpc_state == LfRfidRpcStateIdle) {
+                if (lfrfid_load_key_data(app, app->file_path, false)) {
                     lfrfid_rpc_start_emulation(app);
                     result = true;
                 } else {
@@ -54,11 +57,12 @@ bool lfrfid_scene_rpc_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void lfrfid_scene_rpc_on_exit(void* context) {
-    LfRfid* app = context;
-    Popup* popup = app->popup;
+void lfrfid_scene_rpc_on_exit(void *context)
+{
+    LfRfid *app = context;
+    Popup *popup = app->popup;
 
-    if(app->rpc_state == LfRfidRpcStateEmulating) {
+    if (app->rpc_state == LfRfidRpcStateEmulating) {
         lfrfid_worker_stop(app->lfworker);
         lfrfid_worker_stop_thread(app->lfworker);
         notification_message(app->notifications, &sequence_blink_stop);

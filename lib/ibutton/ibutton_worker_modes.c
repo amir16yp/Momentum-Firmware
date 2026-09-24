@@ -8,22 +8,22 @@
 
 #include "ibutton_protocols.h"
 
-static void ibutton_worker_mode_idle_start(iButtonWorker* worker);
-static void ibutton_worker_mode_idle_tick(iButtonWorker* worker);
-static void ibutton_worker_mode_idle_stop(iButtonWorker* worker);
+static void ibutton_worker_mode_idle_start(iButtonWorker *worker);
+static void ibutton_worker_mode_idle_tick(iButtonWorker *worker);
+static void ibutton_worker_mode_idle_stop(iButtonWorker *worker);
 
-static void ibutton_worker_mode_emulate_start(iButtonWorker* worker);
-static void ibutton_worker_mode_emulate_tick(iButtonWorker* worker);
-static void ibutton_worker_mode_emulate_stop(iButtonWorker* worker);
+static void ibutton_worker_mode_emulate_start(iButtonWorker *worker);
+static void ibutton_worker_mode_emulate_tick(iButtonWorker *worker);
+static void ibutton_worker_mode_emulate_stop(iButtonWorker *worker);
 
-static void ibutton_worker_mode_read_start(iButtonWorker* worker);
-static void ibutton_worker_mode_read_tick(iButtonWorker* worker);
-static void ibutton_worker_mode_read_stop(iButtonWorker* worker);
+static void ibutton_worker_mode_read_start(iButtonWorker *worker);
+static void ibutton_worker_mode_read_tick(iButtonWorker *worker);
+static void ibutton_worker_mode_read_stop(iButtonWorker *worker);
 
-static void ibutton_worker_mode_write_common_start(iButtonWorker* worker);
-static void ibutton_worker_mode_write_id_tick(iButtonWorker* worker);
-static void ibutton_worker_mode_write_copy_tick(iButtonWorker* worker);
-static void ibutton_worker_mode_write_common_stop(iButtonWorker* worker);
+static void ibutton_worker_mode_write_common_start(iButtonWorker *worker);
+static void ibutton_worker_mode_write_id_tick(iButtonWorker *worker);
+static void ibutton_worker_mode_write_copy_tick(iButtonWorker *worker);
+static void ibutton_worker_mode_write_common_stop(iButtonWorker *worker);
 
 const iButtonWorkerModeType ibutton_worker_modes[] = {
     {
@@ -60,30 +60,35 @@ const iButtonWorkerModeType ibutton_worker_modes[] = {
 
 /*********************** IDLE ***********************/
 
-void ibutton_worker_mode_idle_start(iButtonWorker* worker) {
+void ibutton_worker_mode_idle_start(iButtonWorker *worker)
+{
     UNUSED(worker);
 }
 
-void ibutton_worker_mode_idle_tick(iButtonWorker* worker) {
+void ibutton_worker_mode_idle_tick(iButtonWorker *worker)
+{
     UNUSED(worker);
 }
 
-void ibutton_worker_mode_idle_stop(iButtonWorker* worker) {
+void ibutton_worker_mode_idle_stop(iButtonWorker *worker)
+{
     UNUSED(worker);
 }
 
 /*********************** READ ***********************/
 
-void ibutton_worker_mode_read_start(iButtonWorker* worker) {
+void ibutton_worker_mode_read_start(iButtonWorker *worker)
+{
     UNUSED(worker);
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     power_enable_otg(power, true);
     furi_record_close(RECORD_POWER);
 }
 
-void ibutton_worker_mode_read_tick(iButtonWorker* worker) {
-    if(ibutton_protocols_read(worker->protocols, worker->key)) {
-        if(worker->read_cb != NULL) {
+void ibutton_worker_mode_read_tick(iButtonWorker *worker)
+{
+    if (ibutton_protocols_read(worker->protocols, worker->key)) {
+        if (worker->read_cb != NULL) {
             worker->read_cb(worker->cb_ctx);
         }
 
@@ -91,16 +96,18 @@ void ibutton_worker_mode_read_tick(iButtonWorker* worker) {
     }
 }
 
-void ibutton_worker_mode_read_stop(iButtonWorker* worker) {
+void ibutton_worker_mode_read_stop(iButtonWorker *worker)
+{
     UNUSED(worker);
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     power_enable_otg(power, false);
     furi_record_close(RECORD_POWER);
 }
 
 /*********************** EMULATE ***********************/
 
-void ibutton_worker_mode_emulate_start(iButtonWorker* worker) {
+void ibutton_worker_mode_emulate_start(iButtonWorker *worker)
+{
     furi_assert(worker->key);
 
     furi_hal_rfid_pins_reset();
@@ -109,11 +116,13 @@ void ibutton_worker_mode_emulate_start(iButtonWorker* worker) {
     ibutton_protocols_emulate_start(worker->protocols, worker->key);
 }
 
-void ibutton_worker_mode_emulate_tick(iButtonWorker* worker) {
+void ibutton_worker_mode_emulate_tick(iButtonWorker *worker)
+{
     UNUSED(worker);
 }
 
-void ibutton_worker_mode_emulate_stop(iButtonWorker* worker) {
+void ibutton_worker_mode_emulate_stop(iButtonWorker *worker)
+{
     furi_assert(worker->key);
 
     ibutton_protocols_emulate_stop(worker->protocols, worker->key);
@@ -123,40 +132,44 @@ void ibutton_worker_mode_emulate_stop(iButtonWorker* worker) {
 
 /*********************** WRITE ***********************/
 
-void ibutton_worker_mode_write_common_start(iButtonWorker* worker) { //-V524
+void ibutton_worker_mode_write_common_start(iButtonWorker *worker)
+{ //-V524
     UNUSED(worker);
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     power_enable_otg(power, true);
     furi_record_close(RECORD_POWER);
 }
 
-void ibutton_worker_mode_write_id_tick(iButtonWorker* worker) {
+void ibutton_worker_mode_write_id_tick(iButtonWorker *worker)
+{
     furi_assert(worker->key);
 
     const bool success = ibutton_protocols_write_id(worker->protocols, worker->key);
     // TODO FL-3527: pass a proper result to the callback
-    const iButtonWorkerWriteResult result = success ? iButtonWorkerWriteOK :
-                                                      iButtonWorkerWriteNoDetect;
-    if(worker->write_cb != NULL) {
+    const iButtonWorkerWriteResult result =
+        success ? iButtonWorkerWriteOK : iButtonWorkerWriteNoDetect;
+    if (worker->write_cb != NULL) {
         worker->write_cb(worker->cb_ctx, result);
     }
 }
 
-void ibutton_worker_mode_write_copy_tick(iButtonWorker* worker) {
+void ibutton_worker_mode_write_copy_tick(iButtonWorker *worker)
+{
     furi_assert(worker->key);
 
     const bool success = ibutton_protocols_write_copy(worker->protocols, worker->key);
     // TODO FL-3527: pass a proper result to the callback
-    const iButtonWorkerWriteResult result = success ? iButtonWorkerWriteOK :
-                                                      iButtonWorkerWriteNoDetect;
-    if(worker->write_cb != NULL) {
+    const iButtonWorkerWriteResult result =
+        success ? iButtonWorkerWriteOK : iButtonWorkerWriteNoDetect;
+    if (worker->write_cb != NULL) {
         worker->write_cb(worker->cb_ctx, result);
     }
 }
 
-void ibutton_worker_mode_write_common_stop(iButtonWorker* worker) { //-V524
+void ibutton_worker_mode_write_common_stop(iButtonWorker *worker)
+{ //-V524
     UNUSED(worker);
-    Power* power = furi_record_open(RECORD_POWER);
+    Power *power = furi_record_open(RECORD_POWER);
     power_enable_otg(power, false);
     furi_record_close(RECORD_POWER);
 }

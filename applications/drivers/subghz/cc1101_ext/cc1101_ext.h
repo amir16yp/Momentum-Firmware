@@ -23,19 +23,19 @@ extern "C" {
  *
  * @param[in]  pin   pointer to the gpio pin structure or NULL to disable
  */
-void subghz_device_cc1101_ext_set_async_mirror_pin(const GpioPin* pin);
+void subghz_device_cc1101_ext_set_async_mirror_pin(const GpioPin *pin);
 
 /** Get data GPIO
  *
  * @return     pointer to the gpio pin structure
  */
-const GpioPin* subghz_device_cc1101_ext_get_data_gpio(void);
+const GpioPin *subghz_device_cc1101_ext_get_data_gpio(void);
 
 /** Initialize device
  *
  * @return     true if success
  */
-bool subghz_device_cc1101_ext_alloc(SubGhzDeviceConf* conf);
+bool subghz_device_cc1101_ext_alloc(SubGhzDeviceConf *conf);
 
 /** Deinitialize device
  */
@@ -59,13 +59,13 @@ void subghz_device_cc1101_ext_dump_state(void);
  *
  * @param      preset_data   registers to load
  */
-void subghz_device_cc1101_ext_load_custom_preset(const uint8_t* preset_data);
+void subghz_device_cc1101_ext_load_custom_preset(const uint8_t *preset_data);
 
 /** Load registers
  *
  * @param      data  Registers data
  */
-void subghz_device_cc1101_ext_load_registers(const uint8_t* data);
+void subghz_device_cc1101_ext_load_registers(const uint8_t *data);
 
 /** Load PATABLE
  *
@@ -78,7 +78,7 @@ void subghz_device_cc1101_ext_load_patable(const uint8_t data[8]);
  * @param      data  bytes array
  * @param      size  size
  */
-void subghz_device_cc1101_ext_write_packet(const uint8_t* data, uint8_t size);
+void subghz_device_cc1101_ext_write_packet(const uint8_t *data, uint8_t size);
 
 /** Check if receive pipe is not empty
  *
@@ -97,7 +97,7 @@ bool subghz_device_cc1101_ext_is_rx_data_crc_valid(void);
  * @param      data  pointer
  * @param      size  size
  */
-void subghz_device_cc1101_ext_read_packet(uint8_t* data, uint8_t* size);
+void subghz_device_cc1101_ext_read_packet(uint8_t *data, uint8_t *size);
 
 /** Flush rx FIFO buffer
  */
@@ -170,16 +170,15 @@ uint32_t subghz_device_cc1101_ext_set_frequency(uint32_t value);
 /* High Level API */
 
 /** Signal Timings Capture callback */
-typedef void (*SubGhzDeviceCC1101ExtCaptureCallback)(bool level, uint32_t duration, void* context);
+typedef void (*SubGhzDeviceCC1101ExtCaptureCallback)(bool level, uint32_t duration, void *context);
 
 /** Enable signal timings capture Initializes GPIO and TIM2 for timings capture
  *
  * @param      callback  SubGhzDeviceCC1101ExtCaptureCallback
  * @param      context   callback context
  */
-void subghz_device_cc1101_ext_start_async_rx(
-    SubGhzDeviceCC1101ExtCaptureCallback callback,
-    void* context);
+void subghz_device_cc1101_ext_start_async_rx(SubGhzDeviceCC1101ExtCaptureCallback callback,
+                                             void *context);
 
 /** Disable signal timings capture Resets GPIO and TIM2
  */
@@ -189,7 +188,7 @@ void subghz_device_cc1101_ext_stop_async_rx(void);
  * @param      context  callback context
  * @return     LevelDuration
  */
-typedef LevelDuration (*SubGhzDeviceCC1101ExtCallback)(void* context);
+typedef LevelDuration (*SubGhzDeviceCC1101ExtCallback)(void *context);
 
 /** Start async TX Initializes GPIO, TIM2 and DMA1 for signal output
  *
@@ -198,7 +197,7 @@ typedef LevelDuration (*SubGhzDeviceCC1101ExtCallback)(void* context);
  *
  * @return     true if the transfer is allowed by belonging to the region
  */
-bool subghz_device_cc1101_ext_start_async_tx(SubGhzDeviceCC1101ExtCallback callback, void* context);
+bool subghz_device_cc1101_ext_start_async_tx(SubGhzDeviceCC1101ExtCallback callback, void *context);
 
 /** Wait for async transmission to complete
  *

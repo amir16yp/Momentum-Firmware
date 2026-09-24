@@ -16,11 +16,11 @@ typedef enum {
     Iso13239CrcTypePicopass,
 } Iso13239CrcType;
 
-void iso13239_crc_append(Iso13239CrcType type, BitBuffer* buf);
+void iso13239_crc_append(Iso13239CrcType type, BitBuffer *buf);
 
-bool iso13239_crc_check(Iso13239CrcType type, const BitBuffer* buf);
+bool iso13239_crc_check(Iso13239CrcType type, const BitBuffer *buf);
 
-void iso13239_crc_trim(BitBuffer* buf);
+void iso13239_crc_trim(BitBuffer *buf);
 
 #ifdef __cplusplus
 }

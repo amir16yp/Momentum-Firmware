@@ -74,9 +74,10 @@ const SubGhzProtocol subghz_protocol_magellan = {
     .filter = SubGhzProtocolFilter_Sensors,
 };
 
-void* subghz_protocol_encoder_magellan_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_magellan_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderMagellan* instance = malloc(sizeof(SubGhzProtocolEncoderMagellan));
+    SubGhzProtocolEncoderMagellan *instance = malloc(sizeof(SubGhzProtocolEncoderMagellan));
 
     instance->base.protocol = &subghz_protocol_magellan;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -88,9 +89,10 @@ void* subghz_protocol_encoder_magellan_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void subghz_protocol_encoder_magellan_free(void* context) {
+void subghz_protocol_encoder_magellan_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderMagellan* instance = context;
+    SubGhzProtocolEncoderMagellan *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
@@ -100,17 +102,18 @@ void subghz_protocol_encoder_magellan_free(void* context) {
  * @param instance Pointer to a SubGhzProtocolEncoderMagellan instance
  * @return true On success
  */
-static bool subghz_protocol_encoder_magellan_get_upload(SubGhzProtocolEncoderMagellan* instance) {
+static bool subghz_protocol_encoder_magellan_get_upload(SubGhzProtocolEncoderMagellan *instance)
+{
     furi_assert(instance);
 
     size_t index = 0;
 
-    //Send header
+    // Send header
     instance->encoder.upload[index++] =
         level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_short * 4);
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)subghz_protocol_magellan_const.te_short);
-    for(uint8_t i = 0; i < 12; i++) {
+    for (uint8_t i = 0; i < 12; i++) {
         instance->encoder.upload[index++] =
             level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_short);
         instance->encoder.upload[index++] =
@@ -121,22 +124,22 @@ static bool subghz_protocol_encoder_magellan_get_upload(SubGhzProtocolEncoderMag
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)subghz_protocol_magellan_const.te_long);
 
-    //Send start bit
+    // Send start bit
     instance->encoder.upload[index++] =
         level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_long * 3);
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)subghz_protocol_magellan_const.te_long);
 
-    //Send key data
-    for(uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
-        if(bit_read(instance->generic.data, i - 1)) {
-            //send bit 1
+    // Send key data
+    for (uint8_t i = instance->generic.data_count_bit; i > 0; i--) {
+        if (bit_read(instance->generic.data, i - 1)) {
+            // send bit 1
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_short);
             instance->encoder.upload[index++] =
                 level_duration_make(false, (uint32_t)subghz_protocol_magellan_const.te_long);
         } else {
-            //send bit 0
+            // send bit 0
             instance->encoder.upload[index++] =
                 level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_long);
             instance->encoder.upload[index++] =
@@ -144,7 +147,7 @@ static bool subghz_protocol_encoder_magellan_get_upload(SubGhzProtocolEncoderMag
         }
     }
 
-    //Send stop bit
+    // Send stop bit
     instance->encoder.upload[index++] =
         level_duration_make(true, (uint32_t)subghz_protocol_magellan_const.te_short);
     instance->encoder.upload[index++] =
@@ -154,85 +157,92 @@ static bool subghz_protocol_encoder_magellan_get_upload(SubGhzProtocolEncoderMag
     return true;
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_encoder_magellan_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_encoder_magellan_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderMagellan* instance = context;
+    SubGhzProtocolEncoderMagellan *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
+            &instance->generic, flipper_format,
             subghz_protocol_magellan_const.min_count_bit_for_found);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
         // Optional value
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 1);
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   1);
 
-        if(!subghz_protocol_encoder_magellan_get_upload(instance)) {
+        if (!subghz_protocol_encoder_magellan_get_upload(instance)) {
             instance->encoder.front = 0; // reset before start
             ret = SubGhzProtocolStatusErrorEncoderGetUpload;
             break;
         }
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-void subghz_protocol_encoder_magellan_stop(void* context) {
-    SubGhzProtocolEncoderMagellan* instance = context;
+void subghz_protocol_encoder_magellan_stop(void *context)
+{
+    SubGhzProtocolEncoderMagellan *instance = context;
     instance->encoder.is_running = false;
     instance->encoder.front = 0; // reset position
 }
 
-LevelDuration subghz_protocol_encoder_magellan_yield(void* context) {
-    SubGhzProtocolEncoderMagellan* instance = context;
+LevelDuration subghz_protocol_encoder_magellan_yield(void *context)
+{
+    SubGhzProtocolEncoderMagellan *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
-        if(!subghz_block_generic_global.endless_tx) instance->encoder.repeat--;
+    if (++instance->encoder.front == instance->encoder.size_upload) {
+        if (!subghz_block_generic_global.endless_tx)
+            instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
 
     return ret;
 }
 
-void* subghz_protocol_decoder_magellan_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_magellan_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderMagellan* instance = malloc(sizeof(SubGhzProtocolDecoderMagellan));
+    SubGhzProtocolDecoderMagellan *instance = malloc(sizeof(SubGhzProtocolDecoderMagellan));
     instance->base.protocol = &subghz_protocol_magellan;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void subghz_protocol_decoder_magellan_free(void* context) {
+void subghz_protocol_decoder_magellan_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_magellan_reset(void* context) {
+void subghz_protocol_decoder_magellan_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
     instance->decoder.parser_step = MagellanDecoderStepReset;
 }
 
-uint8_t subghz_protocol_magellan_crc8(uint8_t* data, size_t len) {
+uint8_t subghz_protocol_magellan_crc8(uint8_t *data, size_t len)
+{
     uint8_t crc = 0x00;
     size_t i, j;
-    for(i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         crc ^= data[i];
-        for(j = 0; j < 8; j++) {
-            if((crc & 0x80) != 0)
+        for (j = 0; j < 8; j++) {
+            if ((crc & 0x80) != 0)
                 crc = (uint8_t)((crc << 1) ^ 0x31);
             else
                 crc <<= 1;
@@ -241,23 +251,23 @@ uint8_t subghz_protocol_magellan_crc8(uint8_t* data, size_t len) {
     return crc;
 }
 
-static bool subghz_protocol_magellan_check_crc(SubGhzProtocolDecoderMagellan* instance) {
-    uint8_t data[3] = {
-        instance->decoder.decode_data >> 24,
-        instance->decoder.decode_data >> 16,
-        instance->decoder.decode_data >> 8};
+static bool subghz_protocol_magellan_check_crc(SubGhzProtocolDecoderMagellan *instance)
+{
+    uint8_t data[3] = {instance->decoder.decode_data >> 24, instance->decoder.decode_data >> 16,
+                       instance->decoder.decode_data >> 8};
     return (instance->decoder.decode_data & 0xFF) ==
            subghz_protocol_magellan_crc8(data, sizeof(data));
 }
 
-void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t duration) {
+void subghz_protocol_decoder_magellan_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case MagellanDecoderStepReset:
-        if((level) && (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
-                       subghz_protocol_magellan_const.te_delta)) {
+        if ((level) && (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
+                        subghz_protocol_magellan_const.te_delta)) {
             instance->decoder.parser_step = MagellanDecoderStepCheckPreambula;
             instance->decoder.te_last = duration;
             instance->header_count = 0;
@@ -265,21 +275,21 @@ void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t d
         break;
 
     case MagellanDecoderStepCheckPreambula:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_short) <
-                subghz_protocol_magellan_const.te_delta) &&
-               (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
-                subghz_protocol_magellan_const.te_delta)) {
+            if ((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_short) <
+                 subghz_protocol_magellan_const.te_delta) &&
+                (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
+                 subghz_protocol_magellan_const.te_delta)) {
                 // Found header
                 instance->header_count++;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_short) <
-                 subghz_protocol_magellan_const.te_delta) &&
-                (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
-                 subghz_protocol_magellan_const.te_delta * 2) &&
-                (instance->header_count > 10)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      subghz_protocol_magellan_const.te_short) <
+                        subghz_protocol_magellan_const.te_delta) &&
+                       (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
+                        subghz_protocol_magellan_const.te_delta * 2) &&
+                       (instance->header_count > 10)) {
                 instance->decoder.parser_step = MagellanDecoderStepFoundPreambula;
             } else {
                 instance->decoder.parser_step = MagellanDecoderStepReset;
@@ -288,14 +298,14 @@ void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t d
         break;
 
     case MagellanDecoderStepFoundPreambula:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
         } else {
-            if((DURATION_DIFF(
-                    instance->decoder.te_last, subghz_protocol_magellan_const.te_short * 6) <
-                subghz_protocol_magellan_const.te_delta * 3) &&
-               (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
-                subghz_protocol_magellan_const.te_delta * 2)) {
+            if ((DURATION_DIFF(instance->decoder.te_last,
+                               subghz_protocol_magellan_const.te_short * 6) <
+                 subghz_protocol_magellan_const.te_delta * 3) &&
+                (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
+                 subghz_protocol_magellan_const.te_delta * 2)) {
                 instance->decoder.parser_step = MagellanDecoderStepSaveDuration;
                 instance->decoder.decode_data = 0;
                 instance->decoder.decode_count_bit = 0;
@@ -306,7 +316,7 @@ void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t d
         break;
 
     case MagellanDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = MagellanDecoderStepCheckDuration;
         } else {
@@ -315,28 +325,28 @@ void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t d
         break;
 
     case MagellanDecoderStepCheckDuration:
-        if(!level) {
-            if((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_short) <
-                subghz_protocol_magellan_const.te_delta) &&
-               (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
-                subghz_protocol_magellan_const.te_delta)) {
+        if (!level) {
+            if ((DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_short) <
+                 subghz_protocol_magellan_const.te_delta) &&
+                (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_long) <
+                 subghz_protocol_magellan_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = MagellanDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, subghz_protocol_magellan_const.te_long) <
-                 subghz_protocol_magellan_const.te_delta) &&
-                (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
-                 subghz_protocol_magellan_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      subghz_protocol_magellan_const.te_long) <
+                        subghz_protocol_magellan_const.te_delta) &&
+                       (DURATION_DIFF(duration, subghz_protocol_magellan_const.te_short) <
+                        subghz_protocol_magellan_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = MagellanDecoderStepSaveDuration;
-            } else if(duration >= (subghz_protocol_magellan_const.te_long * 3)) {
-                //Found stop bit
-                if((instance->decoder.decode_count_bit ==
-                    subghz_protocol_magellan_const.min_count_bit_for_found) &&
-                   subghz_protocol_magellan_check_crc(instance)) {
+            } else if (duration >= (subghz_protocol_magellan_const.te_long * 3)) {
+                // Found stop bit
+                if ((instance->decoder.decode_count_bit ==
+                     subghz_protocol_magellan_const.min_count_bit_for_found) &&
+                    subghz_protocol_magellan_check_crc(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 0;
@@ -352,63 +362,66 @@ void subghz_protocol_decoder_magellan_feed(void* context, bool level, uint32_t d
     }
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzBlockGeneric* instance
  */
-static void subghz_protocol_magellan_check_remote_controller(SubGhzBlockGeneric* instance) {
+static void subghz_protocol_magellan_check_remote_controller(SubGhzBlockGeneric *instance)
+{
     /*
-*   package 32b            data 24b           CRC8
-*   0x037AE4828 => 001101111010111001001000 00101000
-*   
-*   0x037AE48 (flipped in reverse bit sequence) => 0x1275EC
-*
-*   0x1275EC =>  0x12-event codes, 0x75EC-serial (dec 117236)
-*
-* Event codes consist of two parts:
-* - The upper nibble (bits 7-4) represents the event type:
-*     - 0x00: Nothing
-*     - 0x01: Door
-*     - 0x02: Motion
-*     - 0x03: Smoke Alarm
-*     - 0x04: REM1
-*     - 0x05: REM1 with subtype Off1
-*     - 0x06: REM2
-*     - 0x07: REM2 with subtype Off1
-*     - Others: Unknown
-* - The lower nibble (bits 3-0) represents the event subtype, which varies based on the model type:
-*     - If the model type is greater than 0x03 (e.g., REM1 or REM2):
-*         - 0x00: Arm1
-*         - 0x01: Btn1
-*         - 0x02: Btn2
-*         - 0x03: Btn3
-*         - 0x08: Reset
-*         - 0x09: LowBatt
-*         - 0x0A: BattOk
-*         - 0x0B: Learn
-*         - Others: Unknown
-*     - Otherwise:
-*         - 0x00: Sealed
-*         - 0x01: Alarm
-*         - 0x02: Tamper
-*         - 0x03: Alarm + Tamper
-*         - 0x08: Reset
-*         - 0x09: LowBatt
-*         - 0x0A: BattOk
-*         - 0x0B: Learn
-*         - Others: Unknown
-*
-*/
+     *   package 32b            data 24b           CRC8
+     *   0x037AE4828 => 001101111010111001001000 00101000
+     *
+     *   0x037AE48 (flipped in reverse bit sequence) => 0x1275EC
+     *
+     *   0x1275EC =>  0x12-event codes, 0x75EC-serial (dec 117236)
+     *
+     * Event codes consist of two parts:
+     * - The upper nibble (bits 7-4) represents the event type:
+     *     - 0x00: Nothing
+     *     - 0x01: Door
+     *     - 0x02: Motion
+     *     - 0x03: Smoke Alarm
+     *     - 0x04: REM1
+     *     - 0x05: REM1 with subtype Off1
+     *     - 0x06: REM2
+     *     - 0x07: REM2 with subtype Off1
+     *     - Others: Unknown
+     * - The lower nibble (bits 3-0) represents the event subtype, which varies based on the model
+     * type:
+     *     - If the model type is greater than 0x03 (e.g., REM1 or REM2):
+     *         - 0x00: Arm1
+     *         - 0x01: Btn1
+     *         - 0x02: Btn2
+     *         - 0x03: Btn3
+     *         - 0x08: Reset
+     *         - 0x09: LowBatt
+     *         - 0x0A: BattOk
+     *         - 0x0B: Learn
+     *         - Others: Unknown
+     *     - Otherwise:
+     *         - 0x00: Sealed
+     *         - 0x01: Alarm
+     *         - 0x02: Tamper
+     *         - 0x03: Alarm + Tamper
+     *         - 0x08: Reset
+     *         - 0x09: LowBatt
+     *         - 0x0A: BattOk
+     *         - 0x0B: Learn
+     *         - Others: Unknown
+     *
+     */
     uint64_t data_rev = subghz_protocol_blocks_reverse_key(instance->data >> 8, 24);
     instance->serial = data_rev & 0xFFFF;
     instance->btn = (data_rev >> 16) & 0xFF;
 }
 
-static void subghz_protocol_magellan_get_event_serialize(uint8_t event, FuriString* output) {
-    const char* event_type;
-    const char* event_subtype;
+static void subghz_protocol_magellan_get_event_serialize(uint8_t event, FuriString *output)
+{
+    const char *event_type;
+    const char *event_subtype;
 
-    switch((event >> 4) & 0x0F) {
+    switch ((event >> 4) & 0x0F) {
     case 0x00:
         event_type = "Nothing";
         break;
@@ -439,7 +452,7 @@ static void subghz_protocol_magellan_get_event_serialize(uint8_t event, FuriStri
         break;
     }
 
-    switch(event & 0x0F) {
+    switch (event & 0x0F) {
     case 0x00:
         event_subtype = (((event >> 4) & 0x0F) > 0x03) ? "Arm1" : "Sealed";
         break;
@@ -472,35 +485,36 @@ static void subghz_protocol_magellan_get_event_serialize(uint8_t event, FuriStri
     furi_string_cat_printf(output, "%s - %s", event_type, event_subtype);
 }
 
-uint32_t subghz_protocol_decoder_magellan_get_hash_data(void* context) {
+uint32_t subghz_protocol_decoder_magellan_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderMagellan *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_magellan_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_magellan_serialize(void *context,
+                                                                FlipperFormat *flipper_format,
+                                                                SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_magellan_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_magellan_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
-        subghz_protocol_magellan_const.min_count_bit_for_found);
+        &instance->generic, flipper_format, subghz_protocol_magellan_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_magellan_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_magellan_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMagellan* instance = context;
+    SubGhzProtocolDecoderMagellan *instance = context;
     subghz_protocol_magellan_check_remote_controller(&instance->generic);
 
     // push protocol data to global variable
@@ -509,18 +523,15 @@ void subghz_protocol_decoder_magellan_get_string(void* context, FuriString* outp
     subghz_block_generic_global.btn_length_bit = 8;
     //
 
-    furi_string_cat_printf(
-        output,
-        "%s %dbit\r\n"
-        "Key:0x%08lX\r\n"
-        "Sn:%03ld%03ld, Event:0x%02X\r\n"
-        "Stat:",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint32_t)(instance->generic.data & 0xFFFFFFFF),
-        (instance->generic.serial >> 8) & 0xFF,
-        instance->generic.serial & 0xFF,
-        instance->generic.btn);
+    furi_string_cat_printf(output,
+                           "%s %dbit\r\n"
+                           "Key:0x%08lX\r\n"
+                           "Sn:%03ld%03ld, Event:0x%02X\r\n"
+                           "Stat:",
+                           instance->generic.protocol_name, instance->generic.data_count_bit,
+                           (uint32_t)(instance->generic.data & 0xFFFFFFFF),
+                           (instance->generic.serial >> 8) & 0xFF, instance->generic.serial & 0xFF,
+                           instance->generic.btn);
 
     subghz_protocol_magellan_get_event_serialize(instance->generic.btn, output);
 }

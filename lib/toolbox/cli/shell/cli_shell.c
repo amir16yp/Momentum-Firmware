@@ -16,7 +16,7 @@
 
 #define TAG "CliShell"
 
-#define ANSI_TIMEOUT_MS             10
+#define ANSI_TIMEOUT_MS 10
 #define TRANSIENT_SESSION_WINDOW_MS 100
 
 typedef enum {
@@ -25,7 +25,7 @@ typedef enum {
     CliShellComponentMAX, //<! do not use
 } CliShellComponent;
 
-const CliShellKeyComboSet* const component_key_combo_sets[] = {
+const CliShellKeyComboSet *const component_key_combo_sets[] = {
     [CliShellComponentCompletions] = &cli_shell_completions_key_combo_set,
     [CliShellComponentLine] = &cli_shell_line_key_combo_set,
 };
@@ -39,39 +39,40 @@ typedef enum {
 #define CliShellStorageEventAll (CliShellStorageEventMount | CliShellStorageEventUnmount)
 
 typedef struct {
-    Storage* storage;
-    FuriPubSubSubscription* subscription;
-    FuriEventFlag* event_flag;
+    Storage *storage;
+    FuriPubSubSubscription *subscription;
+    FuriEventFlag *event_flag;
 } CliShellStorage;
 
 struct CliShell {
     // Set and freed by external thread
     CliShellMotd motd;
-    void* callback_context;
-    PipeSide* pipe;
-    CliRegistry* registry;
-    const CliCommandExternalConfig* ext_config;
-    FuriThread* thread;
-    const char* prompt;
+    void *callback_context;
+    PipeSide *pipe;
+    CliRegistry *registry;
+    const CliCommandExternalConfig *ext_config;
+    FuriThread *thread;
+    const char *prompt;
 
     // Set and freed by shell thread
-    FuriEventLoop* event_loop;
-    CliAnsiParser* ansi_parser;
-    FuriEventLoopTimer* ansi_parsing_timer;
+    FuriEventLoop *event_loop;
+    CliAnsiParser *ansi_parser;
+    FuriEventLoopTimer *ansi_parsing_timer;
     CliShellStorage storage;
-    void* components[CliShellComponentMAX];
+    void *components[CliShellComponentMAX];
 };
 
 typedef struct {
-    CliRegistryCommand* command;
-    PipeSide* pipe;
-    FuriString* args;
+    CliRegistryCommand *command;
+    PipeSide *pipe;
+    FuriString *args;
 } CliCommandThreadData;
 
-static void cli_shell_data_available(PipeSide* pipe, void* context);
-static void cli_shell_pipe_broken(PipeSide* pipe, void* context);
+static void cli_shell_data_available(PipeSide *pipe, void *context);
+static void cli_shell_pipe_broken(PipeSide *pipe, void *context);
 
-static void cli_shell_install_pipe(CliShell* cli_shell) {
+static void cli_shell_install_pipe(CliShell *cli_shell)
+{
     pipe_install_as_stdio(cli_shell->pipe);
     pipe_attach_to_event_loop(cli_shell->pipe, cli_shell->event_loop);
     pipe_set_callback_context(cli_shell->pipe, cli_shell);
@@ -79,7 +80,8 @@ static void cli_shell_install_pipe(CliShell* cli_shell) {
     pipe_set_broken_callback(cli_shell->pipe, cli_shell_pipe_broken, 0);
 }
 
-static void cli_shell_detach_pipe(CliShell* cli_shell) {
+static void cli_shell_detach_pipe(CliShell *cli_shell)
+{
     pipe_detach_from_event_loop(cli_shell->pipe);
     furi_thread_set_stdin_callback(NULL, NULL);
     furi_thread_set_stdout_callback(NULL, NULL);
@@ -89,51 +91,54 @@ static void cli_shell_detach_pipe(CliShell* cli_shell) {
 // Built-in commands
 // =================
 
-void cli_command_reload_external(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_reload_external(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(args);
-    CliShell* shell = context;
+    CliShell *shell = context;
     furi_check(shell->ext_config);
     cli_registry_reload_external_commands(shell->registry, shell->ext_config);
     printf("OK!");
 }
 
-void cli_command_help(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_help(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(args);
-    CliShell* shell = context;
-    CliRegistry* registry = shell->registry;
+    CliShell *shell = context;
+    CliRegistry *registry = shell->registry;
 
     const size_t columns = 3;
 
     printf("Available commands:\r\n" ANSI_FG_GREEN);
     cli_registry_lock(registry);
-    CliCommandDict_t* commands = cli_registry_get_commands(registry);
+    CliCommandDict_t *commands = cli_registry_get_commands(registry);
     size_t commands_count = CliCommandDict_size(*commands);
 
     CliCommandDict_it_t iterator;
     CliCommandDict_it(iterator, *commands);
-    for(size_t i = 0; i < commands_count; i++) {
-        const CliCommandDict_itref_t* item = CliCommandDict_cref(iterator);
+    for (size_t i = 0; i < commands_count; i++) {
+        const CliCommandDict_itref_t *item = CliCommandDict_cref(iterator);
         printf("%-30s", furi_string_get_cstr(item->key));
         CliCommandDict_next(iterator);
 
-        if(i % columns == columns - 1) printf("\r\n");
+        if (i % columns == columns - 1)
+            printf("\r\n");
     }
 
-    if(shell->ext_config)
-        printf(
-            ANSI_RESET
-            "\r\nIf you added a new external command and can't see it above, run `reload_ext_cmds`");
+    if (shell->ext_config)
+        printf(ANSI_RESET "\r\nIf you added a new external command and can't see it above, run "
+                          "`reload_ext_cmds`");
     printf(ANSI_RESET "\r\nFind out more: https://docs.flipper.net/development/cli");
 
     cli_registry_unlock(registry);
 }
 
-void cli_command_exit(PipeSide* pipe, FuriString* args, void* context) {
+void cli_command_exit(PipeSide *pipe, FuriString *args, void *context)
+{
     UNUSED(pipe);
     UNUSED(args);
-    CliShell* shell = context;
+    CliShell *shell = context;
     cli_shell_line_set_about_to_exit(shell->components[CliShellComponentLine]);
     furi_event_loop_stop(shell->event_loop);
 }
@@ -142,45 +147,50 @@ void cli_command_exit(PipeSide* pipe, FuriString* args, void* context) {
 // Internal functions
 // ==================
 
-static int32_t cli_command_thread(void* context) {
-    CliCommandThreadData* thread_data = context;
-    if(!(thread_data->command->flags & CliCommandFlagDontAttachStdio))
+static int32_t cli_command_thread(void *context)
+{
+    CliCommandThreadData *thread_data = context;
+    if (!(thread_data->command->flags & CliCommandFlagDontAttachStdio))
         pipe_install_as_stdio(thread_data->pipe);
 
-    thread_data->command->execute_callback(
-        thread_data->pipe, thread_data->args, thread_data->command->context);
+    thread_data->command->execute_callback(thread_data->pipe, thread_data->args,
+                                           thread_data->command->context);
 
     fflush(stdout);
     return 0;
 }
 
-static size_t cli_shell_string_distance(const char* s1, const char* s2) {
+static size_t cli_shell_string_distance(const char *s1, const char *s2)
+{
     size_t distance = 0;
 
-    while(*s1 && *s2) {
-        if(*s1++ != *s2++) distance++;
+    while (*s1 && *s2) {
+        if (*s1++ != *s2++)
+            distance++;
     }
-    while(*s1++)
+    while (*s1++)
         distance++;
-    while(*s2++)
+    while (*s2++)
         distance++;
 
     return distance;
 }
 
-static void
-    cli_shell_find_similar_command(CliShell* cli_shell, const char* input, FuriString* suggestion) {
+static void cli_shell_find_similar_command(CliShell *cli_shell, const char *input,
+                                           FuriString *suggestion)
+{
     size_t min_distance = (size_t)-1;
     const size_t max_allowed = (strlen(input) + 1) / 2;
     furi_string_reset(suggestion);
 
     cli_registry_lock(cli_shell->registry);
-    CliCommandDict_t* commands = cli_registry_get_commands(cli_shell->registry);
+    CliCommandDict_t *commands = cli_registry_get_commands(cli_shell->registry);
     for
-        M_EACH(registered_command, *commands, CliCommandDict_t) {
-            const char* command_name = furi_string_get_cstr(registered_command->key);
+        M_EACH(registered_command, *commands, CliCommandDict_t)
+        {
+            const char *command_name = furi_string_get_cstr(registered_command->key);
             const size_t distance = cli_shell_string_distance(input, command_name);
-            if(distance < min_distance && distance <= max_allowed) {
+            if (distance < min_distance && distance <= max_allowed) {
                 min_distance = distance;
                 furi_string_set(suggestion, command_name);
             }
@@ -188,62 +198,59 @@ static void
     cli_registry_unlock(cli_shell->registry);
 }
 
-void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
+void cli_shell_execute_command(CliShell *cli_shell, FuriString *command)
+{
     // split command into command and args
     size_t space = furi_string_search_char(command, ' ');
-    if(space == FURI_STRING_FAILURE) space = furi_string_size(command);
-    FuriString* command_name = furi_string_alloc_set(command);
+    if (space == FURI_STRING_FAILURE)
+        space = furi_string_size(command);
+    FuriString *command_name = furi_string_alloc_set(command);
     furi_string_left(command_name, space);
-    FuriString* args = furi_string_alloc_set(command);
+    FuriString *args = furi_string_alloc_set(command);
     furi_string_right(args, space + 1);
 
-    PluginManager* plugin_manager = NULL;
-    Loader* loader = furi_record_open(RECORD_LOADER);
+    PluginManager *plugin_manager = NULL;
+    Loader *loader = furi_record_open(RECORD_LOADER);
     bool loader_locked = false;
     CliRegistryCommand command_data;
 
     do {
         // find handler
-        if(!cli_registry_get_command(cli_shell->registry, command_name, &command_data)) {
-            FuriString* suggestion = furi_string_alloc();
-            cli_shell_find_similar_command(
-                cli_shell, furi_string_get_cstr(command_name), suggestion);
-            if(furi_string_empty(suggestion)) {
-                printf(
-                    ANSI_FG_RED "could not find command `%s`, try `help`" ANSI_RESET,
-                    furi_string_get_cstr(command_name));
+        if (!cli_registry_get_command(cli_shell->registry, command_name, &command_data)) {
+            FuriString *suggestion = furi_string_alloc();
+            cli_shell_find_similar_command(cli_shell, furi_string_get_cstr(command_name),
+                                           suggestion);
+            if (furi_string_empty(suggestion)) {
+                printf(ANSI_FG_RED "could not find command `%s`, try `help`" ANSI_RESET,
+                       furi_string_get_cstr(command_name));
             } else {
-                printf(
-                    ANSI_FG_RED
-                    "could not find command `%s`, did you mean `%s`? Use `help` to list all available commands" ANSI_RESET,
-                    furi_string_get_cstr(command_name),
-                    furi_string_get_cstr(suggestion));
+                printf(ANSI_FG_RED "could not find command `%s`, did you mean `%s`? Use `help` to "
+                                   "list all available commands" ANSI_RESET,
+                       furi_string_get_cstr(command_name), furi_string_get_cstr(suggestion));
             }
             furi_string_free(suggestion);
             break;
         }
 
         // load external command
-        if(command_data.flags & CliCommandFlagExternal) {
-            const CliCommandExternalConfig* ext_config = cli_shell->ext_config;
-            plugin_manager = plugin_manager_alloc(
-                ext_config->appid, CLI_PLUGIN_API_VERSION, firmware_api_interface);
-            FuriString* path = furi_string_alloc_printf(
-                "%s/%s%s.fal",
-                ext_config->search_directory,
-                ext_config->fal_prefix,
-                furi_string_get_cstr(command_name));
+        if (command_data.flags & CliCommandFlagExternal) {
+            const CliCommandExternalConfig *ext_config = cli_shell->ext_config;
+            plugin_manager = plugin_manager_alloc(ext_config->appid, CLI_PLUGIN_API_VERSION,
+                                                  firmware_api_interface);
+            FuriString *path = furi_string_alloc_printf("%s/%s%s.fal", ext_config->search_directory,
+                                                        ext_config->fal_prefix,
+                                                        furi_string_get_cstr(command_name));
             uint32_t plugin_cnt_last = plugin_manager_get_count(plugin_manager);
             PluginManagerError error =
                 plugin_manager_load_single(plugin_manager, furi_string_get_cstr(path));
             furi_string_free(path);
 
-            if(error != PluginManagerErrorNone) {
+            if (error != PluginManagerErrorNone) {
                 printf(ANSI_FG_RED "failed to load external command" ANSI_RESET);
                 break;
             }
 
-            const CliCommandDescriptor* plugin =
+            const CliCommandDescriptor *plugin =
                 plugin_manager_get_ep(plugin_manager, plugin_cnt_last);
             furi_assert(plugin);
             furi_check(furi_string_cmp_str(command_name, plugin->name) == 0);
@@ -256,16 +263,16 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
         }
 
         // lock loader
-        if(!(command_data.flags & CliCommandFlagParallelSafe)) {
+        if (!(command_data.flags & CliCommandFlagParallelSafe)) {
             loader_locked = loader_lock(loader);
-            if(!loader_locked) {
+            if (!loader_locked) {
                 printf(ANSI_FG_RED
                        "this command cannot be run while an application is open" ANSI_RESET);
                 break;
             }
         }
 
-        if(command_data.flags & CliCommandFlagUseShellThread) {
+        if (command_data.flags & CliCommandFlagUseShellThread) {
             // run command in this thread
             command_data.execute_callback(cli_shell->pipe, args, command_data.context);
         } else {
@@ -276,30 +283,31 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
                 .pipe = cli_shell->pipe,
                 .args = args,
             };
-            FuriThread* thread = furi_thread_alloc_ex(
-                furi_string_get_cstr(command_name),
-                command_data.stack_depth,
-                cli_command_thread,
-                &thread_data);
+            FuriThread *thread =
+                furi_thread_alloc_ex(furi_string_get_cstr(command_name), command_data.stack_depth,
+                                     cli_command_thread, &thread_data);
             furi_thread_start(thread);
             furi_thread_join(thread);
             furi_thread_free(thread);
             cli_shell_install_pipe(cli_shell);
         }
-    } while(0);
+    } while (0);
 
     furi_string_free(command_name);
     furi_string_free(args);
 
     // unlock loader
-    if(loader_locked) loader_unlock(loader);
+    if (loader_locked)
+        loader_unlock(loader);
     furi_record_close(RECORD_LOADER);
 
     // unload external command
-    if(plugin_manager) plugin_manager_free(plugin_manager);
+    if (plugin_manager)
+        plugin_manager_free(plugin_manager);
 }
 
-const char* cli_shell_get_prompt(CliShell* cli_shell) {
+const char *cli_shell_get_prompt(CliShell *cli_shell)
+{
     return cli_shell->prompt;
 }
 
@@ -307,69 +315,79 @@ const char* cli_shell_get_prompt(CliShell* cli_shell) {
 // Event handlers
 // ==============
 
-static void cli_shell_signal_storage_event(CliShell* cli_shell, CliShellStorageEvent event) {
+static void cli_shell_signal_storage_event(CliShell *cli_shell, CliShellStorageEvent event)
+{
     furi_check(!(furi_event_flag_set(cli_shell->storage.event_flag, event) & FuriFlagError));
 }
 
-static void cli_shell_storage_event(const void* message, void* context) {
-    CliShell* cli_shell = context;
-    const StorageEvent* event = message;
+static void cli_shell_storage_event(const void *message, void *context)
+{
+    CliShell *cli_shell = context;
+    const StorageEvent *event = message;
 
-    if(event->type == StorageEventTypeCardMount) {
+    if (event->type == StorageEventTypeCardMount) {
         cli_shell_signal_storage_event(cli_shell, CliShellStorageEventMount);
-    } else if(event->type == StorageEventTypeCardUnmount) {
+    } else if (event->type == StorageEventTypeCardUnmount) {
         cli_shell_signal_storage_event(cli_shell, CliShellStorageEventUnmount);
     }
 }
 
-static void cli_shell_storage_internal_event(FuriEventLoopObject* object, void* context) {
-    CliShell* cli_shell = context;
-    FuriEventFlag* event_flag = object;
+static void cli_shell_storage_internal_event(FuriEventLoopObject *object, void *context)
+{
+    CliShell *cli_shell = context;
+    FuriEventFlag *event_flag = object;
     CliShellStorageEvent event =
         furi_event_flag_wait(event_flag, FuriFlagWaitAll, FuriFlagWaitAny, 0);
     furi_check(!(event & FuriFlagError));
 
-    if(event & CliShellStorageEventUnmount) {
+    if (event & CliShellStorageEventUnmount) {
         cli_registry_remove_external_commands(cli_shell->registry);
-    } else if(event & CliShellStorageEventMount) {
+    } else if (event & CliShellStorageEventMount) {
         cli_registry_reload_external_commands(cli_shell->registry, cli_shell->ext_config);
     } else {
         furi_crash();
     }
 }
 
-static void
-    cli_shell_process_parser_result(CliShell* cli_shell, CliAnsiParserResult parse_result) {
-    if(!parse_result.is_done) return;
+static void cli_shell_process_parser_result(CliShell *cli_shell, CliAnsiParserResult parse_result)
+{
+    if (!parse_result.is_done)
+        return;
     CliKeyCombo key_combo = parse_result.result;
-    if(key_combo.key == CliKeyUnrecognized) return;
+    if (key_combo.key == CliKeyUnrecognized)
+        return;
 
-    for(size_t i = 0; i < CliShellComponentMAX; i++) { // -V1008
-        const CliShellKeyComboSet* set = component_key_combo_sets[i];
-        void* component_context = cli_shell->components[i];
+    for (size_t i = 0; i < CliShellComponentMAX; i++) { // -V1008
+        const CliShellKeyComboSet *set = component_key_combo_sets[i];
+        void *component_context = cli_shell->components[i];
 
-        for(size_t j = 0; j < set->count; j++) {
-            if(set->records[j].combo.modifiers == key_combo.modifiers &&
-               set->records[j].combo.key == key_combo.key)
-                if(set->records[j].action(key_combo, component_context)) return;
+        for (size_t j = 0; j < set->count; j++) {
+            if (set->records[j].combo.modifiers == key_combo.modifiers &&
+                set->records[j].combo.key == key_combo.key)
+                if (set->records[j].action(key_combo, component_context))
+                    return;
         }
 
-        if(set->fallback)
-            if(set->fallback(key_combo, component_context)) return;
+        if (set->fallback)
+            if (set->fallback(key_combo, component_context))
+                return;
     }
 }
 
-static void cli_shell_pipe_broken(PipeSide* pipe, void* context) {
+static void cli_shell_pipe_broken(PipeSide *pipe, void *context)
+{
     // allow commands to be processed before we stop the shell
-    if(pipe_bytes_available(pipe)) return;
+    if (pipe_bytes_available(pipe))
+        return;
 
-    CliShell* cli_shell = context;
+    CliShell *cli_shell = context;
     furi_event_loop_stop(cli_shell->event_loop);
 }
 
-static void cli_shell_data_available(PipeSide* pipe, void* context) {
+static void cli_shell_data_available(PipeSide *pipe, void *context)
+{
     UNUSED(pipe);
-    CliShell* cli_shell = context;
+    CliShell *cli_shell = context;
 
     furi_event_loop_timer_start(cli_shell->ansi_parsing_timer, furi_ms_to_ticks(ANSI_TIMEOUT_MS));
 
@@ -379,43 +397,32 @@ static void cli_shell_data_available(PipeSide* pipe, void* context) {
     cli_shell_process_parser_result(cli_shell, cli_ansi_parser_feed(cli_shell->ansi_parser, c));
 }
 
-static void cli_shell_timer_expired(void* context) {
-    CliShell* cli_shell = context;
-    cli_shell_process_parser_result(
-        cli_shell, cli_ansi_parser_feed_timeout(cli_shell->ansi_parser));
+static void cli_shell_timer_expired(void *context)
+{
+    CliShell *cli_shell = context;
+    cli_shell_process_parser_result(cli_shell,
+                                    cli_ansi_parser_feed_timeout(cli_shell->ansi_parser));
 }
 
 // ===========
 // Thread code
 // ===========
 
-static void cli_shell_init(CliShell* shell) {
-    cli_registry_add_command(
-        shell->registry,
-        "help",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_help,
-        shell);
-    cli_registry_add_command(
-        shell->registry,
-        "?",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_help,
-        shell);
-    cli_registry_add_command(
-        shell->registry,
-        "exit",
-        CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
-        cli_command_exit,
-        shell);
+static void cli_shell_init(CliShell *shell)
+{
+    cli_registry_add_command(shell->registry, "help",
+                             CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
+                             cli_command_help, shell);
+    cli_registry_add_command(shell->registry, "?",
+                             CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
+                             cli_command_help, shell);
+    cli_registry_add_command(shell->registry, "exit",
+                             CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
+                             cli_command_exit, shell);
 
-    if(shell->ext_config) {
-        cli_registry_add_command(
-            shell->registry,
-            "reload_ext_cmds",
-            CliCommandFlagUseShellThread,
-            cli_command_reload_external,
-            shell);
+    if (shell->ext_config) {
+        cli_registry_add_command(shell->registry, "reload_ext_cmds", CliCommandFlagUseShellThread,
+                                 cli_command_reload_external, shell);
         cli_registry_reload_external_commands(shell->registry, shell->ext_config);
     }
 
@@ -430,22 +437,20 @@ static void cli_shell_init(CliShell* shell) {
         shell->event_loop, cli_shell_timer_expired, FuriEventLoopTimerTypeOnce, shell);
 
     shell->storage.event_flag = furi_event_flag_alloc();
-    furi_event_loop_subscribe_event_flag(
-        shell->event_loop,
-        shell->storage.event_flag,
-        FuriEventLoopEventIn,
-        cli_shell_storage_internal_event,
-        shell);
+    furi_event_loop_subscribe_event_flag(shell->event_loop, shell->storage.event_flag,
+                                         FuriEventLoopEventIn, cli_shell_storage_internal_event,
+                                         shell);
     shell->storage.storage = furi_record_open(RECORD_STORAGE);
-    shell->storage.subscription = furi_pubsub_subscribe(
-        storage_get_pubsub(shell->storage.storage), cli_shell_storage_event, shell);
+    shell->storage.subscription = furi_pubsub_subscribe(storage_get_pubsub(shell->storage.storage),
+                                                        cli_shell_storage_event, shell);
 
     cli_shell_install_pipe(shell);
 }
 
-static void cli_shell_deinit(CliShell* shell) {
-    furi_pubsub_unsubscribe(
-        storage_get_pubsub(shell->storage.storage), shell->storage.subscription);
+static void cli_shell_deinit(CliShell *shell)
+{
+    furi_pubsub_unsubscribe(storage_get_pubsub(shell->storage.storage),
+                            shell->storage.subscription);
     furi_record_close(RECORD_STORAGE);
     furi_event_loop_unsubscribe(shell->event_loop, shell->storage.event_flag);
     furi_event_flag_free(shell->storage.event_flag);
@@ -459,17 +464,19 @@ static void cli_shell_deinit(CliShell* shell) {
     cli_ansi_parser_free(shell->ansi_parser);
 }
 
-static int32_t cli_shell_thread(void* context) {
-    CliShell* shell = context;
+static int32_t cli_shell_thread(void *context)
+{
+    CliShell *shell = context;
 
     // Sometimes, the other side (e.g. qFlipper) closes the pipe even before our thread is started.
     // Although the rest of the code will eventually find this out if this check is removed,
     // there's no point in wasting time. This gives qFlipper a chance to quickly close and re-open
     // the session.
     const size_t delay_step = 10;
-    for(size_t i = 0; i < TRANSIENT_SESSION_WINDOW_MS / delay_step; i++) {
+    for (size_t i = 0; i < TRANSIENT_SESSION_WINDOW_MS / delay_step; i++) {
         furi_delay_ms(delay_step);
-        if(pipe_state(shell->pipe) == PipeStateBroken) return 0;
+        if (pipe_state(shell->pipe) == PipeStateBroken)
+            return 0;
     }
 
     cli_shell_init(shell);
@@ -488,17 +495,14 @@ static int32_t cli_shell_thread(void* context) {
 // ==========
 // Public API
 // ==========
-CliShell* cli_shell_alloc(
-    CliShellMotd motd,
-    void* context,
-    PipeSide* pipe,
-    CliRegistry* registry,
-    const CliCommandExternalConfig* ext_config) {
+CliShell *cli_shell_alloc(CliShellMotd motd, void *context, PipeSide *pipe, CliRegistry *registry,
+                          const CliCommandExternalConfig *ext_config)
+{
     furi_check(motd);
     furi_check(pipe);
     furi_check(registry);
 
-    CliShell* shell = malloc(sizeof(CliShell));
+    CliShell *shell = malloc(sizeof(CliShell));
     *shell = (CliShell){
         .motd = motd,
         .callback_context = context,
@@ -507,29 +511,32 @@ CliShell* cli_shell_alloc(
         .ext_config = ext_config,
     };
 
-    shell->thread =
-        furi_thread_alloc_ex("CliShell", CLI_SHELL_STACK_SIZE, cli_shell_thread, shell);
+    shell->thread = furi_thread_alloc_ex("CliShell", CLI_SHELL_STACK_SIZE, cli_shell_thread, shell);
 
     return shell;
 }
 
-void cli_shell_free(CliShell* shell) {
+void cli_shell_free(CliShell *shell)
+{
     furi_check(shell);
     furi_thread_free(shell->thread);
     free(shell);
 }
 
-void cli_shell_start(CliShell* shell) {
+void cli_shell_start(CliShell *shell)
+{
     furi_check(shell);
     furi_thread_start(shell->thread);
 }
 
-void cli_shell_join(CliShell* shell) {
+void cli_shell_join(CliShell *shell)
+{
     furi_check(shell);
     furi_thread_join(shell->thread);
 }
 
-void cli_shell_set_prompt(CliShell* shell, const char* prompt) {
+void cli_shell_set_prompt(CliShell *shell, const char *prompt)
+{
     furi_check(shell);
     furi_check(furi_thread_get_state(shell->thread) == FuriThreadStateStopped);
     shell->prompt = prompt;

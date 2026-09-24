@@ -59,14 +59,15 @@ static const InfraredProtocolVariant infrared_protocol_variant_nec42ext = {
     .repeat_count = INFRARED_NEC_REPEAT_COUNT_MIN,
 };
 
-const InfraredProtocolVariant* infrared_protocol_nec_get_variant(InfraredProtocol protocol) {
-    if(protocol == InfraredProtocolNEC)
+const InfraredProtocolVariant *infrared_protocol_nec_get_variant(InfraredProtocol protocol)
+{
+    if (protocol == InfraredProtocolNEC)
         return &infrared_protocol_variant_nec;
-    else if(protocol == InfraredProtocolNECext)
+    else if (protocol == InfraredProtocolNECext)
         return &infrared_protocol_variant_necext;
-    else if(protocol == InfraredProtocolNEC42)
+    else if (protocol == InfraredProtocolNEC42)
         return &infrared_protocol_variant_nec42;
-    else if(protocol == InfraredProtocolNEC42ext)
+    else if (protocol == InfraredProtocolNEC42ext)
         return &infrared_protocol_variant_nec42ext;
     else
         return NULL;

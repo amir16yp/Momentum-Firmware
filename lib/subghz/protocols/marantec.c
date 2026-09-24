@@ -72,9 +72,10 @@ const SubGhzProtocol subghz_protocol_marantec = {
     .encoder = &subghz_protocol_marantec_encoder,
 };
 
-void* subghz_protocol_encoder_marantec_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_encoder_marantec_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolEncoderMarantec* instance = malloc(sizeof(SubGhzProtocolEncoderMarantec));
+    SubGhzProtocolEncoderMarantec *instance = malloc(sizeof(SubGhzProtocolEncoderMarantec));
 
     instance->base.protocol = &subghz_protocol_marantec;
     instance->generic.protocol_name = instance->base.protocol->name;
@@ -86,17 +87,19 @@ void* subghz_protocol_encoder_marantec_alloc(SubGhzEnvironment* environment) {
     return instance;
 }
 
-void subghz_protocol_encoder_marantec_free(void* context) {
+void subghz_protocol_encoder_marantec_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderMarantec* instance = context;
+    SubGhzProtocolEncoderMarantec *instance = context;
     free(instance->encoder.upload);
     free(instance);
 }
 
 static LevelDuration
-    subghz_protocol_encoder_marantec_add_duration_to_upload(ManchesterEncoderResult result) {
+subghz_protocol_encoder_marantec_add_duration_to_upload(ManchesterEncoderResult result)
+{
     LevelDuration data = {.duration = 0, .level = 0};
-    switch(result) {
+    switch (result) {
     case ManchesterEncoderResultShortLow:
         data.duration = subghz_protocol_marantec_const.te_short;
         data.level = false;
@@ -125,7 +128,8 @@ static LevelDuration
  * Generating an upload from data.
  * @param instance Pointer to a SubGhzProtocolEncoderMarantec instance
  */
-static void subghz_protocol_encoder_marantec_get_upload(SubGhzProtocolEncoderMarantec* instance) {
+static void subghz_protocol_encoder_marantec_get_upload(SubGhzProtocolEncoderMarantec *instance)
+{
     furi_assert(instance);
     size_t index = 0;
 
@@ -133,46 +137,45 @@ static void subghz_protocol_encoder_marantec_get_upload(SubGhzProtocolEncoderMar
     manchester_encoder_reset(&enc_state);
     ManchesterEncoderResult result;
 
-    if(!manchester_encoder_advance(
-           &enc_state,
-           bit_read(instance->generic.data, instance->generic.data_count_bit - 1),
-           &result)) {
+    if (!manchester_encoder_advance(
+            &enc_state, bit_read(instance->generic.data, instance->generic.data_count_bit - 1),
+            &result)) {
         instance->encoder.upload[index++] =
             subghz_protocol_encoder_marantec_add_duration_to_upload(result);
         manchester_encoder_advance(
-            &enc_state,
-            bit_read(instance->generic.data, instance->generic.data_count_bit - 1),
+            &enc_state, bit_read(instance->generic.data, instance->generic.data_count_bit - 1),
             &result);
     }
     instance->encoder.upload[index++] =
         level_duration_make(false, (uint32_t)subghz_protocol_marantec_const.te_long * 5);
 
-    for(uint8_t i = instance->generic.data_count_bit - 1; i > 0; i--) {
-        if(!manchester_encoder_advance(
-               &enc_state, bit_read(instance->generic.data, i - 1), &result)) {
+    for (uint8_t i = instance->generic.data_count_bit - 1; i > 0; i--) {
+        if (!manchester_encoder_advance(&enc_state, bit_read(instance->generic.data, i - 1),
+                                        &result)) {
             instance->encoder.upload[index++] =
                 subghz_protocol_encoder_marantec_add_duration_to_upload(result);
-            manchester_encoder_advance(
-                &enc_state, bit_read(instance->generic.data, i - 1), &result);
+            manchester_encoder_advance(&enc_state, bit_read(instance->generic.data, i - 1),
+                                       &result);
         }
         instance->encoder.upload[index++] =
             subghz_protocol_encoder_marantec_add_duration_to_upload(result);
     }
     instance->encoder.upload[index] = subghz_protocol_encoder_marantec_add_duration_to_upload(
         manchester_encoder_finish(&enc_state));
-    if(level_duration_get_level(instance->encoder.upload[index])) {
+    if (level_duration_get_level(instance->encoder.upload[index])) {
         index++;
     }
     instance->encoder.size_upload = index;
 }
 
-uint8_t subghz_protocol_marantec_crc8(uint8_t* data, size_t len) {
+uint8_t subghz_protocol_marantec_crc8(uint8_t *data, size_t len)
+{
     uint8_t crc = 0x01;
     size_t i, j;
-    for(i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         crc ^= data[i];
-        for(j = 0; j < 8; j++) {
-            if((crc & 0x80) != 0)
+        for (j = 0; j < 8; j++) {
+            if ((crc & 0x80) != 0)
                 crc = (uint8_t)((crc << 1) ^ 0x1D);
             else
                 crc <<= 1;
@@ -181,11 +184,12 @@ uint8_t subghz_protocol_marantec_crc8(uint8_t* data, size_t len) {
     return crc;
 }
 
-/** 
+/**
  * Analysis of received data
  * @param instance Pointer to a SubGhzBlockGeneric* instance
  */
-static void subghz_protocol_marantec_remote_controller(SubGhzBlockGeneric* instance) {
+static void subghz_protocol_marantec_remote_controller(SubGhzBlockGeneric *instance)
+{
     // Key samples
     // 1307EDF6486C5 = 000 100110000 01111110110111110110 0100 10000110 11000101
     // 1303EFAFD8683 = 000 100110000 00111110111110101111 1101 10000110 10000011
@@ -202,149 +206,144 @@ static void subghz_protocol_marantec_remote_controller(SubGhzBlockGeneric* insta
     instance->serial = ((instance->data >> 12) & 0xFFFFFF00) | ((instance->data >> 8) & 0xFF);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_encoder_marantec_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_encoder_marantec_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolEncoderMarantec* instance = context;
+    SubGhzProtocolEncoderMarantec *instance = context;
     SubGhzProtocolStatus ret = SubGhzProtocolStatusError;
     do {
         ret = subghz_block_generic_deserialize_check_count_bit(
-            &instance->generic,
-            flipper_format,
+            &instance->generic, flipper_format,
             subghz_protocol_marantec_const.min_count_bit_for_found);
-        if(ret != SubGhzProtocolStatusOk) {
+        if (ret != SubGhzProtocolStatusOk) {
             break;
         }
         // Optional value
-        flipper_format_read_uint32(
-            flipper_format, "Repeat", (uint32_t*)&instance->encoder.repeat, 1);
+        flipper_format_read_uint32(flipper_format, "Repeat", (uint32_t *)&instance->encoder.repeat,
+                                   1);
 
         subghz_protocol_marantec_remote_controller(&instance->generic);
         subghz_protocol_encoder_marantec_get_upload(instance);
         instance->encoder.front = 0;
         instance->encoder.is_running = true;
-    } while(false);
+    } while (false);
 
     return ret;
 }
 
-void subghz_protocol_encoder_marantec_stop(void* context) {
-    SubGhzProtocolEncoderMarantec* instance = context;
+void subghz_protocol_encoder_marantec_stop(void *context)
+{
+    SubGhzProtocolEncoderMarantec *instance = context;
     instance->encoder.is_running = false;
     instance->encoder.front = 0;
 }
 
-LevelDuration subghz_protocol_encoder_marantec_yield(void* context) {
-    SubGhzProtocolEncoderMarantec* instance = context;
+LevelDuration subghz_protocol_encoder_marantec_yield(void *context)
+{
+    SubGhzProtocolEncoderMarantec *instance = context;
 
-    if(instance->encoder.repeat == 0 || !instance->encoder.is_running) {
+    if (instance->encoder.repeat == 0 || !instance->encoder.is_running) {
         instance->encoder.is_running = false;
         return level_duration_reset();
     }
 
     LevelDuration ret = instance->encoder.upload[instance->encoder.front];
 
-    if(++instance->encoder.front == instance->encoder.size_upload) {
-        if(!subghz_block_generic_global.endless_tx) instance->encoder.repeat--;
+    if (++instance->encoder.front == instance->encoder.size_upload) {
+        if (!subghz_block_generic_global.endless_tx)
+            instance->encoder.repeat--;
         instance->encoder.front = 0;
     }
 
     return ret;
 }
 
-void* subghz_protocol_decoder_marantec_alloc(SubGhzEnvironment* environment) {
+void *subghz_protocol_decoder_marantec_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    SubGhzProtocolDecoderMarantec* instance = malloc(sizeof(SubGhzProtocolDecoderMarantec));
+    SubGhzProtocolDecoderMarantec *instance = malloc(sizeof(SubGhzProtocolDecoderMarantec));
     instance->base.protocol = &subghz_protocol_marantec;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void subghz_protocol_decoder_marantec_free(void* context) {
+void subghz_protocol_decoder_marantec_free(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     free(instance);
 }
 
-void subghz_protocol_decoder_marantec_reset(void* context) {
+void subghz_protocol_decoder_marantec_reset(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     instance->decoder.parser_step = MarantecDecoderStepReset;
-    manchester_advance(
-        instance->manchester_saved_state,
-        ManchesterEventReset,
-        &instance->manchester_saved_state,
-        NULL);
+    manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                       &instance->manchester_saved_state, NULL);
 }
 
-void subghz_protocol_decoder_marantec_feed(void* context, bool level, volatile uint32_t duration) {
+void subghz_protocol_decoder_marantec_feed(void *context, bool level, volatile uint32_t duration)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     ManchesterEvent event = ManchesterEventReset;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case MarantecDecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long * 5) <
-                        subghz_protocol_marantec_const.te_delta * 8)) {
-            //Found header marantec
+        if ((!level) && (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long * 5) <
+                         subghz_protocol_marantec_const.te_delta * 8)) {
+            // Found header marantec
             instance->decoder.parser_step = MarantecDecoderStepDecoderData;
             instance->decoder.decode_data = 1;
             instance->decoder.decode_count_bit = 1;
-            manchester_advance(
-                instance->manchester_saved_state,
-                ManchesterEventReset,
-                &instance->manchester_saved_state,
-                NULL);
+            manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                               &instance->manchester_saved_state, NULL);
         }
         break;
     case MarantecDecoderStepDecoderData:
-        if(!level) {
-            if(DURATION_DIFF(duration, subghz_protocol_marantec_const.te_short) <
-               subghz_protocol_marantec_const.te_delta) {
-                event = ManchesterEventShortLow;
-            } else if(
-                DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long) <
+        if (!level) {
+            if (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_short) <
                 subghz_protocol_marantec_const.te_delta) {
+                event = ManchesterEventShortLow;
+            } else if (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long) <
+                       subghz_protocol_marantec_const.te_delta) {
                 event = ManchesterEventLongLow;
-            } else if(
-                duration >= ((uint32_t)subghz_protocol_marantec_const.te_long * 2 +
-                             subghz_protocol_marantec_const.te_delta)) {
-                if(instance->decoder.decode_count_bit ==
-                   subghz_protocol_marantec_const.min_count_bit_for_found) {
+            } else if (duration >= ((uint32_t)subghz_protocol_marantec_const.te_long * 2 +
+                                    subghz_protocol_marantec_const.te_delta)) {
+                if (instance->decoder.decode_count_bit ==
+                    subghz_protocol_marantec_const.min_count_bit_for_found) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
 
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                 }
                 instance->decoder.decode_data = 1;
                 instance->decoder.decode_count_bit = 1;
-                manchester_advance(
-                    instance->manchester_saved_state,
-                    ManchesterEventReset,
-                    &instance->manchester_saved_state,
-                    NULL);
+                manchester_advance(instance->manchester_saved_state, ManchesterEventReset,
+                                   &instance->manchester_saved_state, NULL);
             } else {
                 instance->decoder.parser_step = MarantecDecoderStepReset;
             }
         } else {
-            if(DURATION_DIFF(duration, subghz_protocol_marantec_const.te_short) <
-               subghz_protocol_marantec_const.te_delta) {
-                event = ManchesterEventShortHigh;
-            } else if(
-                DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long) <
+            if (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_short) <
                 subghz_protocol_marantec_const.te_delta) {
+                event = ManchesterEventShortHigh;
+            } else if (DURATION_DIFF(duration, subghz_protocol_marantec_const.te_long) <
+                       subghz_protocol_marantec_const.te_delta) {
                 event = ManchesterEventLongHigh;
             } else {
                 instance->decoder.parser_step = MarantecDecoderStepReset;
             }
         }
-        if(event != ManchesterEventReset) {
+        if (event != ManchesterEventReset) {
             bool data;
-            bool data_ok = manchester_advance(
-                instance->manchester_saved_state, event, &instance->manchester_saved_state, &data);
+            bool data_ok = manchester_advance(instance->manchester_saved_state, event,
+                                              &instance->manchester_saved_state, &data);
 
-            if(data_ok) {
+            if (data_ok) {
                 instance->decoder.decode_data = (instance->decoder.decode_data << 1) | data;
                 instance->decoder.decode_count_bit++;
             }
@@ -353,44 +352,41 @@ void subghz_protocol_decoder_marantec_feed(void* context, bool level, volatile u
     }
 }
 
-uint32_t subghz_protocol_decoder_marantec_get_hash_data(void* context) {
+uint32_t subghz_protocol_decoder_marantec_get_hash_data(void *context)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    SubGhzProtocolDecoderMarantec *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus subghz_protocol_decoder_marantec_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus subghz_protocol_decoder_marantec_serialize(void *context,
+                                                                FlipperFormat *flipper_format,
+                                                                SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     return subghz_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    subghz_protocol_decoder_marantec_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus subghz_protocol_decoder_marantec_deserialize(void *context,
+                                                                  FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     return subghz_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
-        subghz_protocol_marantec_const.min_count_bit_for_found);
+        &instance->generic, flipper_format, subghz_protocol_marantec_const.min_count_bit_for_found);
 }
 
-void subghz_protocol_decoder_marantec_get_string(void* context, FuriString* output) {
+void subghz_protocol_decoder_marantec_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    SubGhzProtocolDecoderMarantec* instance = context;
+    SubGhzProtocolDecoderMarantec *instance = context;
     subghz_protocol_marantec_remote_controller(&instance->generic);
 
-    uint8_t tdata[6] = {
-        instance->generic.data >> 48,
-        instance->generic.data >> 40,
-        instance->generic.data >> 32,
-        instance->generic.data >> 24,
-        instance->generic.data >> 16,
-        instance->generic.data >> 8};
+    uint8_t tdata[6] = {instance->generic.data >> 48, instance->generic.data >> 40,
+                        instance->generic.data >> 32, instance->generic.data >> 24,
+                        instance->generic.data >> 16, instance->generic.data >> 8};
 
     uint8_t crc = subghz_protocol_marantec_crc8(tdata, sizeof(tdata));
     bool crc_ok = (crc == (instance->generic.data & 0xFF));
@@ -408,12 +404,7 @@ void subghz_protocol_decoder_marantec_get_string(void* context, FuriString* outp
         "Sn: 0x%07lX \r\n"
         "CRC: 0x%02X - %s\r\n"
         "Btn: %X\r\n",
-        instance->generic.protocol_name,
-        instance->generic.data_count_bit,
-        (uint32_t)(instance->generic.data >> 32),
-        (uint32_t)(instance->generic.data & 0xFFFFFFFF),
-        instance->generic.serial,
-        crc,
-        crc_ok ? "Valid" : "Invalid",
-        instance->generic.btn);
+        instance->generic.protocol_name, instance->generic.data_count_bit,
+        (uint32_t)(instance->generic.data >> 32), (uint32_t)(instance->generic.data & 0xFFFFFFFF),
+        instance->generic.serial, crc, crc_ok ? "Valid" : "Invalid", instance->generic.btn);
 }

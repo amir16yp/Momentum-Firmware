@@ -9,9 +9,9 @@ extern "C" {
 
 typedef struct U2fHid U2fHid;
 
-U2fHid* u2f_hid_start(U2fData* u2f_inst);
+U2fHid *u2f_hid_start(U2fData *u2f_inst);
 
-void u2f_hid_stop(U2fHid* u2f_hid);
+void u2f_hid_stop(U2fHid *u2f_hid);
 
 #ifdef __cplusplus
 }

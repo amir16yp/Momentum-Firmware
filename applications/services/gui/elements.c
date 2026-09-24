@@ -25,10 +25,11 @@ typedef struct {
     size_t height;
     size_t descender;
     size_t len;
-    const char* text;
+    const char *text;
 } ElementTextBoxLine;
 
-void elements_progress_bar(Canvas* canvas, int32_t x, int32_t y, size_t width, float progress) {
+void elements_progress_bar(Canvas *canvas, int32_t x, int32_t y, size_t width, float progress)
+{
     furi_check(canvas);
     furi_check((progress >= 0.0f) && (progress <= 1.0f));
     size_t height = 9;
@@ -43,13 +44,9 @@ void elements_progress_bar(Canvas* canvas, int32_t x, int32_t y, size_t width, f
     canvas_draw_box(canvas, x + 1, y + 1, progress_width, height - 2);
 }
 
-void elements_progress_bar_with_text(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    float progress,
-    const char* text) {
+void elements_progress_bar_with_text(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                     float progress, const char *text)
+{
     furi_check(canvas);
     furi_check((progress >= 0.0f) && (progress <= 1.0f));
     size_t height = 11;
@@ -68,13 +65,9 @@ void elements_progress_bar_with_text(
     canvas_draw_str_aligned(canvas, x + width / 2, y + 2, AlignCenter, AlignTop, text);
 }
 
-void elements_scrollbar_pos(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t height,
-    size_t pos,
-    size_t total) {
+void elements_scrollbar_pos(Canvas *canvas, int32_t x, int32_t y, size_t height, size_t pos,
+                            size_t total)
+{
     furi_check(canvas);
 
     // prevent overflows
@@ -83,24 +76,20 @@ void elements_scrollbar_pos(
 
     // dot line
     canvas_set_color(canvas, ColorBlack);
-    for(int32_t i = y; i < (int32_t)height + y; i += 2) {
+    for (int32_t i = y; i < (int32_t)height + y; i += 2) {
         canvas_draw_dot(canvas, x - 2, i);
     }
 
     // Position block
-    if(total) {
+    if (total) {
         float block_h = ((float)height) / total;
         canvas_draw_box(canvas, x - 3, y + (block_h * pos), 3, MAX(block_h, 1));
     }
 }
 
-void elements_scrollbar_horizontal(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t pos,
-    size_t total) {
+void elements_scrollbar_horizontal(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t pos,
+                                   size_t total)
+{
     furi_check(canvas);
 
     // prevent overflows
@@ -109,18 +98,19 @@ void elements_scrollbar_horizontal(
 
     // dot line
     canvas_set_color(canvas, ColorBlack);
-    for(size_t i = x; i < width + x; i += 2) {
+    for (size_t i = x; i < width + x; i += 2) {
         canvas_draw_dot(canvas, i, y - 2);
     }
 
     // Position block
-    if(total) {
+    if (total) {
         float block_w = ((float)width) / total;
         canvas_draw_box(canvas, x + (block_w * pos), y - 3, MAX(block_w, 1), 3);
     }
 }
 
-void elements_scrollbar(Canvas* canvas, size_t pos, size_t total) {
+void elements_scrollbar(Canvas *canvas, size_t pos, size_t total)
+{
     furi_check(canvas);
 
     size_t width = canvas_width(canvas);
@@ -132,18 +122,19 @@ void elements_scrollbar(Canvas* canvas, size_t pos, size_t total) {
 
     // dot line
     canvas_set_color(canvas, ColorBlack);
-    for(size_t i = 0; i < height; i += 2) {
+    for (size_t i = 0; i < height; i += 2) {
         canvas_draw_dot(canvas, width - 2, i);
     }
 
     // Position block
-    if(total) {
+    if (total) {
         float block_h = ((float)height) / total;
         canvas_draw_box(canvas, width - 3, block_h * pos, 3, MAX(block_h, 1));
     }
 }
 
-void elements_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height) {
+void elements_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height)
+{
     furi_check(canvas);
 
     canvas_draw_line(canvas, x + 2, y, x + width - 2, y);
@@ -157,14 +148,15 @@ void elements_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t h
     canvas_draw_dot(canvas, x + 1, y + 1);
 }
 
-void elements_button_left(Canvas* canvas, const char* str) {
+void elements_button_left(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
 
     const size_t button_height = 12;
     const size_t vertical_offset = 3;
     const size_t horizontal_offset = 3;
     const size_t string_width = canvas_string_width(canvas, str);
-    const Icon* icon = &I_ButtonLeft_4x7;
+    const Icon *icon = &I_ButtonLeft_4x7;
     const int32_t icon_h_offset = 3;
     const int32_t icon_width_with_offset = icon->width + icon_h_offset;
     const int32_t icon_v_offset = icon->height + vertical_offset;
@@ -180,19 +172,20 @@ void elements_button_left(Canvas* canvas, const char* str) {
 
     canvas_invert_color(canvas);
     canvas_draw_icon(canvas, x + horizontal_offset, y - icon_v_offset, &I_ButtonLeft_4x7);
-    canvas_draw_str(
-        canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset, str);
+    canvas_draw_str(canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset,
+                    str);
     canvas_invert_color(canvas);
 }
 
-void elements_button_right(Canvas* canvas, const char* str) {
+void elements_button_right(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
 
     const size_t button_height = 12;
     const size_t vertical_offset = 3;
     const size_t horizontal_offset = 3;
     const size_t string_width = canvas_string_width(canvas, str);
-    const Icon* icon = &I_ButtonRight_4x7;
+    const Icon *icon = &I_ButtonRight_4x7;
     const int32_t icon_h_offset = 3;
     const int32_t icon_width_with_offset = icon->width + icon_h_offset;
     const int32_t icon_v_offset = icon->height + vertical_offset;
@@ -208,15 +201,16 @@ void elements_button_right(Canvas* canvas, const char* str) {
 
     canvas_invert_color(canvas);
     canvas_draw_str(canvas, x - button_width + horizontal_offset, y - vertical_offset, str);
-    canvas_draw_icon(
-        canvas, x - horizontal_offset - icon->width, y - icon_v_offset, &I_ButtonRight_4x7);
+    canvas_draw_icon(canvas, x - horizontal_offset - icon->width, y - icon_v_offset,
+                     &I_ButtonRight_4x7);
     canvas_invert_color(canvas);
 }
 
-void elements_button_up(Canvas* canvas, const char* str) {
+void elements_button_up(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
 
-    const Icon* icon = &I_ButtonUp_7x4;
+    const Icon *icon = &I_ButtonUp_7x4;
 
     const size_t button_height = 12;
     const size_t vertical_offset = 3;
@@ -240,15 +234,16 @@ void elements_button_up(Canvas* canvas, const char* str) {
 
     canvas_invert_color(canvas);
     canvas_draw_icon(canvas, x + horizontal_offset, y - icon_v_offset, icon);
-    canvas_draw_str(
-        canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset, str);
+    canvas_draw_str(canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset,
+                    str);
     canvas_invert_color(canvas);
 }
 
-void elements_button_down(Canvas* canvas, const char* str) {
+void elements_button_down(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
 
-    const Icon* icon = &I_ButtonDown_7x4;
+    const Icon *icon = &I_ButtonDown_7x4;
 
     const size_t button_height = 12;
     const size_t vertical_offset = 3;
@@ -272,19 +267,19 @@ void elements_button_down(Canvas* canvas, const char* str) {
 
     canvas_invert_color(canvas);
     canvas_draw_str(canvas, x - button_width + horizontal_offset, y - vertical_offset, str);
-    canvas_draw_icon(
-        canvas, x - horizontal_offset - icon_get_width(icon), y - icon_v_offset, icon);
+    canvas_draw_icon(canvas, x - horizontal_offset - icon_get_width(icon), y - icon_v_offset, icon);
     canvas_invert_color(canvas);
 }
 
-void elements_button_center(Canvas* canvas, const char* str) {
+void elements_button_center(Canvas *canvas, const char *str)
+{
     furi_check(canvas);
 
     const size_t button_height = 12;
     const size_t vertical_offset = 3;
     const size_t horizontal_offset = 1;
     const size_t string_width = canvas_string_width(canvas, str);
-    const Icon* icon = &I_ButtonCenter_7x7;
+    const Icon *icon = &I_ButtonCenter_7x7;
     const int32_t icon_h_offset = 3;
     const int32_t icon_width_with_offset = icon->width + icon_h_offset;
     const int32_t icon_v_offset = icon->height + vertical_offset;
@@ -305,19 +300,16 @@ void elements_button_center(Canvas* canvas, const char* str) {
 
     canvas_invert_color(canvas);
     canvas_draw_icon(canvas, x + horizontal_offset, y - icon_v_offset, &I_ButtonCenter_7x7);
-    canvas_draw_str(
-        canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset, str);
+    canvas_draw_str(canvas, x + horizontal_offset + icon_width_with_offset, y - vertical_offset,
+                    str);
     canvas_invert_color(canvas);
 }
 
-static size_t elements_get_max_chars_to_fit(
-    Canvas* canvas,
-    Align horizontal,
-    const char* text,
-    int32_t x,
-    FuriString* str) {
-    const char* end = strchr(text, '\n');
-    if(end == NULL) {
+static size_t elements_get_max_chars_to_fit(Canvas *canvas, Align horizontal, const char *text,
+                                            int32_t x, FuriString *str)
+{
+    const char *end = strchr(text, '\n');
+    if (end == NULL) {
         end = text + strlen(text);
     }
     size_t text_size = end - text;
@@ -326,25 +318,25 @@ static size_t elements_get_max_chars_to_fit(
 
     size_t len_px = canvas_string_width(canvas, furi_string_get_cstr(str));
     size_t px_left = 0;
-    if(horizontal == AlignCenter) {
-        if(x > (int32_t)(canvas_width(canvas) / 2)) {
+    if (horizontal == AlignCenter) {
+        if (x > (int32_t)(canvas_width(canvas) / 2)) {
             px_left = (canvas_width(canvas) - x) * 2;
         } else {
             px_left = x * 2;
         }
-    } else if(horizontal == AlignLeft) {
+    } else if (horizontal == AlignLeft) {
         px_left = canvas_width(canvas) - x;
-    } else if(horizontal == AlignRight) {
+    } else if (horizontal == AlignRight) {
         px_left = x;
     } else {
         furi_crash();
     }
 
-    if(len_px > px_left) {
+    if (len_px > px_left) {
         size_t excess_symbols_approximately =
             ceilf((float)(len_px - px_left) / ((float)len_px / (float)text_size));
         // reduce to 5 to be sure dash fit, and next line will be at least 5 symbols long
-        if(excess_symbols_approximately > 0) {
+        if (excess_symbols_approximately > 0) {
             excess_symbols_approximately = MAX(excess_symbols_approximately, 5u);
             result = text_size - excess_symbols_approximately - 1;
         } else {
@@ -357,42 +349,39 @@ static size_t elements_get_max_chars_to_fit(
     return result;
 }
 
-void elements_multiline_text_aligned(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    Align horizontal,
-    Align vertical,
-    const char* text) {
+void elements_multiline_text_aligned(Canvas *canvas, int32_t x, int32_t y, Align horizontal,
+                                     Align vertical, const char *text)
+{
     furi_check(canvas);
     furi_check(text);
-    if(!text[0]) return;
+    if (!text[0])
+        return;
 
     size_t lines_count = 0;
     size_t font_height = canvas_current_font_height(canvas);
-    FuriString* line = furi_string_alloc();
+    FuriString *line = furi_string_alloc();
 
     /* go through text line by line and count lines */
-    for(const char* start = text; start[0];) {
+    for (const char *start = text; start[0];) {
         size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x, line);
         ++lines_count;
         start += chars_fit;
         start += start[0] == '\n' ? 1 : 0;
     }
 
-    if(vertical == AlignBottom) {
+    if (vertical == AlignBottom) {
         y -= font_height * (lines_count - 1);
-    } else if(vertical == AlignCenter) {
+    } else if (vertical == AlignCenter) {
         y -= (font_height * (lines_count - 1)) / 2;
     }
 
     /* go through text line by line and print them */
-    for(const char* start = text; start[0];) {
+    for (const char *start = text; start[0];) {
         size_t chars_fit = elements_get_max_chars_to_fit(canvas, horizontal, start, x, line);
 
-        if((start[chars_fit] == '\n') || (start[chars_fit] == 0)) {
+        if ((start[chars_fit] == '\n') || (start[chars_fit] == 0)) {
             furi_string_left(line, chars_fit);
-        } else if((y + font_height) > canvas_height(canvas)) {
+        } else if ((y + font_height) > canvas_height(canvas)) {
             furi_string_left(line, chars_fit);
             furi_string_cat_str(line, "...\n");
         } else {
@@ -402,7 +391,7 @@ void elements_multiline_text_aligned(
         }
         canvas_draw_str_aligned(canvas, x, y, horizontal, vertical, furi_string_get_cstr(line));
         y += font_height;
-        if(y > (int32_t)canvas_height(canvas)) {
+        if (y > (int32_t)canvas_height(canvas)) {
             break;
         }
 
@@ -412,18 +401,19 @@ void elements_multiline_text_aligned(
     furi_string_free(line);
 }
 
-void elements_multiline_text(Canvas* canvas, int32_t x, int32_t y, const char* text) {
+void elements_multiline_text(Canvas *canvas, int32_t x, int32_t y, const char *text)
+{
     furi_check(canvas);
     furi_check(text);
 
     size_t font_height = canvas_current_font_height(canvas);
-    FuriString* str;
+    FuriString *str;
     str = furi_string_alloc();
-    const char* start = text;
-    char* end;
+    const char *start = text;
+    char *end;
     do {
         end = strchr(start, '\n');
-        if(end) {
+        if (end) {
             furi_string_set_strn(str, start, end - start);
             start = end + 1;
         } else {
@@ -431,11 +421,12 @@ void elements_multiline_text(Canvas* canvas, int32_t x, int32_t y, const char* t
         }
         canvas_draw_str(canvas, x, y, furi_string_get_cstr(str));
         y += font_height;
-    } while(end && y < 64);
+    } while (end && y < 64);
     furi_string_free(str);
 }
 
-void elements_multiline_text_framed(Canvas* canvas, int32_t x, int32_t y, const char* text) {
+void elements_multiline_text_framed(Canvas *canvas, int32_t x, int32_t y, const char *text)
+{
     furi_check(canvas);
     furi_check(text);
 
@@ -444,9 +435,9 @@ void elements_multiline_text_framed(Canvas* canvas, int32_t x, int32_t y, const 
 
     // count \n's
     size_t lines = 1;
-    const char* t = text;
-    while(*t != '\0') {
-        if(*t == '\n') {
+    const char *t = text;
+    while (*t != '\0') {
+        if (*t == '\n') {
             lines++;
             size_t temp_width = canvas_string_width(canvas, t + 1);
             str_width = temp_width > str_width ? temp_width : str_width;
@@ -461,27 +452,22 @@ void elements_multiline_text_framed(Canvas* canvas, int32_t x, int32_t y, const 
     elements_frame(canvas, x, y - font_height, str_width + 8, font_height * lines + 4);
 }
 
-void elements_slightly_rounded_frame(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height) {
+void elements_slightly_rounded_frame(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                     size_t height)
+{
     furi_check(canvas);
     canvas_draw_rframe(canvas, x, y, width, height, 1);
 }
 
-void elements_slightly_rounded_box(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height) {
+void elements_slightly_rounded_box(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                   size_t height)
+{
     furi_check(canvas);
     canvas_draw_rbox(canvas, x, y, width, height, 1);
 }
 
-void elements_bold_rounded_frame(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height) {
+void elements_bold_rounded_frame(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height)
+{
     furi_check(canvas);
 
     canvas_set_color(canvas, ColorWhite);
@@ -517,7 +503,8 @@ void elements_bold_rounded_frame(Canvas* canvas, int32_t x, int32_t y, size_t wi
     canvas_draw_dot(canvas, x + width - 2, y + height - 3);
 }
 
-void elements_bubble(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t height) {
+void elements_bubble(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height)
+{
     furi_check(canvas);
     canvas_draw_rframe(canvas, x + 4, y, width, height, 3);
     int32_t y_corner = y + height * 2 / 3;
@@ -528,13 +515,9 @@ void elements_bubble(Canvas* canvas, int32_t x, int32_t y, size_t width, size_t 
     canvas_set_color(canvas, ColorBlack);
 }
 
-void elements_bubble_str(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    const char* text,
-    Align horizontal,
-    Align vertical) {
+void elements_bubble_str(Canvas *canvas, int32_t x, int32_t y, const char *text, Align horizontal,
+                         Align vertical)
+{
     furi_check(canvas);
     furi_check(text);
 
@@ -543,9 +526,9 @@ void elements_bubble_str(
 
     // count \n's
     size_t lines = 1;
-    const char* t = text;
-    while(*t != '\0') {
-        if(*t == '\n') {
+    const char *t = text;
+    while (*t != '\0') {
+        if (*t == '\n') {
             lines++;
             size_t temp_width = canvas_string_width(canvas, t + 1);
             str_width = temp_width > str_width ? temp_width : str_width;
@@ -570,7 +553,7 @@ void elements_bubble_str(
     int32_t y1 = 0;
     int32_t y2 = 0;
     int32_t y3 = 0;
-    if((horizontal == AlignLeft) && (vertical == AlignTop)) {
+    if ((horizontal == AlignLeft) && (vertical == AlignTop)) {
         x1 = frame_x;
         y1 = frame_y;
         x2 = frame_x - 4;
@@ -580,7 +563,7 @@ void elements_bubble_str(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, x2 + 2, y2 + 1, 2, 2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignLeft) && (vertical == AlignCenter)) {
+    } else if ((horizontal == AlignLeft) && (vertical == AlignCenter)) {
         x1 = frame_x;
         y1 = frame_y + (frame_height - 1) / 2 - 4;
         x2 = frame_x - 4;
@@ -591,7 +574,7 @@ void elements_bubble_str(
         canvas_draw_box(canvas, x2 + 2, y2 - 2, 2, 5);
         canvas_draw_dot(canvas, x2 + 1, y2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignLeft) && (vertical == AlignBottom)) {
+    } else if ((horizontal == AlignLeft) && (vertical == AlignBottom)) {
         x1 = frame_x;
         y1 = frame_y + (frame_height - 1) - 4;
         x2 = frame_x - 4;
@@ -601,7 +584,7 @@ void elements_bubble_str(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, x2 + 2, y2 - 2, 2, 2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignRight) && (vertical == AlignTop)) {
+    } else if ((horizontal == AlignRight) && (vertical == AlignTop)) {
         x1 = frame_x + (frame_width - 1);
         y1 = frame_y;
         x2 = frame_x + (frame_width - 1) + 4;
@@ -611,7 +594,7 @@ void elements_bubble_str(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, x2 - 3, y2 + 1, 2, 2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignRight) && (vertical == AlignCenter)) {
+    } else if ((horizontal == AlignRight) && (vertical == AlignCenter)) {
         x1 = frame_x + (frame_width - 1);
         y1 = frame_y + (frame_height - 1) / 2 - 4;
         x2 = frame_x + (frame_width - 1) + 4;
@@ -622,7 +605,7 @@ void elements_bubble_str(
         canvas_draw_box(canvas, x2 - 3, y2 - 2, 2, 5);
         canvas_draw_dot(canvas, x2 - 1, y2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignRight) && (vertical == AlignBottom)) {
+    } else if ((horizontal == AlignRight) && (vertical == AlignBottom)) {
         x1 = frame_x + (frame_width - 1);
         y1 = frame_y + (frame_height - 1) - 4;
         x2 = frame_x + (frame_width - 1) + 4;
@@ -632,7 +615,7 @@ void elements_bubble_str(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, x2 - 3, y2 - 2, 2, 2);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignCenter) && (vertical == AlignTop)) {
+    } else if ((horizontal == AlignCenter) && (vertical == AlignTop)) {
         x1 = frame_x + (frame_width - 1) / 2 - 4;
         y1 = frame_y;
         x2 = frame_x + (frame_width - 1) / 2;
@@ -643,7 +626,7 @@ void elements_bubble_str(
         canvas_draw_box(canvas, x2 - 2, y2 + 2, 5, 2);
         canvas_draw_dot(canvas, x2, y2 + 1);
         canvas_set_color(canvas, ColorBlack);
-    } else if((horizontal == AlignCenter) && (vertical == AlignBottom)) {
+    } else if ((horizontal == AlignCenter) && (vertical == AlignBottom)) {
         x1 = frame_x + (frame_width - 1) / 2 - 4;
         y1 = frame_y + (frame_height - 1);
         x2 = frame_x + (frame_width - 1) / 2;
@@ -663,48 +646,39 @@ void elements_bubble_str(
     canvas_draw_line(canvas, x2, y2, x3, y3);
 }
 
-void elements_string_fit_width(Canvas* canvas, FuriString* string, size_t width) {
+void elements_string_fit_width(Canvas *canvas, FuriString *string, size_t width)
+{
     furi_check(canvas);
     furi_check(string);
 
     size_t len_px = canvas_string_width(canvas, furi_string_get_cstr(string));
-    if(len_px > width) {
+    if (len_px > width) {
         width -= canvas_string_width(canvas, "...");
         do {
             furi_string_left(string, furi_string_size(string) - 1);
             len_px = canvas_string_width(canvas, furi_string_get_cstr(string));
-        } while(len_px > width);
+        } while (len_px > width);
         furi_string_cat(string, "...");
     }
 }
 
-void elements_scrollable_text_line(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    FuriString* string,
-    size_t scroll,
-    bool ellipsis) {
+void elements_scrollable_text_line(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                   FuriString *string, size_t scroll, bool ellipsis)
+{
     elements_scrollable_text_line_centered(canvas, x, y, width, string, scroll, ellipsis, false);
 }
 
-void elements_scrollable_text_line_centered(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    FuriString* string,
-    size_t scroll,
-    bool ellipsis,
-    bool centered) {
+void elements_scrollable_text_line_centered(Canvas *canvas, int32_t x, int32_t y, size_t width,
+                                            FuriString *string, size_t scroll, bool ellipsis,
+                                            bool centered)
+{
     furi_check(canvas);
     furi_check(string);
 
-    const char* text = furi_string_get_cstr(string);
+    const char *text = furi_string_get_cstr(string);
     size_t len_px = canvas_string_width(canvas, text);
-    if(len_px <= width) {
-        if(centered) {
+    if (len_px <= width) {
+        if (centered) {
             canvas_draw_str_aligned(canvas, x, y, AlignCenter, AlignBottom, text);
         } else {
             canvas_draw_str(canvas, x, y, text);
@@ -712,41 +686,43 @@ void elements_scrollable_text_line_centered(
         return;
     }
 
-    FuriString* line = furi_string_alloc_set(string);
+    FuriString *line = furi_string_alloc_set(string);
     bool marquee = momentum_settings.scroll_marquee;
-    if(len_px > width) {
-        if(centered && !marquee) {
+    if (len_px > width) {
+        if (centered && !marquee) {
             centered = false;
             x -= width / 2;
         }
 
-        if(ellipsis) {
+        if (ellipsis) {
             width -= canvas_string_width(canvas, "...");
         }
 
         // Calculate scroll size
         size_t scroll_size = furi_string_size(line);
         size_t right_width = 0;
-        for(size_t i = scroll_size - 1; i > 0; i--) {
+        for (size_t i = scroll_size - 1; i > 0; i--) {
             right_width += canvas_glyph_width(canvas, furi_string_get_char(line, i));
-            if(right_width > width) break;
+            if (right_width > width)
+                break;
             scroll_size--;
-            if(!scroll_size) break;
+            if (!scroll_size)
+                break;
         }
 
         // Ensure that we have something to scroll
-        if(scroll_size) {
-            if(marquee) {
+        if (scroll_size) {
+            if (marquee) {
                 const size_t delay = 3; // positions before/after scroll to delay
                 size_t total_scroll = (scroll_size * 2) + (delay * 2);
                 size_t use_scroll = scroll % total_scroll;
 
-                if(use_scroll < scroll_size) {
+                if (use_scroll < scroll_size) {
                     furi_string_right(line, use_scroll);
-                } else if(use_scroll < (scroll_size + delay)) {
+                } else if (use_scroll < (scroll_size + delay)) {
                     // Delay right
                     furi_string_right(line, scroll_size);
-                } else if(use_scroll < (scroll_size * 2 + delay)) {
+                } else if (use_scroll < (scroll_size * 2 + delay)) {
                     size_t reverse_pos = scroll_size - (use_scroll - (scroll_size + delay));
                     furi_string_right(line, reverse_pos);
                 } else {
@@ -761,35 +737,27 @@ void elements_scrollable_text_line_centered(
         }
 
         len_px = canvas_string_width(canvas, furi_string_get_cstr(line));
-        while(len_px > width) {
+        while (len_px > width) {
             furi_string_left(line, furi_string_size(line) - 1);
             len_px = canvas_string_width(canvas, furi_string_get_cstr(line));
         }
 
-        if(ellipsis) {
+        if (ellipsis) {
             furi_string_cat(line, "...");
         }
     }
 
-    if(centered) {
-        canvas_draw_str_aligned(
-            canvas, x, y, AlignCenter, AlignBottom, furi_string_get_cstr(line));
+    if (centered) {
+        canvas_draw_str_aligned(canvas, x, y, AlignCenter, AlignBottom, furi_string_get_cstr(line));
     } else {
         canvas_draw_str(canvas, x, y, furi_string_get_cstr(line));
     }
     furi_string_free(line);
 }
 
-void elements_text_box(
-    Canvas* canvas,
-    int32_t x,
-    int32_t y,
-    size_t width,
-    size_t height,
-    Align horizontal,
-    Align vertical,
-    const char* text,
-    bool strip_to_dots) {
+void elements_text_box(Canvas *canvas, int32_t x, int32_t y, size_t width, size_t height,
+                       Align horizontal, Align vertical, const char *text, bool strip_to_dots)
+{
     furi_check(canvas);
 
     ElementTextBoxLine line[ELEMENTS_MAX_LINES_NUM];
@@ -799,7 +767,7 @@ void elements_text_box(
     bool inverse_present = false;
     Font current_font = FontSecondary;
     Font prev_font = FontSecondary;
-    const CanvasFontParameters* font_params = canvas_get_font_params(canvas, current_font);
+    const CanvasFontParameters *font_params = canvas_get_font_params(canvas, current_font);
 
     // Fill line parameters
     size_t line_leading_min = font_params->leading_min;
@@ -819,10 +787,10 @@ void elements_text_box(
 
     // Fill all lines
     line[0].text = text;
-    for(i = 0; !full_text_processed; i++) {
+    for (i = 0; !full_text_processed; i++) {
         line_len++;
         // Identify line height
-        if(prev_font != current_font) {
+        if (prev_font != current_font) {
             font_params = canvas_get_font_params(canvas, current_font);
             line_leading_min = MAX(line_leading_min, font_params->leading_min);
             line_leading_default = MAX(line_leading_default, font_params->leading_default);
@@ -831,11 +799,11 @@ void elements_text_box(
             prev_font = current_font;
         }
         // Set the font
-        if(text[i] == '\e' && text[i + 1]) {
+        if (text[i] == '\e' && text[i + 1]) {
             i++;
             line_len++;
-            if(text[i] == ELEMENTS_BOLD_MARKER) {
-                if(bold) {
+            if (text[i] == ELEMENTS_BOLD_MARKER) {
+                if (bold) {
                     current_font = FontSecondary;
                 } else {
                     current_font = FontPrimary;
@@ -843,8 +811,8 @@ void elements_text_box(
                 canvas_set_font(canvas, current_font);
                 bold = !bold;
             }
-            if(text[i] == ELEMENTS_MONO_MARKER) {
-                if(mono) {
+            if (text[i] == ELEMENTS_MONO_MARKER) {
+                if (mono) {
                     current_font = FontSecondary;
                 } else {
                     current_font = FontKeyboard;
@@ -852,24 +820,24 @@ void elements_text_box(
                 canvas_set_font(canvas, FontKeyboard);
                 mono = !mono;
             }
-            if(text[i] == ELEMENTS_INVERSE_MARKER) {
+            if (text[i] == ELEMENTS_INVERSE_MARKER) {
                 inverse_present = true;
             }
             continue;
         }
-        if(text[i] != '\n') {
+        if (text[i] != '\n') {
             line_width += canvas_glyph_width(canvas, text[i]);
         }
         // Process new line
-        if(text[i] == '\n' || text[i] == '\0' || line_width > width) {
-            if(line_width > width) {
+        if (text[i] == '\n' || text[i] == '\0' || line_width > width) {
+            if (line_width > width) {
                 line_width -= canvas_glyph_width(canvas, text[i--]);
                 line_len--;
             }
-            if(text[i] == '\0') {
+            if (text[i] == '\0') {
                 full_text_processed = true;
             }
-            if(inverse_present) {
+            if (inverse_present) {
                 line_leading_min += 1;
                 line_leading_default += 1;
                 inverse_present = false;
@@ -878,22 +846,22 @@ void elements_text_box(
             line[line_num].leading_default = line_leading_default;
             line[line_num].height = line_height;
             line[line_num].descender = line_descender;
-            if(total_height_min + line_leading_min > height) {
+            if (total_height_min + line_leading_min > height) {
                 break;
             }
             total_height_min += line_leading_min;
             total_height_default += line_leading_default;
             line[line_num].len = line_len;
-            if(horizontal == AlignCenter) {
+            if (horizontal == AlignCenter) {
                 line[line_num].x = x + (width - line_width) / 2;
-            } else if(horizontal == AlignRight) {
+            } else if (horizontal == AlignRight) {
                 line[line_num].x = x + (width - line_width);
             } else {
                 line[line_num].x = x;
             }
             line[line_num].y = total_height_min;
             line_num++;
-            if(!full_text_processed) {
+            if (!full_text_processed) {
                 line[line_num].text = &text[i + 1];
             }
             line_leading_min = font_params->leading_min;
@@ -905,25 +873,25 @@ void elements_text_box(
     }
 
     // Set vertical alignment for all lines
-    if(total_height_default < height) {
-        if(vertical == AlignTop) {
+    if (total_height_default < height) {
+        if (vertical == AlignTop) {
             line[0].y = y + line[0].height;
-        } else if(vertical == AlignCenter) {
+        } else if (vertical == AlignCenter) {
             line[0].y = y + line[0].height + (height - total_height_default) / 2;
-        } else if(vertical == AlignBottom) {
+        } else if (vertical == AlignBottom) {
             line[0].y = y + line[0].height + (height - total_height_default);
         }
-        if(line_num > 1) {
-            for(size_t i = 1; i < line_num; i++) {
+        if (line_num > 1) {
+            for (size_t i = 1; i < line_num; i++) {
                 line[i].y = line[i - 1].y + line[i - 1].leading_default;
             }
         }
-    } else if(line_num > 1) {
+    } else if (line_num > 1) {
         size_t free_pixel_num = height - total_height_min;
         size_t fill_pixel = 0;
         size_t j = 1;
         line[0].y = y + line[0].height;
-        while(fill_pixel < free_pixel_num) {
+        while (fill_pixel < free_pixel_num) {
             line[j].y = line[j - 1].y + line[j - 1].leading_min + 1;
             fill_pixel++;
             j = j % (line_num - 1) + 1;
@@ -935,13 +903,13 @@ void elements_text_box(
     bold = false;
     mono = false;
     inverse = false;
-    for(size_t i = 0; i < line_num; i++) {
-        for(size_t j = 0; j < line[i].len; j++) {
+    for (size_t i = 0; i < line_num; i++) {
+        for (size_t j = 0; j < line[i].len; j++) {
             // Process format symbols
-            if(line[i].text[j] == '\e' && j < line[i].len - 1) { //-V781
+            if (line[i].text[j] == '\e' && j < line[i].len - 1) { //-V781
                 ++j;
-                if(line[i].text[j] == ELEMENTS_BOLD_MARKER) {
-                    if(bold) {
+                if (line[i].text[j] == ELEMENTS_BOLD_MARKER) {
+                    if (bold) {
                         current_font = FontSecondary;
                     } else {
                         current_font = FontPrimary;
@@ -950,8 +918,8 @@ void elements_text_box(
                     bold = !bold;
                     continue;
                 }
-                if(line[i].text[j] == ELEMENTS_MONO_MARKER) {
-                    if(mono) {
+                if (line[i].text[j] == ELEMENTS_MONO_MARKER) {
+                    if (mono) {
                         current_font = FontSecondary;
                     } else {
                         current_font = FontKeyboard;
@@ -960,26 +928,23 @@ void elements_text_box(
                     mono = !mono;
                     continue;
                 }
-                if(line[i].text[j] == ELEMENTS_INVERSE_MARKER) {
+                if (line[i].text[j] == ELEMENTS_INVERSE_MARKER) {
                     inverse = !inverse;
                     continue;
                 }
             }
-            if(inverse) {
-                canvas_draw_box(
-                    canvas,
-                    line[i].x - 1,
-                    line[i].y - line[i].height - 1,
-                    canvas_glyph_width(canvas, line[i].text[j]) + 1,
-                    line[i].height + line[i].descender + 2);
+            if (inverse) {
+                canvas_draw_box(canvas, line[i].x - 1, line[i].y - line[i].height - 1,
+                                canvas_glyph_width(canvas, line[i].text[j]) + 1,
+                                line[i].height + line[i].descender + 2);
                 canvas_invert_color(canvas);
                 canvas_draw_glyph(canvas, line[i].x, line[i].y, line[i].text[j]);
                 canvas_invert_color(canvas);
             } else {
-                if((i == line_num - 1) && strip_to_dots) {
+                if ((i == line_num - 1) && strip_to_dots) {
                     size_t next_symbol_width = canvas_glyph_width(canvas, line[i].text[j]);
-                    if((line[i].x + (int32_t)next_symbol_width + (int32_t)dots_width) >
-                       (x + (int32_t)width)) {
+                    if ((line[i].x + (int32_t)next_symbol_width + (int32_t)dots_width) >
+                        (x + (int32_t)width)) {
                         canvas_draw_str(canvas, line[i].x, line[i].y, "...");
                         break;
                     }

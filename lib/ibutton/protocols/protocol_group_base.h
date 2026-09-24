@@ -8,67 +8,47 @@
 typedef void iButtonProtocolGroupData;
 typedef int32_t iButtonProtocolGroupId;
 
-typedef iButtonProtocolGroupData* (*iButtonProtocolGroupAllocFunc)(void);
+typedef iButtonProtocolGroupData *(*iButtonProtocolGroupAllocFunc)(void);
 
-typedef void (*iButtonProtocolGroupFreeFunc)(iButtonProtocolGroupData*);
+typedef void (*iButtonProtocolGroupFreeFunc)(iButtonProtocolGroupData *);
 
-typedef void (*iButtonProtocolGroupRenderFunc)(
-    iButtonProtocolGroupData*,
-    const iButtonProtocolData*,
-    iButtonProtocolLocalId,
-    FuriString*);
+typedef void (*iButtonProtocolGroupRenderFunc)(iButtonProtocolGroupData *,
+                                               const iButtonProtocolData *, iButtonProtocolLocalId,
+                                               FuriString *);
 
-typedef bool (*iButtonProtocolGroupIsValidFunc)(
-    iButtonProtocolGroupData*,
-    const iButtonProtocolData*,
-    iButtonProtocolLocalId);
+typedef bool (*iButtonProtocolGroupIsValidFunc)(iButtonProtocolGroupData *,
+                                                const iButtonProtocolData *,
+                                                iButtonProtocolLocalId);
 
-typedef void (*iButtonProtocolGroupGetDataFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolData*,
-    iButtonProtocolLocalId,
-    iButtonEditableData*);
+typedef void (*iButtonProtocolGroupGetDataFunc)(iButtonProtocolGroupData *, iButtonProtocolData *,
+                                                iButtonProtocolLocalId, iButtonEditableData *);
 
-typedef void (*iButtonProtocolGroupApplyFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolData*,
-    iButtonProtocolLocalId);
+typedef void (*iButtonProtocolGroupApplyFunc)(iButtonProtocolGroupData *, iButtonProtocolData *,
+                                              iButtonProtocolLocalId);
 
-typedef size_t (*iButtonProtocolGropuGetSizeFunc)(iButtonProtocolGroupData*);
+typedef size_t (*iButtonProtocolGropuGetSizeFunc)(iButtonProtocolGroupData *);
 
-typedef uint32_t (
-    *iButtonProtocolGroupGetFeaturesFunc)(iButtonProtocolGroupData*, iButtonProtocolLocalId);
+typedef uint32_t (*iButtonProtocolGroupGetFeaturesFunc)(iButtonProtocolGroupData *,
+                                                        iButtonProtocolLocalId);
 
-typedef const char* (
-    *iButtonProtocolGroupGetStringFunc)(iButtonProtocolGroupData*, iButtonProtocolLocalId);
+typedef const char *(*iButtonProtocolGroupGetStringFunc)(iButtonProtocolGroupData *,
+                                                         iButtonProtocolLocalId);
 
-typedef bool (*iButtonProtocolGroupGetIdFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolLocalId*,
-    const char*);
+typedef bool (*iButtonProtocolGroupGetIdFunc)(iButtonProtocolGroupData *, iButtonProtocolLocalId *,
+                                              const char *);
 
-typedef bool (*iButtonProtocolGroupReadFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolData*,
-    iButtonProtocolLocalId*);
+typedef bool (*iButtonProtocolGroupReadFunc)(iButtonProtocolGroupData *, iButtonProtocolData *,
+                                             iButtonProtocolLocalId *);
 
-typedef bool (*iButtonProtocolGroupWriteFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolData*,
-    iButtonProtocolLocalId);
+typedef bool (*iButtonProtocolGroupWriteFunc)(iButtonProtocolGroupData *, iButtonProtocolData *,
+                                              iButtonProtocolLocalId);
 
-typedef bool (*iButtonProtocolGroupSaveFunc)(
-    iButtonProtocolGroupData*,
-    const iButtonProtocolData*,
-    iButtonProtocolLocalId,
-    FlipperFormat*);
+typedef bool (*iButtonProtocolGroupSaveFunc)(iButtonProtocolGroupData *,
+                                             const iButtonProtocolData *, iButtonProtocolLocalId,
+                                             FlipperFormat *);
 
-typedef bool (*iButtonProtocolGroupLoadFunc)(
-    iButtonProtocolGroupData*,
-    iButtonProtocolData*,
-    iButtonProtocolLocalId,
-    uint32_t,
-    FlipperFormat*);
+typedef bool (*iButtonProtocolGroupLoadFunc)(iButtonProtocolGroupData *, iButtonProtocolData *,
+                                             iButtonProtocolLocalId, uint32_t, FlipperFormat *);
 
 typedef struct {
     const uint32_t protocol_count;

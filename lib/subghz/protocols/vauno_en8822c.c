@@ -28,11 +28,11 @@
  * - F: Flags (unknown)
  * - B: Battery (1=low voltage ~<2.5V)
  * - X: Checksum (6 bit nibble sum)
- * 
+ *
  * Sample Data:
- * 
+ *
  *     [00] {42} af 0f a2 7c 01 c0 : 10101111 00001111 10100010 01111100 00000001 11
- * 
+ *
  * - Sensor ID = 175 = 0xaf
  * - Channel = 0
  * - temp = -93 = 0x111110100010
@@ -107,32 +107,37 @@ typedef enum {
     VaunoEN8822CDecoderStepCheckDuration,
 } VaunoEN8822CDecoderStep;
 
-void* ws_protocol_decoder_vauno_en8822c_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_vauno_en8822c_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderVaunoEN8822C* instance = malloc(sizeof(WSProtocolDecoderVaunoEN8822C));
+    WSProtocolDecoderVaunoEN8822C *instance = malloc(sizeof(WSProtocolDecoderVaunoEN8822C));
     instance->base.protocol = &ws_protocol_vauno_en8822c;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_vauno_en8822c_free(void* context) {
+void ws_protocol_decoder_vauno_en8822c_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_vauno_en8822c_reset(void* context) {
+void ws_protocol_decoder_vauno_en8822c_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
     instance->decoder.parser_step = VaunoEN8822CDecoderStepReset;
 }
 
-static bool ws_protocol_vauno_en8822c_check(WSProtocolDecoderVaunoEN8822C* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_vauno_en8822c_check(WSProtocolDecoderVaunoEN8822C *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
 
     // The sum of all nibbles should match the last 6 bits
     uint8_t sum = 0;
-    for(uint8_t i = 6; i <= 38; i += 4) {
+    for (uint8_t i = 6; i <= 38; i += 4) {
         sum += ((instance->decoder.decode_data >> i) & 0x0f);
     }
 
@@ -143,14 +148,15 @@ static bool ws_protocol_vauno_en8822c_check(WSProtocolDecoderVaunoEN8822C* insta
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_vauno_en8822c_extract_data(WSBlockGeneric* instance) {
+static void ws_protocol_vauno_en8822c_extract_data(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 34) & 0xff;
     instance->battery_low = (instance->data >> 33) & 0x01;
     instance->channel = ((instance->data >> 30) & 0x03);
 
     int16_t temp = (instance->data >> 18) & 0x0fff;
     /* Handle signed data */
-    if(temp & 0x0800) {
+    if (temp & 0x0800) {
         temp |= 0xf000;
     }
     instance->temp = (float)temp / 10.0;
@@ -159,14 +165,15 @@ static void ws_protocol_vauno_en8822c_extract_data(WSBlockGeneric* instance) {
     instance->btn = WS_NO_BTN;
 }
 
-void ws_protocol_decoder_vauno_en8822c_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_vauno_en8822c_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case VaunoEN8822CDecoderStepReset:
-        if((!level) && DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 4) <
-                           ws_protocol_vauno_en8822c_const.te_delta) {
+        if ((!level) && DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 4) <
+                            ws_protocol_vauno_en8822c_const.te_delta) {
             instance->decoder.parser_step = VaunoEN8822CDecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -174,7 +181,7 @@ void ws_protocol_decoder_vauno_en8822c_feed(void* context, bool level, uint32_t 
         break;
 
     case VaunoEN8822CDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = VaunoEN8822CDecoderStepCheckDuration;
         } else {
@@ -183,33 +190,31 @@ void ws_protocol_decoder_vauno_en8822c_feed(void* context, bool level, uint32_t 
         break;
 
     case VaunoEN8822CDecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(instance->decoder.te_last, ws_protocol_vauno_en8822c_const.te_short) <
-               ws_protocol_vauno_en8822c_const.te_delta) {
-                if(DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 2) <
-                   ws_protocol_vauno_en8822c_const.te_delta) {
+        if (!level) {
+            if (DURATION_DIFF(instance->decoder.te_last, ws_protocol_vauno_en8822c_const.te_short) <
+                ws_protocol_vauno_en8822c_const.te_delta) {
+                if (DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 2) <
+                    ws_protocol_vauno_en8822c_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = VaunoEN8822CDecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long) <
-                    ws_protocol_vauno_en8822c_const.te_delta) {
+                } else if (DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long) <
+                           ws_protocol_vauno_en8822c_const.te_delta) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = VaunoEN8822CDecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 4) <
-                    ws_protocol_vauno_en8822c_const.te_delta) {
+                } else if (DURATION_DIFF(duration, ws_protocol_vauno_en8822c_const.te_long * 4) <
+                           ws_protocol_vauno_en8822c_const.te_delta) {
                     instance->decoder.parser_step = VaunoEN8822CDecoderStepReset;
-                    if(instance->decoder.decode_count_bit ==
-                           ws_protocol_vauno_en8822c_const.min_count_bit_for_found &&
-                       ws_protocol_vauno_en8822c_check(instance)) {
+                    if (instance->decoder.decode_count_bit ==
+                            ws_protocol_vauno_en8822c_const.min_count_bit_for_found &&
+                        ws_protocol_vauno_en8822c_check(instance)) {
                         instance->generic.data = instance->decoder.decode_data;
                         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                         ws_protocol_vauno_en8822c_extract_data(&instance->generic);
 
-                        if(instance->base.callback) {
+                        if (instance->base.callback) {
                             instance->base.callback(&instance->base, instance->base.context);
                         }
-                    } else if(instance->decoder.decode_count_bit == 1) {
+                    } else if (instance->decoder.decode_count_bit == 1) {
                         instance->decoder.parser_step = VaunoEN8822CDecoderStepSaveDuration;
                     }
 
@@ -225,34 +230,36 @@ void ws_protocol_decoder_vauno_en8822c_feed(void* context, bool level, uint32_t 
     }
 }
 
-uint32_t ws_protocol_decoder_vauno_en8822c_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_vauno_en8822c_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderVaunoEN8822C *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_vauno_en8822c_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_vauno_en8822c_serialize(void *context,
+                                                                 FlipperFormat *flipper_format,
+                                                                 SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_vauno_en8822c_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_vauno_en8822c_deserialize(void *context,
+                                                                   FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         ws_protocol_vauno_en8822c_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_vauno_en8822c_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_vauno_en8822c_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderVaunoEN8822C* instance = context;
+    WSProtocolDecoderVaunoEN8822C *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

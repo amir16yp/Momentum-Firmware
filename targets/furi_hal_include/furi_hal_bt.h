@@ -16,7 +16,7 @@
 
 #define FURI_HAL_BT_STACK_VERSION_MAJOR (1)
 #define FURI_HAL_BT_STACK_VERSION_MINOR (12)
-#define FURI_HAL_BT_C2_START_TIMEOUT    (1000)
+#define FURI_HAL_BT_C2_START_TIMEOUT (1000)
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,10 +68,9 @@ bool furi_hal_bt_is_testing_supported(void);
  * @param profile_template  basic profile template to check against
  *
  * @return          true on success
-*/
-bool furi_hal_bt_check_profile_type(
-    FuriHalBleProfileBase* profile,
-    const FuriHalBleProfileTemplate* profile_template);
+ */
+bool furi_hal_bt_check_profile_type(FuriHalBleProfileBase *profile,
+                                    const FuriHalBleProfileTemplate *profile_template);
 
 /** Start BLE app
  *
@@ -82,16 +81,14 @@ bool furi_hal_bt_check_profile_type(
  * @param context           pointer to context
  *
  * @return                  instance of profile, NULL on failure
-*/
-FURI_WARN_UNUSED FuriHalBleProfileBase* furi_hal_bt_start_app(
-    const FuriHalBleProfileTemplate* profile_template,
-    FuriHalBleProfileParams params,
-    const GapRootSecurityKeys* root_keys,
-    GapEventCallback event_cb,
-    void* context);
+ */
+FURI_WARN_UNUSED FuriHalBleProfileBase *
+furi_hal_bt_start_app(const FuriHalBleProfileTemplate *profile_template,
+                      FuriHalBleProfileParams params, const GapRootSecurityKeys *root_keys,
+                      GapEventCallback event_cb, void *context);
 
 /** Reinitialize core2
- * 
+ *
  * Also can be used to prepare core2 for stop modes
  */
 void furi_hal_bt_reinit(void);
@@ -106,13 +103,11 @@ void furi_hal_bt_reinit(void);
  * @param context          pointer to context
  *
  * @return                 instance of profile, NULL on failure
-*/
-FURI_WARN_UNUSED FuriHalBleProfileBase* furi_hal_bt_change_app(
-    const FuriHalBleProfileTemplate* profile_template,
-    FuriHalBleProfileParams profile_params,
-    const GapRootSecurityKeys* root_keys,
-    GapEventCallback event_cb,
-    void* context);
+ */
+FURI_WARN_UNUSED FuriHalBleProfileBase *
+furi_hal_bt_change_app(const FuriHalBleProfileTemplate *profile_template,
+                       FuriHalBleProfileParams profile_params, const GapRootSecurityKeys *root_keys,
+                       GapEventCallback event_cb, void *context);
 
 /** Update battery level
  *
@@ -141,7 +136,7 @@ void furi_hal_bt_stop_advertising(void);
  *
  * @param[in]  buffer  FuriString* buffer to write to
  */
-void furi_hal_bt_dump_state(FuriString* buffer);
+void furi_hal_bt_dump_state(FuriString *buffer);
 
 /** Get BT/BLE system component state
  *
@@ -154,7 +149,7 @@ bool furi_hal_bt_is_alive(void);
  * @param      key_buff_addr  pointer to store buffer address
  * @param      key_buff_size  pointer to store buffer size
  */
-void furi_hal_bt_get_key_storage_buff(uint8_t** key_buff_addr, uint16_t* key_buff_size);
+void furi_hal_bt_get_key_storage_buff(uint8_t **key_buff_addr, uint16_t *key_buff_size);
 
 /** Get SRAM2 hardware semaphore
  * @note Must be called before SRAM2 read/write operations
@@ -169,7 +164,7 @@ void furi_hal_bt_nvm_sram_sem_release(void);
 /** Clear key storage
  *
  * @return      true on success
-*/
+ */
 bool furi_hal_bt_clear_white_list(void);
 
 /** Set key storage change callback
@@ -177,9 +172,8 @@ bool furi_hal_bt_clear_white_list(void);
  * @param       callback    BleGlueKeyStorageChangedCallback instance
  * @param       context     pointer to context
  */
-void furi_hal_bt_set_key_storage_change_callback(
-    BleGlueKeyStorageChangedCallback callback,
-    void* context);
+void furi_hal_bt_set_key_storage_change_callback(BleGlueKeyStorageChangedCallback callback,
+                                                 void *context);
 
 /** Start ble tone tx at given channel and power
  *
@@ -242,7 +236,7 @@ uint32_t furi_hal_bt_get_transmitted_packets(void);
 bool furi_hal_bt_ensure_c2_mode(BleGlueC2Mode mode);
 
 /**
- * Extra BLE beacon API 
+ * Extra BLE beacon API
  */
 
 /** Set extra beacon data. Can be called in any state
@@ -252,7 +246,7 @@ bool furi_hal_bt_ensure_c2_mode(BleGlueC2Mode mode);
  *
  * @return     true on success
  */
-bool furi_hal_bt_extra_beacon_set_data(const uint8_t* data, uint8_t len);
+bool furi_hal_bt_extra_beacon_set_data(const uint8_t *data, uint8_t len);
 
 /** Get last configured extra beacon data
  *
@@ -260,7 +254,7 @@ bool furi_hal_bt_extra_beacon_set_data(const uint8_t* data, uint8_t len);
  *
  * @return     valid data length
  */
-uint8_t furi_hal_bt_extra_beacon_get_data(uint8_t* data);
+uint8_t furi_hal_bt_extra_beacon_get_data(uint8_t *data);
 
 /** Configure extra beacon.
  *
@@ -268,9 +262,9 @@ uint8_t furi_hal_bt_extra_beacon_get_data(uint8_t* data);
  *
  * @return     true on success
  */
-bool furi_hal_bt_extra_beacon_set_config(const GapExtraBeaconConfig* config);
+bool furi_hal_bt_extra_beacon_set_config(const GapExtraBeaconConfig *config);
 
-/** Start extra beacon. 
+/** Start extra beacon.
  * Beacon must configured with furi_hal_bt_extra_beacon_set_config()
  * and in stopped state before calling this function.
  *
@@ -294,7 +288,7 @@ bool furi_hal_bt_extra_beacon_is_active(void);
  *
  * @return     extra beacon config. NULL if beacon had never been configured.
  */
-const GapExtraBeaconConfig* furi_hal_bt_extra_beacon_get_config(void);
+const GapExtraBeaconConfig *furi_hal_bt_extra_beacon_get_config(void);
 
 #ifdef __cplusplus
 }

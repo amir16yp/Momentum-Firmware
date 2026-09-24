@@ -38,7 +38,8 @@ static const MfDesfireFileSettings mf_des_t4t_ndef_file_default = {
     .access_rights_len = 1,
 };
 
-Type4TagError type_4_tag_apdu_trx(Type4TagPoller* instance, BitBuffer* tx_buf, BitBuffer* rx_buf) {
+Type4TagError type_4_tag_apdu_trx(Type4TagPoller *instance, BitBuffer *tx_buf, BitBuffer *rx_buf)
+{
     furi_check(instance);
 
     bit_buffer_reset(rx_buf);
@@ -48,12 +49,12 @@ Type4TagError type_4_tag_apdu_trx(Type4TagPoller* instance, BitBuffer* tx_buf, B
 
     bit_buffer_reset(tx_buf);
 
-    if(iso14443_4a_error != Iso14443_4aErrorNone) {
+    if (iso14443_4a_error != Iso14443_4aErrorNone) {
         return type_4_tag_process_error(iso14443_4a_error);
     }
 
     size_t response_len = bit_buffer_get_size_bytes(rx_buf);
-    if(response_len < TYPE_4_TAG_ISO_STATUS_LEN) {
+    if (response_len < TYPE_4_TAG_ISO_STATUS_LEN) {
         return Type4TagErrorWrongFormat;
     }
 
@@ -64,7 +65,7 @@ Type4TagError type_4_tag_apdu_trx(Type4TagPoller* instance, BitBuffer* tx_buf, B
     };
     bit_buffer_set_size_bytes(rx_buf, response_len - 2);
 
-    if(memcmp(status, success, sizeof(status)) == 0) {
+    if (memcmp(status, success, sizeof(status)) == 0) {
         return Type4TagErrorNone;
     } else {
         FURI_LOG_E(TAG, "APDU failed: %02X%02X", status[0], status[1]);
@@ -72,31 +73,29 @@ Type4TagError type_4_tag_apdu_trx(Type4TagPoller* instance, BitBuffer* tx_buf, B
     }
 }
 
-static Type4TagError type_4_tag_poller_iso_select_name(
-    Type4TagPoller* instance,
-    const uint8_t* name,
-    uint8_t name_len) {
+static Type4TagError type_4_tag_poller_iso_select_name(Type4TagPoller *instance,
+                                                       const uint8_t *name, uint8_t name_len)
+{
     static const uint8_t type_4_tag_iso_select_name_apdu[] = {
         TYPE_4_TAG_ISO_SELECT_CMD,
         TYPE_4_TAG_ISO_SELECT_P1_BY_NAME,
         TYPE_4_TAG_ISO_SELECT_P2_EMPTY,
     };
 
-    bit_buffer_append_bytes(
-        instance->tx_buffer,
-        type_4_tag_iso_select_name_apdu,
-        sizeof(type_4_tag_iso_select_name_apdu));
+    bit_buffer_append_bytes(instance->tx_buffer, type_4_tag_iso_select_name_apdu,
+                            sizeof(type_4_tag_iso_select_name_apdu));
     bit_buffer_append_byte(instance->tx_buffer, name_len);
     bit_buffer_append_bytes(instance->tx_buffer, name, name_len);
 
     Type4TagError error = type_4_tag_apdu_trx(instance, instance->tx_buffer, instance->rx_buffer);
-    if(error == Type4TagErrorApduFailed) error = Type4TagErrorCardUnformatted;
+    if (error == Type4TagErrorApduFailed)
+        error = Type4TagErrorCardUnformatted;
 
     return error;
 }
 
-static Type4TagError
-    type_4_tag_poller_iso_select_file(Type4TagPoller* instance, uint16_t file_id) {
+static Type4TagError type_4_tag_poller_iso_select_file(Type4TagPoller *instance, uint16_t file_id)
+{
     static const uint8_t type_4_tag_iso_select_file_apdu[] = {
         TYPE_4_TAG_ISO_SELECT_CMD,
         TYPE_4_TAG_ISO_SELECT_P1_BY_EF_ID,
@@ -106,27 +105,24 @@ static Type4TagError
     uint8_t file_id_be[sizeof(file_id)];
     bit_lib_num_to_bytes_be(file_id, sizeof(file_id), file_id_be);
 
-    bit_buffer_append_bytes(
-        instance->tx_buffer,
-        type_4_tag_iso_select_file_apdu,
-        sizeof(type_4_tag_iso_select_file_apdu));
+    bit_buffer_append_bytes(instance->tx_buffer, type_4_tag_iso_select_file_apdu,
+                            sizeof(type_4_tag_iso_select_file_apdu));
     bit_buffer_append_bytes(instance->tx_buffer, file_id_be, sizeof(file_id_be));
 
     Type4TagError error = type_4_tag_apdu_trx(instance, instance->tx_buffer, instance->rx_buffer);
-    if(error == Type4TagErrorApduFailed) error = Type4TagErrorCardUnformatted;
+    if (error == Type4TagErrorApduFailed)
+        error = Type4TagErrorCardUnformatted;
 
     return error;
 }
 
-static Type4TagError type_4_tag_poller_iso_read(
-    Type4TagPoller* instance,
-    uint16_t offset,
-    uint16_t length,
-    uint8_t* buffer) {
-    const uint8_t chunk_max = instance->data->is_tag_specific ?
-                                  MIN(instance->data->chunk_max_read, TYPE_4_TAG_CHUNK_LEN) :
-                                  TYPE_4_TAG_CHUNK_LEN;
-    if(offset + length > TYPE_4_TAG_ISO_READ_P_OFFSET_MAX + chunk_max - sizeof(length)) {
+static Type4TagError type_4_tag_poller_iso_read(Type4TagPoller *instance, uint16_t offset,
+                                                uint16_t length, uint8_t *buffer)
+{
+    const uint8_t chunk_max = instance->data->is_tag_specific
+                                  ? MIN(instance->data->chunk_max_read, TYPE_4_TAG_CHUNK_LEN)
+                                  : TYPE_4_TAG_CHUNK_LEN;
+    if (offset + length > TYPE_4_TAG_ISO_READ_P_OFFSET_MAX + chunk_max - sizeof(length)) {
         FURI_LOG_E(TAG, "File too large: %zu bytes", length);
         return Type4TagErrorNotSupported;
     }
@@ -135,27 +131,24 @@ static Type4TagError type_4_tag_poller_iso_read(
         TYPE_4_TAG_ISO_READ_CMD,
     };
 
-    while(length > 0) {
+    while (length > 0) {
         uint8_t chunk_len = MIN(length, chunk_max);
         uint8_t offset_be[sizeof(offset)];
         bit_lib_num_to_bytes_be(offset, sizeof(offset_be), offset_be);
 
-        bit_buffer_append_bytes(
-            instance->tx_buffer, type_4_tag_iso_read_apdu, sizeof(type_4_tag_iso_read_apdu));
+        bit_buffer_append_bytes(instance->tx_buffer, type_4_tag_iso_read_apdu,
+                                sizeof(type_4_tag_iso_read_apdu));
         bit_buffer_append_bytes(instance->tx_buffer, offset_be, sizeof(offset_be));
         bit_buffer_append_byte(instance->tx_buffer, chunk_len);
 
         Type4TagError error =
             type_4_tag_apdu_trx(instance, instance->tx_buffer, instance->rx_buffer);
-        if(error != Type4TagErrorNone) {
+        if (error != Type4TagErrorNone) {
             return error;
         }
-        if(bit_buffer_get_size_bytes(instance->rx_buffer) != chunk_len) {
-            FURI_LOG_E(
-                TAG,
-                "Wrong chunk len: %zu != %zu",
-                bit_buffer_get_size_bytes(instance->rx_buffer),
-                chunk_len);
+        if (bit_buffer_get_size_bytes(instance->rx_buffer) != chunk_len) {
+            FURI_LOG_E(TAG, "Wrong chunk len: %zu != %zu",
+                       bit_buffer_get_size_bytes(instance->rx_buffer), chunk_len);
             return Type4TagErrorWrongFormat;
         }
 
@@ -168,15 +161,13 @@ static Type4TagError type_4_tag_poller_iso_read(
     return Type4TagErrorNone;
 }
 
-static Type4TagError type_4_tag_poller_iso_write(
-    Type4TagPoller* instance,
-    uint16_t offset,
-    uint16_t length,
-    uint8_t* buffer) {
-    const uint8_t chunk_max = instance->data->is_tag_specific ?
-                                  MIN(instance->data->chunk_max_write, TYPE_4_TAG_CHUNK_LEN) :
-                                  TYPE_4_TAG_CHUNK_LEN;
-    if(offset + length > TYPE_4_TAG_ISO_READ_P_OFFSET_MAX + chunk_max - sizeof(length)) {
+static Type4TagError type_4_tag_poller_iso_write(Type4TagPoller *instance, uint16_t offset,
+                                                 uint16_t length, uint8_t *buffer)
+{
+    const uint8_t chunk_max = instance->data->is_tag_specific
+                                  ? MIN(instance->data->chunk_max_write, TYPE_4_TAG_CHUNK_LEN)
+                                  : TYPE_4_TAG_CHUNK_LEN;
+    if (offset + length > TYPE_4_TAG_ISO_READ_P_OFFSET_MAX + chunk_max - sizeof(length)) {
         FURI_LOG_E(TAG, "File too large: %zu bytes", length);
         return Type4TagErrorNotSupported;
     }
@@ -185,21 +176,22 @@ static Type4TagError type_4_tag_poller_iso_write(
         TYPE_4_TAG_ISO_WRITE_CMD,
     };
 
-    while(length > 0) {
+    while (length > 0) {
         uint8_t chunk_len = MIN(length, chunk_max);
         uint8_t offset_be[sizeof(offset)];
         bit_lib_num_to_bytes_be(offset, sizeof(offset_be), offset_be);
 
-        bit_buffer_append_bytes(
-            instance->tx_buffer, type_4_tag_iso_write_apdu, sizeof(type_4_tag_iso_write_apdu));
+        bit_buffer_append_bytes(instance->tx_buffer, type_4_tag_iso_write_apdu,
+                                sizeof(type_4_tag_iso_write_apdu));
         bit_buffer_append_bytes(instance->tx_buffer, offset_be, sizeof(offset_be));
         bit_buffer_append_byte(instance->tx_buffer, chunk_len);
         bit_buffer_append_bytes(instance->tx_buffer, buffer, chunk_len);
 
         Type4TagError error =
             type_4_tag_apdu_trx(instance, instance->tx_buffer, instance->rx_buffer);
-        if(error == Type4TagErrorApduFailed) error = Type4TagErrorCardLocked;
-        if(error != Type4TagErrorNone) {
+        if (error == Type4TagErrorApduFailed)
+            error = Type4TagErrorCardLocked;
+        if (error != Type4TagErrorNone) {
             return error;
         }
 
@@ -211,7 +203,8 @@ static Type4TagError type_4_tag_poller_iso_write(
     return Type4TagErrorNone;
 }
 
-Type4TagError type_4_tag_poller_detect_platform(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_detect_platform(Type4TagPoller *instance)
+{
     furi_check(instance);
 
     Iso14443_4aPollerEvent iso14443_4a_event = {
@@ -225,34 +218,36 @@ Type4TagError type_4_tag_poller_detect_platform(Type4TagPoller* instance) {
     };
 
     Type4TagPlatform platform = Type4TagPlatformUnknown;
-    NfcDevice* device = nfc_device_alloc();
+    NfcDevice *device = nfc_device_alloc();
 
     do {
         FURI_LOG_D(TAG, "Detect NTAG4xx");
-        Ntag4xxPoller* ntag4xx = ntag4xx_poller.alloc(instance->iso14443_4a_poller);
-        if(ntag4xx_poller.detect(event, ntag4xx)) {
+        Ntag4xxPoller *ntag4xx = ntag4xx_poller.alloc(instance->iso14443_4a_poller);
+        if (ntag4xx_poller.detect(event, ntag4xx)) {
             platform = Type4TagPlatformNtag4xx;
             nfc_device_set_data(device, NfcProtocolNtag4xx, ntag4xx_poller.get_data(ntag4xx));
         }
         ntag4xx_poller.free(ntag4xx);
-        if(platform != Type4TagPlatformUnknown) break;
+        if (platform != Type4TagPlatformUnknown)
+            break;
 
         FURI_LOG_D(TAG, "Detect DESFire");
-        MfDesfirePoller* mf_desfire = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
+        MfDesfirePoller *mf_desfire = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
         mf_desfire_poller_set_command_mode(mf_desfire, NxpNativeCommandModeIsoWrapped);
-        if(mf_desfire_poller.detect(event, mf_desfire)) {
+        if (mf_desfire_poller.detect(event, mf_desfire)) {
             platform = Type4TagPlatformMfDesfire;
-            nfc_device_set_data(
-                device, NfcProtocolMfDesfire, mf_desfire_poller.get_data(mf_desfire));
+            nfc_device_set_data(device, NfcProtocolMfDesfire,
+                                mf_desfire_poller.get_data(mf_desfire));
         }
         mf_desfire_poller.free(mf_desfire);
-        if(platform != Type4TagPlatformUnknown) break;
-    } while(false);
+        if (platform != Type4TagPlatformUnknown)
+            break;
+    } while (false);
 
     Type4TagError error;
-    if(platform != Type4TagPlatformUnknown) {
-        furi_string_set(
-            instance->data->platform_name, nfc_device_get_name(device, NfcDeviceNameTypeFull));
+    if (platform != Type4TagPlatformUnknown) {
+        furi_string_set(instance->data->platform_name,
+                        nfc_device_get_name(device, NfcDeviceNameTypeFull));
         error = Type4TagErrorNone;
     } else {
         furi_string_reset(instance->data->platform_name);
@@ -264,15 +259,17 @@ Type4TagError type_4_tag_poller_detect_platform(Type4TagPoller* instance) {
     return error;
 }
 
-Type4TagError type_4_tag_poller_select_app(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_select_app(Type4TagPoller *instance)
+{
     furi_check(instance);
 
     FURI_LOG_D(TAG, "Select application");
-    return type_4_tag_poller_iso_select_name(
-        instance, type_4_tag_iso_df_name, sizeof(type_4_tag_iso_df_name));
+    return type_4_tag_poller_iso_select_name(instance, type_4_tag_iso_df_name,
+                                             sizeof(type_4_tag_iso_df_name));
 }
 
-Type4TagError type_4_tag_poller_read_cc(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_read_cc(Type4TagPoller *instance)
+{
     furi_check(instance);
 
     Type4TagError error;
@@ -280,31 +277,36 @@ Type4TagError type_4_tag_poller_read_cc(Type4TagPoller* instance) {
     do {
         FURI_LOG_D(TAG, "Select CC");
         error = type_4_tag_poller_iso_select_file(instance, TYPE_4_TAG_T4T_CC_EF_ID);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
         FURI_LOG_D(TAG, "Read CC len");
         uint16_t cc_len;
         uint8_t cc_len_be[sizeof(cc_len)];
         error = type_4_tag_poller_iso_read(instance, 0, sizeof(cc_len_be), cc_len_be);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
         cc_len = bit_lib_bytes_to_num_be(cc_len_be, sizeof(cc_len_be));
 
         FURI_LOG_D(TAG, "Read CC");
         uint8_t cc_buf[cc_len];
         error = type_4_tag_poller_iso_read(instance, 0, sizeof(cc_buf), cc_buf);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
         error = type_4_tag_cc_parse(instance->data, cc_buf, sizeof(cc_buf));
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
         instance->data->is_tag_specific = true;
 
         FURI_LOG_D(TAG, "Detected NDEF file ID %04X", instance->data->ndef_file_id);
-    } while(false);
+    } while (false);
 
     return error;
 }
 
-Type4TagError type_4_tag_poller_read_ndef(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_read_ndef(Type4TagPoller *instance)
+{
     furi_check(instance);
 
     Type4TagError error;
@@ -312,60 +314,60 @@ Type4TagError type_4_tag_poller_read_ndef(Type4TagPoller* instance) {
     do {
         FURI_LOG_D(TAG, "Select NDEF");
         error = type_4_tag_poller_iso_select_file(instance, instance->data->ndef_file_id);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
         FURI_LOG_D(TAG, "Read NDEF len");
         uint16_t ndef_len;
         uint8_t ndef_len_be[sizeof(ndef_len)];
         error = type_4_tag_poller_iso_read(instance, 0, sizeof(ndef_len_be), ndef_len_be);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
         ndef_len = bit_lib_bytes_to_num_be(ndef_len_be, sizeof(ndef_len_be));
 
-        if(ndef_len == 0) {
+        if (ndef_len == 0) {
             FURI_LOG_D(TAG, "NDEF file is empty");
             break;
         }
 
         FURI_LOG_D(TAG, "Read NDEF");
         simple_array_init(instance->data->ndef_data, ndef_len);
-        uint8_t* ndef_buf = simple_array_get_data(instance->data->ndef_data);
+        uint8_t *ndef_buf = simple_array_get_data(instance->data->ndef_data);
         error = type_4_tag_poller_iso_read(instance, sizeof(ndef_len), ndef_len, ndef_buf);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
-        FURI_LOG_D(
-            TAG, "Read %hu bytes from NDEF file %04X", ndef_len, instance->data->ndef_file_id);
-    } while(false);
+        FURI_LOG_D(TAG, "Read %hu bytes from NDEF file %04X", ndef_len,
+                   instance->data->ndef_file_id);
+    } while (false);
 
     return error;
 }
 
-Type4TagError type_4_tag_poller_create_app(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_create_app(Type4TagPoller *instance)
+{
     Type4TagError error = Type4TagErrorNotSupported;
 
-    if(instance->data->platform == Type4TagPlatformMfDesfire) {
-        MfDesfirePoller* mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
+    if (instance->data->platform == Type4TagPlatformMfDesfire) {
+        MfDesfirePoller *mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
         mf_desfire_poller_set_command_mode(mf_des, NxpNativeCommandModeIsoWrapped);
         MfDesfireError mf_des_error;
 
         do {
             FURI_LOG_D(TAG, "Select DESFire PICC");
             mf_des_error = mf_desfire_poller_select_application(mf_des, &mf_des_picc_app_id);
-            if(mf_des_error != MfDesfireErrorNone) {
+            if (mf_des_error != MfDesfireErrorNone) {
                 error = Type4TagErrorProtocol;
                 break;
             }
 
             FURI_LOG_D(TAG, "Create DESFire T4T app");
             mf_des_error = mf_desfire_poller_create_application(
-                mf_des,
-                &mf_des_t4t_app_id,
-                &mf_des_t4t_app_key_settings,
-                TYPE_4_TAG_ISO_DF_ID,
-                type_4_tag_iso_df_name,
-                sizeof(type_4_tag_iso_df_name));
-            if(mf_des_error != MfDesfireErrorNone) {
-                if(mf_des_error != MfDesfireErrorNotPresent &&
-                   mf_des_error != MfDesfireErrorTimeout) {
+                mf_des, &mf_des_t4t_app_id, &mf_des_t4t_app_key_settings, TYPE_4_TAG_ISO_DF_ID,
+                type_4_tag_iso_df_name, sizeof(type_4_tag_iso_df_name));
+            if (mf_des_error != MfDesfireErrorNone) {
+                if (mf_des_error != MfDesfireErrorNotPresent &&
+                    mf_des_error != MfDesfireErrorTimeout) {
                     error = Type4TagErrorCardLocked;
                 } else {
                     error = Type4TagErrorProtocol;
@@ -374,7 +376,7 @@ Type4TagError type_4_tag_poller_create_app(Type4TagPoller* instance) {
             }
 
             error = Type4TagErrorNone;
-        } while(false);
+        } while (false);
 
         mf_desfire_poller.free(mf_des);
     }
@@ -382,11 +384,12 @@ Type4TagError type_4_tag_poller_create_app(Type4TagPoller* instance) {
     return error;
 }
 
-Type4TagError type_4_tag_poller_create_cc(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_create_cc(Type4TagPoller *instance)
+{
     Type4TagError error = Type4TagErrorNotSupported;
 
-    if(instance->data->platform == Type4TagPlatformMfDesfire) {
-        MfDesfirePoller* mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
+    if (instance->data->platform == Type4TagPlatformMfDesfire) {
+        MfDesfirePoller *mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
         mf_desfire_poller_set_command_mode(mf_des, NxpNativeCommandModeIsoWrapped);
         MfDesfireError mf_des_error;
 
@@ -394,9 +397,9 @@ Type4TagError type_4_tag_poller_create_cc(Type4TagPoller* instance) {
             FURI_LOG_D(TAG, "Create DESFire CC");
             mf_des_error = mf_desfire_poller_create_file(
                 mf_des, MF_DES_T4T_CC_FILE_ID, &mf_des_t4t_cc_file, TYPE_4_TAG_T4T_CC_EF_ID);
-            if(mf_des_error != MfDesfireErrorNone) {
-                if(mf_des_error != MfDesfireErrorNotPresent &&
-                   mf_des_error != MfDesfireErrorTimeout) {
+            if (mf_des_error != MfDesfireErrorNone) {
+                if (mf_des_error != MfDesfireErrorNotPresent &&
+                    mf_des_error != MfDesfireErrorTimeout) {
                     error = Type4TagErrorCardLocked;
                 } else {
                     error = Type4TagErrorProtocol;
@@ -406,7 +409,8 @@ Type4TagError type_4_tag_poller_create_cc(Type4TagPoller* instance) {
 
             FURI_LOG_D(TAG, "Select CC");
             error = type_4_tag_poller_iso_select_file(instance, TYPE_4_TAG_T4T_CC_EF_ID);
-            if(error != Type4TagErrorNone) break;
+            if (error != Type4TagErrorNone)
+                break;
 
             FURI_LOG_D(TAG, "Write DESFire CC");
             instance->data->t4t_version.value = TYPE_4_TAG_T4T_CC_VNO;
@@ -420,10 +424,11 @@ Type4TagError type_4_tag_poller_create_cc(Type4TagPoller* instance) {
             uint8_t cc_buf[TYPE_4_TAG_T4T_CC_MIN_SIZE];
             type_4_tag_cc_dump(instance->data, cc_buf, sizeof(cc_buf));
             error = type_4_tag_poller_iso_write(instance, 0, sizeof(cc_buf), cc_buf);
-            if(error != Type4TagErrorNone) break;
+            if (error != Type4TagErrorNone)
+                break;
 
             error = Type4TagErrorNone;
-        } while(false);
+        } while (false);
 
         mf_desfire_poller.free(mf_des);
     }
@@ -431,25 +436,26 @@ Type4TagError type_4_tag_poller_create_cc(Type4TagPoller* instance) {
     return error;
 }
 
-Type4TagError type_4_tag_poller_create_ndef(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_create_ndef(Type4TagPoller *instance)
+{
     Type4TagError error = Type4TagErrorNotSupported;
 
-    if(instance->data->platform == Type4TagPlatformMfDesfire) {
-        MfDesfirePoller* mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
+    if (instance->data->platform == Type4TagPlatformMfDesfire) {
+        MfDesfirePoller *mf_des = mf_desfire_poller.alloc(instance->iso14443_4a_poller);
         mf_desfire_poller_set_command_mode(mf_des, NxpNativeCommandModeIsoWrapped);
         MfDesfireError mf_des_error;
 
         do {
             FURI_LOG_D(TAG, "Create DESFire NDEF");
             MfDesfireFileSettings mf_des_t4t_ndef_file = mf_des_t4t_ndef_file_default;
-            mf_des_t4t_ndef_file.data.size = sizeof(uint16_t) + (instance->data->is_tag_specific ?
-                                                                     instance->data->ndef_max_len :
-                                                                     TYPE_4_TAG_DEFAULT_NDEF_SIZE);
+            mf_des_t4t_ndef_file.data.size =
+                sizeof(uint16_t) + (instance->data->is_tag_specific ? instance->data->ndef_max_len
+                                                                    : TYPE_4_TAG_DEFAULT_NDEF_SIZE);
             mf_des_error = mf_desfire_poller_create_file(
                 mf_des, MF_DES_T4T_NDEF_FILE_ID, &mf_des_t4t_ndef_file, TYPE_4_TAG_T4T_NDEF_EF_ID);
-            if(mf_des_error != MfDesfireErrorNone) {
-                if(mf_des_error != MfDesfireErrorNotPresent &&
-                   mf_des_error != MfDesfireErrorTimeout) {
+            if (mf_des_error != MfDesfireErrorNone) {
+                if (mf_des_error != MfDesfireErrorNotPresent &&
+                    mf_des_error != MfDesfireErrorTimeout) {
                     error = Type4TagErrorCardLocked;
                 } else {
                     error = Type4TagErrorProtocol;
@@ -458,7 +464,7 @@ Type4TagError type_4_tag_poller_create_ndef(Type4TagPoller* instance) {
             }
 
             error = Type4TagErrorNone;
-        } while(false);
+        } while (false);
 
         mf_desfire_poller.free(mf_des);
     }
@@ -466,7 +472,8 @@ Type4TagError type_4_tag_poller_create_ndef(Type4TagPoller* instance) {
     return error;
 }
 
-Type4TagError type_4_tag_poller_write_ndef(Type4TagPoller* instance) {
+Type4TagError type_4_tag_poller_write_ndef(Type4TagPoller *instance)
+{
     furi_check(instance);
 
     Type4TagError error;
@@ -474,28 +481,31 @@ Type4TagError type_4_tag_poller_write_ndef(Type4TagPoller* instance) {
     do {
         FURI_LOG_D(TAG, "Select NDEF");
         error = type_4_tag_poller_iso_select_file(instance, instance->data->ndef_file_id);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
         FURI_LOG_D(TAG, "Write NDEF len");
         uint16_t ndef_len = simple_array_get_count(instance->data->ndef_data);
         uint8_t ndef_len_be[sizeof(ndef_len)];
         bit_lib_num_to_bytes_be(ndef_len, sizeof(ndef_len_be), ndef_len_be);
         error = type_4_tag_poller_iso_write(instance, 0, sizeof(ndef_len_be), ndef_len_be);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
-        if(ndef_len == 0) {
+        if (ndef_len == 0) {
             FURI_LOG_D(TAG, "NDEF file is empty");
             break;
         }
 
         FURI_LOG_D(TAG, "Write NDEF");
-        uint8_t* ndef_buf = simple_array_get_data(instance->data->ndef_data);
+        uint8_t *ndef_buf = simple_array_get_data(instance->data->ndef_data);
         error = type_4_tag_poller_iso_write(instance, sizeof(ndef_len), ndef_len, ndef_buf);
-        if(error != Type4TagErrorNone) break;
+        if (error != Type4TagErrorNone)
+            break;
 
-        FURI_LOG_D(
-            TAG, "Wrote %hu bytes to NDEF file %04X", ndef_len, instance->data->ndef_file_id);
-    } while(false);
+        FURI_LOG_D(TAG, "Wrote %hu bytes to NDEF file %04X", ndef_len,
+                   instance->data->ndef_file_id);
+    } while (false);
 
     return error;
 }

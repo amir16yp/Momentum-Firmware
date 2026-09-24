@@ -31,9 +31,9 @@ typedef enum {
 
 } NfcDataGeneratorType;
 
-const char* nfc_data_generator_get_name(NfcDataGeneratorType type);
+const char *nfc_data_generator_get_name(NfcDataGeneratorType type);
 
-void nfc_data_generator_fill_data(NfcDataGeneratorType type, NfcDevice* nfc_device);
+void nfc_data_generator_fill_data(NfcDataGeneratorType type, NfcDevice *nfc_device);
 
 #ifdef __cplusplus
 }

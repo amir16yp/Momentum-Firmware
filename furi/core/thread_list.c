@@ -6,18 +6,14 @@
 #include <m-array.h>
 #include <m-dict.h>
 
-ARRAY_DEF(FuriThreadListItemArray, FuriThreadListItem*, M_PTR_OPLIST) // NOLINT
+ARRAY_DEF(FuriThreadListItemArray, FuriThreadListItem *, M_PTR_OPLIST) // NOLINT
 
 #define M_OPL_FuriThreadListItemArray_t() ARRAY_OPLIST(FuriThreadListItemArray, M_PTR_OPLIST)
 
-DICT_DEF2(
-    FuriThreadListItemDict,
-    uint32_t,
-    M_DEFAULT_OPLIST,
-    FuriThreadListItem*,
-    M_PTR_OPLIST) // NOLINT
+DICT_DEF2(FuriThreadListItemDict, uint32_t, M_DEFAULT_OPLIST, FuriThreadListItem *,
+          M_PTR_OPLIST) // NOLINT
 
-#define M_OPL_FuriThreadListItemDict_t() \
+#define M_OPL_FuriThreadListItemDict_t()                                                           \
     DICT_OPLIST(FuriThreadListItemDict, M_DEFAULT_OPLIST, M_PTR_OPLIST)
 
 struct FuriThreadList {
@@ -29,8 +25,9 @@ struct FuriThreadList {
     uint32_t isr_current;
 };
 
-FuriThreadList* furi_thread_list_alloc(void) {
-    FuriThreadList* instance = malloc(sizeof(FuriThreadList));
+FuriThreadList *furi_thread_list_alloc(void)
+{
+    FuriThreadList *instance = malloc(sizeof(FuriThreadList));
 
     FuriThreadListItemArray_init(instance->items);
     FuriThreadListItemDict_init(instance->search);
@@ -38,13 +35,14 @@ FuriThreadList* furi_thread_list_alloc(void) {
     return instance;
 }
 
-void furi_thread_list_free(FuriThreadList* instance) {
+void furi_thread_list_free(FuriThreadList *instance)
+{
     furi_check(instance);
 
     FuriThreadListItemArray_it_t it;
     FuriThreadListItemArray_it(it, instance->items);
-    while(!FuriThreadListItemArray_end_p(it)) {
-        FuriThreadListItem* item = *FuriThreadListItemArray_cref(it);
+    while (!FuriThreadListItemArray_end_p(it)) {
+        FuriThreadListItem *item = *FuriThreadListItemArray_cref(it);
         free(item);
         FuriThreadListItemArray_next(it);
     }
@@ -55,27 +53,30 @@ void furi_thread_list_free(FuriThreadList* instance) {
     free(instance);
 }
 
-size_t furi_thread_list_size(FuriThreadList* instance) {
+size_t furi_thread_list_size(FuriThreadList *instance)
+{
     furi_check(instance);
     return FuriThreadListItemArray_size(instance->items);
 }
 
-FuriThreadListItem* furi_thread_list_get_at(FuriThreadList* instance, size_t position) {
+FuriThreadListItem *furi_thread_list_get_at(FuriThreadList *instance, size_t position)
+{
     furi_check(instance);
     furi_check(position < furi_thread_list_size(instance));
 
     return *FuriThreadListItemArray_get(instance->items, position);
 }
 
-FuriThreadListItem* furi_thread_list_get_or_insert(FuriThreadList* instance, FuriThread* thread) {
+FuriThreadListItem *furi_thread_list_get_or_insert(FuriThreadList *instance, FuriThread *thread)
+{
     furi_check(instance);
 
-    FuriThreadListItem** item_ptr = FuriThreadListItemDict_get(instance->search, (uint32_t)thread);
-    if(item_ptr) {
+    FuriThreadListItem **item_ptr = FuriThreadListItemDict_get(instance->search, (uint32_t)thread);
+    if (item_ptr) {
         return *item_ptr;
     }
 
-    FuriThreadListItem* item = malloc(sizeof(FuriThreadListItem));
+    FuriThreadListItem *item = malloc(sizeof(FuriThreadListItem));
 
     FuriThreadListItemArray_push_back(instance->items, item);
     FuriThreadListItemDict_set_at(instance->search, (uint32_t)thread, item);
@@ -83,7 +84,8 @@ FuriThreadListItem* furi_thread_list_get_or_insert(FuriThreadList* instance, Fur
     return item;
 }
 
-void furi_thread_list_process(FuriThreadList* instance, uint32_t runtime, uint32_t tick) {
+void furi_thread_list_process(FuriThreadList *instance, uint32_t runtime, uint32_t tick)
+{
     furi_assert(instance);
 
     instance->runtime_previous = instance->runtime_current;
@@ -96,17 +98,18 @@ void furi_thread_list_process(FuriThreadList* instance, uint32_t runtime, uint32
 
     FuriThreadListItemArray_it_t it;
     FuriThreadListItemArray_it(it, instance->items);
-    while(!FuriThreadListItemArray_end_p(it)) {
-        FuriThreadListItem* item = *FuriThreadListItemArray_cref(it);
-        if(item->tick != tick) {
+    while (!FuriThreadListItemArray_end_p(it)) {
+        FuriThreadListItem *item = *FuriThreadListItemArray_cref(it);
+        if (item->tick != tick) {
             FuriThreadListItemArray_remove(instance->items, it);
             (void)FuriThreadListItemDict_erase(instance->search, (uint32_t)item->thread);
             free(item);
         } else {
             uint32_t item_counter = item->counter_current - item->counter_previous;
-            if(item_counter && item->counter_previous && item->counter_current) {
+            if (item_counter && item->counter_previous && item->counter_current) {
                 item->cpu = (float)item_counter / (float)runtime_counter * 100.0f;
-                if(item->cpu > 200.0f) item->cpu = 0.0f;
+                if (item->cpu > 200.0f)
+                    item->cpu = 0.0f;
             } else {
                 item->cpu = 0.0f;
             }
@@ -116,7 +119,8 @@ void furi_thread_list_process(FuriThreadList* instance, uint32_t runtime, uint32
     }
 }
 
-float furi_thread_list_get_isr_time(FuriThreadList* instance) {
+float furi_thread_list_get_isr_time(FuriThreadList *instance)
+{
     const uint32_t runtime_counter = instance->runtime_current - instance->runtime_previous;
     const uint32_t isr_counter = instance->isr_current - instance->isr_previous;
 

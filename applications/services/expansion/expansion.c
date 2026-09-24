@@ -34,7 +34,7 @@ typedef enum {
 
 typedef union {
     FuriHalSerialId serial_id;
-    bool* is_connected;
+    bool *is_connected;
 } ExpansionMessageData;
 
 typedef struct {
@@ -44,22 +44,23 @@ typedef struct {
 } ExpansionMessage;
 
 struct Expansion {
-    FuriThread* thread;
-    FuriMessageQueue* queue;
+    FuriThread *thread;
+    FuriMessageQueue *queue;
     FuriHalSerialId serial_id;
-    ExpansionWorker* worker;
+    ExpansionWorker *worker;
     ExpansionState state;
 };
 
-static const char* const expansion_uart_names[] = {
+static const char *const expansion_uart_names[] = {
     "USART",
     "LPUART",
 };
 
 // Called from the serial control thread
-static void expansion_detect_callback(void* context) {
+static void expansion_detect_callback(void *context)
+{
     furi_assert(context);
-    Expansion* instance = context;
+    Expansion *instance = context;
 
     ExpansionMessage message = {
         .type = ExpansionMessageTypeModuleConnected,
@@ -71,12 +72,13 @@ static void expansion_detect_callback(void* context) {
     UNUSED(status);
 }
 
-static void expansion_worker_callback(void* context, ExpansionWorkerCallbackReason reason) {
+static void expansion_worker_callback(void *context, ExpansionWorkerCallbackReason reason)
+{
     furi_assert(context);
-    Expansion* instance = context;
+    Expansion *instance = context;
 
     ExpansionMessage message;
-    switch(reason) {
+    switch (reason) {
     case ExpansionWorkerCallbackReasonExit:
         message.type = ExpansionMessageTypeModuleDisconnected;
         message.api_lock = NULL; // Not locking the API here to avoid a deadlock
@@ -92,35 +94,34 @@ static void expansion_worker_callback(void* context, ExpansionWorkerCallbackReas
     furi_check(status == FuriStatusOk);
 }
 
-static void
-    expansion_control_handler_enable(Expansion* instance, const ExpansionMessageData* data) {
+static void expansion_control_handler_enable(Expansion *instance, const ExpansionMessageData *data)
+{
     UNUSED(data);
 
-    if(instance->state != ExpansionStateDisabled) {
+    if (instance->state != ExpansionStateDisabled) {
         return;
     }
 
     ExpansionSettings settings;
     expansion_settings_load(&settings);
 
-    if(settings.uart_index < FuriHalSerialIdMax) {
+    if (settings.uart_index < FuriHalSerialIdMax) {
         instance->state = ExpansionStateEnabled;
         instance->serial_id = settings.uart_index;
-        furi_hal_serial_control_set_expansion_callback(
-            instance->serial_id, expansion_detect_callback, instance);
+        furi_hal_serial_control_set_expansion_callback(instance->serial_id,
+                                                       expansion_detect_callback, instance);
 
         FURI_LOG_D(TAG, "Detection enabled on %s", expansion_uart_names[instance->serial_id]);
     }
 }
 
-static void
-    expansion_control_handler_disable(Expansion* instance, const ExpansionMessageData* data) {
+static void expansion_control_handler_disable(Expansion *instance, const ExpansionMessageData *data)
+{
     UNUSED(data);
-    if(instance->state == ExpansionStateDisabled) {
+    if (instance->state == ExpansionStateDisabled) {
         return;
-    } else if(
-        instance->state == ExpansionStateRunning ||
-        instance->state == ExpansionStateConnectionEstablished) {
+    } else if (instance->state == ExpansionStateRunning ||
+               instance->state == ExpansionStateConnectionEstablished) {
         expansion_worker_stop(instance->worker);
         expansion_worker_free(instance->worker);
     } else {
@@ -132,40 +133,39 @@ static void
     FURI_LOG_D(TAG, "Detection disabled");
 }
 
-static void expansion_control_handler_set_listen_serial(
-    Expansion* instance,
-    const ExpansionMessageData* data) {
-    if(instance->state != ExpansionStateDisabled && instance->serial_id == data->serial_id) {
+static void expansion_control_handler_set_listen_serial(Expansion *instance,
+                                                        const ExpansionMessageData *data)
+{
+    if (instance->state != ExpansionStateDisabled && instance->serial_id == data->serial_id) {
         return;
 
-    } else if(
-        instance->state == ExpansionStateRunning ||
-        instance->state == ExpansionStateConnectionEstablished) {
+    } else if (instance->state == ExpansionStateRunning ||
+               instance->state == ExpansionStateConnectionEstablished) {
         expansion_worker_stop(instance->worker);
         expansion_worker_free(instance->worker);
 
-    } else if(instance->state == ExpansionStateEnabled) {
+    } else if (instance->state == ExpansionStateEnabled) {
         furi_hal_serial_control_set_expansion_callback(instance->serial_id, NULL, NULL);
     }
 
     instance->state = ExpansionStateEnabled;
     instance->serial_id = data->serial_id;
 
-    furi_hal_serial_control_set_expansion_callback(
-        instance->serial_id, expansion_detect_callback, instance);
+    furi_hal_serial_control_set_expansion_callback(instance->serial_id, expansion_detect_callback,
+                                                   instance);
 
     FURI_LOG_D(TAG, "Listen serial changed to %s", expansion_uart_names[instance->serial_id]);
 }
 
-static void expansion_control_handler_reload_settings(
-    Expansion* instance,
-    const ExpansionMessageData* data) {
+static void expansion_control_handler_reload_settings(Expansion *instance,
+                                                      const ExpansionMessageData *data)
+{
     UNUSED(data);
 
     ExpansionSettings settings;
     expansion_settings_load(&settings);
 
-    if(settings.uart_index < FuriHalSerialIdMax) {
+    if (settings.uart_index < FuriHalSerialIdMax) {
         const ExpansionMessageData data = {
             .serial_id = settings.uart_index,
         };
@@ -177,11 +177,11 @@ static void expansion_control_handler_reload_settings(
     }
 }
 
-static void expansion_control_handler_module_connected(
-    Expansion* instance,
-    const ExpansionMessageData* data) {
+static void expansion_control_handler_module_connected(Expansion *instance,
+                                                       const ExpansionMessageData *data)
+{
     UNUSED(data);
-    if(instance->state != ExpansionStateEnabled) {
+    if (instance->state != ExpansionStateEnabled) {
         return;
     }
 
@@ -194,39 +194,40 @@ static void expansion_control_handler_module_connected(
     expansion_worker_start(instance->worker);
 }
 
-static void expansion_control_handler_module_disconnected(
-    Expansion* instance,
-    const ExpansionMessageData* data) {
+static void expansion_control_handler_module_disconnected(Expansion *instance,
+                                                          const ExpansionMessageData *data)
+{
     UNUSED(data);
-    if(instance->state != ExpansionStateRunning &&
-       instance->state != ExpansionStateConnectionEstablished) {
+    if (instance->state != ExpansionStateRunning &&
+        instance->state != ExpansionStateConnectionEstablished) {
         return;
     }
 
     instance->state = ExpansionStateEnabled;
     expansion_worker_free(instance->worker);
-    furi_hal_serial_control_set_expansion_callback(
-        instance->serial_id, expansion_detect_callback, instance);
+    furi_hal_serial_control_set_expansion_callback(instance->serial_id, expansion_detect_callback,
+                                                   instance);
 }
 
-static void expansion_control_handler_connection_established(
-    Expansion* instance,
-    const ExpansionMessageData* data) {
+static void expansion_control_handler_connection_established(Expansion *instance,
+                                                             const ExpansionMessageData *data)
+{
     UNUSED(data);
-    if(instance->state != ExpansionStateRunning &&
-       instance->state != ExpansionStateConnectionEstablished) {
+    if (instance->state != ExpansionStateRunning &&
+        instance->state != ExpansionStateConnectionEstablished) {
         return;
     }
 
     instance->state = ExpansionStateConnectionEstablished;
 }
 
-static void
-    expansion_control_handler_is_connected(Expansion* instance, const ExpansionMessageData* data) {
+static void expansion_control_handler_is_connected(Expansion *instance,
+                                                   const ExpansionMessageData *data)
+{
     *data->is_connected = instance->state == ExpansionStateConnectionEstablished;
 }
 
-typedef void (*ExpansionControlHandler)(Expansion*, const ExpansionMessageData*);
+typedef void (*ExpansionControlHandler)(Expansion *, const ExpansionMessageData *);
 
 static const ExpansionControlHandler expansion_control_handlers[] = {
     [ExpansionMessageTypeEnable] = expansion_control_handler_enable,
@@ -239,11 +240,12 @@ static const ExpansionControlHandler expansion_control_handlers[] = {
     [ExpansionMessageTypeIsConnected] = expansion_control_handler_is_connected,
 };
 
-static int32_t expansion_control(void* context) {
+static int32_t expansion_control(void *context)
+{
     furi_assert(context);
-    Expansion* instance = context;
+    Expansion *instance = context;
 
-    for(;;) {
+    for (;;) {
         ExpansionMessage message;
 
         FuriStatus status = furi_message_queue_get(instance->queue, &message, FuriWaitForever);
@@ -252,7 +254,7 @@ static int32_t expansion_control(void* context) {
         furi_check(message.type < COUNT_OF(expansion_control_handlers));
         expansion_control_handlers[message.type](instance, &message.data);
 
-        if(message.api_lock != NULL) {
+        if (message.api_lock != NULL) {
             api_lock_unlock(message.api_lock);
         }
     }
@@ -260,8 +262,9 @@ static int32_t expansion_control(void* context) {
     return 0;
 }
 
-static Expansion* expansion_alloc(void) {
-    Expansion* instance = malloc(sizeof(Expansion));
+static Expansion *expansion_alloc(void)
+{
+    Expansion *instance = malloc(sizeof(Expansion));
 
     instance->queue =
         furi_message_queue_alloc(EXPANSION_CONTROL_QUEUE_SIZE, sizeof(ExpansionMessage));
@@ -271,13 +274,14 @@ static Expansion* expansion_alloc(void) {
     return instance;
 }
 
-static void expansion_storage_callback(const void* message, void* context) {
+static void expansion_storage_callback(const void *message, void *context)
+{
     furi_assert(context);
 
-    const StorageEvent* event = message;
-    Expansion* instance = context;
+    const StorageEvent *event = message;
+    Expansion *instance = context;
 
-    if(event->type == StorageEventTypeCardMount) {
+    if (event->type == StorageEventTypeCardMount) {
         ExpansionMessage em = {
             .type = ExpansionMessageTypeReloadSettings,
             .api_lock = NULL,
@@ -287,17 +291,18 @@ static void expansion_storage_callback(const void* message, void* context) {
     }
 }
 
-void expansion_on_system_start(void* arg) {
+void expansion_on_system_start(void *arg)
+{
     UNUSED(arg);
 
-    Expansion* instance = expansion_alloc();
+    Expansion *instance = expansion_alloc();
     furi_record_create(RECORD_EXPANSION, instance);
     furi_thread_start(instance->thread);
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
     furi_pubsub_subscribe(storage_get_pubsub(storage), expansion_storage_callback, instance);
 
-    if(storage_sd_status(storage) != FSE_OK) {
+    if (storage_sd_status(storage) != FSE_OK) {
         FURI_LOG_D(TAG, "SD Card not ready, skipping settings");
         return;
     }
@@ -307,7 +312,8 @@ void expansion_on_system_start(void* arg) {
 
 // Public API functions
 
-void expansion_enable(Expansion* instance) {
+void expansion_enable(Expansion *instance)
+{
     furi_check(instance);
 
     ExpansionMessage message = {
@@ -319,7 +325,8 @@ void expansion_enable(Expansion* instance) {
     api_lock_wait_unlock_and_free(message.api_lock);
 }
 
-void expansion_disable(Expansion* instance) {
+void expansion_disable(Expansion *instance)
+{
     furi_check(instance);
 
     ExpansionMessage message = {
@@ -331,7 +338,8 @@ void expansion_disable(Expansion* instance) {
     api_lock_wait_unlock_and_free(message.api_lock);
 }
 
-bool expansion_is_connected(Expansion* instance) {
+bool expansion_is_connected(Expansion *instance)
+{
     furi_check(instance);
     bool is_connected;
 
@@ -347,7 +355,8 @@ bool expansion_is_connected(Expansion* instance) {
     return is_connected;
 }
 
-void expansion_set_listen_serial(Expansion* instance, FuriHalSerialId serial_id) {
+void expansion_set_listen_serial(Expansion *instance, FuriHalSerialId serial_id)
+{
     furi_check(instance);
     furi_check(serial_id < FuriHalSerialIdMax);
 

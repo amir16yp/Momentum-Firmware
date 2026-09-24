@@ -9,9 +9,9 @@
 extern "C" {
 #endif
 
-FS_Error storage_get_data(Storage* app, FuriString* path, StorageData** storage);
+FS_Error storage_get_data(Storage *app, FuriString *path, StorageData **storage);
 
-void storage_process_message(Storage* app, StorageMessage* message);
+void storage_process_message(Storage *app, StorageMessage *message);
 
 #ifdef __cplusplus
 }

@@ -23,13 +23,13 @@ typedef struct iButtonProtocols iButtonProtocols;
  * Allocate an iButtonProtocols object
  * @return pointer to an iButtonProtocols object
  */
-iButtonProtocols* ibutton_protocols_alloc(void);
+iButtonProtocols *ibutton_protocols_alloc(void);
 
 /**
  * Destroy an iButtonProtocols object, free resources
  * @param [in] protocols pointer to an iButtonProtocols object
  */
-void ibutton_protocols_free(iButtonProtocols* protocols);
+void ibutton_protocols_free(iButtonProtocols *protocols);
 
 /**
  * Get the total number of available protocols
@@ -41,7 +41,7 @@ uint32_t ibutton_protocols_get_protocol_count(void);
  * @param [in] protocols pointer to an iButtonProtocols object
  * @return maximum data size in bytes
  */
-size_t ibutton_protocols_get_max_data_size(iButtonProtocols* protocols);
+size_t ibutton_protocols_get_max_data_size(iButtonProtocols *protocols);
 
 /**
  * Get the protocol id based on its name
@@ -49,7 +49,7 @@ size_t ibutton_protocols_get_max_data_size(iButtonProtocols* protocols);
  * @param [in] name pointer to a string containing the name
  * @return protocol id on success on iButtonProtocolIdInvalid on failure
  */
-iButtonProtocolId ibutton_protocols_get_id_by_name(iButtonProtocols* protocols, const char* name);
+iButtonProtocolId ibutton_protocols_get_id_by_name(iButtonProtocols *protocols, const char *name);
 
 /**
  * Get the manufacturer name based on the protocol id
@@ -57,7 +57,7 @@ iButtonProtocolId ibutton_protocols_get_id_by_name(iButtonProtocols* protocols, 
  * @param [in] id id of the protocol in question
  * @return pointer to a statically allocated string with manufacturer name
  */
-const char* ibutton_protocols_get_manufacturer(iButtonProtocols* protocols, iButtonProtocolId id);
+const char *ibutton_protocols_get_manufacturer(iButtonProtocols *protocols, iButtonProtocolId id);
 
 /**
  * Get the protocol name based on the protocol id
@@ -65,14 +65,14 @@ const char* ibutton_protocols_get_manufacturer(iButtonProtocols* protocols, iBut
  * @param [in] id id of the protocol in question
  * @return pointer to a statically allocated string with protocol name
  */
-const char* ibutton_protocols_get_name(iButtonProtocols* protocols, iButtonProtocolId id);
+const char *ibutton_protocols_get_name(iButtonProtocols *protocols, iButtonProtocolId id);
 
 /**
  * Get protocol features bitmask by protocol id
  * @param [in] protocols pointer to an iButtonProtocols object
  * @param [in] id id of the protocol in question
  */
-uint32_t ibutton_protocols_get_features(iButtonProtocols* protocols, iButtonProtocolId id);
+uint32_t ibutton_protocols_get_features(iButtonProtocols *protocols, iButtonProtocolId id);
 
 /**
  * Read a physical device (a key or an emulator)
@@ -80,7 +80,7 @@ uint32_t ibutton_protocols_get_features(iButtonProtocols* protocols, iButtonProt
  * @param [out] key pointer to the key to read into (must be allocated before)
  * @return true on success, false on failure
  */
-bool ibutton_protocols_read(iButtonProtocols* protocols, iButtonKey* key);
+bool ibutton_protocols_read(iButtonProtocols *protocols, iButtonKey *key);
 
 /**
  * Write the key to a blank
@@ -88,7 +88,7 @@ bool ibutton_protocols_read(iButtonProtocols* protocols, iButtonKey* key);
  * @param [in] key pointer to the key to be written
  * @return true on success, false on failure
  */
-bool ibutton_protocols_write_id(iButtonProtocols* protocols, iButtonKey* key);
+bool ibutton_protocols_write_id(iButtonProtocols *protocols, iButtonKey *key);
 
 /**
  * Write the key to another one of the same type
@@ -96,21 +96,21 @@ bool ibutton_protocols_write_id(iButtonProtocols* protocols, iButtonKey* key);
  * @param [in] key pointer to the key to be written
  * @return true on success, false on failure
  */
-bool ibutton_protocols_write_copy(iButtonProtocols* protocols, iButtonKey* key);
+bool ibutton_protocols_write_copy(iButtonProtocols *protocols, iButtonKey *key);
 
 /**
  * Start emulating the key
  * @param [in] protocols pointer to an iButtonProtocols object
  * @param [in] key pointer to the key to be emulated
  */
-void ibutton_protocols_emulate_start(iButtonProtocols* protocols, iButtonKey* key);
+void ibutton_protocols_emulate_start(iButtonProtocols *protocols, iButtonKey *key);
 
 /**
  * Stop emulating the key
  * @param [in] protocols pointer to an iButtonProtocols object
  * @param [in] key pointer to the key to be emulated
  */
-void ibutton_protocols_emulate_stop(iButtonProtocols* protocols, iButtonKey* key);
+void ibutton_protocols_emulate_stop(iButtonProtocols *protocols, iButtonKey *key);
 
 /**
  * Save the key data to a file.
@@ -119,10 +119,8 @@ void ibutton_protocols_emulate_stop(iButtonProtocols* protocols, iButtonKey* key
  * @param [in] file_name full absolute path to the file name
  * @return true on success, false on failure
  */
-bool ibutton_protocols_save(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    const char* file_name);
+bool ibutton_protocols_save(iButtonProtocols *protocols, const iButtonKey *key,
+                            const char *file_name);
 
 /**
  * Load the key from a file.
@@ -131,7 +129,7 @@ bool ibutton_protocols_save(
  * @param [in] file_name full absolute path to the file name
  * @return true on success, false on failure
  */
-bool ibutton_protocols_load(iButtonProtocols* protocols, iButtonKey* key, const char* file_name);
+bool ibutton_protocols_load(iButtonProtocols *protocols, iButtonKey *key, const char *file_name);
 
 /**
  * Format a string containing defice UID
@@ -139,10 +137,8 @@ bool ibutton_protocols_load(iButtonProtocols* protocols, iButtonKey* key, const 
  * @param [in] key pointer to the key to be rendered
  * @param [out] result pointer to the FuriString instance (must be initialized)
  */
-void ibutton_protocols_render_uid(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    FuriString* result);
+void ibutton_protocols_render_uid(iButtonProtocols *protocols, const iButtonKey *key,
+                                  FuriString *result);
 
 /**
  * Format a string containing device full data
@@ -150,10 +146,8 @@ void ibutton_protocols_render_uid(
  * @param [in] key pointer to the key to be rendered
  * @param [out] result pointer to the FuriString instance (must be initialized)
  */
-void ibutton_protocols_render_data(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    FuriString* result);
+void ibutton_protocols_render_data(iButtonProtocols *protocols, const iButtonKey *key,
+                                   FuriString *result);
 
 /**
  * Format a string containing device brief data
@@ -161,10 +155,8 @@ void ibutton_protocols_render_data(
  * @param [in] key pointer to the key to be rendered
  * @param [out] result pointer to the FuriString instance (must be initialized)
  */
-void ibutton_protocols_render_brief_data(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    FuriString* result);
+void ibutton_protocols_render_brief_data(iButtonProtocols *protocols, const iButtonKey *key,
+                                         FuriString *result);
 
 /**
  * Format a string containing error message (for invalid keys)
@@ -172,10 +164,8 @@ void ibutton_protocols_render_brief_data(
  * @param [in] key pointer to the key to be rendered
  * @param [out] result pointer to the FuriString instance (must be initialized)
  */
-void ibutton_protocols_render_error(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    FuriString* result);
+void ibutton_protocols_render_error(iButtonProtocols *protocols, const iButtonKey *key,
+                                    FuriString *result);
 
 /**
  * Check whether the key data is valid
@@ -183,7 +173,7 @@ void ibutton_protocols_render_error(
  * @param [in] key pointer to the key to be checked
  * @return true if data is valid, false otherwise
  */
-bool ibutton_protocols_is_valid(iButtonProtocols* protocols, const iButtonKey* key);
+bool ibutton_protocols_is_valid(iButtonProtocols *protocols, const iButtonKey *key);
 
 /**
  * Get a pointer to the key's editable data (for in-place editing)
@@ -191,17 +181,15 @@ bool ibutton_protocols_is_valid(iButtonProtocols* protocols, const iButtonKey* k
  * @param [in] key pointer to the key to be checked
  * @param [out] editable pointer to a structure to contain the editable data
  */
-void ibutton_protocols_get_editable_data(
-    iButtonProtocols* protocols,
-    const iButtonKey* key,
-    iButtonEditableData* editable);
+void ibutton_protocols_get_editable_data(iButtonProtocols *protocols, const iButtonKey *key,
+                                         iButtonEditableData *editable);
 
 /**
  * Make all necessary internal adjustments after editing the key
  * @param [in] protocols pointer to an iButtonProtocols object
  * @param [in,out] key pointer to the key to be adjusted
  */
-void ibutton_protocols_apply_edits(iButtonProtocols* protocols, const iButtonKey* key);
+void ibutton_protocols_apply_edits(iButtonProtocols *protocols, const iButtonKey *key);
 
 #ifdef __cplusplus
 }

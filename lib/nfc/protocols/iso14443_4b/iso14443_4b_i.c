@@ -1,7 +1,8 @@
 #include "iso14443_4b_i.h"
 
-Iso14443_4bError iso14443_4b_process_error(Iso14443_3bError error) {
-    switch(error) {
+Iso14443_4bError iso14443_4b_process_error(Iso14443_3bError error)
+{
+    switch (error) {
     case Iso14443_3bErrorNone:
         return Iso14443_4bErrorNone;
     case Iso14443_3bErrorNotPresent:

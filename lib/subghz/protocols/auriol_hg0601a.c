@@ -7,7 +7,7 @@
 Auriol HG06061A-DCF-TX sensor.
 
 Data layout:
-		DDDDDDDD-B0-NN-TT-TTTTTTTTTT-CCCC-HHHHHHHH
+        DDDDDDDD-B0-NN-TT-TTTTTTTTTT-CCCC-HHHHHHHH
 Exmpl.:	11110100-10-01-00-0001001100-1111-01011101
 
 - D: id, 8 bit
@@ -22,7 +22,7 @@ Exmpl.:	11110100-10-01-00-0001001100-1111-01011101
  * the packets are ppm modulated (distance coding) with a pulse of ~500 us
  * followed by a short gap of ~1000 us for a 0 bit or a long ~2000 us gap for a
  * 1 bit, the sync gap is ~4000 us.
- * 
+ *
  */
 
 #define AURIOL_TH_CONST_DATA 0b1110
@@ -91,30 +91,34 @@ const SubGhzProtocol ws_protocol_auriol_th = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_auriol_th_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_auriol_th_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderAuriol_TH* instance = malloc(sizeof(WSProtocolDecoderAuriol_TH));
+    WSProtocolDecoderAuriol_TH *instance = malloc(sizeof(WSProtocolDecoderAuriol_TH));
     instance->base.protocol = &ws_protocol_auriol_th;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_auriol_th_free(void* context) {
+void ws_protocol_decoder_auriol_th_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_auriol_th_reset(void* context) {
+void ws_protocol_decoder_auriol_th_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
     instance->decoder.parser_step = auriol_THDecoderStepReset;
 }
 
-static bool ws_protocol_auriol_th_check(WSProtocolDecoderAuriol_TH* instance) {
+static bool ws_protocol_auriol_th_check(WSProtocolDecoderAuriol_TH *instance)
+{
     uint8_t type = (instance->decoder.decode_data >> 8) & 0x0F;
 
-    if((type == AURIOL_TH_CONST_DATA) && ((instance->decoder.decode_data >> 4) != 0xffffffff)) {
+    if ((type == AURIOL_TH_CONST_DATA) && ((instance->decoder.decode_data >> 4) != 0xffffffff)) {
         return true;
     } else {
         return false;
@@ -126,12 +130,13 @@ static bool ws_protocol_auriol_th_check(WSProtocolDecoderAuriol_TH* instance) {
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_auriol_th_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_auriol_th_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 31) & 0xFF;
     instance->battery_low = ((instance->data >> 30) & 1);
     instance->channel = ((instance->data >> 25) & 0x03) + 1;
     instance->btn = WS_NO_BTN;
-    if(!((instance->data >> 23) & 1)) {
+    if (!((instance->data >> 23) & 1)) {
         instance->temp = (float)((instance->data >> 13) & 0x07FF) / 10.0f;
     } else {
         instance->temp = (float)((~(instance->data >> 13) & 0x07FF) + 1) / -10.0f;
@@ -140,15 +145,16 @@ static void ws_protocol_auriol_th_remote_controller(WSBlockGeneric* instance) {
     instance->humidity = (instance->data >> 1) & 0x7F;
 }
 
-void ws_protocol_decoder_auriol_th_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_auriol_th_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case auriol_THDecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 8) <
-                        ws_protocol_auriol_th_const.te_delta)) {
-            //Found sync
+        if ((!level) && (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 8) <
+                         ws_protocol_auriol_th_const.te_delta)) {
+            // Found sync
             instance->decoder.parser_step = auriol_THDecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -156,7 +162,7 @@ void ws_protocol_decoder_auriol_th_feed(void* context, bool level, uint32_t dura
         break;
 
     case auriol_THDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = auriol_THDecoderStepCheckDuration;
         } else {
@@ -165,18 +171,18 @@ void ws_protocol_decoder_auriol_th_feed(void* context, bool level, uint32_t dura
         break;
 
     case auriol_THDecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 8) <
-               ws_protocol_auriol_th_const.te_delta) {
-                //Found sync
+        if (!level) {
+            if (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 8) <
+                ws_protocol_auriol_th_const.te_delta) {
+                // Found sync
                 instance->decoder.parser_step = auriol_THDecoderStepReset;
-                if((instance->decoder.decode_count_bit ==
-                    ws_protocol_auriol_th_const.min_count_bit_for_found) &&
-                   ws_protocol_auriol_th_check(instance)) {
+                if ((instance->decoder.decode_count_bit ==
+                     ws_protocol_auriol_th_const.min_count_bit_for_found) &&
+                    ws_protocol_auriol_th_check(instance)) {
                     instance->generic.data = instance->decoder.decode_data;
                     instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                     ws_protocol_auriol_th_remote_controller(&instance->generic);
-                    if(instance->base.callback)
+                    if (instance->base.callback)
                         instance->base.callback(&instance->base, instance->base.context);
                     instance->decoder.parser_step = auriol_THDecoderStepCheckDuration;
                 }
@@ -184,18 +190,18 @@ void ws_protocol_decoder_auriol_th_feed(void* context, bool level, uint32_t dura
                 instance->decoder.decode_count_bit = 0;
 
                 break;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_auriol_th_const.te_short) <
-                 ws_protocol_auriol_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 2) <
-                 ws_protocol_auriol_th_const.te_delta)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_auriol_th_const.te_short) <
+                        ws_protocol_auriol_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 2) <
+                        ws_protocol_auriol_th_const.te_delta)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                 instance->decoder.parser_step = auriol_THDecoderStepSaveDuration;
-            } else if(
-                (DURATION_DIFF(instance->decoder.te_last, ws_protocol_auriol_th_const.te_short) <
-                 ws_protocol_auriol_th_const.te_delta) &&
-                (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 4) <
-                 ws_protocol_auriol_th_const.te_delta * 2)) {
+            } else if ((DURATION_DIFF(instance->decoder.te_last,
+                                      ws_protocol_auriol_th_const.te_short) <
+                        ws_protocol_auriol_th_const.te_delta) &&
+                       (DURATION_DIFF(duration, ws_protocol_auriol_th_const.te_short * 4) <
+                        ws_protocol_auriol_th_const.te_delta * 2)) {
                 subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                 instance->decoder.parser_step = auriol_THDecoderStepSaveDuration;
             } else {
@@ -208,32 +214,35 @@ void ws_protocol_decoder_auriol_th_feed(void* context, bool level, uint32_t dura
     }
 }
 
-uint32_t ws_protocol_decoder_auriol_th_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_auriol_th_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderAuriol_TH *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_auriol_th_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_auriol_th_serialize(void *context,
+                                                             FlipperFormat *flipper_format,
+                                                             SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_auriol_th_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_auriol_th_deserialize(void *context,
+                                                               FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
         &instance->generic, flipper_format, ws_protocol_auriol_th_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_auriol_th_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_auriol_th_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderAuriol_TH* instance = context;
+    WSProtocolDecoderAuriol_TH *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

@@ -9,8 +9,8 @@
 #include "view_port.h"
 
 struct ViewPort {
-    Gui* gui;
-    FuriMutex* mutex;
+    Gui *gui;
+    FuriMutex *mutex;
     bool is_enabled;
     ViewPortOrientation orientation;
 
@@ -18,13 +18,13 @@ struct ViewPort {
     uint8_t height;
 
     ViewPortDrawCallback draw_callback;
-    void* draw_callback_context;
+    void *draw_callback_context;
 
     ViewPortInputCallback input_callback;
-    void* input_callback_context;
+    void *input_callback_context;
 
     ViewPortAsciiCallback ascii_callback;
-    void* ascii_callback_context;
+    void *ascii_callback_context;
 };
 
 /** Set GUI reference.
@@ -34,7 +34,7 @@ struct ViewPort {
  * @param      view_port  ViewPort instance
  * @param      gui        gui instance pointer
  */
-void view_port_gui_set(ViewPort* view_port, Gui* gui);
+void view_port_gui_set(ViewPort *view_port, Gui *gui);
 
 /** Process draw call. Calls draw callback.
  *
@@ -43,7 +43,7 @@ void view_port_gui_set(ViewPort* view_port, Gui* gui);
  * @param      view_port  ViewPort instance
  * @param      canvas     canvas to draw at
  */
-void view_port_draw(ViewPort* view_port, Canvas* canvas);
+void view_port_draw(ViewPort *view_port, Canvas *canvas);
 
 /** Process input. Calls input callback.
  *
@@ -52,7 +52,7 @@ void view_port_draw(ViewPort* view_port, Canvas* canvas);
  * @param      view_port  ViewPort instance
  * @param      event      pointer to input event
  */
-void view_port_input(ViewPort* view_port, InputEvent* event);
+void view_port_input(ViewPort *view_port, InputEvent *event);
 
 /** Process ascii. Calls ascii callback.
  *
@@ -61,4 +61,4 @@ void view_port_input(ViewPort* view_port, InputEvent* event);
  * @param      view_port  ViewPort instance
  * @param      event      pointer to ascii event
  */
-void view_port_ascii(ViewPort* view_port, AsciiEvent* event);
+void view_port_ascii(ViewPort *view_port, AsciiEvent *event);

@@ -4,7 +4,8 @@
  * Private API for the Settings app
  */
 
-void bt_get_settings(Bt* bt, BtSettings* settings) {
+void bt_get_settings(Bt *bt, BtSettings *settings)
+{
     furi_assert(bt);
     furi_assert(settings);
 
@@ -14,13 +15,14 @@ void bt_get_settings(Bt* bt, BtSettings* settings) {
         .data.settings = settings,
     };
 
-    furi_check(
-        furi_message_queue_put(bt->message_queue, &message, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_message_queue_put(bt->message_queue, &message, FuriWaitForever) ==
+               FuriStatusOk);
 
     api_lock_wait_unlock_and_free(message.lock);
 }
 
-void bt_set_settings(Bt* bt, const BtSettings* settings) {
+void bt_set_settings(Bt *bt, const BtSettings *settings)
+{
     furi_assert(bt);
     furi_assert(settings);
 
@@ -30,8 +32,8 @@ void bt_set_settings(Bt* bt, const BtSettings* settings) {
         .data.csettings = settings,
     };
 
-    furi_check(
-        furi_message_queue_put(bt->message_queue, &message, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_message_queue_put(bt->message_queue, &message, FuriWaitForever) ==
+               FuriStatusOk);
 
     api_lock_wait_unlock_and_free(message.lock);
 }

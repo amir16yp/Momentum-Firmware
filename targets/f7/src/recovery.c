@@ -9,8 +9,9 @@
 
 #define COUNTER_VALUE (136U)
 
-static void flipper_boot_recovery_draw_progress(Canvas* canvas, size_t progress) {
-    if(progress < COUNTER_VALUE) {
+static void flipper_boot_recovery_draw_progress(Canvas *canvas, size_t progress)
+{
+    if (progress < COUNTER_VALUE) {
         // Fill the progress bar while the progress is going down
         canvas_draw_rframe(canvas, 59, 41, 69, 8, 2);
         size_t width = (COUNTER_VALUE - progress) * 68 / COUNTER_VALUE;
@@ -25,7 +26,8 @@ static void flipper_boot_recovery_draw_progress(Canvas* canvas, size_t progress)
     canvas_commit(canvas);
 }
 
-void flipper_boot_recovery_draw_splash(Canvas* canvas) {
+void flipper_boot_recovery_draw_splash(Canvas *canvas)
+{
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontPrimary);
 
@@ -34,19 +36,20 @@ void flipper_boot_recovery_draw_splash(Canvas* canvas) {
     canvas_commit(canvas);
 }
 
-void flipper_boot_recovery_exec(void) {
-    Canvas* canvas = canvas_init();
+void flipper_boot_recovery_exec(void)
+{
+    Canvas *canvas = canvas_init();
 
     // Show recovery splashscreen
     flipper_boot_recovery_draw_splash(canvas);
 
     size_t counter = COUNTER_VALUE;
-    while(counter) {
-        if(!furi_hal_gpio_read(&gpio_button_down)) {
+    while (counter) {
+        if (!furi_hal_gpio_read(&gpio_button_down)) {
             break;
         }
 
-        if(!furi_hal_gpio_read(&gpio_button_right)) {
+        if (!furi_hal_gpio_read(&gpio_button_right)) {
             counter--;
         } else {
             counter = COUNTER_VALUE;
@@ -55,7 +58,7 @@ void flipper_boot_recovery_exec(void) {
         flipper_boot_recovery_draw_progress(canvas, counter);
     }
 
-    if(!counter) {
+    if (!counter) {
         furi_hal_rtc_reset_registers();
         furi_hal_rtc_set_flag(FuriHalRtcFlagStorageFormatInternal);
     }

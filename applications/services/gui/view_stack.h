@@ -7,7 +7,8 @@
  * first added. Input callbacks are called in reverse order.
  * Consumed input is not passed on underlying layers.
  *
- * @warning Views added to a ViewStack MUST NOT be in a ViewDispatcher or a ViewHolder at the same time.
+ * @warning Views added to a ViewStack MUST NOT be in a ViewDispatcher or a ViewHolder at the same
+ * time.
  */
 
 #pragma once
@@ -26,13 +27,13 @@ typedef struct ViewStack ViewStack;
  *
  * @return      ViewStack instance
  */
-ViewStack* view_stack_alloc(void);
+ViewStack *view_stack_alloc(void);
 
 /** Free ViewStack instance
  *
  * @param       view_stack  instance
  */
-void view_stack_free(ViewStack* view_stack);
+void view_stack_free(ViewStack *view_stack);
 
 /** Get View of ViewStack.
  * Should this View to any view manager such as
@@ -40,7 +41,7 @@ void view_stack_free(ViewStack* view_stack);
  *
  * @param       view_stack  instance
  */
-View* view_stack_get_view(ViewStack* view_stack);
+View *view_stack_get_view(ViewStack *view_stack);
 
 /** Add View to ViewStack.
  * Adds View on top of ViewStack.
@@ -48,7 +49,7 @@ View* view_stack_get_view(ViewStack* view_stack);
  * @param       view_stack  instance
  * @param       view        view to add
  */
-void view_stack_add_view(ViewStack* view_stack, View* view);
+void view_stack_add_view(ViewStack *view_stack, View *view);
 
 /** Remove any View in ViewStack.
  * If no View to remove found - ignore.
@@ -56,7 +57,7 @@ void view_stack_add_view(ViewStack* view_stack, View* view);
  * @param       view_stack  instance
  * @param       view        view to remove
  */
-void view_stack_remove_view(ViewStack* view_stack, View* view);
+void view_stack_remove_view(ViewStack *view_stack, View *view);
 
 #ifdef __cplusplus
 }

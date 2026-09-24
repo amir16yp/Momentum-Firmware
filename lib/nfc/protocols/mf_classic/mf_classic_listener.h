@@ -19,7 +19,7 @@ typedef union {
 
 typedef struct {
     MfClassicListenerEventType type;
-    MfClassicListenerEventData* data;
+    MfClassicListenerEventData *data;
 } MfClassicListenerEvent;
 
 #ifdef __cplusplus

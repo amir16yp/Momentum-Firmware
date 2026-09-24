@@ -47,7 +47,7 @@ void furi_hal_light_blink_set_color(Light light);
  *
  * @param      sequence  Sequence to execute
  */
-void furi_hal_light_sequence(const char* sequence);
+void furi_hal_light_sequence(const char *sequence);
 
 #ifdef __cplusplus
 }

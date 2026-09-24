@@ -5,7 +5,7 @@ typedef enum {
     SubGhzCustomEventManagerSet,
     SubGhzCustomEventManagerSetRAW,
 
-    //SubGhzCustomEvent
+    // SubGhzCustomEvent
     SubGhzCustomEventSceneDeleteSuccess = 100,
     SubGhzCustomEventSceneDelete,
     SubGhzCustomEventSceneDeleteBack,

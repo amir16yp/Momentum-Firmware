@@ -14,7 +14,7 @@ typedef enum {
 
 typedef struct {
     NfcProtocol protocol;
-    BitBuffer* tx_buffer;
-    BitBuffer* rx_buffer;
+    BitBuffer *tx_buffer;
+    BitBuffer *rx_buffer;
     NfcCliApduError result;
 } NfcCliApduRequestResponse;

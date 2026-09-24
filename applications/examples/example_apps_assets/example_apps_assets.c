@@ -10,14 +10,15 @@
 // Define log tag
 #define TAG "ExampleAppsAssets"
 
-static void example_apps_data_print_file_content(Storage* storage, const char* path) {
-    Stream* stream = file_stream_alloc(storage);
-    FuriString* line = furi_string_alloc();
+static void example_apps_data_print_file_content(Storage *storage, const char *path)
+{
+    Stream *stream = file_stream_alloc(storage);
+    FuriString *line = furi_string_alloc();
 
     FURI_LOG_I(TAG, "----------------------------------------");
     FURI_LOG_I(TAG, "File \"%s\" content:", path);
-    if(file_stream_open(stream, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-        while(stream_read_line(stream, line)) {
+    if (file_stream_open(stream, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        while (stream_read_line(stream, line)) {
             furi_string_replace_all(line, "\r", "");
             furi_string_replace_all(line, "\n", "");
             FURI_LOG_I(TAG, "%s", furi_string_get_cstr(line));
@@ -33,12 +34,13 @@ static void example_apps_data_print_file_content(Storage* storage, const char* p
 }
 
 // Application entry point
-int32_t example_apps_assets_main(void* p) {
+int32_t example_apps_assets_main(void *p)
+{
     // Mark argument as unused
     UNUSED(p);
 
     // Open storage
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Storage *storage = furi_record_open(RECORD_STORAGE);
 
     example_apps_data_print_file_content(storage, APP_ASSETS_PATH("test_asset.txt"));
     example_apps_data_print_file_content(storage, APP_ASSETS_PATH("poems/a jelly-fish.txt"));

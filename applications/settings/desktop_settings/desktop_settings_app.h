@@ -36,24 +36,24 @@ typedef enum {
     DesktopSettingsAppKeybindActionTypeRemoveKeybind,
 } DesktopSettingsAppKeybindActionType;
 
-extern const char* EXTRA_KEYBINDS[];
+extern const char *EXTRA_KEYBINDS[];
 extern const size_t EXTRA_KEYBINDS_COUNT;
 
 typedef struct {
     DesktopSettings settings;
     DesktopKeybinds keybinds;
 
-    Gui* gui;
-    DialogsApp* dialogs;
-    SceneManager* scene_manager;
-    ViewDispatcher* view_dispatcher;
-    VariableItemList* variable_item_list;
-    Submenu* submenu;
-    Popup* popup;
-    DesktopViewPinInput* pin_input_view;
-    DesktopSettingsViewPinSetupHowto* pin_setup_howto_view;
-    DesktopSettingsViewPinSetupHowto2* pin_setup_howto2_view;
-    DialogEx* dialog_ex;
+    Gui *gui;
+    DialogsApp *dialogs;
+    SceneManager *scene_manager;
+    ViewDispatcher *view_dispatcher;
+    VariableItemList *variable_item_list;
+    Submenu *submenu;
+    Popup *popup;
+    DesktopViewPinInput *pin_input_view;
+    DesktopSettingsViewPinSetupHowto *pin_setup_howto_view;
+    DesktopSettingsViewPinSetupHowto2 *pin_setup_howto2_view;
+    DialogEx *dialog_ex;
 
     DesktopPinCode pincode_buffer;
     bool pincode_buffer_filled;
@@ -63,5 +63,5 @@ typedef struct {
     bool save_keybinds;
 } DesktopSettingsApp;
 
-FuriString* desktop_settings_app_get_keybind(DesktopSettingsApp* app);
-void desktop_settings_app_set_keybind(DesktopSettingsApp* app, const char* value);
+FuriString *desktop_settings_app_get_keybind(DesktopSettingsApp *app);
+void desktop_settings_app_set_keybind(DesktopSettingsApp *app, const char *value);

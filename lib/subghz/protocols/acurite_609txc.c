@@ -81,28 +81,33 @@ const SubGhzProtocol ws_protocol_acurite_609txc = {
     .filter = SubGhzProtocolFilter_Weather,
 };
 
-void* ws_protocol_decoder_acurite_609txc_alloc(SubGhzEnvironment* environment) {
+void *ws_protocol_decoder_acurite_609txc_alloc(SubGhzEnvironment *environment)
+{
     UNUSED(environment);
-    WSProtocolDecoderAcurite_609TXC* instance = malloc(sizeof(WSProtocolDecoderAcurite_609TXC));
+    WSProtocolDecoderAcurite_609TXC *instance = malloc(sizeof(WSProtocolDecoderAcurite_609TXC));
     instance->base.protocol = &ws_protocol_acurite_609txc;
     instance->generic.protocol_name = instance->base.protocol->name;
     return instance;
 }
 
-void ws_protocol_decoder_acurite_609txc_free(void* context) {
+void ws_protocol_decoder_acurite_609txc_free(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
     free(instance);
 }
 
-void ws_protocol_decoder_acurite_609txc_reset(void* context) {
+void ws_protocol_decoder_acurite_609txc_reset(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
     instance->decoder.parser_step = Acurite_609TXCDecoderStepReset;
 }
 
-static bool ws_protocol_acurite_609txc_check(WSProtocolDecoderAcurite_609TXC* instance) {
-    if(!instance->decoder.decode_data) return false;
+static bool ws_protocol_acurite_609txc_check(WSProtocolDecoderAcurite_609TXC *instance)
+{
+    if (!instance->decoder.decode_data)
+        return false;
     uint8_t crc = (uint8_t)(instance->decoder.decode_data >> 32) +
                   (uint8_t)(instance->decoder.decode_data >> 24) +
                   (uint8_t)(instance->decoder.decode_data >> 16) +
@@ -114,7 +119,8 @@ static bool ws_protocol_acurite_609txc_check(WSProtocolDecoderAcurite_609TXC* in
  * Analysis of received data
  * @param instance Pointer to a WSBlockGeneric* instance
  */
-static void ws_protocol_acurite_609txc_remote_controller(WSBlockGeneric* instance) {
+static void ws_protocol_acurite_609txc_remote_controller(WSBlockGeneric *instance)
+{
     instance->id = (instance->data >> 32) & 0xFF;
     instance->battery_low = (instance->data >> 31) & 1;
 
@@ -123,22 +129,22 @@ static void ws_protocol_acurite_609txc_remote_controller(WSBlockGeneric* instanc
     // Temperature in Celsius is encoded as a 12 bit integer value
     // multiplied by 10 using the 4th - 6th nybbles (bytes 1 & 2)
     // negative values are recovered by sign extend from int16_t.
-    int16_t temp_raw =
-        (int16_t)(((instance->data >> 12) & 0xf000) | ((instance->data >> 16) << 4));
+    int16_t temp_raw = (int16_t)(((instance->data >> 12) & 0xf000) | ((instance->data >> 16) << 4));
     instance->temp = (temp_raw >> 4) * 0.1f;
     instance->humidity = (instance->data >> 8) & 0xff;
     instance->btn = WS_NO_BTN;
 }
 
-void ws_protocol_decoder_acurite_609txc_feed(void* context, bool level, uint32_t duration) {
+void ws_protocol_decoder_acurite_609txc_feed(void *context, bool level, uint32_t duration)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
 
-    switch(instance->decoder.parser_step) {
+    switch (instance->decoder.parser_step) {
     case Acurite_609TXCDecoderStepReset:
-        if((!level) && (DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_short * 17) <
-                        ws_protocol_acurite_609txc_const.te_delta * 8)) {
-            //Found syncPrefix
+        if ((!level) && (DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_short * 17) <
+                         ws_protocol_acurite_609txc_const.te_delta * 8)) {
+            // Found syncPrefix
             instance->decoder.parser_step = Acurite_609TXCDecoderStepSaveDuration;
             instance->decoder.decode_data = 0;
             instance->decoder.decode_count_bit = 0;
@@ -146,7 +152,7 @@ void ws_protocol_decoder_acurite_609txc_feed(void* context, bool level, uint32_t
         break;
 
     case Acurite_609TXCDecoderStepSaveDuration:
-        if(level) {
+        if (level) {
             instance->decoder.te_last = duration;
             instance->decoder.parser_step = Acurite_609TXCDecoderStepCheckDuration;
         } else {
@@ -155,33 +161,32 @@ void ws_protocol_decoder_acurite_609txc_feed(void* context, bool level, uint32_t
         break;
 
     case Acurite_609TXCDecoderStepCheckDuration:
-        if(!level) {
-            if(DURATION_DIFF(instance->decoder.te_last, ws_protocol_acurite_609txc_const.te_short) <
-               ws_protocol_acurite_609txc_const.te_delta) {
-                if((DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_short) <
-                    ws_protocol_acurite_609txc_const.te_delta) ||
-                   (duration > ws_protocol_acurite_609txc_const.te_long * 3)) {
-                    //Found syncPostfix
+        if (!level) {
+            if (DURATION_DIFF(instance->decoder.te_last,
+                              ws_protocol_acurite_609txc_const.te_short) <
+                ws_protocol_acurite_609txc_const.te_delta) {
+                if ((DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_short) <
+                     ws_protocol_acurite_609txc_const.te_delta) ||
+                    (duration > ws_protocol_acurite_609txc_const.te_long * 3)) {
+                    // Found syncPostfix
                     instance->decoder.parser_step = Acurite_609TXCDecoderStepReset;
-                    if((instance->decoder.decode_count_bit ==
-                        ws_protocol_acurite_609txc_const.min_count_bit_for_found) &&
-                       ws_protocol_acurite_609txc_check(instance)) {
+                    if ((instance->decoder.decode_count_bit ==
+                         ws_protocol_acurite_609txc_const.min_count_bit_for_found) &&
+                        ws_protocol_acurite_609txc_check(instance)) {
                         instance->generic.data = instance->decoder.decode_data;
                         instance->generic.data_count_bit = instance->decoder.decode_count_bit;
                         ws_protocol_acurite_609txc_remote_controller(&instance->generic);
-                        if(instance->base.callback)
+                        if (instance->base.callback)
                             instance->base.callback(&instance->base, instance->base.context);
                     }
                     instance->decoder.decode_data = 0;
                     instance->decoder.decode_count_bit = 0;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_long) <
-                    ws_protocol_acurite_609txc_const.te_delta * 2) {
+                } else if (DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_long) <
+                           ws_protocol_acurite_609txc_const.te_delta * 2) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 0);
                     instance->decoder.parser_step = Acurite_609TXCDecoderStepSaveDuration;
-                } else if(
-                    DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_long * 2) <
-                    ws_protocol_acurite_609txc_const.te_delta * 4) {
+                } else if (DURATION_DIFF(duration, ws_protocol_acurite_609txc_const.te_long * 2) <
+                           ws_protocol_acurite_609txc_const.te_delta * 4) {
                     subghz_protocol_blocks_add_bit(&instance->decoder, 1);
                     instance->decoder.parser_step = Acurite_609TXCDecoderStepSaveDuration;
                 } else {
@@ -197,34 +202,36 @@ void ws_protocol_decoder_acurite_609txc_feed(void* context, bool level, uint32_t
     }
 }
 
-uint32_t ws_protocol_decoder_acurite_609txc_get_hash_data(void* context) {
+uint32_t ws_protocol_decoder_acurite_609txc_get_hash_data(void *context)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
-    return subghz_protocol_blocks_get_hash_data_long(
-        &instance->decoder, (instance->decoder.decode_count_bit / 8) + 1);
+    WSProtocolDecoderAcurite_609TXC *instance = context;
+    return subghz_protocol_blocks_get_hash_data_long(&instance->decoder,
+                                                     (instance->decoder.decode_count_bit / 8) + 1);
 }
 
-SubGhzProtocolStatus ws_protocol_decoder_acurite_609txc_serialize(
-    void* context,
-    FlipperFormat* flipper_format,
-    SubGhzRadioPreset* preset) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_609txc_serialize(void *context,
+                                                                  FlipperFormat *flipper_format,
+                                                                  SubGhzRadioPreset *preset)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
     return ws_block_generic_serialize(&instance->generic, flipper_format, preset);
 }
 
-SubGhzProtocolStatus
-    ws_protocol_decoder_acurite_609txc_deserialize(void* context, FlipperFormat* flipper_format) {
+SubGhzProtocolStatus ws_protocol_decoder_acurite_609txc_deserialize(void *context,
+                                                                    FlipperFormat *flipper_format)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
     return ws_block_generic_deserialize_check_count_bit(
-        &instance->generic,
-        flipper_format,
+        &instance->generic, flipper_format,
         ws_protocol_acurite_609txc_const.min_count_bit_for_found);
 }
 
-void ws_protocol_decoder_acurite_609txc_get_string(void* context, FuriString* output) {
+void ws_protocol_decoder_acurite_609txc_get_string(void *context, FuriString *output)
+{
     furi_assert(context);
-    WSProtocolDecoderAcurite_609TXC* instance = context;
+    WSProtocolDecoderAcurite_609TXC *instance = context;
     ws_block_generic_get_string(&instance->generic, output);
 }

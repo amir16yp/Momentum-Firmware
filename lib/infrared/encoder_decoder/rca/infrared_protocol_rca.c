@@ -31,8 +31,9 @@ static const InfraredProtocolVariant infrared_protocol_variant_rca = {
     .repeat_count = INFRARED_RCA_REPEAT_COUNT_MIN,
 };
 
-const InfraredProtocolVariant* infrared_protocol_rca_get_variant(InfraredProtocol protocol) {
-    if(protocol == InfraredProtocolRCA)
+const InfraredProtocolVariant *infrared_protocol_rca_get_variant(InfraredProtocol protocol)
+{
+    if (protocol == InfraredProtocolRCA)
         return &infrared_protocol_variant_rca;
     else
         return NULL;

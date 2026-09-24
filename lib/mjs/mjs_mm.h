@@ -14,24 +14,24 @@ extern "C" {
 
 struct mjs;
 
-typedef void (*gc_cell_destructor_t)(struct mjs* mjs, void*);
+typedef void (*gc_cell_destructor_t)(struct mjs *mjs, void *);
 
 struct gc_block {
-    struct gc_block* next;
-    struct gc_cell* base;
+    struct gc_block *next;
+    struct gc_cell *base;
     size_t size;
 };
 
 struct gc_arena {
-    struct gc_block* blocks;
+    struct gc_block *blocks;
     size_t size_increment;
-    struct gc_cell* free; /* head of free list */
+    struct gc_cell *free; /* head of free list */
     size_t cell_size;
 
 #if MJS_MEMORY_STATS
     unsigned long allocations; /* cumulative counter of allocations */
-    unsigned long garbage; /* cumulative counter of garbage */
-    unsigned long alive; /* number of living cells */
+    unsigned long garbage;     /* cumulative counter of garbage */
+    unsigned long alive;       /* number of living cells */
 #endif
 
     gc_cell_destructor_t destructor;

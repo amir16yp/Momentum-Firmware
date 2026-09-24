@@ -1,10 +1,11 @@
 #include "scene_manager_i.h"
 #include <furi.h>
 
-SceneManager* scene_manager_alloc(const SceneManagerHandlers* app_scene_handlers, void* context) {
+SceneManager *scene_manager_alloc(const SceneManagerHandlers *app_scene_handlers, void *context)
+{
     furi_check(app_scene_handlers);
 
-    SceneManager* scene_manager =
+    SceneManager *scene_manager =
         malloc(sizeof(SceneManager) + (sizeof(AppScene) * app_scene_handlers->scene_num));
     // Set SceneManager context and scene handlers
     scene_manager->context = context;
@@ -15,7 +16,8 @@ SceneManager* scene_manager_alloc(const SceneManagerHandlers* app_scene_handlers
     return scene_manager;
 }
 
-void scene_manager_free(SceneManager* scene_manager) {
+void scene_manager_free(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
 
     // Clear SceneManager array
@@ -24,21 +26,24 @@ void scene_manager_free(SceneManager* scene_manager) {
     free(scene_manager);
 }
 
-void scene_manager_set_scene_state(SceneManager* scene_manager, uint32_t scene_id, uint32_t state) {
+void scene_manager_set_scene_state(SceneManager *scene_manager, uint32_t scene_id, uint32_t state)
+{
     furi_check(scene_manager);
     furi_check(scene_id < scene_manager->scene_handlers->scene_num);
 
     scene_manager->scene[scene_id].state = state;
 }
 
-uint32_t scene_manager_get_scene_state(const SceneManager* scene_manager, uint32_t scene_id) {
+uint32_t scene_manager_get_scene_state(const SceneManager *scene_manager, uint32_t scene_id)
+{
     furi_check(scene_manager);
     furi_check(scene_id < scene_manager->scene_handlers->scene_num);
 
     return scene_manager->scene[scene_id].state;
 }
 
-bool scene_manager_handle_custom_event(SceneManager* scene_manager, uint32_t custom_event) {
+bool scene_manager_handle_custom_event(SceneManager *scene_manager, uint32_t custom_event)
+{
     furi_check(scene_manager);
 
     SceneManagerEvent event = {
@@ -47,17 +52,18 @@ bool scene_manager_handle_custom_event(SceneManager* scene_manager, uint32_t cus
     };
 
     bool result = false;
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
-        uint32_t* scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+        uint32_t *scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
         uint32_t scene_id = *scene_id_p;
-        result = scene_manager->scene_handlers->on_event_handlers[scene_id](
-            scene_manager->context, event);
+        result = scene_manager->scene_handlers->on_event_handlers[scene_id](scene_manager->context,
+                                                                            event);
     }
 
     return result;
 }
 
-bool scene_manager_handle_back_event(SceneManager* scene_manager) {
+bool scene_manager_handle_back_event(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
 
     SceneManagerEvent event = {
@@ -65,39 +71,41 @@ bool scene_manager_handle_back_event(SceneManager* scene_manager) {
     };
 
     bool consumed = false;
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
-        uint32_t* scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+        uint32_t *scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
         uint32_t scene_id = *scene_id_p;
         consumed = scene_manager->scene_handlers->on_event_handlers[scene_id](
             scene_manager->context, event);
     }
 
-    if(!consumed) {
+    if (!consumed) {
         consumed = scene_manager_previous_scene(scene_manager);
     }
     return consumed;
 }
 
-void scene_manager_handle_tick_event(SceneManager* scene_manager) {
+void scene_manager_handle_tick_event(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
 
     SceneManagerEvent event = {
         .type = SceneManagerEventTypeTick,
     };
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
-        uint32_t* scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+        uint32_t *scene_id_p = SceneManagerIdStack_back(scene_manager->scene_id_stack);
         uint32_t scene_id = *scene_id_p;
         scene_manager->scene_handlers->on_event_handlers[scene_id](scene_manager->context, event);
     }
 }
 
-void scene_manager_next_scene(SceneManager* scene_manager, uint32_t next_scene_id) {
+void scene_manager_next_scene(SceneManager *scene_manager, uint32_t next_scene_id)
+{
     furi_check(scene_manager);
     furi_check(next_scene_id < scene_manager->scene_handlers->scene_num);
 
     // Check if it is not the first scene
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t cur_scene_id = *SceneManagerIdStack_back(scene_manager->scene_id_stack);
         scene_manager->scene_handlers->on_exit_handlers[cur_scene_id](scene_manager->context);
     }
@@ -106,15 +114,16 @@ void scene_manager_next_scene(SceneManager* scene_manager, uint32_t next_scene_i
     scene_manager->scene_handlers->on_enter_handlers[next_scene_id](scene_manager->context);
 }
 
-bool scene_manager_previous_scene(SceneManager* scene_manager) {
+bool scene_manager_previous_scene(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t cur_scene_id = 0;
         SceneManagerIdStack_pop_back(&cur_scene_id, scene_manager->scene_id_stack);
 
         // Handle exit from start scene separately
-        if(SceneManagerIdStack_size(scene_manager->scene_id_stack) == 0) {
+        if (SceneManagerIdStack_size(scene_manager->scene_id_stack) == 0) {
             scene_manager->scene_handlers->on_exit_handlers[cur_scene_id](scene_manager->context);
             return false;
         }
@@ -127,25 +136,25 @@ bool scene_manager_previous_scene(SceneManager* scene_manager) {
     }
 }
 
-bool scene_manager_search_and_switch_to_previous_scene(
-    SceneManager* scene_manager,
-    uint32_t scene_id) {
+bool scene_manager_search_and_switch_to_previous_scene(SceneManager *scene_manager,
+                                                       uint32_t scene_id)
+{
     furi_check(scene_manager);
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t prev_scene_id = 0;
         uint32_t cur_scene_id = *SceneManagerIdStack_back(scene_manager->scene_id_stack);
         SceneManagerIdStack_it_t scene_it;
         SceneManagerIdStack_it_last(scene_it, scene_manager->scene_id_stack);
         // Search scene with given id in navigation stack
         bool scene_found = false;
-        while(!scene_found) {
+        while (!scene_found) {
             SceneManagerIdStack_previous(scene_it);
-            if(SceneManagerIdStack_end_p(scene_it)) {
+            if (SceneManagerIdStack_end_p(scene_it)) {
                 return false;
             }
             prev_scene_id = *SceneManagerIdStack_ref(scene_it);
-            if(prev_scene_id == scene_id) {
+            if (prev_scene_id == scene_id) {
                 scene_found = true;
             }
         }
@@ -162,17 +171,17 @@ bool scene_manager_search_and_switch_to_previous_scene(
     }
 }
 
-bool scene_manager_search_and_switch_to_previous_scene_one_of(
-    SceneManager* scene_manager,
-    const uint32_t* scene_ids,
-    size_t scene_ids_size) {
+bool scene_manager_search_and_switch_to_previous_scene_one_of(SceneManager *scene_manager,
+                                                              const uint32_t *scene_ids,
+                                                              size_t scene_ids_size)
+{
     furi_check(scene_manager);
     furi_check(scene_ids);
     bool scene_found = false;
 
-    for(size_t i = 0; i < scene_ids_size; ++i) {
+    for (size_t i = 0; i < scene_ids_size; ++i) {
         const uint32_t scene_id = scene_ids[i];
-        if(scene_manager_has_previous_scene(scene_manager, scene_id)) {
+        if (scene_manager_has_previous_scene(scene_manager, scene_id)) {
             scene_manager_search_and_switch_to_previous_scene(scene_manager, scene_id);
             scene_found = true;
             break;
@@ -181,23 +190,24 @@ bool scene_manager_search_and_switch_to_previous_scene_one_of(
     return scene_found;
 }
 
-bool scene_manager_has_previous_scene(const SceneManager* scene_manager, uint32_t scene_id) {
+bool scene_manager_has_previous_scene(const SceneManager *scene_manager, uint32_t scene_id)
+{
     furi_check(scene_manager);
     bool scene_found = false;
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t prev_scene_id;
         SceneManagerIdStack_it_t scene_it;
         SceneManagerIdStack_it_last(scene_it, scene_manager->scene_id_stack);
 
         // Perform search in scene stack
-        while(!scene_found) {
+        while (!scene_found) {
             SceneManagerIdStack_previous(scene_it);
-            if(SceneManagerIdStack_end_p(scene_it)) {
+            if (SceneManagerIdStack_end_p(scene_it)) {
                 break;
             }
             prev_scene_id = *SceneManagerIdStack_ref(scene_it);
-            if(prev_scene_id == scene_id) {
+            if (prev_scene_id == scene_id) {
                 scene_found = true;
             }
         }
@@ -205,13 +215,13 @@ bool scene_manager_has_previous_scene(const SceneManager* scene_manager, uint32_
     return scene_found;
 }
 
-bool scene_manager_search_and_switch_to_another_scene(
-    SceneManager* scene_manager,
-    uint32_t scene_id) {
+bool scene_manager_search_and_switch_to_another_scene(SceneManager *scene_manager,
+                                                      uint32_t scene_id)
+{
     furi_check(scene_manager);
     furi_check(scene_id < scene_manager->scene_handlers->scene_num);
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t cur_scene_id = *SceneManagerIdStack_back(scene_manager->scene_id_stack);
         SceneManagerIdStack_it_t scene_it;
         SceneManagerIdStack_it(scene_it, scene_manager->scene_id_stack);
@@ -230,15 +240,17 @@ bool scene_manager_search_and_switch_to_another_scene(
     }
 }
 
-uint32_t scene_manager_get_current_scene(SceneManager* scene_manager) {
+uint32_t scene_manager_get_current_scene(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
     return *SceneManagerIdStack_back(scene_manager->scene_id_stack);
 }
 
-void scene_manager_stop(SceneManager* scene_manager) {
+void scene_manager_stop(SceneManager *scene_manager)
+{
     furi_check(scene_manager);
 
-    if(SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
+    if (SceneManagerIdStack_size(scene_manager->scene_id_stack) > 0) {
         uint32_t cur_scene_id = *SceneManagerIdStack_back(scene_manager->scene_id_stack);
         scene_manager->scene_handlers->on_exit_handlers[cur_scene_id](scene_manager->context);
     }

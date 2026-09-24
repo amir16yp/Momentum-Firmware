@@ -14,17 +14,18 @@ extern "C" {
 
 /** String to integer conversion error */
 typedef enum {
-    StrintParseNoError, //!< Conversion performed successfully
-    StrintParseSignError, //!< Multiple leading `+` or `-` characters, or leading `-` character if the type is unsigned
+    StrintParseNoError,     //!< Conversion performed successfully
+    StrintParseSignError,   //!< Multiple leading `+` or `-` characters, or leading `-` character if
+                            //!< the type is unsigned
     StrintParseAbsentError, //!< No valid digits after the leading whitespace, sign and prefix
     StrintParseOverflowError, //!< Result does not fit in the requested type
 } StrintParseError;
 
 /** See `strint_to_uint32` */
-StrintParseError strint_to_uint64(const char* str, char** end, uint64_t* out, uint8_t base);
+StrintParseError strint_to_uint64(const char *str, char **end, uint64_t *out, uint8_t base);
 
 /** See `strint_to_uint32` */
-StrintParseError strint_to_int64(const char* str, char** end, int64_t* out, uint8_t base);
+StrintParseError strint_to_int64(const char *str, char **end, int64_t *out, uint8_t base);
 
 /** Converts a string to a `uint32_t`
  *
@@ -54,16 +55,16 @@ StrintParseError strint_to_int64(const char* str, char** end, int64_t* out, uint
  * code is something other than `StrintParseNoError`, the values at `end` and
  * `out` are unaltered.
  */
-StrintParseError strint_to_uint32(const char* str, char** end, uint32_t* out, uint8_t base);
+StrintParseError strint_to_uint32(const char *str, char **end, uint32_t *out, uint8_t base);
 
 /** See `strint_to_uint32` */
-StrintParseError strint_to_int32(const char* str, char** end, int32_t* out, uint8_t base);
+StrintParseError strint_to_int32(const char *str, char **end, int32_t *out, uint8_t base);
 
 /** See `strint_to_uint32` */
-StrintParseError strint_to_uint16(const char* str, char** end, uint16_t* out, uint8_t base);
+StrintParseError strint_to_uint16(const char *str, char **end, uint16_t *out, uint8_t base);
 
 /** See `strint_to_uint32` */
-StrintParseError strint_to_int16(const char* str, char** end, int16_t* out, uint8_t base);
+StrintParseError strint_to_int16(const char *str, char **end, int16_t *out, uint8_t base);
 
 #ifdef __cplusplus
 }

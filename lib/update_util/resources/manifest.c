@@ -5,15 +5,16 @@
 #include <toolbox/hex.h>
 
 struct ResourceManifestReader {
-    Storage* storage;
-    Stream* stream;
-    FuriString* linebuf;
+    Storage *storage;
+    Stream *stream;
+    FuriString *linebuf;
     ResourceManifestEntry entry;
 };
 
-ResourceManifestReader* resource_manifest_reader_alloc(Storage* storage) {
-    ResourceManifestReader* resource_manifest =
-        (ResourceManifestReader*)malloc(sizeof(ResourceManifestReader));
+ResourceManifestReader *resource_manifest_reader_alloc(Storage *storage)
+{
+    ResourceManifestReader *resource_manifest =
+        (ResourceManifestReader *)malloc(sizeof(ResourceManifestReader));
     resource_manifest->storage = storage;
     resource_manifest->stream = buffered_file_stream_alloc(resource_manifest->storage);
     memset(&resource_manifest->entry, 0, sizeof(ResourceManifestEntry));
@@ -22,7 +23,8 @@ ResourceManifestReader* resource_manifest_reader_alloc(Storage* storage) {
     return resource_manifest;
 }
 
-void resource_manifest_reader_free(ResourceManifestReader* resource_manifest) {
+void resource_manifest_reader_free(ResourceManifestReader *resource_manifest)
+{
     furi_assert(resource_manifest);
 
     furi_string_free(resource_manifest->linebuf);
@@ -32,18 +34,20 @@ void resource_manifest_reader_free(ResourceManifestReader* resource_manifest) {
     free(resource_manifest);
 }
 
-bool resource_manifest_reader_open(ResourceManifestReader* resource_manifest, const char* filename) {
+bool resource_manifest_reader_open(ResourceManifestReader *resource_manifest, const char *filename)
+{
     furi_assert(resource_manifest);
 
-    return buffered_file_stream_open(
-        resource_manifest->stream, filename, FSAM_READ, FSOM_OPEN_EXISTING);
+    return buffered_file_stream_open(resource_manifest->stream, filename, FSAM_READ,
+                                     FSOM_OPEN_EXISTING);
 }
 
 /* Read entries in format of
  * F:<hash>:<size>:<name>
- * D:<name> 
+ * D:<name>
  */
-ResourceManifestEntry* resource_manifest_reader_next(ResourceManifestReader* resource_manifest) {
+ResourceManifestEntry *resource_manifest_reader_next(ResourceManifestReader *resource_manifest)
+{
     furi_assert(resource_manifest);
 
     furi_string_reset(resource_manifest->entry.name);
@@ -52,7 +56,7 @@ ResourceManifestEntry* resource_manifest_reader_next(ResourceManifestReader* res
     memset(resource_manifest->entry.hash, 0, sizeof(resource_manifest->entry.hash));
 
     do {
-        if(!stream_read_line(resource_manifest->stream, resource_manifest->linebuf)) {
+        if (!stream_read_line(resource_manifest->stream, resource_manifest->linebuf)) {
             return NULL;
         }
 
@@ -60,7 +64,7 @@ ResourceManifestEntry* resource_manifest_reader_next(ResourceManifestReader* res
         furi_string_trim(resource_manifest->linebuf);
 
         char type_code = furi_string_get_char(resource_manifest->linebuf, 0);
-        switch(type_code) {
+        switch (type_code) {
         case 'V':
             resource_manifest->entry.type = ResourceManifestEntryTypeVersion;
             break;
@@ -77,32 +81,29 @@ ResourceManifestEntry* resource_manifest_reader_next(ResourceManifestReader* res
             continue;
         };
 
-        if(resource_manifest->entry.type == ResourceManifestEntryTypeFile) {
+        if (resource_manifest->entry.type == ResourceManifestEntryTypeFile) {
             /* Parse file entry
               F:<hash>:<size>:<name> */
 
             /* Remove entry type code */
             furi_string_right(resource_manifest->linebuf, 2);
 
-            if(furi_string_search_char(resource_manifest->linebuf, ':') !=
-               sizeof(resource_manifest->entry.hash) * 2) {
+            if (furi_string_search_char(resource_manifest->linebuf, ':') !=
+                sizeof(resource_manifest->entry.hash) * 2) {
                 /* Invalid hash */
                 continue;
             }
 
             /* Read hash */
-            hex_chars_to_uint8(
-                furi_string_get_cstr(resource_manifest->linebuf), resource_manifest->entry.hash);
+            hex_chars_to_uint8(furi_string_get_cstr(resource_manifest->linebuf),
+                               resource_manifest->entry.hash);
 
             /* Remove hash */
-            furi_string_right(
-                resource_manifest->linebuf, sizeof(resource_manifest->entry.hash) * 2 + 1);
+            furi_string_right(resource_manifest->linebuf,
+                              sizeof(resource_manifest->entry.hash) * 2 + 1);
 
-            if(strint_to_uint32(
-                   furi_string_get_cstr(resource_manifest->linebuf),
-                   NULL,
-                   &resource_manifest->entry.size,
-                   10) != StrintParseNoError)
+            if (strint_to_uint32(furi_string_get_cstr(resource_manifest->linebuf), NULL,
+                                 &resource_manifest->entry.size, 10) != StrintParseNoError)
                 break;
 
             /* Remove size */
@@ -121,13 +122,13 @@ ResourceManifestEntry* resource_manifest_reader_next(ResourceManifestReader* res
         }
 
         return &resource_manifest->entry;
-    } while(true);
+    } while (true);
 
     return NULL;
 }
 
-ResourceManifestEntry*
-    resource_manifest_reader_previous(ResourceManifestReader* resource_manifest) {
+ResourceManifestEntry *resource_manifest_reader_previous(ResourceManifestReader *resource_manifest)
+{
     furi_assert(resource_manifest);
 
     // Snapshot position for rollback
@@ -137,28 +138,28 @@ ResourceManifestEntry*
     size_t jumps = 2;
     // Special case: end of the file.
     const bool was_eof = stream_eof(resource_manifest->stream);
-    if(was_eof) {
+    if (was_eof) {
         jumps = 1;
     }
-    while(jumps) {
-        if(!stream_seek_to_char(resource_manifest->stream, '\n', StreamDirectionBackward)) {
+    while (jumps) {
+        if (!stream_seek_to_char(resource_manifest->stream, '\n', StreamDirectionBackward)) {
             break;
         }
-        if(stream_tell(resource_manifest->stream) < (previous_position - 1)) {
+        if (stream_tell(resource_manifest->stream) < (previous_position - 1)) {
             jumps--;
         }
     }
 
     // Special case: first line. Force seek to zero
-    if(jumps == 1) {
+    if (jumps == 1) {
         jumps = 0;
         stream_seek(resource_manifest->stream, 0, StreamOffsetFromStart);
     }
 
-    if(jumps == 0) {
-        ResourceManifestEntry* entry = resource_manifest_reader_next(resource_manifest);
+    if (jumps == 0) {
+        ResourceManifestEntry *entry = resource_manifest_reader_next(resource_manifest);
         // Special case: was end of the file, prevent loop
-        if(was_eof) {
+        if (was_eof) {
             stream_seek(resource_manifest->stream, -1, StreamOffsetFromCurrent);
         }
         return entry;
@@ -168,7 +169,8 @@ ResourceManifestEntry*
     }
 }
 
-bool resource_manifest_rewind(ResourceManifestReader* resource_manifest) {
+bool resource_manifest_rewind(ResourceManifestReader *resource_manifest)
+{
     furi_assert(resource_manifest);
 
     return stream_seek(resource_manifest->stream, 0, StreamOffsetFromStart);

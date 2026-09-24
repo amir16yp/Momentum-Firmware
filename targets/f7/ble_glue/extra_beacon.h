@@ -84,14 +84,14 @@ bool gap_extra_beacon_start(void);
 
 bool gap_extra_beacon_stop(void);
 
-bool gap_extra_beacon_set_config(const GapExtraBeaconConfig* config);
+bool gap_extra_beacon_set_config(const GapExtraBeaconConfig *config);
 
-const GapExtraBeaconConfig* gap_extra_beacon_get_config(void);
+const GapExtraBeaconConfig *gap_extra_beacon_get_config(void);
 
-bool gap_extra_beacon_set_data(const uint8_t* data, uint8_t length);
+bool gap_extra_beacon_set_data(const uint8_t *data, uint8_t length);
 
 // Fill "data" with last configured extra beacon data and return its length
-uint8_t gap_extra_beacon_get_data(uint8_t* data);
+uint8_t gap_extra_beacon_get_data(uint8_t *data);
 
 #ifdef __cplusplus
 }

@@ -18,7 +18,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-MJS_PRIVATE mjs_err_t mjs_execute(struct mjs* mjs, size_t off, mjs_val_t* res);
+MJS_PRIVATE mjs_err_t mjs_execute(struct mjs *mjs, size_t off, mjs_val_t *res);
 
 #if defined(__cplusplus)
 }

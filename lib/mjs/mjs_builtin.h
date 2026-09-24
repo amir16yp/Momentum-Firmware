@@ -13,7 +13,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void mjs_init_builtin(struct mjs* mjs, mjs_val_t obj);
+void mjs_init_builtin(struct mjs *mjs, mjs_val_t obj);
 
 #if defined(__cplusplus)
 }

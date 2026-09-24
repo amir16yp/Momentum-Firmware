@@ -4,33 +4,37 @@
 
 #define TAG "SubGhzDeviceCc1101Ext"
 
-static bool subghz_device_cc1101_ext_interconnect_is_frequency_valid(uint32_t frequency) {
+static bool subghz_device_cc1101_ext_interconnect_is_frequency_valid(uint32_t frequency)
+{
     bool ret = subghz_device_cc1101_ext_is_frequency_valid(frequency);
-    if(!ret) {
+    if (!ret) {
         furi_crash("SubGhz: Incorrect frequency.");
     }
     return ret;
 }
 
-static uint32_t subghz_device_cc1101_ext_interconnect_set_frequency(uint32_t frequency) {
+static uint32_t subghz_device_cc1101_ext_interconnect_set_frequency(uint32_t frequency)
+{
     subghz_device_cc1101_ext_interconnect_is_frequency_valid(frequency);
     return subghz_device_cc1101_ext_set_frequency(frequency);
 }
 
-static bool subghz_device_cc1101_ext_interconnect_start_async_tx(void* callback, void* context) {
-    return subghz_device_cc1101_ext_start_async_tx(
-        (SubGhzDeviceCC1101ExtCallback)callback, context);
+static bool subghz_device_cc1101_ext_interconnect_start_async_tx(void *callback, void *context)
+{
+    return subghz_device_cc1101_ext_start_async_tx((SubGhzDeviceCC1101ExtCallback)callback,
+                                                   context);
 }
 
-static void subghz_device_cc1101_ext_interconnect_start_async_rx(void* callback, void* context) {
-    subghz_device_cc1101_ext_start_async_rx(
-        (SubGhzDeviceCC1101ExtCaptureCallback)callback, context);
+static void subghz_device_cc1101_ext_interconnect_start_async_rx(void *callback, void *context)
+{
+    subghz_device_cc1101_ext_start_async_rx((SubGhzDeviceCC1101ExtCaptureCallback)callback,
+                                            context);
 }
 
-static void subghz_device_cc1101_ext_interconnect_load_preset(
-    FuriHalSubGhzPreset preset,
-    uint8_t* preset_data) {
-    switch(preset) {
+static void subghz_device_cc1101_ext_interconnect_load_preset(FuriHalSubGhzPreset preset,
+                                                              uint8_t *preset_data)
+{
+    switch (preset) {
     case FuriHalSubGhzPresetOok650Async:
         subghz_device_cc1101_ext_load_custom_preset(
             subghz_device_cc1101_preset_ook_650khz_async_regs);
@@ -111,6 +115,7 @@ static const FlipperAppPluginDescriptor subghz_device_cc1101_ext_descriptor = {
     .entry_point = &subghz_device_cc1101_ext,
 };
 
-const FlipperAppPluginDescriptor* subghz_device_cc1101_ext_ep(void) {
+const FlipperAppPluginDescriptor *subghz_device_cc1101_ext_ep(void)
+{
     return &subghz_device_cc1101_ext_descriptor;
 }
