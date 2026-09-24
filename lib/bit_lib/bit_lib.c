@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 void bit_lib_push_bit(uint8_t* data, size_t data_size, bool bit) {
+    if(data_size == 0) return;
     size_t last_index = data_size - 1;
 
     for(size_t i = 0; i < last_index; ++i) {
@@ -23,9 +24,18 @@ void bit_lib_set_bits(uint8_t* data, size_t position, uint8_t byte, uint8_t leng
     furi_check(length <= 8);
     furi_check(length > 0);
 
-    for(uint8_t i = 0; i < length; ++i) {
-        uint8_t shift = (length - 1) - i;
-        bit_lib_set_bit(data, position + i, (byte >> shift) & 1); //-V610
+    const size_t index = position / 8;
+    const uint8_t available = 8 - position % 8;
+    const uint8_t mask = (1U << length) - 1;
+    byte &= mask;
+    if(length <= available) {
+        const uint8_t shift = available - length;
+        data[index] = (data[index] & ~(mask << shift)) | (byte << shift);
+    } else {
+        const uint8_t remaining = length - available;
+        data[index] = (data[index] & ~((1U << available) - 1)) | (byte >> remaining);
+        const uint8_t shift = 8 - remaining;
+        data[index + 1] = (data[index + 1] & ((1U << shift) - 1)) | (byte << shift);
     }
 }
 
@@ -34,11 +44,12 @@ bool bit_lib_get_bit(const uint8_t* data, size_t position) {
 }
 
 uint8_t bit_lib_get_bits(const uint8_t* data, size_t position, uint8_t length) {
+    furi_check(length <= 8);
+    if(length == 0) return 0;
     uint8_t shift = position % 8;
-    if(shift == 0) {
-        return data[position / 8] >> (8 - length);
+    if(shift + length <= 8) {
+        return (data[position / 8] >> (8 - shift - length)) & ((1U << length) - 1);
     } else {
-        // TODO FL-3534: fix read out of bounds
         uint8_t value = (data[position / 8] << (shift));
         value |= data[position / 8 + 1] >> (8 - shift);
         value = value >> (8 - length);
@@ -130,7 +141,7 @@ uint64_t bit_lib_get_bits_64(const uint8_t* data, size_t position, uint8_t lengt
 }
 
 bool bit_lib_test_parity_32(uint32_t bits, BitLibParity parity) {
-#if !defined __GNUC__
+#if !defined(__GNUC__) && !defined(__clang__)
 #error Please, implement parity test for non-GCC compilers
 #else
     switch(parity) {
@@ -259,6 +270,7 @@ void bit_lib_copy_bits(
 }
 
 void bit_lib_reverse_bits(uint8_t* data, size_t position, uint8_t length) {
+    if(length == 0) return;
     size_t i = 0;
     size_t j = length - 1;
 
@@ -272,7 +284,7 @@ void bit_lib_reverse_bits(uint8_t* data, size_t position, uint8_t length) {
 }
 
 uint8_t bit_lib_get_bit_count(uint32_t data) {
-#if defined __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
     return __builtin_popcountl(data);
 #else
 #error Please, implement popcount for non-GCC compilers
@@ -332,24 +344,10 @@ void bit_lib_print_regions(
 }
 
 uint16_t bit_lib_reverse_16_fast(uint16_t data) {
-    uint16_t result = 0;
-    result |= (data & 0x8000) >> 15;
-    result |= (data & 0x4000) >> 13;
-    result |= (data & 0x2000) >> 11;
-    result |= (data & 0x1000) >> 9;
-    result |= (data & 0x0800) >> 7;
-    result |= (data & 0x0400) >> 5;
-    result |= (data & 0x0200) >> 3;
-    result |= (data & 0x0100) >> 1;
-    result |= (data & 0x0080) << 1;
-    result |= (data & 0x0040) << 3;
-    result |= (data & 0x0020) << 5;
-    result |= (data & 0x0010) << 7;
-    result |= (data & 0x0008) << 9;
-    result |= (data & 0x0004) << 11;
-    result |= (data & 0x0002) << 13;
-    result |= (data & 0x0001) << 15;
-    return result;
+    data = (data >> 8) | (data << 8);
+    data = ((data & 0xF0F0U) >> 4) | ((data & 0x0F0FU) << 4);
+    data = ((data & 0xCCCCU) >> 2) | ((data & 0x3333U) << 2);
+    return ((data & 0xAAAAU) >> 1) | ((data & 0x5555U) << 1);
 }
 
 uint8_t bit_lib_reverse_8_fast(uint8_t byte) {
@@ -371,7 +369,7 @@ uint16_t bit_lib_crc8(
 
     for(size_t i = 0; i < data_size; ++i) {
         uint8_t byte = data[i];
-        if(ref_in) bit_lib_reverse_bits(&byte, 0, 8);
+        if(ref_in) byte = bit_lib_reverse_8_fast(byte);
         crc ^= byte;
 
         for(size_t j = 8; j > 0; --j) {
@@ -383,7 +381,7 @@ uint16_t bit_lib_crc8(
         }
     }
 
-    if(ref_out) bit_lib_reverse_bits(&crc, 0, 8);
+    if(ref_out) crc = bit_lib_reverse_8_fast(crc);
     crc ^= xor_out;
 
     return crc;
@@ -401,7 +399,7 @@ uint16_t bit_lib_crc16(
 
     for(size_t i = 0; i < data_size; ++i) {
         uint8_t byte = data[i];
-        if(ref_in) byte = bit_lib_reverse_16_fast(byte) >> 8;
+        if(ref_in) byte = bit_lib_reverse_8_fast(byte);
 
         for(size_t j = 0; j < 8; ++j) {
             bool c15 = (crc >> 15 & 1);

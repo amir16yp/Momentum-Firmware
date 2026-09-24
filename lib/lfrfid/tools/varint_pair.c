@@ -49,11 +49,13 @@ bool varint_pair_unpack(
 
     size += varint_uint32_unpack(&tmp_value_1, &data[size], data_length);
 
-    if(size >= data_length) {
+    if(size == 0 || size >= data_length) {
         return false;
     }
 
-    size += varint_uint32_unpack(&tmp_value_2, &data[size], (size_t)(data_length - size));
+    size_t second_size = varint_uint32_unpack(&tmp_value_2, &data[size], data_length - size);
+    if(second_size == 0) return false;
+    size += second_size;
 
     *value_1 = tmp_value_1;
     *value_2 = tmp_value_2;

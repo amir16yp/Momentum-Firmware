@@ -130,6 +130,30 @@ static void test_capacity(size_t capacity) {
 }
 
 int main(void) {
+    BitBuffer* buffer = bit_buffer_alloc(8192);
+    uint8_t input[] = {0xff, 0x12, 0x34};
+    bit_buffer_copy_bytes(buffer, input, sizeof(input));
+    bit_buffer_set_size(buffer, 0);
+    bit_buffer_append_bit(buffer, false);
+    assert(bit_buffer_get_byte_from_bit(buffer, 0) == 0);
+    bit_buffer_copy_bytes(buffer, input, sizeof(input));
+    bit_buffer_copy_right(buffer, buffer, 1);
+    assert(bit_buffer_get_size_bytes(buffer) == 2);
+    assert(bit_buffer_get_byte(buffer, 0) == 0x12 && bit_buffer_get_byte(buffer, 1) == 0x34);
+    bit_buffer_copy_left(buffer, buffer, 1);
+    assert(bit_buffer_get_size_bytes(buffer) == 1 && bit_buffer_get_byte(buffer, 0) == 0x12);
+    EXPECT_CHECK(bit_buffer_append_right(buffer, buffer, SIZE_MAX));
+    EXPECT_CHECK(bit_buffer_append_bytes(buffer, input, SIZE_MAX));
+    bit_buffer_reset(buffer);
+    bit_buffer_set_size_bytes(buffer, 8192);
+    // More than 65535 encoded bits and an exact output size divisible by eight.
+    const size_t encoded_size = 8192 * 9 / 8;
+    uint8_t* encoded = calloc(encoded_size, 1);
+    size_t written = 0;
+    bit_buffer_write_bytes_with_parity(buffer, encoded, encoded_size, &written);
+    assert(written == 8192 * 9);
+    free(encoded);
+    bit_buffer_free(buffer);
     EXPECT_CHECK(bit_buffer_alloc(0));
     EXPECT_CHECK(bit_buffer_alloc(SIZE_MAX));
     EXPECT_CHECK(bit_buffer_alloc(SIZE_MAX / 8 + 1));

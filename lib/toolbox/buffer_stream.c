@@ -1,4 +1,5 @@
 #include "buffer_stream.h"
+#include <stddef.h>
 
 struct Buffer {
     volatile bool occupied;
@@ -20,7 +21,7 @@ bool buffer_write(Buffer* buffer, const uint8_t* data, size_t size) {
     if(buffer->occupied) {
         return false;
     }
-    if((buffer->size + size) > buffer->max_data_size) {
+    if(size > buffer->max_data_size - buffer->size) {
         return false;
     }
     memcpy(buffer->data + buffer->size, data, size);
@@ -37,19 +38,30 @@ size_t buffer_get_size(Buffer* buffer) {
 }
 
 void buffer_reset(Buffer* buffer) {
-    buffer->occupied = false;
     buffer->size = 0;
+    buffer->occupied = false;
 }
 
 BufferStream* buffer_stream_alloc(size_t buffer_size, size_t buffers_count) {
     furi_assert(buffer_size > 0);
     furi_assert(buffers_count > 0);
-    BufferStream* buffer_stream = malloc(sizeof(BufferStream) + (sizeof(Buffer) * buffers_count));
+    const size_t alignment = _Alignof(max_align_t);
+    furi_check(buffer_size <= SIZE_MAX - (alignment - 1));
+    const size_t stride = (buffer_size + alignment - 1) / alignment * alignment;
+    furi_check(stride <= SIZE_MAX - sizeof(Buffer));
+    furi_check(
+        buffers_count <=
+        (SIZE_MAX - sizeof(BufferStream) - (alignment - 1)) / (sizeof(Buffer) + stride));
+    const size_t header_size =
+        (sizeof(BufferStream) + sizeof(Buffer) * buffers_count + alignment - 1) / alignment *
+        alignment;
+    BufferStream* buffer_stream = malloc(header_size + stride * buffers_count);
+    uint8_t* data = (uint8_t*)buffer_stream + header_size;
     buffer_stream->max_buffers_count = buffers_count;
     for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
         buffer_stream->buffers[i].occupied = false;
         buffer_stream->buffers[i].size = 0;
-        buffer_stream->buffers[i].data = malloc(buffer_size);
+        buffer_stream->buffers[i].data = data + i * stride;
         buffer_stream->buffers[i].max_data_size = buffer_size;
     }
     buffer_stream->stream = furi_stream_buffer_alloc(
@@ -61,15 +73,12 @@ BufferStream* buffer_stream_alloc(size_t buffer_size, size_t buffers_count) {
 }
 
 void buffer_stream_free(BufferStream* buffer_stream) {
-    for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
-        free(buffer_stream->buffers[i].data);
-    }
     furi_stream_buffer_free(buffer_stream->stream);
     free(buffer_stream);
 }
 
-static inline int8_t buffer_stream_get_free_buffer(BufferStream* buffer_stream) {
-    int8_t id = -1;
+static inline size_t buffer_stream_get_free_buffer(BufferStream* buffer_stream) {
+    size_t id = buffer_stream->max_buffers_count;
     for(size_t i = 0; i < buffer_stream->max_buffers_count; i++) {
         if(buffer_stream->buffers[i].occupied == false) {
             id = i;
@@ -82,32 +91,34 @@ static inline int8_t buffer_stream_get_free_buffer(BufferStream* buffer_stream) 
 
 bool buffer_stream_send_from_isr(BufferStream* buffer_stream, const uint8_t* data, size_t size) {
     Buffer* buffer = &buffer_stream->buffers[buffer_stream->index];
-    bool result = true;
+    if(size > buffer->max_data_size) return false;
 
     // write to buffer
     if(!buffer_write(buffer, data, size)) {
-        // if buffer is full - send it
-        buffer->occupied = true;
-        // we always have space for buffer in stream
-        furi_stream_buffer_send(buffer_stream->stream, &buffer, sizeof(Buffer*), 0);
+        // An occupied buffer was already queued before an overrun.
+        if(!buffer->occupied) {
+            buffer->occupied = true;
+            // Each buffer is queued at most once, so the stream has space.
+            furi_stream_buffer_send(buffer_stream->stream, &buffer, sizeof(Buffer*), 0);
+        }
 
         // get new buffer from the pool
-        int8_t index = buffer_stream_get_free_buffer(buffer_stream);
+        size_t index = buffer_stream_get_free_buffer(buffer_stream);
 
         // check that we have valid buffer
-        if(index == -1) {
+        if(index == buffer_stream->max_buffers_count) {
             // no free buffer
             buffer_stream->stream_overrun_count++;
-            result = false;
+            return false;
         } else {
             // write to new buffer
             buffer_stream->index = index;
             buffer = &buffer_stream->buffers[buffer_stream->index];
-            buffer_write(buffer, data, size);
+            return buffer_write(buffer, data, size);
         }
     }
 
-    return result;
+    return true;
 }
 
 Buffer* buffer_stream_receive(BufferStream* buffer_stream, uint32_t timeout) {

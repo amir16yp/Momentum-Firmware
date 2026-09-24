@@ -9,8 +9,12 @@ struct SimpleArray {
 };
 
 SimpleArray* simple_array_alloc(const SimpleArrayConfig* config) {
+    furi_check(config);
+    furi_check(config->type_size > 0);
     SimpleArray* instance = malloc(sizeof(SimpleArray));
     instance->config = config;
+    instance->data = NULL;
+    instance->count = 0;
     return instance;
 }
 
@@ -24,6 +28,7 @@ void simple_array_free(SimpleArray* instance) {
 void simple_array_init(SimpleArray* instance, uint32_t count) {
     furi_check(instance);
     furi_check(count > 0);
+    furi_check(count <= SIZE_MAX / instance->config->type_size);
 
     simple_array_reset(instance);
 
@@ -62,9 +67,10 @@ void simple_array_copy(SimpleArray* instance, const SimpleArray* other) {
     furi_check(other);
     furi_check(instance->config == other->config);
 
-    simple_array_reset(instance);
+    if(instance == other) return;
 
     if(other->count == 0) {
+        simple_array_reset(instance);
         return;
     }
 
@@ -88,8 +94,9 @@ bool simple_array_is_equal(const SimpleArray* instance, const SimpleArray* other
     if(instance == other) return true;
 
     return (instance->config == other->config) && (instance->count == other->count) &&
-           ((instance->data == other->data) || (instance->data == NULL) || (other->data == NULL) ||
-            (memcmp(instance->data, other->data, other->count) == 0));
+           ((instance->data == other->data) ||
+            (memcmp(instance->data, other->data, other->count * instance->config->type_size) ==
+             0));
 }
 
 uint32_t simple_array_get_count(const SimpleArray* instance) {

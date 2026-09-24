@@ -182,8 +182,9 @@ const InfraredMessage*
 }
 
 InfraredDecoderHandler* infrared_alloc_decoder(void) {
-    InfraredDecoderHandler* handler = malloc(sizeof(InfraredDecoderHandler));
-    handler->ctx = malloc(sizeof(void*) * COUNT_OF(infrared_encoder_decoder));
+    InfraredDecoderHandler* handler = malloc(
+        sizeof(InfraredDecoderHandler) + sizeof(void*) * COUNT_OF(infrared_encoder_decoder));
+    handler->ctx = (void**)(handler + 1);
 
     for(size_t i = 0; i < COUNT_OF(infrared_encoder_decoder); ++i) {
         handler->ctx[i] = 0;
@@ -204,7 +205,6 @@ void infrared_free_decoder(InfraredDecoderHandler* handler) {
             infrared_encoder_decoder[i].decoder.free(handler->ctx[i]);
     }
 
-    free(handler->ctx);
     free(handler);
 }
 

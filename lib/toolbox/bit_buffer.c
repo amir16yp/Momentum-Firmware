@@ -59,7 +59,7 @@ void bit_buffer_copy_right(BitBuffer* buf, const BitBuffer* other, size_t start_
     furi_check(bit_buffer_get_size_bytes(other) > start_index);
     furi_check(buf->capacity_bytes >= bit_buffer_get_size_bytes(other) - start_index);
 
-    memcpy(buf->data, other->data + start_index, bit_buffer_get_size_bytes(other) - start_index);
+    memmove(buf->data, other->data + start_index, bit_buffer_get_size_bytes(other) - start_index);
     buf->size_bits = other->size_bits - start_index * BITS_IN_BYTE;
 }
 
@@ -69,7 +69,7 @@ void bit_buffer_copy_left(BitBuffer* buf, const BitBuffer* other, size_t end_ind
     furi_check(bit_buffer_get_capacity_bytes(buf) >= end_index);
     furi_check(bit_buffer_get_size_bytes(other) >= end_index);
 
-    memcpy(buf->data, other->data, end_index);
+    if(buf != other) memcpy(buf->data, other->data, end_index);
     buf->size_bits = end_index * BITS_IN_BYTE;
 }
 
@@ -143,12 +143,13 @@ void bit_buffer_write_bytes_with_parity(
     furi_check(bits_written);
 
     size_t buf_size_bytes = bit_buffer_get_size_bytes(buf);
+    furi_check(buf_size_bytes <= (SIZE_MAX - (BITS_IN_BYTE - 1)) / (BITS_IN_BYTE + 1));
     size_t buf_size_with_parity_bytes =
-        (buf_size_bytes * (BITS_IN_BYTE + 1) + BITS_IN_BYTE) / BITS_IN_BYTE;
+        (buf_size_bytes * (BITS_IN_BYTE + 1) + BITS_IN_BYTE - 1) / BITS_IN_BYTE;
     furi_check(buf_size_with_parity_bytes <= size_bytes);
 
     uint8_t next_par_bit = 0;
-    uint16_t curr_bit_pos = 0;
+    size_t curr_bit_pos = 0;
     uint8_t* bitstream = dest;
 
     for(size_t i = 0; i < buf_size_bytes; i++) {
@@ -295,9 +296,10 @@ void bit_buffer_append_right(BitBuffer* buf, const BitBuffer* other, size_t star
     furi_check(other);
 
     const size_t size_bytes = bit_buffer_get_size_bytes(buf);
+    furi_check(start_index <= other->size_bits / BITS_IN_BYTE);
     const size_t other_size_bytes = bit_buffer_get_size_bytes(other) - start_index;
 
-    furi_check(buf->capacity_bytes >= size_bytes + other_size_bytes);
+    furi_check(other_size_bytes <= buf->capacity_bytes - size_bytes);
 
     memcpy(buf->data + size_bytes, other->data + start_index, other_size_bytes);
     buf->size_bits += other->size_bits - start_index * BITS_IN_BYTE;
@@ -319,7 +321,7 @@ void bit_buffer_append_bytes(BitBuffer* buf, const uint8_t* data, size_t size_by
     furi_check(data);
 
     const size_t buf_size_bytes = bit_buffer_get_size_bytes(buf);
-    furi_check(buf->capacity_bytes >= buf_size_bytes + size_bytes);
+    furi_check(size_bytes <= buf->capacity_bytes - buf_size_bytes);
 
     memcpy(&buf->data[buf_size_bytes], data, size_bytes);
     buf->size_bits += size_bytes * BITS_IN_BYTE;
@@ -327,15 +329,11 @@ void bit_buffer_append_bytes(BitBuffer* buf, const uint8_t* data, size_t size_by
 
 void bit_buffer_append_bit(BitBuffer* buf, bool bit) {
     furi_check(buf);
-    furi_check(
-        bit_buffer_get_size_bytes(buf) <=
-        (buf->capacity_bytes - (bit_buffer_has_partial_byte(buf) ? 0 : 1)));
+    furi_check(buf->size_bits < buf->capacity_bytes * BITS_IN_BYTE);
 
-    if(bit) {
-        const size_t byte_index = buf->size_bits / BITS_IN_BYTE;
-        const size_t bit_offset = (buf->size_bits % BITS_IN_BYTE);
-        buf->data[byte_index] |= 1U << bit_offset;
-    }
+    const size_t byte_index = buf->size_bits / BITS_IN_BYTE;
+    const uint8_t mask = 1U << (buf->size_bits % BITS_IN_BYTE);
+    buf->data[byte_index] = (buf->data[byte_index] & ~mask) | (bit ? mask : 0);
 
     buf->size_bits++;
 }

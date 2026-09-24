@@ -59,7 +59,7 @@ int __wrap_fgetc(FILE* stream) {
     if(stream != stdin) return EOF;
     char c;
     if(furi_thread_stdin_read(&c, 1, FuriWaitForever) == 0) return EOF;
-    return c;
+    return (unsigned char)c;
 }
 
 int __wrap_getc(FILE* stream) {
@@ -75,7 +75,7 @@ char* __wrap_fgets(char* str, size_t n, FILE* stream) {
     furi_check(n >= 1);
     n--;
 
-    if(stream != stdin) {
+    if(stream != stdin || n == 0) {
         *str = '\0';
         return str;
     }

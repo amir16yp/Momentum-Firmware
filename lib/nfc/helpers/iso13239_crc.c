@@ -4,7 +4,6 @@
 
 #define ISO13239_CRC_INIT_DEFAULT  (0xFFFFU)
 #define ISO13239_CRC_INIT_PICOPASS (0xE012U)
-#define ISO13239_CRC_POLY          (0x8408U)
 
 static uint16_t
     iso13239_crc_calculate(Iso13239CrcType type, const uint8_t* data, size_t data_size) {
@@ -19,14 +18,10 @@ static uint16_t
     }
 
     for(size_t i = 0; i < data_size; ++i) {
-        crc ^= (uint16_t)data[i];
-        for(size_t j = 0; j < 8; ++j) {
-            if(crc & 1U) {
-                crc = (crc >> 1) ^ ISO13239_CRC_POLY;
-            } else {
-                crc >>= 1;
-            }
-        }
+        // Byte-wise update for the reflected 0x1021 polynomial (0x8408).
+        uint8_t byte = data[i] ^ (uint8_t)crc;
+        byte ^= byte << 4;
+        crc = (crc >> 8) ^ ((uint16_t)byte << 8) ^ ((uint16_t)byte << 3) ^ (byte >> 4);
     }
 
     return type == Iso13239CrcTypePicopass ? crc : ~crc;

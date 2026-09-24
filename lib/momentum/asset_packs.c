@@ -39,7 +39,9 @@ static void
         bool ok = storage_file_read(file, &meta, sizeof(meta)) == sizeof(meta);
         storage_file_close(file);
 
-        if(ok) {
+        if(ok && meta.frame_count > 0 && meta.frame_count <= UINT8_MAX && meta.width > 0 &&
+           meta.width <= UINT16_MAX && meta.height > 0 && meta.height <= UINT16_MAX &&
+           meta.frame_rate >= 0 && meta.frame_rate <= UINT8_MAX) {
             AnimatedIconSwap* swap =
                 malloc(sizeof(AnimatedIconSwap) + (sizeof(uint8_t*) * meta.frame_count));
             int i = 0;
@@ -48,6 +50,11 @@ static void
                 if(storage_file_open(
                        file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
                     uint64_t frame_size = storage_file_size(file);
+                    if(frame_size == 0 || frame_size > SIZE_MAX) {
+                        storage_file_close(file);
+                        i--;
+                        break;
+                    }
                     swap->frames[i] = malloc(frame_size);
                     ok = storage_file_read(file, swap->frames[i], frame_size) == frame_size;
                     storage_file_close(file);
@@ -99,11 +106,19 @@ static void
     furi_string_printf(path, ICONS_FMT ".bmx", momentum_settings.asset_pack, name);
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
         StaticIconBmxHeader header;
-        uint64_t frame_size = storage_file_size(file) - sizeof(header);
+        const uint64_t file_size = storage_file_size(file);
+        if(file_size <= sizeof(header) ||
+           file_size - sizeof(header) > SIZE_MAX - sizeof(StaticIconSwap) ||
+           storage_file_read(file, &header, sizeof(header)) != sizeof(header) ||
+           header.width <= 0 || header.width > UINT16_MAX || header.height <= 0 ||
+           header.height > UINT16_MAX) {
+            storage_file_close(file);
+            return;
+        }
+        const size_t frame_size = file_size - sizeof(header);
         StaticIconSwap* swap = malloc(sizeof(StaticIconSwap) + frame_size);
 
-        if(storage_file_read(file, &header, sizeof(header)) == sizeof(header) &&
-           storage_file_read(file, swap->frame, frame_size) == frame_size) {
+        if(storage_file_read(file, swap->frame, frame_size) == frame_size) {
             FURI_CONST_ASSIGN(swap->icon.width, header.width);
             FURI_CONST_ASSIGN(swap->icon.height, header.height);
             FURI_CONST_ASSIGN(swap->icon.frame_count, 1);
@@ -143,9 +158,13 @@ static void load_font(Font font, const char* name, FuriString* path, File* file)
     furi_string_printf(path, FONTS_FMT, momentum_settings.asset_pack, name);
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
         uint64_t size = storage_file_size(file);
+        if(size <= U8G2_FONT_DATA_STRUCT_SIZE || size > SIZE_MAX) {
+            storage_file_close(file);
+            return;
+        }
         uint8_t* swap = malloc(size);
 
-        if(size > U8G2_FONT_DATA_STRUCT_SIZE && storage_file_read(file, swap, size) == size) {
+        if(storage_file_read(file, swap, size) == size) {
             asset_packs->fonts[font] = swap;
             CanvasFontParameters* params = malloc(sizeof(CanvasFontParameters));
             // See lib/u8g2/u8g2_font.c
