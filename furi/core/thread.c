@@ -277,22 +277,20 @@ void furi_thread_set_name(FuriThread* thread, const char* name) {
     furi_check(thread);
     furi_check(thread->state == FuriThreadStateStopped);
 
-    if(thread->name) {
-        free(thread->name);
-    }
-
-    thread->name = name ? strdup(name) : NULL;
+    if(thread->name && name && strcmp(thread->name, name) == 0) return;
+    char* new_name = name ? strdup(name) : NULL;
+    free(thread->name);
+    thread->name = new_name;
 }
 
 void furi_thread_set_appid(FuriThread* thread, const char* appid) {
     furi_check(thread);
     furi_check(thread->state == FuriThreadStateStopped);
 
-    if(thread->appid) {
-        free(thread->appid);
-    }
-
-    thread->appid = appid ? strdup(appid) : NULL;
+    if(thread->appid && appid && strcmp(thread->appid, appid) == 0) return;
+    char* new_appid = appid ? strdup(appid) : NULL;
+    free(thread->appid);
+    thread->appid = new_appid;
 }
 
 void furi_thread_set_stack_size(FuriThread* thread, size_t stack_size) {
@@ -503,9 +501,8 @@ uint32_t furi_thread_flags_set(FuriThreadId thread_id, uint32_t flags) {
             (void)xTaskNotifyIndexed(hTask, THREAD_NOTIFY_INDEX, flags, eSetBits);
             (void)xTaskNotifyAndQueryIndexed(hTask, THREAD_NOTIFY_INDEX, 0, eNoAction, &rflags);
         }
+        furi_event_loop_thread_flag_callback(thread_id);
     }
-
-    furi_event_loop_thread_flag_callback(thread_id);
 
     /* Return flags after setting */
     return rflags;
@@ -609,10 +606,8 @@ uint32_t furi_thread_flags_wait(uint32_t flags, uint32_t options, uint32_t timeo
                 /* Update timeout */
                 td = xTaskGetTickCount() - t0;
 
-                if(td > tout) {
-                    tout = 0;
-                } else {
-                    tout -= td;
+                if(timeout != FuriWaitForever) {
+                    tout = td < timeout ? timeout - td : 0;
                 }
             } else {
                 if(timeout == 0) {

@@ -65,7 +65,7 @@ void flipper_migrate_files() {
     // Migrate files
     FURI_LOG_I(TAG, "Migrate: Rename old paths");
     // If multiple have same destination, first match that exists is kept and others deleted
-    const struct {
+    static const struct {
         const char* src;
         const char* dst;
     } renames[] = {

@@ -241,7 +241,7 @@ size_t memmgr_heap_get_thread_memory(FuriThreadId thread_id) {
                     BlockLink_t* pxLink = (void*)puc;
 
                     if((pxLink->xBlockSize & heapBLOCK_ALLOCATED_BITMASK) &&
-                       pxLink->pxNextFreeBlock == NULL) {
+                       pxLink->pxNextFreeBlock == heapPROTECT_BLOCK_POINTER(NULL)) {
                         leftovers += data->value;
                     }
                 }
@@ -581,11 +581,8 @@ void* pvPortCalloc(size_t xNum, size_t xSize) {
     void* pv = NULL;
 
     if(heapMULTIPLY_WILL_OVERFLOW(xNum, xSize) == 0) {
+        // pvPortMalloc already clears the requested payload.
         pv = pvPortMalloc(xNum * xSize);
-
-        if(pv != NULL) {
-            (void)memset(pv, 0, xNum * xSize);
-        }
     }
 
     return pv;

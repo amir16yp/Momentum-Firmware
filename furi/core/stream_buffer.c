@@ -24,6 +24,7 @@ static_assert(offsetof(FuriStreamBuffer, buffer) == sizeof(FuriStreamBuffer));
 
 FuriStreamBuffer* furi_stream_buffer_alloc(size_t size, size_t trigger_level) {
     furi_check(size != 0);
+    furi_check(size <= SIZE_MAX - sizeof(FuriStreamBuffer) - 1);
 
     // Actual FreeRTOS usable buffer size seems to be one less
     const size_t buffer_size = size + 1;
@@ -69,7 +70,7 @@ size_t furi_stream_buffer_send(
     size_t ret;
 
     if(FURI_IS_IRQ_MODE()) {
-        BaseType_t yield;
+        BaseType_t yield = pdFALSE;
         ret = xStreamBufferSendFromISR((StreamBufferHandle_t)stream_buffer, data, length, &yield);
         portYIELD_FROM_ISR(yield);
     } else {
@@ -99,7 +100,7 @@ size_t furi_stream_buffer_receive(
     size_t ret;
 
     if(FURI_IS_IRQ_MODE()) {
-        BaseType_t yield;
+        BaseType_t yield = pdFALSE;
         ret =
             xStreamBufferReceiveFromISR((StreamBufferHandle_t)stream_buffer, data, length, &yield);
         portYIELD_FROM_ISR(yield);

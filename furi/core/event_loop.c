@@ -104,10 +104,12 @@ static inline FuriEventLoopProcessStatus
 static inline FuriEventLoopProcessStatus
     furi_event_loop_process_level_event(FuriEventLoopItem* item) {
     FuriEventLoopProcessStatus status = FuriEventLoopProcessStatusComplete;
-    if(item->contract->get_level(item->object, item->event)) {
+    const FuriEventLoopEvent event = item->event & FuriEventLoopEventMask;
+    if(item->contract->get_level(item->object, event)) {
         item->callback(item->object, item->callback_context);
 
-        if(item->contract->get_level(item->object, item->event)) {
+        // The callback may unsubscribe and destroy the object.
+        if(item->owner && item->contract->get_level(item->object, event)) {
             status = FuriEventLoopProcessStatusIncomplete;
         }
     }
@@ -119,11 +121,11 @@ static inline FuriEventLoopProcessStatus
     furi_event_loop_process_event(FuriEventLoop* instance, FuriEventLoopItem* item) {
     FuriEventLoopProcessStatus status;
 
+    instance->current_item = item;
+
     if(item->event & FuriEventLoopEventFlagOnce) {
         furi_event_loop_unsubscribe(instance, item->object);
     }
-
-    instance->current_item = item;
 
     if(item->event & FuriEventLoopEventFlagEdge) {
         status = furi_event_loop_process_edge_event(item);
@@ -243,6 +245,7 @@ void furi_event_loop_run(FuriEventLoop* instance) {
 
             } else if(flags & FuriEventLoopFlagPending) {
                 furi_event_loop_process_pending_callbacks(instance);
+                furi_event_loop_restore_flags(instance, flags & ~FuriEventLoopFlagPending);
 
             } else if(flags & FuriEventLoopFlagThreadFlag) {
                 if(instance->are_thread_flags_subscribed)

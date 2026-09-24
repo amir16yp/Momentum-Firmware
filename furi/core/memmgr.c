@@ -86,9 +86,13 @@ size_t memmgr_pool_get_max_block(void) {
 }
 
 void* aligned_malloc(size_t size, size_t alignment) {
+    furi_check(alignment && (alignment & (alignment - 1)) == 0);
+    furi_check(alignment - 1 <= SIZE_MAX - sizeof(void*));
+    const size_t offset = alignment - 1 + sizeof(void*);
+    furi_check(size <= SIZE_MAX - offset);
+
     void* p1; // original block
     void** p2; // aligned block
-    int offset = alignment - 1 + sizeof(void*);
     if((p1 = (void*)malloc(size + offset)) == NULL) {
         return NULL;
     }

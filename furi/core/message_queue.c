@@ -26,8 +26,9 @@ static_assert(offsetof(FuriMessageQueue, buffer) == sizeof(FuriMessageQueue));
 
 FuriMessageQueue* furi_message_queue_alloc(uint32_t msg_count, uint32_t msg_size) {
     furi_check((furi_kernel_is_irq_or_masked() == 0U) && (msg_count > 0U) && (msg_size > 0U));
+    furi_check(msg_count <= (SIZE_MAX - sizeof(FuriMessageQueue)) / msg_size);
 
-    FuriMessageQueue* instance = malloc(sizeof(FuriMessageQueue) + msg_count * msg_size);
+    FuriMessageQueue* instance = malloc(sizeof(FuriMessageQueue) + (size_t)msg_count * msg_size);
 
     // 3 things happens here:
     // - create queue
