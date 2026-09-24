@@ -701,9 +701,18 @@ void elements_scrollable_text_line_centered(
     furi_check(canvas);
     furi_check(string);
 
-    FuriString* line = furi_string_alloc_set(string);
+    const char* text = furi_string_get_cstr(string);
+    size_t len_px = canvas_string_width(canvas, text);
+    if(len_px <= width) {
+        if(centered) {
+            canvas_draw_str_aligned(canvas, x, y, AlignCenter, AlignBottom, text);
+        } else {
+            canvas_draw_str(canvas, x, y, text);
+        }
+        return;
+    }
 
-    size_t len_px = canvas_string_width(canvas, furi_string_get_cstr(line));
+    FuriString* line = furi_string_alloc_set(string);
     bool marquee = momentum_settings.scroll_marquee;
     if(len_px > width) {
         if(centered && !marquee) {

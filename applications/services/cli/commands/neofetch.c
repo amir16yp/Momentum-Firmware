@@ -32,8 +32,9 @@ static void execute(PipeSide* pipe, FuriString* args, void* context) {
     logo_width += 4; // space between logo and info
 
     // Format hostname delimiter
-    const size_t size_of_hostname = 4 + strlen(furi_hal_version_get_name_ptr());
     char delimiter[64];
+    const size_t size_of_hostname =
+        MIN(4 + strlen(furi_hal_version_get_name_ptr()), sizeof(delimiter) - 1);
     memset(delimiter, '-', size_of_hostname);
     delimiter[size_of_hostname] = '\0';
 
@@ -44,10 +45,14 @@ static void execute(PipeSide* pipe, FuriString* args, void* context) {
 
     // Get storage info
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    uint64_t ext_total, ext_free, ext_used, ext_percent;
-    storage_common_fs_info(storage, "/ext", &ext_total, &ext_free);
-    ext_used = ext_total - ext_free;
-    ext_percent = (100 * ext_used) / ext_total;
+    uint64_t ext_total = 0, ext_free = 0, ext_used = 0, ext_percent = 0;
+    if(storage_common_fs_info(storage, "/ext", &ext_total, &ext_free) == FSE_OK && ext_total > 0 &&
+       ext_free <= ext_total) {
+        ext_used = ext_total - ext_free;
+        ext_percent = (100 * ext_used) / ext_total;
+    } else {
+        ext_total = 0;
+    }
     ext_used /= 1024 * 1024;
     ext_total /= 1024 * 1024;
     furi_record_close(RECORD_STORAGE);

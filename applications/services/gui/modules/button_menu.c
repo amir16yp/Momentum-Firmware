@@ -47,12 +47,23 @@ static void button_menu_draw_text(
     const char* text,
     bool selected,
     ButtonMenuModel* model) {
+    const size_t text_width = canvas_string_width(canvas, text);
+    if(text_width < ITEM_WIDTH - 8 || (!selected && text_width <= ITEM_WIDTH - 6)) {
+        canvas_draw_str_aligned(
+            canvas,
+            item_x + (ITEM_WIDTH / 2),
+            item_y + (ITEM_HEIGHT / 2),
+            AlignCenter,
+            AlignCenter,
+            text);
+        return;
+    }
+
     FuriString* disp_str;
     disp_str = furi_string_alloc_set(text);
     bool draw_static = true;
 
     if(selected) {
-        size_t text_width = canvas_string_width(canvas, furi_string_get_cstr(disp_str));
         if(text_width >= ITEM_WIDTH - 8) {
             elements_scrollable_text_line(
                 canvas,
@@ -162,27 +173,25 @@ static void button_menu_view_draw_callback(Canvas* canvas, void* _model) {
         furi_string_free(disp_str);
     }
 
-    size_t item_position = 0;
-    ButtonMenuItemArray_it_t it;
-
-    for(ButtonMenuItemArray_it(it, model->items); !ButtonMenuItemArray_end_p(it);
-        ButtonMenuItemArray_next(it), ++item_position) {
-        if(active_screen == (item_position / BUTTONS_PER_SCREEN)) {
-            if(ButtonMenuItemArray_cref(it)->type == ButtonMenuItemTypeControl) {
-                button_menu_draw_control_button(
-                    canvas,
-                    item_position % BUTTONS_PER_SCREEN,
-                    ButtonMenuItemArray_cref(it)->label,
-                    (item_position == model->position),
-                    model);
-            } else if(ButtonMenuItemArray_cref(it)->type == ButtonMenuItemTypeCommon) {
-                button_menu_draw_common_button(
-                    canvas,
-                    item_position % BUTTONS_PER_SCREEN,
-                    ButtonMenuItemArray_cref(it)->label,
-                    (item_position == model->position),
-                    model);
-            }
+    const size_t first_item = active_screen * BUTTONS_PER_SCREEN;
+    for(size_t item_position = first_item;
+        item_position < items_size && item_position - first_item < BUTTONS_PER_SCREEN;
+        ++item_position) {
+        const ButtonMenuItem* item = ButtonMenuItemArray_get(model->items, item_position);
+        if(item->type == ButtonMenuItemTypeControl) {
+            button_menu_draw_control_button(
+                canvas,
+                item_position % BUTTONS_PER_SCREEN,
+                item->label,
+                (item_position == model->position),
+                model);
+        } else if(item->type == ButtonMenuItemTypeCommon) {
+            button_menu_draw_common_button(
+                canvas,
+                item_position % BUTTONS_PER_SCREEN,
+                item->label,
+                (item_position == model->position),
+                model);
         }
     }
 }

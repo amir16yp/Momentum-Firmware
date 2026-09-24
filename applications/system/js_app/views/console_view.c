@@ -64,7 +64,7 @@ void console_view_print(JsConsoleView* console_view, const char* text) {
     uint8_t line_break_cnt = 0;
     bool line_trim = false;
 
-    for(size_t i = 0; i < strlen(text); i++) {
+    for(size_t i = 0; text[i] != '\0'; i++) {
         if(text[i] & 0x80) { // UTF8 or another non-ascii character byte
             if(utf8_bytes_left > 0) {
                 utf8_bytes_left--;
@@ -106,18 +106,18 @@ void console_view_print(JsConsoleView* console_view, const char* text) {
             } else {
                 line_buf[line_buf_cnt++] = text[i];
             }
+        }
 
-            if(line_buf_cnt >= LINE_LEN_MAX) {
-                line_break_cnt++;
-                if(line_break_cnt >= LINE_BREAKS_MAX) {
-                    line_trim = true;
-                    break;
-                }
-                line_buf[line_buf_cnt] = '\0';
-                console_view_push_line(console_view, line_buf, false);
-                line_buf_cnt = 1;
-                line_buf[0] = ' ';
+        if(line_buf_cnt >= LINE_LEN_MAX) {
+            line_break_cnt++;
+            if(line_break_cnt >= LINE_BREAKS_MAX) {
+                line_trim = true;
+                break;
             }
+            line_buf[line_buf_cnt] = '\0';
+            console_view_push_line(console_view, line_buf, false);
+            line_buf_cnt = 1;
+            line_buf[0] = ' ';
         }
     }
     if(line_buf_cnt > 0) {

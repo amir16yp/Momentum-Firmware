@@ -280,7 +280,7 @@ static void text_input_backspace_cb(TextInputModel* model) {
 
 static void text_input_view_draw_callback(Canvas* canvas, void* _model) {
     TextInputModel* model = _model;
-    uint8_t text_length = model->text_buffer ? strlen(model->text_buffer) : 0;
+    size_t text_length = model->text_buffer ? strlen(model->text_buffer) : 0;
     uint8_t needed_string_width = canvas_width(canvas) - 8;
     uint8_t start_pos = 4;
 
@@ -293,7 +293,9 @@ static void text_input_view_draw_callback(Canvas* canvas, void* _model) {
     canvas_draw_str(canvas, 2, 8, model->header);
     elements_slightly_rounded_frame(canvas, 1, 12, 126, 15);
 
-    char buf[text_length + 1];
+    // Include space for the cursor and the terminating NUL.
+    char buf[text_length + 2];
+    buf[0] = '\0';
     if(model->text_buffer) {
         strlcpy(buf, model->text_buffer, sizeof(buf));
     }
@@ -314,8 +316,7 @@ static void text_input_view_draw_callback(Canvas* canvas, void* _model) {
         start_pos += 6;
         needed_string_width -= 8;
         for(uint32_t off = 0;
-            strlen(str) && canvas_string_width(canvas, str) > needed_string_width &&
-            off < cursor_pos;
+            *str && canvas_string_width(canvas, str) > needed_string_width && off < cursor_pos;
             off++) {
             str++;
         }
@@ -654,7 +655,7 @@ static bool text_input_view_ascii_callback(AsciiEvent* event, void* context) {
         return true;
     default: // Look in keyboards
         TextInputModel* model = view_get_model(text_input->view);
-        uint8_t text_length = model->text_buffer ? strlen(model->text_buffer) : 0;
+        size_t text_length = model->text_buffer ? strlen(model->text_buffer) : 0;
         bool uppercase = model->clear_default_text || text_length == 0;
         for(size_t k = 0; k < keyboard_count; k++) {
             bool symbols = k == symbol_keyboard.keyboard_index;

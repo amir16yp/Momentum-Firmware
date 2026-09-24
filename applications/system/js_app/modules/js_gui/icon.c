@@ -36,7 +36,8 @@ static void js_gui_icon_get_builtin(struct mjs* mjs) {
     for(size_t i = 0; i < ICON_PATHS_COUNT; i++) {
         if(ICON_PATHS[i].path == NULL) continue;
         const char* iter_name = strrchr(ICON_PATHS[i].path, '/');
-        if(iter_name++ == NULL) continue;
+        if(iter_name == NULL) continue;
+        iter_name++;
         if(strcmp(icon_name, iter_name) == 0) {
             mjs_return(mjs, mjs_mk_foreign(mjs, (void*)ICON_PATHS[i].icon));
             return;
@@ -68,7 +69,17 @@ static void js_gui_icon_load_fxbm(struct mjs* mjs) {
             break;
         }
 
+        if(fxbm_header.size < sizeof(uint32_t) * 2 || fxbm_header.width == 0 ||
+           fxbm_header.width > UINT16_MAX || fxbm_header.height == 0 ||
+           fxbm_header.height > UINT16_MAX) {
+            break;
+        }
         size_t frame_size = fxbm_header.size - sizeof(uint32_t) * 2;
+        const size_t bitmap_size = ((fxbm_header.width + 7) / 8) * fxbm_header.height;
+        if(frame_size < bitmap_size || frame_size > SIZE_MAX - sizeof(FxbmIconWrapper) ||
+           (uint64_t)fxbm_header.size + sizeof(uint32_t) > storage_file_size(file)) {
+            break;
+        }
         fxbm = malloc(sizeof(FxbmIconWrapper) + frame_size);
         if(storage_file_read(file, fxbm->frame.uncompressed_data, frame_size) != frame_size) {
             free(fxbm);

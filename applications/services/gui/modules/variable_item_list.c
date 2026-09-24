@@ -64,84 +64,79 @@ static void variable_item_list_draw_callback(Canvas* canvas, void* _model) {
         canvas_draw_str(canvas, 4, 11, furi_string_get_cstr(model->header));
     }
 
-    uint8_t position = 0;
-    VariableItemArray_it_t it;
+    const size_t items_count = VariableItemArray_size(model->items);
+    const size_t items_on_screen = variable_item_list_items_on_screen(model);
+    const uint8_t y_offset = furi_string_empty(model->header) ? 0 : item_height;
 
     canvas_set_font(canvas, FontSecondary);
-    for(VariableItemArray_it(it, model->items); !VariableItemArray_end_p(it);
-        VariableItemArray_next(it)) {
-        uint8_t item_position = position - model->window_position;
-        uint8_t items_on_screen = variable_item_list_items_on_screen(model);
-        uint8_t y_offset = furi_string_empty(model->header) ? 0 : item_height;
+    for(size_t position = model->window_position;
+        position < items_count && position - model->window_position < items_on_screen;
+        ++position) {
+        const size_t item_position = position - model->window_position;
+        const VariableItem* item = VariableItemArray_get(model->items, position);
+        uint8_t item_y = y_offset + (item_position * item_height);
+        uint8_t item_text_y = item_y + item_height - 4;
+        size_t scroll_counter = 0;
 
-        if(item_position < items_on_screen) {
-            const VariableItem* item = VariableItemArray_cref(it);
-            uint8_t item_y = y_offset + (item_position * item_height);
-            uint8_t item_text_y = item_y + item_height - 4;
-            size_t scroll_counter = 0;
-
-            if(position == model->position) {
-                canvas_set_color(canvas, ColorBlack);
-                elements_slightly_rounded_box(canvas, 0, item_y + 1, item_width, item_height - 2);
-                canvas_set_color(canvas, ColorWhite);
-                scroll_counter = model->scroll_counter;
-                if(scroll_counter < 1) { // Show text beginning a little longer
-                    scroll_counter = 0;
-                } else {
-                    scroll_counter -= 1;
-                }
+        if(position == model->position) {
+            canvas_set_color(canvas, ColorBlack);
+            elements_slightly_rounded_box(canvas, 0, item_y + 1, item_width, item_height - 2);
+            canvas_set_color(canvas, ColorWhite);
+            scroll_counter = model->scroll_counter;
+            if(scroll_counter < 1) { // Show text beginning a little longer
+                scroll_counter = 0;
             } else {
-                canvas_set_color(canvas, ColorBlack);
+                scroll_counter -= 1;
             }
-
-            uint8_t value_pos_x = 73;
-            uint8_t label_width = 66;
-            if(item->locked) {
-                // Span label up to lock icon
-                value_pos_x = 110;
-                label_width = 100;
-            } else if(item->current_value_index == 0 && furi_string_empty(item->current_value_text)) {
-                // Only label text, no value text, show longer label
-                label_width = 109;
-            } else if(furi_string_size(item->current_value_text) < 4U) {
-                // Smaller value section for short values
-                value_pos_x = 80;
-                label_width = 71;
-            }
-
-            elements_scrollable_text_line(
-                canvas,
-                6,
-                item_text_y,
-                label_width,
-                item->label,
-                scroll_counter,
-                (position != model->position));
-
-            if(item->locked) {
-                canvas_draw_icon(canvas, value_pos_x, item_text_y - 8, &I_Lock_7x8);
-            } else {
-                if(item->current_value_index > 0) {
-                    canvas_draw_str(canvas, value_pos_x, item_text_y, "<");
-                }
-
-                elements_scrollable_text_line_centered(
-                    canvas,
-                    (115 + value_pos_x) / 2 + 1,
-                    item_text_y,
-                    37,
-                    item->current_value_text,
-                    scroll_counter,
-                    false,
-                    true);
-
-                if(item->current_value_index < (item->values_count - 1)) {
-                    canvas_draw_str(canvas, 115, item_text_y, ">");
-                }
-            }
+        } else {
+            canvas_set_color(canvas, ColorBlack);
         }
 
-        position++;
+        uint8_t value_pos_x = 73;
+        uint8_t label_width = 66;
+        if(item->locked) {
+            // Span label up to lock icon
+            value_pos_x = 110;
+            label_width = 100;
+        } else if(item->current_value_index == 0 && furi_string_empty(item->current_value_text)) {
+            // Only label text, no value text, show longer label
+            label_width = 109;
+        } else if(furi_string_size(item->current_value_text) < 4U) {
+            // Smaller value section for short values
+            value_pos_x = 80;
+            label_width = 71;
+        }
+
+        elements_scrollable_text_line(
+            canvas,
+            6,
+            item_text_y,
+            label_width,
+            item->label,
+            scroll_counter,
+            (position != model->position));
+
+        if(item->locked) {
+            canvas_draw_icon(canvas, value_pos_x, item_text_y - 8, &I_Lock_7x8);
+        } else {
+            if(item->current_value_index > 0) {
+                canvas_draw_str(canvas, value_pos_x, item_text_y, "<");
+            }
+
+            elements_scrollable_text_line_centered(
+                canvas,
+                (115 + value_pos_x) / 2 + 1,
+                item_text_y,
+                37,
+                item->current_value_text,
+                scroll_counter,
+                false,
+                true);
+
+            if(item->current_value_index < (item->values_count - 1)) {
+                canvas_draw_str(canvas, 115, item_text_y, ">");
+            }
+        }
     }
 
     elements_scrollbar(canvas, model->position, VariableItemArray_size(model->items));

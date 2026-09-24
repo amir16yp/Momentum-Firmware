@@ -30,16 +30,22 @@ typedef struct {
 static void PushToTalkMenuItem_init(PushToTalkMenuItem* item) {
     item->label = furi_string_alloc();
     item->index = 0;
+    item->callback = NULL;
+    item->callback_context = NULL;
 }
 
 static void PushToTalkMenuItem_init_set(PushToTalkMenuItem* item, const PushToTalkMenuItem* src) {
     item->label = furi_string_alloc_set(src->label);
     item->index = src->index;
+    item->callback = src->callback;
+    item->callback_context = src->callback_context;
 }
 
 static void PushToTalkMenuItem_set(PushToTalkMenuItem* item, const PushToTalkMenuItem* src) {
     furi_string_set(item->label, src->label);
     item->index = src->index;
+    item->callback = src->callback;
+    item->callback_context = src->callback_context;
 }
 
 static void PushToTalkMenuItem_clear(PushToTalkMenuItem* item) {
@@ -254,21 +260,18 @@ void ptt_menu_add_list(HidPushToTalkMenu* hid_ptt_menu, const char* label, uint3
         hid_ptt_menu->view,
         HidPushToTalkMenuModel * model,
         {
-            if(model->lists_count == 0) {
-                model->lists = (PushToTalkMenuList*)malloc(sizeof(PushToTalkMenuList));
-            } else {
-                model->lists = (PushToTalkMenuList*)realloc(
-                    model->lists, (model->lists_count + 1) * sizeof(PushToTalkMenuList));
-            }
-            if(model->lists == NULL) {
+            PushToTalkMenuList* lists =
+                realloc(model->lists, (model->lists_count + 1) * sizeof(PushToTalkMenuList));
+            if(lists == NULL) {
                 FURI_LOG_E(TAG, "Memory reallocation failed (%i)", model->lists_count);
-                return;
+            } else {
+                model->lists = lists;
+                PushToTalkMenuList* list = &model->lists[model->lists_count];
+                PushToTalkMenuItemArray_init(list->items);
+                list->label = furi_string_alloc_set(label);
+                list->index = index;
+                model->lists_count += 1;
             }
-            PushToTalkMenuList* list = &model->lists[model->lists_count];
-            PushToTalkMenuItemArray_init(list->items);
-            list->label = furi_string_alloc_set(label);
-            list->index = index;
-            model->lists_count += 1;
         },
         true);
 }
@@ -291,13 +294,13 @@ void ptt_menu_add_item_to_list(
             PushToTalkMenuList* list = hid_ptt_menu_get_list_at_index(model, list_index);
             if(list == NULL) {
                 FURI_LOG_E(TAG, "Adding item %s to unknown index %li", label, list_index);
-                return;
+            } else {
+                item = PushToTalkMenuItemArray_push_new(list->items);
+                furi_string_set_str(item->label, label);
+                item->index = index;
+                item->callback = callback;
+                item->callback_context = callback_context;
             }
-            item = PushToTalkMenuItemArray_push_new(list->items);
-            furi_string_set_str(item->label, label);
-            item->index = index;
-            item->callback = callback;
-            item->callback_context = callback_context;
         },
         true);
 }
