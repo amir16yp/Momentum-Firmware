@@ -115,9 +115,10 @@ jobs:
       - name: "Upload artifacts to GitHub"
         uses: actions/upload-artifact@v4
         with:
-          path: |
-            dist/${{ env.TARGET }}-*/flipper-z-${{ env.TARGET }}-update-*
-            dist/${{ env.TARGET }}-*/flipper-z-${{ env.TARGET }}-sdk-*
+          name: qflipper-package-${{ env.TARGET }}
+          path: dist/${{ env.TARGET }}-*/flipper-z-${{ env.TARGET }}-update-*.tgz
+          if-no-files-found: error
+          retention-days: 14
 
       - name: "Copy build output"
         if: ${{ env.SHOULD_UPLOAD == 'true' }}
@@ -222,11 +223,3 @@ jobs:
             - DFU Size: `${{ env.DFU_SIZE }}` (`${{ env.DFU_DIFF }}` from dev)
             - Free Flash: `${{ env.FLASH_FREE }}` (`${{ env.FLASH_USABLE }}` usable)
           edit-mode: replace
-
-      - name: "Send devbuild webhook"
-        env:
-          INDEXER_URL: ${{ secrets.INDEXER_URL }}
-          BUILD_WEBHOOK: ${{ secrets.BUILD_WEBHOOK }}
-        if: ${{ env.SHOULD_DEVBUILD == 'true' }}
-        run: |
-          python .github/workflow_data/devbuild.py
