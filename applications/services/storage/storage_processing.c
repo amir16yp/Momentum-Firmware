@@ -28,25 +28,25 @@ static bool storage_type_is_valid(StorageType type) {
 }
 
 static StorageData* get_storage_by_file(File* file, StorageData* storages) {
-    StorageData* storage_data = NULL;
-
     for(uint8_t i = 0; i < STORAGE_COUNT; i++) {
         if(storage_has_file(file, &storages[i])) {
-            storage_data = &storages[i];
+            return &storages[i];
         }
     }
 
-    return storage_data;
+    return NULL;
 }
 
 static const char* cstr_path_without_vfs_prefix(FuriString* path) {
     const char* path_cstr = furi_string_get_cstr(path);
-    return path_cstr + MIN(STORAGE_PATH_PREFIX_LEN, strlen(path_cstr));
+    return path_cstr + MIN(STORAGE_PATH_PREFIX_LEN, furi_string_size(path));
 }
 
 static StorageType storage_get_type_by_path(FuriString* path) {
     StorageType type = ST_ERROR;
     const char* path_cstr = furi_string_get_cstr(path);
+
+    if(furi_string_size(path) < STORAGE_PATH_PREFIX_LEN) return ST_ERROR;
 
     if(furi_string_size(path) > STORAGE_PATH_PREFIX_LEN) {
         if(path_cstr[STORAGE_PATH_PREFIX_LEN] != '/') {

@@ -195,9 +195,7 @@ static void storage_cli_read(PipeSide* pipe, FuriString* path, FuriString* args)
 
         do {
             read_size = storage_file_read(file, data, buffer_size);
-            for(size_t i = 0; i < read_size; i++) {
-                printf("%c", data[i]);
-            }
+            furi_thread_stdout_write((const char*)data, read_size);
         } while(read_size > 0);
         printf("\r\n");
 
@@ -224,36 +222,33 @@ static void storage_cli_write(PipeSide* pipe, FuriString* path, FuriString* args
     if(storage_file_open(file, furi_string_get_cstr(path), FSAM_WRITE, FSOM_OPEN_APPEND)) {
         printf("Just write your text data. New line by Ctrl+Enter, exit by Ctrl+C.\r\n");
 
-        uint32_t read_index = 0;
+        size_t read_index = 0;
 
         while(true) {
-            uint8_t symbol = getchar();
+            int symbol = getchar();
 
-            if(symbol == CliKeyETX) {
-                size_t write_size = read_index % buffer_size;
-
-                if(write_size > 0) {
-                    size_t written_size = storage_file_write(file, buffer, write_size);
-
-                    if(written_size != write_size) {
+            if(symbol == CliKeyETX || symbol == EOF) {
+                if(read_index > 0) {
+                    size_t written_size = storage_file_write(file, buffer, read_index);
+                    if(written_size != read_index) {
                         storage_cli_print_error(storage_file_get_error(file));
                     }
-                    break;
                 }
+                break;
             }
 
-            buffer[read_index % buffer_size] = symbol;
-            printf("%c", buffer[read_index % buffer_size]);
+            buffer[read_index++] = (uint8_t)symbol;
+            putchar(symbol);
             fflush(stdout);
-            read_index++;
 
-            if((read_index % buffer_size) == 0) {
+            if(read_index == buffer_size) {
                 size_t written_size = storage_file_write(file, buffer, buffer_size);
 
                 if(written_size != buffer_size) {
                     storage_cli_print_error(storage_file_get_error(file));
                     break;
                 }
+                read_index = 0;
             }
         }
         printf("\r\n");
@@ -283,16 +278,27 @@ static void storage_cli_read_chunks(PipeSide* pipe, FuriString* path, FuriString
         printf("Size: %llu\r\n", file_size);
 
         if(buffer_size) {
-            uint8_t* data = malloc(buffer_size);
+            const size_t capacity = MIN(buffer_size, 512U);
+            uint8_t* data = malloc(capacity);
             while(file_size > 0) {
                 printf("\r\nReady?\r\n");
-                getchar();
+                if(getchar() == EOF) break;
 
-                size_t read_size = storage_file_read(file, data, buffer_size);
-                for(size_t i = 0; i < read_size; i++) {
-                    putchar(data[i]);
+                size_t remaining = MIN(file_size, buffer_size);
+                while(remaining > 0) {
+                    size_t to_read = MIN(remaining, capacity);
+                    size_t read_size = storage_file_read(file, data, to_read);
+                    furi_thread_stdout_write((const char*)data, read_size);
+                    file_size -= read_size;
+                    remaining -= read_size;
+                    if(read_size != to_read) {
+                        if(storage_file_get_error(file) != FSE_OK) {
+                            storage_cli_print_error(storage_file_get_error(file));
+                        }
+                        file_size = 0;
+                        break;
+                    }
                 }
-                file_size -= read_size;
             }
             free(data);
         }

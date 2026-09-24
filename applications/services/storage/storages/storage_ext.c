@@ -111,7 +111,7 @@ static bool sd_remove_recursive(const char* path) {
 
         while(true) {
             status = f_readdir(current_dir, file_info);
-            if(status != FR_OK || !strlen(file_info->fname)) break;
+            if(status != FR_OK || file_info->fname[0] == '\0') break;
 
             if(file_info->fattrib & AM_DIR) {
                 furi_string_cat_printf(current_path, "/%s", file_info->fname);
@@ -119,16 +119,17 @@ static bool sd_remove_recursive(const char* path) {
                 break;
 
             } else {
-                FuriString* file_path = furi_string_alloc_printf(
-                    "%s/%s", furi_string_get_cstr(current_path), file_info->fname);
-                status = f_unlink(furi_string_get_cstr(file_path));
-                furi_string_free(file_path);
+                size_t dir_length = furi_string_size(current_path);
+                furi_string_cat_printf(current_path, "/%s", file_info->fname);
+                status = f_unlink(furi_string_get_cstr(current_path));
+                furi_string_left(current_path, dir_length);
 
                 if(status != FR_OK) break;
             }
         }
 
-        status = f_closedir(current_dir);
+        SDError close_status = f_closedir(current_dir);
+        if(status == FR_OK) status = close_status;
         if(status != FR_OK) break;
 
         if(go_deeper) {
@@ -394,7 +395,7 @@ static char* storage_ext_drive_path(StorageData* storage, const char* path) {
     char* path_drv = malloc(path_len);
     path_drv[0] = sd_data->path[0];
     path_drv[1] = ':';
-    strlcpy(path_drv + 2, path, path_len - 2);
+    memcpy(path_drv + 2, path, path_len - 2);
     return path_drv;
 }
 
@@ -595,6 +596,12 @@ static bool storage_ext_dir_read(
     file->internal_error_id = f_readdir(file_data, &_fileinfo);
     file->error_id = storage_ext_parse_error(file->internal_error_id);
 
+    if(file->error_id != FSE_OK) return false;
+    if(_fileinfo.fname[0] == '\0') {
+        file->error_id = FSE_NOT_EXIST;
+        return false;
+    }
+
     if(fileinfo != NULL) {
         fileinfo->size = _fileinfo.fsize;
         fileinfo->flags = 0;
@@ -603,11 +610,7 @@ static bool storage_ext_dir_read(
     }
 
     if(name != NULL) {
-        snprintf(name, name_length, "%s", _fileinfo.fname);
-    }
-
-    if(_fileinfo.fname[0] == 0) {
-        file->error_id = FSE_NOT_EXIST;
+        strlcpy(name, _fileinfo.fname, name_length);
     }
 
     return file->error_id == FSE_OK;
@@ -630,7 +633,7 @@ static FS_Error storage_ext_common_stat(void* ctx, const char* path, FileInfo* f
     SDError result = f_stat(drive_path, &_fileinfo);
     free(drive_path);
 
-    if(fileinfo != NULL) {
+    if(result == FR_OK && fileinfo != NULL) {
         fileinfo->size = _fileinfo.fsize;
         fileinfo->flags = 0;
 

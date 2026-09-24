@@ -26,16 +26,21 @@ typedef struct {
     Node nodes[64];
     size_t count;
     const char* fail_open;
+    const char* fail_remove;
+    bool fail_read;
+    bool fail_close;
 } Storage;
 typedef struct {
     Storage* storage;
     char path[1024];
     size_t next;
+    int error;
 } File;
 typedef int FS_Error;
 enum {
     FSE_OK,
-    FSE_ERROR
+    FSE_ERROR,
+    FSE_NOT_EXIST
 };
 static size_t live_strings, string_allocations, live_files;
 
@@ -77,6 +82,7 @@ static size_t furi_string_search_rchar(FuriString* value, char character) {
     return found ? (size_t)(found - value->text) : SIZE_MAX;
 }
 static FS_Error storage_common_remove(Storage* storage, const char* path) {
+    if(storage->fail_remove && !strcmp(path, storage->fail_remove)) return FSE_ERROR;
     for(size_t i = 0; i < storage->count; ++i) {
         Node* node = &storage->nodes[i];
         if(node->removed || strcmp(node->path, path)) continue;
@@ -109,12 +115,21 @@ static bool storage_dir_open(File* file, const char* path) {
     if(file->storage->fail_open && !strcmp(path, file->storage->fail_open)) return false;
     strcpy(file->path, path);
     file->next = 0;
+    file->error = FSE_OK;
     return true;
 }
-static void storage_dir_close(File* file) {
-    (void)file;
+static bool storage_dir_close(File* file) {
+    file->error = FSE_OK;
+    return !file->storage->fail_close;
+}
+static FS_Error storage_file_get_error(File* file) {
+    return file->error;
 }
 static bool storage_dir_read(File* file, FileInfo* info, char* name, size_t capacity) {
+    if(file->storage->fail_read) {
+        file->error = FSE_ERROR;
+        return false;
+    }
     size_t length = strlen(file->path);
     while(file->next < file->storage->count) {
         Node* node = &file->storage->nodes[file->next++];
@@ -127,6 +142,7 @@ static bool storage_dir_read(File* file, FileInfo* info, char* name, size_t capa
         info->directory = node->directory;
         return true;
     }
+    file->error = FSE_NOT_EXIST;
     return false;
 }
 static bool file_info_is_dir(FileInfo* info) {
@@ -176,6 +192,18 @@ int main(void) {
         add(&storage, "/ext/tree/child/file", false);
         storage.fail_open = failures[i];
         assert(!storage_simply_remove_recursive(&storage, "/ext/tree"));
+        assert(live_strings == 0 && live_files == 0);
+    }
+    for(unsigned failure = 0; failure < 4; ++failure) {
+        Storage storage = {0};
+        add(&storage, "/ext/tree", true);
+        add(&storage, "/ext/tree/file", false);
+        if(failure == 0) storage.fail_remove = "/ext/tree/file";
+        if(failure == 1) storage.fail_remove = "/ext/tree";
+        storage.fail_read = failure == 2;
+        storage.fail_close = failure == 3;
+        assert(!storage_simply_remove_recursive(&storage, "/ext/tree"));
+        assert(!storage.nodes[0].removed);
         assert(live_strings == 0 && live_files == 0);
     }
     return 0;
