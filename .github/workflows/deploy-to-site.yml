@@ -60,10 +60,20 @@ jobs:
     runs-on: ubuntu-latest
     # This runner never executes firmware code or scripts from the artifact.
     steps:
+      - name: Validate website deployment token
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "::error::Configure DEPLOY_TOKEN with Contents read/write access to amir16yp/amir16yp.github.io."
+            exit 1
+          fi
+
       - name: Checkout website repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: amir16yp/amir16yp.github.io
+          token: ${{ secrets.DEPLOY_TOKEN }}
           path: website
           persist-credentials: false
 
