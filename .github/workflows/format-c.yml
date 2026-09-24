@@ -1,0 +1,43 @@
+name: "Format C code"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: format-c-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  format:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: "Checkout selected branch"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: "Install clang-format"
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-format-18
+
+      - name: "Format tracked C sources and headers"
+        run: |
+          git ls-files -z -- '*.c' '*.h' |
+            xargs -0 -r clang-format-18 -i --style=file:.github/workflow_data/format-c.clang-format
+
+      - name: "Commit and push formatting changes"
+        run: |
+          git add -- '*.c' '*.h'
+          if git diff --cached --quiet; then
+            echo "C code is already formatted."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "style: format C sources and headers"
+          git push origin "HEAD:$GITHUB_REF"

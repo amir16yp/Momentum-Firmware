@@ -35,6 +35,40 @@ def function(source, signature):
 
 
 class StorageOptimizationTest(unittest.TestCase):
+    def test_file_copy_buffer_size_types(self):
+        source = (STORAGE / "storage_external_api.c").read_text()
+        defines = (ROOT / "furi/core/core_defines.h").read_text()
+        # Use the firmware macro: the simplified host MIN hides signedness errors.
+        real_min = defines.split("#ifndef MIN\n", 1)[1].split("#endif", 1)[0]
+        code = PREAMBLE + "\n#undef MIN\n" + real_min + r"""
+#define FILE_BUFFER_SIZE 512
+typedef struct { size_t transferred; } File;
+static uint32_t storage_file_read(File* file, void* buffer, uint32_t size) {
+    assert(size <= FILE_BUFFER_SIZE);
+    memset(buffer, 0, size);
+    file->transferred += size;
+    return size;
+}
+static uint32_t storage_file_write(File* file, const void* buffer, uint32_t size) {
+    UNUSED(buffer);
+    file->transferred += size;
+    return size;
+}
+"""
+        code += function(source, "bool storage_file_copy_to_file(")
+        code += r"""
+int main(void) {
+    const size_t sizes[] = {0, 1, 511, 512, 513, 2048};
+    for(size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
+        File source = {0}, destination = {0};
+        assert(storage_file_copy_to_file(&source, &destination, sizes[i]));
+        assert(source.transferred == sizes[i]);
+        assert(destination.transferred == sizes[i]);
+    }
+}
+"""
+        run_c(code)
+
     def test_copy_failures(self):
         source = (STORAGE / "storage_external_api.c").read_text()
         code = PREAMBLE + r"""

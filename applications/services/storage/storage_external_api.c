@@ -314,7 +314,7 @@ bool storage_file_copy_to_file(File* source, File* destination, size_t size) {
 
     if(size == 0) return true;
 
-    uint8_t* buffer = malloc(MIN(size, FILE_BUFFER_SIZE));
+    uint8_t* buffer = malloc(MIN(size, (size_t)FILE_BUFFER_SIZE));
 
     while(size) {
         uint32_t read_size = size > FILE_BUFFER_SIZE ? FILE_BUFFER_SIZE : size;
